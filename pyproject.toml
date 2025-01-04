@@ -28,8 +28,8 @@ classifiers = [
 requires-python = ">=3.9"
 
 [project.urls]
-Issues = "https://github.com/harui2019/qurrium/issues"
-Homepage = "https://github.com/harui2019/qurrium"
+Issues = "https://github.com/qurrium/qurrium/issues"
+Homepage = "https://github.com/qurrium/qurrium"
 
 [tool.setuptools.packages.find]
 include = ['qurry*', 'qurry.capsule*']
@@ -51,7 +51,6 @@ skip = [
     "*-musllinux_i686", # rust tier 2 support, qiskit did not support musllinux
     "pp*",              # Qiskit and Qurry are not pure python packages, See https://github.com/harui2019/qurry/issues/93#issuecomment-1801837481
     "cp38-*",           # Not support and won't support for we write type hint in 3.9 syntax.
-    "cp313-*",          # Just too recent
     "*-musllinux_*",    # qiskit did not support musllinux
     # "*-manylinux_i686", # scipy dependency issue, Check issue https://github.com/harui2019/qurry/issues/93 for details
 ]
