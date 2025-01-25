@@ -109,26 +109,23 @@ def circuit_method_core(
         QuantumCircuit: The circuit for the experiment.
     """
 
-    num_qubits = target_circuit.num_qubits
     old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
 
-    q_func1 = QuantumRegister(num_qubits, "q1")
-    c_meas1 = ClassicalRegister(len(registers_mapping), "c1")
-    c_ancilla = ClassicalRegister(1, "c_ancilla")
-    qc_exp1 = QuantumCircuit(q_func1, c_meas1)
+    q_func1 = QuantumRegister(target_circuit.num_qubits, "q_f1")
+    c_meas1 = ClassicalRegister(len(registers_mapping), "c_m1")
+    qc_exp1 = QuantumCircuit(q_func1, c_meas1, target_circuit.clbits)
     qc_exp1.name = (
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
         else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
     )
 
-    # TODO: When target has more clbits or qubits than dest, it will raise an error.
-    # See qiskit/circuit/quantumcircuit.py:1961
-    # if other.num_qubits > dest.num_qubits or other.num_clbits > dest.num_clbits:
-    # raise CircuitError(
-    #     "Trying to compose with another QuantumCircuit which has more 'in' edges."
-    # )
-    qc_exp1.compose(target_circuit, [q_func1[i] for i in range(num_qubits)], inplace=True)
+    qc_exp1.compose(
+        target_circuit,
+        qubits=q_func1,
+        clbits=target_circuit.clbits,
+        inplace=True,
+    )
 
     qc_exp1.barrier()
     for qi, opertor in single_unitary_dict.items():
