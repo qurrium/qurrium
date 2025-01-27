@@ -6,7 +6,7 @@ EntropyMeasureRandomized - Utility
 
 """
 
-from typing import Optional
+from typing import Optional, Literal
 from collections.abc import Hashable, Iterable
 import tqdm
 
@@ -81,7 +81,65 @@ def randomized_entangled_entropy_complex(
     )
 
 
-def circuit_method_core(
+def circuit_method_core_compose(
+    idx: int,
+    target_circuit: QuantumCircuit,
+    target_key: Hashable,
+    exp_name: str,
+    registers_mapping: dict[int, int],
+    single_unitary_dict: dict[int, Operator],
+) -> QuantumCircuit:
+    """Build the circuit for the experiment.
+
+    Args:
+        idx (int):
+            Index of the quantum circuit.
+        target_circuit (QuantumCircuit):
+            Target circuit.
+        target_key (Hashable):
+            Target key.
+        exp_name (str):
+            Experiment name.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+        single_unitary_dict (dict[int, Operator]):
+            The dictionary of the unitary operator.
+
+    Returns:
+        QuantumCircuit: The circuit for the experiment.
+    """
+
+    old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
+    target_copy = target_circuit.copy()
+
+    q_func1 = QuantumRegister(target_copy.num_qubits, "q_f1")
+    c_meas1 = ClassicalRegister(len(registers_mapping), "c_m1")
+    c_anc1 = ClassicalRegister(target_copy.num_clbits, "c_a1")
+    qc_exp1 = QuantumCircuit(q_func1, c_meas1, c_anc1)
+    qc_exp1.name = (
+        f"{exp_name}_{idx}" + ""
+        if len(str(target_key)) < 1
+        else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
+    )
+
+    qc_exp1.compose(
+        target_copy,
+        qubits=q_func1,
+        clbits=target_copy.clbits,
+        inplace=True,
+    )
+
+    qc_exp1.barrier()
+    for qi, opertor in single_unitary_dict.items():
+        qc_exp1.append(opertor.to_instruction(), [qi])
+
+    for qi, ci in registers_mapping.items():
+        qc_exp1.measure(q_func1[qi], c_meas1[ci])
+
+    return qc_exp1
+
+
+def circuit_method_core_process(
     idx: int,
     target_circuit: QuantumCircuit,
     target_key: Hashable,
@@ -111,27 +169,76 @@ def circuit_method_core(
 
     old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
 
-    q_func1 = QuantumRegister(target_circuit.num_qubits, "q_f1")
-    c_meas1 = ClassicalRegister(len(registers_mapping), "c_m1")
-    qc_exp1 = QuantumCircuit(q_func1, c_meas1, target_circuit.clbits)
-    qc_exp1.name = (
+    qc_exp1 = target_circuit.copy(
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
         else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
     )
-
-    qc_exp1.compose(
-        target_circuit,
-        qubits=q_func1,
-        clbits=target_circuit.clbits,
-        inplace=True,
+    c_meas1 = ClassicalRegister(
+        len(registers_mapping),
+        None if "m1" in [reg.name for reg in (qc_exp1.qregs + qc_exp1.cregs)] else "m1",
     )
+    qc_exp1.add_register(c_meas1)
 
     qc_exp1.barrier()
+
     for qi, opertor in single_unitary_dict.items():
         qc_exp1.append(opertor.to_instruction(), [qi])
 
     for qi, ci in registers_mapping.items():
-        qc_exp1.measure(q_func1[qi], c_meas1[ci])
+        qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])
 
     return qc_exp1
+
+
+def circuit_method_core(
+    idx: int,
+    target_circuit: QuantumCircuit,
+    target_key: Hashable,
+    exp_name: str,
+    registers_mapping: dict[int, int],
+    single_unitary_dict: dict[int, Operator],
+    method: Literal["compose", "process"] = "process",
+) -> QuantumCircuit:
+    """Build the circuit for the experiment.
+
+    Args:
+        idx (int):
+            Index of the quantum circuit.
+        target_circuit (QuantumCircuit):
+            Target circuit.
+        target_key (Hashable):
+            Target key.
+        exp_name (str):
+            Experiment name.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+        single_unitary_dict (dict[int, Operator]):
+            The dictionary of the unitary operator.
+        method (Literal["compose", "process"], optional):
+            The method of the circuit. Defaults to "process".
+
+    Returns:
+        QuantumCircuit: The circuit for the experiment.
+    """
+
+    if method == "compose":
+        return circuit_method_core_compose(
+            idx=idx,
+            target_circuit=target_circuit,
+            target_key=target_key,
+            exp_name=exp_name,
+            registers_mapping=registers_mapping,
+            single_unitary_dict=single_unitary_dict,
+        )
+    elif method == "process":
+        return circuit_method_core_process(
+            idx=idx,
+            target_circuit=target_circuit,
+            target_key=target_key,
+            exp_name=exp_name,
+            registers_mapping=registers_mapping,
+            single_unitary_dict=single_unitary_dict,
+        )
+    else:
+        raise ValueError(f"method should be compose or process, but get {method}.")
