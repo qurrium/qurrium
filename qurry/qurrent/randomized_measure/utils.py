@@ -81,7 +81,7 @@ def randomized_entangled_entropy_complex(
     )
 
 
-def circuit_method_core_compose(
+def circuit_method_compose(
     idx: int,
     target_circuit: QuantumCircuit,
     target_key: Hashable,
@@ -139,7 +139,7 @@ def circuit_method_core_compose(
     return qc_exp1
 
 
-def circuit_method_core_process(
+def circuit_method_core(
     idx: int,
     target_circuit: QuantumCircuit,
     target_key: Hashable,
@@ -188,57 +188,9 @@ def circuit_method_core_process(
     for qi, ci in registers_mapping.items():
         qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])
 
+    assert qc_exp1.cregs[-1] is c_meas1, (
+        f"The last classical register should be the measurement register {c_meas1},"
+        + f" but get {qc_exp1.cregs[-1]} in {qc_exp1.cregs}. From {exp_name} on index {idx}."
+    )
+
     return qc_exp1
-
-
-def circuit_method_core(
-    idx: int,
-    target_circuit: QuantumCircuit,
-    target_key: Hashable,
-    exp_name: str,
-    registers_mapping: dict[int, int],
-    single_unitary_dict: dict[int, Operator],
-    method: Literal["compose", "process"] = "process",
-) -> QuantumCircuit:
-    """Build the circuit for the experiment.
-
-    Args:
-        idx (int):
-            Index of the quantum circuit.
-        target_circuit (QuantumCircuit):
-            Target circuit.
-        target_key (Hashable):
-            Target key.
-        exp_name (str):
-            Experiment name.
-        registers_mapping (dict[int, int]):
-            The mapping of the index of selected qubits to the index of the classical register.
-        single_unitary_dict (dict[int, Operator]):
-            The dictionary of the unitary operator.
-        method (Literal["compose", "process"], optional):
-            The method of the circuit. Defaults to "process".
-
-    Returns:
-        QuantumCircuit: The circuit for the experiment.
-    """
-
-    if method == "compose":
-        return circuit_method_core_compose(
-            idx=idx,
-            target_circuit=target_circuit,
-            target_key=target_key,
-            exp_name=exp_name,
-            registers_mapping=registers_mapping,
-            single_unitary_dict=single_unitary_dict,
-        )
-    elif method == "process":
-        return circuit_method_core_process(
-            idx=idx,
-            target_circuit=target_circuit,
-            target_key=target_key,
-            exp_name=exp_name,
-            registers_mapping=registers_mapping,
-            single_unitary_dict=single_unitary_dict,
-        )
-    else:
-        raise ValueError(f"method should be compose or process, but get {method}.")
