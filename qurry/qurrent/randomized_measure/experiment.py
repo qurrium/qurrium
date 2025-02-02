@@ -126,6 +126,9 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         registers_mapping = qubit_mapper(actual_qubits, measure)
         qubits_measured = list(registers_mapping)
 
+        bistring_shift = len(target_circuit.clbits) + len(target_circuit.cregs)
+        bitstring_mapping = {v: v + bistring_shift for v in registers_mapping.values()}
+
         unitary_located = list(qubit_mapper(actual_qubits, unitary_loc))
         measured_but_not_unitary_located = [
             qi for qi in qubits_measured if qi not in unitary_located
@@ -150,6 +153,7 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
             times=times,
             qubits_measured=qubits_measured,
             registers_mapping=registers_mapping,
+            bitstring_mapping=bitstring_mapping,
             actual_num_qubits=actual_qubits,
             unitary_located=unitary_located,
             random_unitary_seeds=random_unitary_seeds,
