@@ -34,7 +34,7 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
     qubits_measured: Optional[list[int]] = None
     """The measure range."""
     registers_mapping: Optional[dict[int, int]] = None
-    """The mapping of the classical registers with quantum registers.
+    """The mapping of the classical registers of measurement with quantum registers.
 
     .. code-block:: python
         {
@@ -64,7 +64,6 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
     So, the mapping will be like this.
 
     .. code-block:: python
-
         {
             0: 10, # The classical register 0 is mapped to the bitstring on the index 0.
             1: 11, # The classical register 0 is mapped to the bitstring on the index 1.
@@ -111,11 +110,12 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_unitary_seeds` 
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
