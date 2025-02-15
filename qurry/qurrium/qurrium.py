@@ -5,7 +5,6 @@ Qurrium - A Qiskit Macro
 ===========================================================
 """
 
-import gc
 import warnings
 from abc import abstractmethod, ABC
 from typing import Literal, Union, Optional, Any, Type
@@ -34,12 +33,11 @@ from .multimanager.multimanager import (
 from ..tools import qurry_progressbar
 from ..tools.backend import GeneralSimulator
 from ..declare import BaseRunArgs, TranspileArgs, OutputArgs, BasicArgs, AnalyzeArgs
-from ..exceptions import QurryResetAccomplished, QurryResetSecurityActivated
 
 
 class QurriumPrototype(ABC):
     """Qurrium, A qiskit Macro.
-    ~Create countless adventure, legacy and tales.~
+    *~ Create countless adventure, legacy and tales. ~*
     """
 
     __name__ = "QurriumPrototype"
@@ -943,38 +941,6 @@ class QurriumPrototype(ABC):
         assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id
-
-    def reset(
-        self,
-        *,
-        keepWave: bool = True,
-        security: bool = False,
-    ) -> None:
-        """Reset the measurement and release memory.
-
-        Args:
-            security (bool, optional): Security for reset. Defaults to `False`.
-        """
-
-        tmp_wave_container = dict(self.waves.items()) if keepWave else {}
-
-        if security and isinstance(security, bool):
-            # pylint: disable=unnecessary-dunder-call
-            self.__init__()
-            # pylint: enable=unnecessary-dunder-call
-            gc.collect()
-            for k, v in tmp_wave_container.items():
-                self.add(v, k)
-            warnings.warn(
-                "The measurement has reset and release memory allocating.",
-                QurryResetAccomplished,
-            )
-        else:
-            warnings.warn(
-                "Reset does not execute to prevent executing accidentally, "
-                + "if you are sure to do this, then use '.reset(security=True)'.",
-                QurryResetSecurityActivated,
-            )
 
     def __repr__(self):
         return (
