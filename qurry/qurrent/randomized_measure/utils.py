@@ -6,7 +6,7 @@ EntropyMeasureRandomized - Utility
 
 """
 
-from typing import Optional, Literal
+from typing import Optional
 from collections.abc import Hashable, Iterable
 import tqdm
 
@@ -139,7 +139,7 @@ def circuit_method_compose(
     return qc_exp1
 
 
-def circuit_method_core(
+def randomized_circuit_method(
     idx: int,
     target_circuit: QuantumCircuit,
     target_key: Hashable,

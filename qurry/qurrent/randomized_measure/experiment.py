@@ -14,8 +14,8 @@ from qiskit import QuantumCircuit
 
 from .analysis import EntropyMeasureRandomizedAnalysis
 from .arguments import EntropyMeasureRandomizedArguments, SHORT_NAME
-from .utils import circuit_method_core, randomized_entangled_entropy_complex
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from .utils import randomized_circuit_method, randomized_entangled_entropy_complex
+from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,
@@ -28,7 +28,7 @@ from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...tools import qurry_progressbar, ParallelManager, set_pbar_description
+from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
@@ -48,6 +48,8 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
     def analysis_instance(self) -> Type[EntropyMeasureRandomizedAnalysis]:
         """The analysis instance for this experiment."""
         return EntropyMeasureRandomizedAnalysis
+
+    reports: AnalysesContainer[EntropyMeasureRandomizedAnalysis]
 
     @classmethod
     def params_control(
@@ -206,7 +208,7 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
         circ_list = pool.starmap(
-            circuit_method_core,
+            randomized_circuit_method,
             [
                 (
                     n_u_i,
@@ -272,12 +274,14 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
 
-        self.args: EntropyMeasureRandomizedArguments
-        self.reports: dict[int, EntropyMeasureRandomizedAnalysis]
-        registers_mapping = self.args.registers_mapping
-        assert isinstance(
-            registers_mapping, dict
-        ), f"registers_mapping {registers_mapping} is not dict."
+        if self.args.registers_mapping is None:
+            raise ValueError("registers_mapping should be specified, but got None.")
+
+        final_mapping = (
+            {v: v for v in self.args.registers_mapping.values()}
+            if self.args.bitstring_mapping is None
+            else {k: self.args.bitstring_mapping[v] for k, v in self.args.registers_mapping.items()}
+        )
 
         if isinstance(counts_used, Iterable):
             if max(counts_used) >= len(self.afterwards.counts):
@@ -306,44 +310,26 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         )
 
         selected_qubits = [qi % self.args.actual_num_qubits for qi in selected_qubits]
-        assert len(set(selected_qubits)) == len(
-            selected_qubits
-        ), f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
-        selected_classical_registers = [registers_mapping[qi] for qi in selected_qubits]
-
-        if isinstance(pbar, tqdm.tqdm):
-            qs = self.quantities(
-                shots=self.commons.shots,
-                counts=counts,
-                selected_classical_registers=selected_classical_registers,
-                all_system_source=all_system_source,
-                backend=backend,
-                pbar=pbar,
+        if not len(set(selected_qubits)) == len(selected_qubits):
+            raise ValueError(
+                f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
             )
-
-        else:
-            pbar_selfhost = qurry_progressbar(
-                range(1),
-                bar_format="simple",
-            )
-
-            with pbar_selfhost as pb_self:
-                qs = self.quantities(
-                    shots=self.commons.shots,
-                    counts=counts,
-                    selected_classical_registers=selected_classical_registers,
-                    all_system_source=all_system_source,
-                    backend=backend,
-                    pbar=pb_self,
-                )
-                pb_self.update()
+        qs = self.quantities(
+            shots=self.commons.shots,
+            counts=counts,
+            selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
+            all_system_source=all_system_source,
+            backend=backend,
+            pbar=pbar,
+        )
 
         serial = len(self.reports)
         analysis = self.analysis_instance(
             serial=serial,
             num_qubits=self.args.actual_num_qubits,
             selected_qubits=selected_qubits,
-            registers_mapping=registers_mapping,
+            registers_mapping=self.args.registers_mapping,
+            bitstring_mapping=self.args.bitstring_mapping,
             shots=self.commons.shots,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,
@@ -384,7 +370,7 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         """
 
         if shots is None or counts is None:
-            raise ValueError("shots and counts should be specified.")
+            raise ValueError("shots and counts should be given.")
 
         return randomized_entangled_entropy_complex(
             shots=shots,

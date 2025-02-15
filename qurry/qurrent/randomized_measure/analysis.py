@@ -37,7 +37,7 @@ class EntropyMeasureRandomizedAnalysis(AnalysisPrototype):
         The key is the index of the quantum register with the numerical order.
         The value is the index of the classical register with the numerical order.
         """
-        bitstring_mapping: Optional[dict[int, int]] = None
+        bitstring_mapping: Optional[dict[int, int]]
         """The mapping of the bitstring with the classical registers.
         When there are mulitple classical registers, 
         the bitstring is the concatenation of the classical registers with space on bitstring.
