@@ -1,7 +1,6 @@
 """
 ================================================================
-The experiment prototype 
-which is the basic class of all experiments.
+ExperimentPrototype - The instance of experiment. 
 (:mod:`qurry.qurrium.experiment.experiment`)
 ================================================================
 
@@ -37,11 +36,8 @@ from ..utils.qasm import qasm_dumps
 from ..utils.iocontrol import RJUST_LEN
 from ..utils.inputfixer import outfields_check, outfields_hint
 from ..analysis import AnalysisPrototype
-from ...tools import ParallelManager, DEFAULT_POOL_SIZE
-from ...tools.datetime import DatetimeDict
-from ...tools.progressbar import set_pbar_description
+from ...tools import ParallelManager, DatetimeDict, set_pbar_description, backend_name_getter
 from ...tools.backend import GeneralSimulator
-from ...tools.backend.utils import backend_name_getter
 from ...capsule import jsonablize, quickJSON
 from ...capsule.hoshi import Hoshi
 from ...declare import BaseRunArgs, TranspileArgs
@@ -181,7 +177,9 @@ class ExperimentPrototype(ABC):
                 counts=[],
             )
         )
-        self.reports = reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
+        self.reports: AnalysesContainer[AnalysisPrototype] = (
+            reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
+        )
 
         _summon_check = {
             "serial": self.commons.serial,
@@ -583,20 +581,21 @@ class ExperimentPrototype(ABC):
             current_exp.beforewards.circuit.append(_w)
 
         # commons
-        datenote, date = current_exp.commons.datetimes.add_only("build")
-        set_pbar_description(pbar, f"Building Completed, denoted '{datenote}' date: {date}...")
+        note_and_date = current_exp.commons.datetimes.add_only("build")
+        set_pbar_description(
+            pbar, f"Building Completed, denoted '{note_and_date[0]}' date: {note_and_date[1]}..."
+        )
 
-        if export:
-            # export may be slow, consider export at finish or something
-            if isinstance(save_location, (Path, str)):
-                set_pbar_description(pbar, "Setup data exporting...")
-                current_exp.write(
-                    save_location=save_location,
-                    mode=mode,
-                    indent=indent,
-                    encoding=encoding,
-                    jsonable=jsonable,
-                )
+        # export may be slow, consider export at finish or something
+        if isinstance(save_location, (Path, str)) and export:
+            set_pbar_description(pbar, "Setup data exporting...")
+            current_exp.write(
+                save_location=save_location,
+                mode=mode,
+                indent=indent,
+                encoding=encoding,
+                jsonable=jsonable,
+            )
 
         return current_exp
 
@@ -849,9 +848,6 @@ class ExperimentPrototype(ABC):
         """Analyzing the example circuit results in specific method.
         Where should be overwritten by each construction of new measurement.
 
-        Args:
-            allArgs: all arguments will pass to `.quantities`.
-
         Returns:
             analysis: Analysis of the counts from measurement.
         """
@@ -861,12 +857,12 @@ class ExperimentPrototype(ABC):
         """Reset the measurement and release memory.
 
         Args:
-            args (any):
-                Positional arguments handler to protect other keyword arguments.
-                It's useless, umm...😐
-            security (bool, optional): Security for reset. Defaults to `False`.
-            mute (bool, optional): Mute the warning when reset activated. Defaults to `False`.
+            security (bool, optional): Security for clearing. Defaults to `False`.
+            mute (bool, optional): Mute the warning when clearing. Defaults to `False`.
         """
+
+        if len(args) > 0:
+            raise ValueError("Use 'clear_analysis(security=True)' to clear.")
 
         if security and isinstance(security, bool):
             self.reports = AnalysesContainer()
@@ -879,12 +875,7 @@ class ExperimentPrototype(ABC):
         else:
             warnings.warn(
                 "Reset does not execute to prevent executing accidentally, "
-                + "if you are sure to do this, then use '.reset(security=True)'."
-                + (
-                    "Attention: any position arguments are not available on this method."
-                    if len(args) > 0
-                    else ""
-                ),
+                + "if you are sure to do this, then use '.clear_analysis(security=True)' to clear.",
                 category=QurryResetSecurityActivated,
             )
 
@@ -1036,99 +1027,15 @@ class ExperimentPrototype(ABC):
         save_location: Optional[Union[Path, str]] = None,
         export_transpiled_circuit: bool = False,
     ) -> Export:
-        """Export the data of experiment.
+        """Export the data of experiment into specific namedtuples for exporting.
 
-        For the `.write` function actually exports 4 different files
-        respecting to `adventure`, `legacy`, `tales`, and `reports` like:
-
-        ```python
-        files = {
-            'folder': './blabla_experiment/',
-            'qurryinfo': './blabla_experiment/qurryinfo.json',
-
-            'args': './blabla_experiment/args/blabla_experiment.id={exp_id}.args.json',
-            'advent': './blabla_experiment/advent/blabla_experiment.id={exp_id}.advent.json',
-            'legacy': './blabla_experiment/legacy/blabla_experiment.id={exp_id}.legacy.json',
-            'tales.dummyx1': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyxn.json',
-            'reports': ./blabla_experiment/reports/blabla_experiment.id={exp_id}.reports.json,
-            'reports.tales.dummyz1':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyzm.reports.json',
-        }
-        ```
-        which `blabla_experiment` is the example filename.
-        If this experiment is called by :cls:`multimanager`,
-        then the it will be named after `` as known as the name of :cls:`multimanager`.
-
-        ```python
-        files = {
-            'folder': './BLABLA_project/',
-            'qurryinfo': './BLABLA_project/qurryinfo.json',
-
-            'args': './BLABLA_project/args/index={serial}.id={exp_id}.args.json',
-            'advent': './BLABLA_project/advent/index={serial}.id={exp_id}.advent.json',
-            'legacy': './BLABLA_project/legacy/index={serial}.id={exp_id}.legacy.json',
-            'tales.dummyx1': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyxn.json',
-            'reports': ./BLABLA_project/reports/index={serial}.id={exp_id}.reports.json,
-            'reports.tales.dummyz1':
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2':
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm':
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
-        }
-        ```
-        which `BLBLA_project` is the example :cls:`multimanager` name
-        stored at :prop:`commonparams.`.
-        At this senerio, the `exp_name` will never apply as filename.
-
-        - reports formats.
-
-        ```
-        reports = {
-            1: { ...quantities, 'input': { ... }, 'header': { ... }, },
-            2: { ...quantities, 'input': { ... }, 'header': { ... }, },
-            ...
-            {serial}: { ...quantities, 'input': { ... }, 'header': { ... }, },
-        }
-        ```
-
-        - tales_reports formats.
-
-        ```
-        tales_reports = {
-            'dummyz1': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
-            'dummyz2': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
-            ...
-            'dummyz': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
-        }
-        ```
+        Args:
+            save_location (Optional[Union[Path, str]], optional):
+                The location to save the experiment. Defaults to None.
+            export_transpiled_circuit (bool, optional):
+                Whether to export the transpiled circuit as txt. Defaults to False.
+                When set to True, the transpiled circuit will be exported as txt.
+                Otherwise, the circuit will be not exported but circuit qasm remains.
 
         Returns:
             Export: A namedtuple containing the data of experiment
@@ -1156,8 +1063,7 @@ class ExperimentPrototype(ABC):
         reports, tales_reports = self.reports.export()
 
         # filename
-        filename = ""
-        folder = ""
+        filename, folder = "", ""
 
         # multi-experiment mode
         if all(
@@ -1233,38 +1139,12 @@ class ExperimentPrototype(ABC):
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
-        - example of filename:
-
-        ```python
-        files = {
-            'folder': './blabla_experiment/',
-            'qurrtinfo': './blabla_experiment/qurrtinfo',
-
-            'args': './blabla_experiment/args/blabla_experiment.id={exp_id}.args.json',
-            'advent': './blabla_experiment/advent/blabla_experiment.id={exp_id}.advent.json',
-            'legacy': './blabla_experiment/legacy/blabla_experiment.id={exp_id}.legacy.json',
-            'tales.dummyx1': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyxn.json',
-            'reports': ./blabla_experiment/reports/blabla_experiment.id={exp_id}.reports.json,
-            'reports.tales.dummyz1':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm':
-                './blabla_experiment/tales/blabla_experiment.id={exp_id}.dummyzm.reports.json',
-        }
-        ```
-
         Args:
             save_location (Optional[Union[Path, str]], optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then use the value in `self.commons` to be exported,
                 if it's None too, then raise error.
                 Defaults to `None`.
-
             mode (str):
                 Mode for :func:`open` function, for :func:`mori.quickJSON`. Defaults to 'w+'.
             indent (int, optional):
@@ -1276,6 +1156,13 @@ class ExperimentPrototype(ABC):
                 for :func:`mori.quickJSON`. Defaults to False.
             mute (bool, optional):
                 Whether to mute the output, for :func:`mori.quickJSON`. Defaults to False.
+            export_transpiled_circuit (bool, optional):
+                Whether to export the transpiled circuit as txt. Defaults to False.
+                When set to True, the transpiled circuit will be exported as txt.
+                Otherwise, the circuit will be not exported but circuit qasm remains.
+            _pbar (Optional[tqdm.tqdm], optional):
+                The progress bar for showing the progress of the experiment.
+                Defaults to None.
             _qurryinfo_hold_access (str, optional):
                 Whether to hold the I/O of `qurryinfo`, then export by :cls:`multimanager`,
                 it should be control by :cls:`multimanager`.
@@ -1296,7 +1183,7 @@ class ExperimentPrototype(ABC):
             indent=indent,
             encoding=encoding,
             jsonable=jsonable,
-            _pbar=_pbar,
+            pbar=_pbar,
         )
         assert "qurryinfo" in files, "qurryinfo location is not in files."
         # qurryinfo write
@@ -1419,7 +1306,7 @@ class ExperimentPrototype(ABC):
                 exp_id, file_index, save_location, encoding.
 
         Returns:
-            QurryExperiment: The experiment to be read.
+            ExperimentPrototype: The experiment to be read.
         """
         assert isinstance(args[1], dict), (
             "file_index should be dict, " + f"but we get {type(args[1])}, {args[1]}."
@@ -1433,7 +1320,7 @@ class ExperimentPrototype(ABC):
         save_location: Union[Path, str] = Path("./"),
         encoding: str = "utf-8",
         workers_num: Optional[int] = None,
-    ) -> list:
+    ) -> list["ExperimentPrototype"]:
         """Read the experiment from file.
         Replacement of :func:`QurryV4().readLegacy`
 
@@ -1453,7 +1340,7 @@ class ExperimentPrototype(ABC):
             FileNotFoundError: When `save_location` is not available.
 
         Returns:
-            list: The list of the experiments to be read.
+            list[ExperimentPrototype]: The experiment to be read.
         """
 
         if isinstance(save_location, (Path, str)):
@@ -1479,8 +1366,6 @@ class ExperimentPrototype(ABC):
             qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
             qurryinfo = {**qurryinfo_found, **qurryinfo}
 
-        if workers_num is None:
-            workers_num = DEFAULT_POOL_SIZE
         pool = ParallelManager(workers_num)
 
         quene = pool.process_map(
