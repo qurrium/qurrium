@@ -17,8 +17,8 @@ from qiskit.providers import Backend, JobV1 as Job
 
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
-from ...qurrent.randomized_measure.utils import circuit_method_core
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from ...qurrent.randomized_measure.utils import randomized_circuit_method
+from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
 from ...qurrium.utils import get_counts_and_exceptions
 from ...qurrium.utils.randomized import (
     random_unitary,
@@ -26,16 +26,17 @@ from ...qurrium.utils.randomized import (
     local_unitary_op_to_pauli_coeff,
 )
 from ...qurrium.utils.random_unitary import check_input_for_experiment
-from ...process.utils import qubit_mapper
+from ...process.utils import qubit_mapper, counts_under_degree_pyrust
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
     DEFAULT_PROCESS_BACKEND,
     WaveFuctionOverlapResult,
 )
-from ...tools import qurry_progressbar, ParallelManager, set_pbar_description, backend_name_getter
+from ...tools import ParallelManager, set_pbar_description, backend_name_getter
 from ...exceptions import (
     RandomizedMeasureUnitaryOperatorNotFullCovering,
+    OverlapComparisonSizeDifferent,
     SeperatedExecutingOverlapResult,
 )
 
@@ -56,6 +57,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
     def analysis_instance(self) -> Type[EchoListenRandomizedAnalysis]:
         """The analysis instance for this experiment."""
         return EchoListenRandomizedAnalysis
+
+    report: AnalysesContainer[EchoListenRandomizedAnalysis]
 
     @classmethod
     def params_control(
@@ -117,12 +120,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds`
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             custom_kwargs (Any):
                 The custom parameters.
 
@@ -135,8 +140,10 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             tuple[EntropyMeasureRandomizedArguments, Commonparams, dict[str, Any]]:
                 The arguments of the experiment, the common parameters, and the custom parameters.
         """
-        assert len(targets) == 2, "The number of target circuits should be two."
-        assert isinstance(times, int), f"times should be an integer, but got {times}."
+        if len(targets) != 2:
+            raise ValueError("The number of target circuits should be two.")
+        if not isinstance(times, int):
+            raise TypeError(f"times should be an integer, but got {times}.")
 
         target_key_1, target_circuit_1 = targets[0]
         actual_qubits_1 = target_circuit_1.num_qubits
@@ -157,6 +164,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         registers_mapping_1 = qubit_mapper(actual_qubits_1, measure_1)
         qubits_measured_1 = list(registers_mapping_1)
+        bistring_shift_1 = len(target_circuit_1.clbits) + len(target_circuit_1.cregs)
+        bitstring_mapping_1 = {v: v + bistring_shift_1 for v in registers_mapping_1.values()}
         unitary_located_mapping_1 = qubit_mapper(actual_qubits_1, unitary_loc_1)
         assert list(unitary_located_mapping_1.values()) == list(
             range(len(unitary_located_mapping_1))
@@ -167,6 +176,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         registers_mapping_2 = qubit_mapper(actual_qubits_2, measure_2)
         qubits_measured_2 = list(registers_mapping_2)
+        bistring_shift_2 = len(target_circuit_2.clbits) + len(target_circuit_2.cregs)
+        bitstring_mapping_2 = {v: v + bistring_shift_2 for v in registers_mapping_2.values()}
         unitary_located_mapping_2 = qubit_mapper(actual_qubits_2, unitary_loc_2)
         assert list(unitary_located_mapping_2.values()) == list(
             range(len(unitary_located_mapping_2))
@@ -176,14 +187,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         ]
 
         if len(qubits_measured_1) != len(qubits_measured_2):
-            raise ValueError(
+            raise OverlapComparisonSizeDifferent(
                 "The qubits number of measuring range in two circuits should be the same, "
                 + "but got different number of qubits measured."
                 + f"Got circuit 1: {len(qubits_measured_1)} {qubits_measured_1}"
                 + f"and circuit 2: {len(qubits_measured_2)} {qubits_measured_2}."
             )
         if len(unitary_located_mapping_1) != len(unitary_located_mapping_2):
-            raise ValueError(
+            raise OverlapComparisonSizeDifferent(
                 "The qubits number of unitary location in two circuits should be the same, "
                 + "but got different number of qubits located."
                 + f"Got circuit 1: {len(unitary_located_mapping_1)} {unitary_located_mapping_1}"
@@ -216,7 +227,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         check_input_for_experiment(times, len(unitary_located_mapping_2), random_unitary_seeds)
 
         if not any([isinstance(second_backend, Backend), second_backend is None]):
-            raise ValueError(
+            raise TypeError(
                 f"second_backend should be Backend or not given, but got {type(second_backend)}."
             )
 
@@ -229,6 +240,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             qubits_measured_2=qubits_measured_2,
             registers_mapping_1=registers_mapping_1,
             registers_mapping_2=registers_mapping_2,
+            bitstring_mapping_1=bitstring_mapping_1,
+            bitstring_mapping_2=bitstring_mapping_2,
             actual_num_qubits_1=actual_qubits_1,
             actual_num_qubits_2=actual_qubits_2,
             unitary_located_mapping_1=unitary_located_mapping_1,
@@ -309,7 +322,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
         circ_list = pool.starmap(
-            circuit_method_core,
+            randomized_circuit_method,
             [
                 (
                     n_u_i,
@@ -606,41 +619,68 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 + f"selected: {selected_classical_registers}"
             )
 
-        first_counts = self.afterwards.counts[: self.args.times]
-        second_counts = self.afterwards.counts[self.args.times :]
-        assert len(first_counts) == len(second_counts), (
+        first_countses = self.afterwards.counts[: self.args.times]
+        second_countses = self.afterwards.counts[self.args.times :]
+        assert len(first_countses) == len(second_countses), (
             "The number of first and second counts should be the same, "
-            + f"but got {len(first_counts)} and {len(second_counts)}. "
+            + f"but got {len(first_countses)} and {len(second_countses)}. "
             + f"from counts with length {len(self.afterwards.counts)}, "
             + f"times: {self.args.times}."
         )
 
-        if isinstance(pbar, tqdm.tqdm):
-            qs = self.quantities(
-                shots=shots,
-                first_counts=first_counts,
-                second_counts=second_counts,
-                selected_classical_registers=selected_classical_registers,
-                backend=backend,
-                pbar=pbar,
-            )
-
-        else:
-            pbar_selfhost = qurry_progressbar(
-                range(1),
-                bar_format="simple",
-            )
-
-            with pbar_selfhost as pb_self:
-                qs = self.quantities(
-                    shots=shots,
-                    first_counts=first_counts,
-                    second_counts=second_counts,
-                    selected_classical_registers=selected_classical_registers,
-                    backend=backend,
-                    pbar=pb_self,
+        actual_bitstring_mapping_1 = (
+            {v: v for v in self.args.registers_mapping_1.values()}
+            if self.args.bitstring_mapping_1 is None
+            else self.args.bitstring_mapping_1
+        )
+        actual_bitstring_1_num_and_list = (
+            len(list(first_countses[0].keys())[0]),
+            list(actual_bitstring_mapping_1.values()),
+        )
+        first_counts_of_last_clreg = (
+            first_countses
+            if all(k == v for k, v in actual_bitstring_mapping_1.items())
+            else [
+                counts_under_degree_pyrust(
+                    counts,
+                    actual_bitstring_1_num_and_list[0],
+                    actual_bitstring_1_num_and_list[1],
                 )
-                pb_self.update()
+                for counts in first_countses
+            ]
+        )
+
+        actual_bitstring_mapping_2 = (
+            {v: v for v in self.args.registers_mapping_2.values()}
+            if self.args.bitstring_mapping_2 is None
+            else self.args.bitstring_mapping_2
+        )
+        actual_bitstring_2_num_and_list = (
+            len(list(second_countses[0].keys())[0]),
+            list(actual_bitstring_mapping_2.values()),
+        )
+        second_counts_of_last_clreg = (
+            second_countses
+            if all(k == v for k, v in actual_bitstring_mapping_2.items())
+            else [
+                counts_under_degree_pyrust(
+                    counts,
+                    actual_bitstring_2_num_and_list[0],
+                    actual_bitstring_2_num_and_list[1],
+                    backend="Python",
+                )
+                for counts in second_countses
+            ]
+        )
+
+        qs = self.quantities(
+            shots=shots,
+            first_counts=first_counts_of_last_clreg,
+            second_counts=second_counts_of_last_clreg,
+            selected_classical_registers=selected_classical_registers,
+            backend=backend,
+            pbar=pbar,
+        )
 
         serial = len(self.reports)
         analysis = self.analysis_instance(
