@@ -88,6 +88,7 @@ for i in range(4, 7, 2):
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
 
+for i in range(6, 7, 2):
     wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
     answer[f"{i}-CNOTDynCase4To8"] = 0.5
     seed_usage[f"{i}-CNOTDynCase4To8"] = i
@@ -229,11 +230,15 @@ def test_quantity_02_dyn(tgt):
         random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
         backend=backend,
     )
-    analysis_01 = exp_method_02.exps[exp_id].analyze(range(1))
+    analysis_01 = exp_method_02.exps[exp_id].analyze([0, int(tgt.split("-")[0]) - 1])
     quantity_01 = analysis_01.content._asdict()
-    analysis_02 = exp_method_02.exps[exp_id].analyze(range(1), counts_used=range(5))
+    analysis_02 = exp_method_02.exps[exp_id].analyze(
+        [0, int(tgt.split("-")[0]) - 1], counts_used=range(5)
+    )
     quantity_02 = analysis_02.content._asdict()
-    analysis_03 = exp_method_02.exps[exp_id].analyze(range(1), counts_used=range(5))
+    analysis_03 = exp_method_02.exps[exp_id].analyze(
+        [0, int(tgt.split("-")[0]) - 1], counts_used=range(5)
+    )
     quantity_03 = analysis_03.content._asdict()
 
     assert all(

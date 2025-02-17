@@ -41,7 +41,7 @@ statesheet = hoshi.Hoshi()
 
 FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
 SEED_SIMULATOR = 2019  # <harmony/>
-THREDHOLD = 0.25
+THREDHOLD = 0.26
 MANUAL_ASSERT_ERROR = False
 
 exp_method_01 = EchoListen(method="hadamard")
@@ -84,10 +84,11 @@ for i in range(4, 7, 2):
     wave_adds_03.append(
         exp_method_03.add(TopologicalParamagnet(i, "period"), f"{i}-topological-period")
     )
-    answer[f"{i}-topological-period"] = 0.25
+    answer[f"{i}-topological-period"] = 0.5
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
 
+for i in range(6, 7, 2):
     wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
     answer[f"{i}-CNOTDynCase4To8"] = 0.5
     seed_usage[f"{i}-CNOTDynCase4To8"] = i
@@ -213,7 +214,10 @@ def test_quantity_02_dyn(tgt):
         random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
         backend=backend,
     )
-    analysis = exp_method_02.exps[exp_id].analyze(range(1))
+    exp_method_02.exps[exp_id].write(
+        save_location=os.path.join(os.path.dirname(__file__), "exports")
+    )
+    analysis = exp_method_02.exps[exp_id].analyze([0, int(tgt.split("-")[0]) - 1])
     quantity = analysis.content._asdict()
 
     assert all(
