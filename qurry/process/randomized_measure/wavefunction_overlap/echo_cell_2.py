@@ -9,7 +9,10 @@ Postprocessing - Randomized Measure - Wavefunction Overlap - Echo Cell 2
 import warnings
 import numpy as np
 
-from ...utils import ensemble_cell as ensemble_cell_py
+from ...utils import (
+    ensemble_cell as ensemble_cell_py,
+    counts_under_degree as counts_under_degree_py,
+)
 from ...availability import (
     availablility,
     default_postprocessing_backend,
@@ -92,26 +95,12 @@ def echo_cell_2_py(
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
     subsystem_size = len(selected_classical_registers_sorted)
 
-    first_counts_under_degree = {}
-    for bitstring_all, num_counts_all in first_counts.items():
-        bitstring = "".join(
-            bitstring_all[num_classical_register - q_i - 1]
-            for q_i in selected_classical_registers_sorted
-        )
-        if bitstring in first_counts_under_degree:
-            first_counts_under_degree[bitstring] += num_counts_all
-        else:
-            first_counts_under_degree[bitstring] = num_counts_all
-    second_counts_under_degree = {}
-    for bitstring_all, num_counts_all in second_counts.items():
-        bitstring = "".join(
-            bitstring_all[num_classical_register - q_i - 1]
-            for q_i in selected_classical_registers_sorted
-        )
-        if bitstring in second_counts_under_degree:
-            second_counts_under_degree[bitstring] += num_counts_all
-        else:
-            second_counts_under_degree[bitstring] = num_counts_all
+    first_counts_under_degree = counts_under_degree_py(
+        first_counts, num_classical_register, selected_classical_registers_sorted
+    )
+    second_counts_under_degree = counts_under_degree_py(
+        second_counts, num_classical_register, selected_classical_registers_sorted
+    )
 
     echo_cell_value = np.float64(0)
     for s_ai, s_ai_meas in first_counts_under_degree.items():
