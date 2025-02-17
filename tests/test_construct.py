@@ -32,7 +32,7 @@ def test_test_construct():
 
 
 def test_dummy_availability():
-
+    """Test the dummy_availability function."""
     assert dummy_availability[1]["Rust"], (
         "Rust is not available." + f" Check the error: {dummy_availability[2]}"
     )
