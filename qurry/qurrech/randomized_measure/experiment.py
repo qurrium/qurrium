@@ -647,18 +647,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             len(list(first_countses[0].keys())[0]),
             list(actual_bitstring_mapping_1.values()),
         )
-        first_counts_of_last_clreg = (
-            first_countses
-            if all(k == v for k, v in actual_bitstring_mapping_1.items())
-            else [
-                counts_under_degree_pyrust(
-                    counts,
-                    actual_bitstring_1_num_and_list[0],
-                    actual_bitstring_1_num_and_list[1],
-                )
-                for counts in first_countses
-            ]
-        )
+        first_counts_of_last_clreg = [
+            counts_under_degree_pyrust(
+                counts,
+                actual_bitstring_1_num_and_list[0],
+                actual_bitstring_1_num_and_list[1],
+            )
+            for counts in first_countses
+        ]
 
         actual_bitstring_mapping_2 = (
             {v: v for v in self.args.registers_mapping_2.values()}
@@ -669,19 +665,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             len(list(second_countses[0].keys())[0]),
             list(actual_bitstring_mapping_2.values()),
         )
-        second_counts_of_last_clreg = (
-            second_countses
-            if all(k == v for k, v in actual_bitstring_mapping_2.items())
-            else [
-                counts_under_degree_pyrust(
-                    counts,
-                    actual_bitstring_2_num_and_list[0],
-                    actual_bitstring_2_num_and_list[1],
-                    backend="Python",
-                )
-                for counts in second_countses
-            ]
-        )
+        second_counts_of_last_clreg = [
+            counts_under_degree_pyrust(
+                counts,
+                actual_bitstring_2_num_and_list[0],
+                actual_bitstring_2_num_and_list[1],
+            )
+            for counts in second_countses
+        ]
 
         qs = self.quantities(
             shots=shots,
