@@ -19,11 +19,17 @@ Test the qurry.qurrech module EchoListen class.
     - [6-GHZ] 0.13236021995544434 <= 0.25. 0.36763978004455566 ~= 0.5.
     - [6-topological-period] 0.17883706092834473 <= 0.25. 0.4288370609283447 ~= 0.25.
 
+- randomized measurement with dynamic CNOT gate
+    - [4-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+    - [6-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+
 """
 
 import os
 import pytest
 import numpy as np
+
+from circuits_case import CNOTDynCase4To8
 
 from qurry.qurrech import EchoListen
 from qurry.tools.backend import GeneralSimulator
@@ -51,6 +57,7 @@ seed_usage = {}
 wave_adds_01 = []
 wave_adds_02 = []
 wave_adds_03 = []
+wave_adds_02_dyn = []
 answer = {}
 
 for i in range(4, 7, 2):
@@ -80,6 +87,10 @@ for i in range(4, 7, 2):
     answer[f"{i}-topological-period"] = 0.25
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
+
+    wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
+    answer[f"{i}-CNOTDynCase4To8"] = 0.5
+    seed_usage[f"{i}-CNOTDynCase4To8"] = i
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
@@ -175,6 +186,36 @@ def test_quantity_02(tgt):
     # pylint: enable=unexpected-keyword-arg
     exp_method_02.exps[exp_id].analyze(range(-exp_method_03.waves[tgt].num_qubits + 1, 0))
     quantity = exp_method_02.exps[exp_id].reports[0].content._asdict()
+    assert all(
+        ["echo" in quantity]
+    ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
+    assert (not MANUAL_ASSERT_ERROR) and np.abs(quantity["echo"] - answer[tgt]) < THREDHOLD, (
+        "The randomized measurement result is wrong: "
+        + f"{np.abs(quantity['echo'] - answer[tgt])} !< {THREDHOLD}."
+        + f" {quantity['echo']} != {answer[tgt]}."
+    )
+
+
+@pytest.mark.parametrize("tgt", wave_adds_02_dyn)
+def test_quantity_02_dyn(tgt):
+    """Test the quantity of entropy and purity.
+
+    Args:
+        tgt (Hashable): The target wave key in Qurry.
+    """
+
+    exp_id = exp_method_02.measure(
+        wave1=tgt,
+        wave2=tgt,
+        times=20,
+        measure_1=[0, int(tgt.split("-")[0]) - 1],
+        measure_2=[0, int(tgt.split("-")[0]) - 1],
+        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
+        backend=backend,
+    )
+    analysis = exp_method_02.exps[exp_id].analyze(range(1))
+    quantity = analysis.content._asdict()
+
     assert all(
         ["echo" in quantity]
     ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."

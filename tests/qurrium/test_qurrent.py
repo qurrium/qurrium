@@ -19,11 +19,17 @@ Test the qurry.qurrent module EntropyMeasure class.
     - [6-GHZ] 0.018079471588134777 <= 0.25. 0.4819205284118652 ~= 0.5.
     - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
 
+- randomized measurement with dynamic CNOT gate
+    - [4-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+    - [6-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+
 """
 
 import os
 import pytest
 import numpy as np
+
+from circuits_case import CNOTDynCase4To8
 
 from qurry.qurrent import EntropyMeasure
 from qurry.tools.backend import GeneralSimulator
@@ -51,6 +57,7 @@ seed_usage = {}
 wave_adds_01 = []
 wave_adds_02 = []
 wave_adds_03 = []
+wave_adds_02_dyn = []
 answer = {}
 
 for i in range(4, 7, 2):
@@ -80,6 +87,11 @@ for i in range(4, 7, 2):
     answer[f"{i}-topological-period"] = 0.25
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
+
+    wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
+    answer[f"{i}-CNOTDynCase4To8"] = 0.5
+    seed_usage[f"{i}-CNOTDynCase4To8"] = i
+    # purity = 0.5
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
@@ -199,6 +211,53 @@ def test_quantity_02(tgt):
         "The randomized measurement result is wrong: "
         + f"{np.abs(quantity_01['purity'] - answer[tgt])} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
+    )
+
+
+@pytest.mark.parametrize("tgt", wave_adds_02_dyn)
+def test_quantity_02_dyn(tgt):
+    """Test the quantity of entropy and purity.
+
+    Args:
+        tgt (Hashable): The target wave key in Qurry.
+    """
+
+    exp_id = exp_method_02.measure(
+        wave=tgt,
+        times=20,
+        measure=[0, int(tgt.split("-")[0]) - 1],
+        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
+        backend=backend,
+    )
+    analysis_01 = exp_method_02.exps[exp_id].analyze(range(1))
+    quantity_01 = analysis_01.content._asdict()
+    analysis_02 = exp_method_02.exps[exp_id].analyze(range(1), counts_used=range(5))
+    quantity_02 = analysis_02.content._asdict()
+    analysis_03 = exp_method_02.exps[exp_id].analyze(range(1), counts_used=range(5))
+    quantity_03 = analysis_03.content._asdict()
+
+    assert all(
+        ["entropy" in quantity_01, "purity" in quantity_01]
+    ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
+    assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
+        "The all system entropy is not changed: "
+        + f"counts_used: {quantity_01['counts_used']}: {quantity_02['entropyAllSys']}, "
+        + f"counts_used: {quantity_02['counts_used']}: {quantity_02['entropyAllSys']},"
+    )
+    assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
+        "The all system entropy is not changed: "
+        + f"{quantity_03['entropyAllSys']} != {quantity_02['entropyAllSys']}."
+    )
+    assert (
+        quantity_02["all_system_source"] == "independent"
+    ), f"The source of all system is not independent: {quantity_02['all_system_source']}."
+    assert (
+        "AnalysisHeader" in quantity_03["all_system_source"]
+    ), f"The source of all system is not from existed analysis: {quantity_03['all_system_source']}."
+    assert (not MANUAL_ASSERT_ERROR) and np.abs(quantity_01["purity"] - answer[tgt]) < THREDHOLD, (
+        "The randomized measurement result is wrong: "
+        + f"{np.abs(quantity_01['purity'] - answer[tgt])} !< {THREDHOLD}."
+        + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
     )
 
 
