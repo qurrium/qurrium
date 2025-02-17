@@ -276,8 +276,14 @@ def qubit_mapper(
     """Map the index of selected qubits to the index of the classical register.
 
     Args:
-        actual_num_qubits (int): The actual number of qubits.
-        selected_qubits (tuple[int, int]): The range of the selected qubits.
+        actual_num_qubits (int):
+            The actual number of qubits.
+        selected_qubits (Optional[Union[Sequence[int], int, tuple[int, int]]], optional):
+            The selected qubits.
+            If it is None, then it will return the mapping of all qubits.
+            If it is int, then it will return the mapping of the last n qubits.
+            If it is tuple, then it will return the mapping of the qubits in the range.
+            If it is list, then it will return the mapping of the selected qubits.
 
     Raises:
         ValueError: The range of qubits should be defined by two integers.
