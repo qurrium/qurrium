@@ -301,6 +301,27 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         else:
             counts = self.afterwards.counts
 
+        bitstring_sampling = list(counts[0].keys())[0]
+        bitstring_sampling_divided = bitstring_sampling.split(" ")
+        if len(bitstring_sampling_divided) > 1:
+            bitstring_shift = len(bitstring_sampling_divided) - 1
+            for clbit_cluster in bitstring_sampling_divided[1:]:
+                bitstring_shift += len(clbit_cluster)
+            bitstring_mapping = {
+                v: v + bitstring_shift for v in self.args.registers_mapping.values()
+            }
+            if self.args.bitstring_mapping is None:
+                ...
+            elif any(self.args.bitstring_mapping[k] != v for k, v in bitstring_mapping.items()):
+                raise ValueError(
+                    "The .args.registers_mapping is wrong "
+                    + "for not really showing the bitstring shift. "
+                    f"bitstring_sampling: {bitstring_sampling}, "
+                    + f".args.registers_mapping: {self.args.registers_mapping}, "
+                    + f"bitstring_mapping: {bitstring_mapping}."
+                    + f".args.bitstring_mapping: {self.args.bitstring_mapping}."
+                )
+
         available_all_system_source = [
             k
             for k, v in self.reports.items()

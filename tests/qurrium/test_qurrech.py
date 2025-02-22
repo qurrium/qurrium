@@ -29,7 +29,7 @@ import os
 import pytest
 import numpy as np
 
-from circuits_case import CNOTDynCase4To8
+from circuits_case import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrech import EchoListen
 from qurry.tools.backend import GeneralSimulator
@@ -46,6 +46,7 @@ MANUAL_ASSERT_ERROR = False
 
 exp_method_01 = EchoListen(method="hadamard")
 exp_method_02 = EchoListen(method="randomized")
+exp_method_02_with_extra_clbits = EchoListen(method="randomized")
 exp_method_03 = EchoListen(method="randomized_v1")
 
 random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(FILE_LOCATION)
@@ -57,7 +58,7 @@ seed_usage = {}
 wave_adds_01 = []
 wave_adds_02 = []
 wave_adds_03 = []
-wave_adds_02_dyn = []
+wave_adds_02_with_extra_clbits = []
 answer = {}
 
 for i in range(4, 7, 2):
@@ -88,10 +89,25 @@ for i in range(4, 7, 2):
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
 
-for i in range(6, 7, 2):
-    wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
-    answer[f"{i}-CNOTDynCase4To8"] = 0.5
-    seed_usage[f"{i}-CNOTDynCase4To8"] = i
+measure_dyn = {}
+for i in range(4, 7, 2):
+    wave_adds_02_with_extra_clbits.append(
+        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
+    )
+    answer[f"{i}-entangle-by-dyn"] = 0.5
+    seed_usage[f"{i}-entangle-by-dyn"] = i
+    measure_dyn[f"{i}-entangle-by-dyn"] = [0, i - 1]
+    # purity = 0.5
+
+    wave_adds_02_with_extra_clbits.append(
+        exp_method_02_with_extra_clbits.add(
+            DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+        )
+    )
+    answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
+    seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
+    measure_dyn[f"{i}-dummy-2-body-with-clbits"] = [i - 2, i - 1]
+    # purity = 1.0
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
@@ -197,28 +213,33 @@ def test_quantity_02(tgt):
     )
 
 
-@pytest.mark.parametrize("tgt", wave_adds_02_dyn)
-def test_quantity_02_dyn(tgt):
+@pytest.mark.parametrize("tgt", wave_adds_02_with_extra_clbits)
+def test_quantity_02_with_extra_clbits(tgt):
     """Test the quantity of entropy and purity.
 
     Args:
         tgt (Hashable): The target wave key in Qurry.
     """
 
+    # pylint: disable=unexpected-keyword-arg
     exp_id = exp_method_02.measure(
         wave1=tgt,
         wave2=tgt,
         times=20,
-        measure_1=[0, int(tgt.split("-")[0]) - 1],
-        measure_2=[0, int(tgt.split("-")[0]) - 1],
+        measure_1=measure_dyn[tgt],
+        measure_2=measure_dyn[tgt],
         random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
         backend=backend,
     )
+    # pylint: enable=unexpected-keyword-arg
     exp_method_02.exps[exp_id].write(
         save_location=os.path.join(os.path.dirname(__file__), "exports")
     )
-    analysis = exp_method_02.exps[exp_id].analyze([0, int(tgt.split("-")[0]) - 1])
+    analysis = exp_method_02.exps[exp_id].analyze(measure_dyn[tgt])
     quantity = analysis.content._asdict()
+    exp_method_02_with_extra_clbits.exps[exp_id].write(
+        save_location=os.path.join(os.path.dirname(__file__), "exports")
+    )
 
     assert all(
         ["echo" in quantity]
@@ -226,7 +247,7 @@ def test_quantity_02_dyn(tgt):
     assert (not MANUAL_ASSERT_ERROR) and np.abs(quantity["echo"] - answer[tgt]) < THREDHOLD, (
         "The randomized measurement result is wrong: "
         + f"{np.abs(quantity['echo'] - answer[tgt])} !< {THREDHOLD}."
-        + f" {quantity['echo']} != {answer[tgt]}."
+        + f" {quantity['echo']} != {answer[tgt]}. exp_id: {exp_id}."
     )
 
 

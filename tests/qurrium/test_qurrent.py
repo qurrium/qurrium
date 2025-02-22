@@ -20,8 +20,8 @@ Test the qurry.qurrent module EntropyMeasure class.
     - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
 
 - randomized measurement with dynamic CNOT gate
-    - [4-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
-    - [6-CNOTDynCase4To8] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+    - [4-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+    - [6-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
 
 """
 
@@ -29,7 +29,7 @@ import os
 import pytest
 import numpy as np
 
-from circuits_case import CNOTDynCase4To8
+from circuits_case import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import EntropyMeasure
 from qurry.tools.backend import GeneralSimulator
@@ -46,6 +46,7 @@ MANUAL_ASSERT_ERROR = False
 
 exp_method_01 = EntropyMeasure(method="hadamard")
 exp_method_02 = EntropyMeasure(method="randomized")
+exp_method_02_with_extra_clbits = EntropyMeasure(method="randomized")
 exp_method_03 = EntropyMeasure(method="randomized_v1")
 
 random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(FILE_LOCATION)
@@ -57,7 +58,7 @@ seed_usage = {}
 wave_adds_01 = []
 wave_adds_02 = []
 wave_adds_03 = []
-wave_adds_02_dyn = []
+wave_adds_02_with_extra_clbits = []
 answer = {}
 
 for i in range(4, 7, 2):
@@ -88,11 +89,25 @@ for i in range(4, 7, 2):
     seed_usage[f"{i}-topological-period"] = i
     # purity = 0.25
 
-for i in range(6, 7, 2):
-    wave_adds_02_dyn.append(exp_method_02.add(CNOTDynCase4To8(i), f"{i}-CNOTDynCase4To8"))
-    answer[f"{i}-CNOTDynCase4To8"] = 0.5
-    seed_usage[f"{i}-CNOTDynCase4To8"] = i
+measure_dyn = {}
+for i in range(4, 7, 2):
+    wave_adds_02_with_extra_clbits.append(
+        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
+    )
+    answer[f"{i}-entangle-by-dyn"] = 0.5
+    seed_usage[f"{i}-entangle-by-dyn"] = i
+    measure_dyn[f"{i}-entangle-by-dyn"] = [0, i - 1]
     # purity = 0.5
+
+    wave_adds_02_with_extra_clbits.append(
+        exp_method_02_with_extra_clbits.add(
+            DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+        )
+    )
+    answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
+    seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
+    measure_dyn[f"{i}-dummy-2-body-with-clbits"] = [i - 2, i - 1]
+    # purity = 1.0
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
@@ -215,31 +230,34 @@ def test_quantity_02(tgt):
     )
 
 
-@pytest.mark.parametrize("tgt", wave_adds_02_dyn)
-def test_quantity_02_dyn(tgt):
+@pytest.mark.parametrize("tgt", wave_adds_02_with_extra_clbits)
+def test_quantity_02_with_extra_clbits(tgt):
     """Test the quantity of entropy and purity.
 
     Args:
         tgt (Hashable): The target wave key in Qurry.
     """
 
-    exp_id = exp_method_02.measure(
+    exp_id = exp_method_02_with_extra_clbits.measure(
         wave=tgt,
         times=20,
-        measure=[0, int(tgt.split("-")[0]) - 1],
+        measure=measure_dyn[tgt],
         random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
         backend=backend,
     )
-    analysis_01 = exp_method_02.exps[exp_id].analyze([0, int(tgt.split("-")[0]) - 1])
+    analysis_01 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(measure_dyn[tgt])
     quantity_01 = analysis_01.content._asdict()
-    analysis_02 = exp_method_02.exps[exp_id].analyze(
-        [0, int(tgt.split("-")[0]) - 1], counts_used=range(5)
+    analysis_02 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+        measure_dyn[tgt], counts_used=range(5)
     )
     quantity_02 = analysis_02.content._asdict()
-    analysis_03 = exp_method_02.exps[exp_id].analyze(
-        [0, int(tgt.split("-")[0]) - 1], counts_used=range(5)
+    analysis_03 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+        measure_dyn[tgt], counts_used=range(5)
     )
     quantity_03 = analysis_03.content._asdict()
+    exp_method_02_with_extra_clbits.exps[exp_id].write(
+        save_location=os.path.join(os.path.dirname(__file__), "exports")
+    )
 
     assert all(
         ["entropy" in quantity_01, "purity" in quantity_01]

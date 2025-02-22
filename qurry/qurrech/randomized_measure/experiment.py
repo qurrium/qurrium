@@ -638,14 +638,17 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             + f"times: {self.args.times}."
         )
 
-        actual_bitstring_mapping_1 = (
+        final_mapping_1 = (
             {v: v for v in self.args.registers_mapping_1.values()}
             if self.args.bitstring_mapping_1 is None
-            else self.args.bitstring_mapping_1
+            else {
+                k: self.args.bitstring_mapping_1[v]
+                for k, v in self.args.registers_mapping_1.items()
+            }
         )
         actual_bitstring_1_num_and_list = (
             len(list(first_countses[0].keys())[0]),
-            list(actual_bitstring_mapping_1.values()),
+            list(final_mapping_1.values()),
         )
         first_counts_of_last_clreg = [
             counts_under_degree_pyrust(
@@ -656,14 +659,17 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             for counts in first_countses
         ]
 
-        actual_bitstring_mapping_2 = (
+        final_mapping_2 = (
             {v: v for v in self.args.registers_mapping_2.values()}
             if self.args.bitstring_mapping_2 is None
-            else self.args.bitstring_mapping_2
+            else {
+                k: self.args.bitstring_mapping_2[v]
+                for k, v in self.args.registers_mapping_2.items()
+            }
         )
         actual_bitstring_2_num_and_list = (
             len(list(second_countses[0].keys())[0]),
-            list(actual_bitstring_mapping_2.values()),
+            list(final_mapping_2.values()),
         )
         second_counts_of_last_clreg = [
             counts_under_degree_pyrust(
