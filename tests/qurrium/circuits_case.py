@@ -10,7 +10,7 @@ from typing import Optional, Literal
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.classical import expr
 
-from qurry.recipe.n_body import OneBody
+from qurry.recipe.n_body import OneBody, TwoBody
 
 
 def cnot_dyn(
@@ -121,11 +121,11 @@ def cnot_dyn(
             parity_target = expr.bit_xor(c1[i], parity_target)
 
     if n > 0:
-        with qc.if_test(parity_control):
+        with qc.if_test(parity_control):  # type: ignore
             qc.z(0)
 
     if n > 1:
-        with qc.if_test(parity_target):
+        with qc.if_test(parity_target):  # type: ignore
             qc.x(-1)
 
     if add_barriers is True:
@@ -253,3 +253,96 @@ class CNOTDynCase4To8(OneBody):
 
         else:
             self.cx(0, self.num_qubits - 1)
+
+
+class DummyTwoBodyWithDedicatedClbits(TwoBody):
+    """DummyTwoBodyWithDedicatedClbit:
+    A dummy circuit to simulate a two-body interaction
+    with dedicated classical bits and reset gate.
+    But the last 2 qubits will be not measured and reset.
+
+    For :cls:`EntropyMeasure` and :cls:`WaveFunctionOverlap` a.k.a. :cls:`EchoListen`.
+    It's a product state for no any entanglement.
+
+    To simulate a circuit with its own classical bits as an unit test case for qurry.
+
+    ### The dummy circuit with dedicated classical bits and reset gate
+
+    .. code-block:: text
+        # At 6 qubits with 2 classical registers:
+              ┌───┐ ░ ┌─┐          ░
+        q1_0: ┤ X ├─░─┤M├──────────░──|0>─
+              └───┘ ░ └╥┘┌─┐       ░
+        q1_1: ──────░──╫─┤M├───────░──|0>─
+              ┌───┐ ░  ║ └╥┘┌─┐    ░
+        q1_2: ┤ X ├─░──╫──╫─┤M├────░──|0>─
+              └───┘ ░  ║  ║ └╥┘┌─┐ ░
+        q1_3: ──────░──╫──╫──╫─┤M├─░──|0>─
+              ┌───┐ ░  ║  ║  ║ └╥┘ ░
+        q1_4: ┤ X ├─░──╫──╫──╫──╫──░──────
+              └───┘ ░  ║  ║  ║  ║  ░
+        q1_5: ──────░──╫──╫──╫──╫──░──────
+                    ░  ║  ║  ║  ║  ░
+        c2: 4/═════════╩══╩══╬══╬═════════
+                       0  1  ║  ║
+        c3: 4/═══════════════╩══╩═════════
+                             1  2
+
+    """
+
+    @property
+    def clbit_num_cluster(self) -> int:
+        """The classical bit number of the cluster for each 2 qubits.
+
+        Returns:
+            The classical bit number of the cluster for each 2 qubits.
+        """
+        return self._clbit_num_cluster
+
+    @clbit_num_cluster.setter
+    def clbit_num_cluster(self, clbit_num_cluster: int) -> None:
+        """Set the classical bit number of the cluster for each 2 qubits.
+
+        Args:
+            clbit_num_cluster (int): The new classical bit number of the cluster for each 2 qubits.
+
+        """
+        if hasattr(self, "_clbit_num_cluster"):
+            raise AttributeError("Attribute 'clbit_num_cluster' is read-only.")
+        self._clbit_num_cluster = clbit_num_cluster
+
+    def __init__(self, num_qubits, clbit_num_cluster: int = 4) -> None:
+        if num_qubits % 2 != 0:
+            raise ValueError("Number of qubits must be even number")
+        if num_qubits < 4:
+            raise ValueError(
+                "Number of qubits must be greater than 4, "
+                + "otherwise it will not any classical bits introduced."
+            )
+        if clbit_num_cluster < 1:
+            raise ValueError("Number of classical bits must be greater than 0")
+        super().__init__()
+        self.num_qubits = num_qubits
+        self.clbit_num_cluster = clbit_num_cluster
+
+    def _build(self) -> None:
+        if self._is_built:
+            return
+        super()._build()
+
+        for i in range(0, self.num_qubits, 2):
+            self.x(i)
+
+        self.barrier()
+
+        for i in range(0, self.num_qubits - 2, 2):
+            tmp_c = ClassicalRegister(self.clbit_num_cluster, f"c{i}")
+            self.add_register(tmp_c)
+
+            self.measure(i, tmp_c[(0 + int(i / 2)) % self.clbit_num_cluster])
+            self.measure(i + 1, tmp_c[(1 + int(i / 2)) % self.clbit_num_cluster])
+
+        self.barrier()
+
+        for i in range(0, self.num_qubits - 2):
+            self.reset(i)
