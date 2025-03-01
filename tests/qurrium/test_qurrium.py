@@ -6,15 +6,15 @@ Test the qurry.qurrent module EntropyMeasure class.
 """
 
 import os
-
 import pytest
 
-from circuits_case import CNOTDynCase4To8
+from utils import CNOTDynCase4To8
 
 from qurry.capsule import hoshi, mori
 from qurry.qurrium import SamplingExecuter, WavesExecuter
 from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
 from qurry.tools.backend import GeneralSimulator
+
 
 tag_list = mori.TagList()
 statesheet = hoshi.Hoshi()

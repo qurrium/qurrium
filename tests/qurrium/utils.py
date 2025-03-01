@@ -11,6 +11,7 @@ from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.classical import expr
 
 from qurry.recipe.n_body import OneBody, TwoBody
+from qurry.tools.datetime import current_time
 
 
 def cnot_dyn(
@@ -346,3 +347,12 @@ class DummyTwoBodyWithDedicatedClbits(TwoBody):
 
         for i in range(0, self.num_qubits - 2):
             self.reset(i)
+
+
+def current_time_filename():
+    """Returns the current time as a filename.
+
+    Returns:
+        str: The current time as a filename.
+    """
+    return current_time().replace(":", "").replace("-", "").replace(" ", "_")
