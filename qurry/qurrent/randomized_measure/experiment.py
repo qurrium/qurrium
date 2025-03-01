@@ -14,7 +14,11 @@ from qiskit import QuantumCircuit
 
 from .analysis import EntropyMeasureRandomizedAnalysis
 from .arguments import EntropyMeasureRandomizedArguments, SHORT_NAME
-from .utils import randomized_circuit_method, randomized_entangled_entropy_complex
+from .utils import (
+    randomized_circuit_method,
+    randomized_entangled_entropy_complex,
+    bitstring_mapping_getter,
+)
 from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
 from ...qurrium.utils.randomized import (
     random_unitary,
@@ -134,9 +138,6 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         registers_mapping = qubit_mapper(actual_qubits, measure)
         qubits_measured = list(registers_mapping)
 
-        bistring_shift = len(target_circuit.clbits) + len(target_circuit.cregs)
-        bitstring_mapping = {v: v + bistring_shift for v in registers_mapping.values()}
-
         unitary_located = list(qubit_mapper(actual_qubits, unitary_loc))
         measured_but_not_unitary_located = [
             qi for qi in qubits_measured if qi not in unitary_located
@@ -161,7 +162,6 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
             times=times,
             qubits_measured=qubits_measured,
             registers_mapping=registers_mapping,
-            bitstring_mapping=bitstring_mapping,
             actual_num_qubits=actual_qubits,
             unitary_located=unitary_located,
             random_unitary_seeds=random_unitary_seeds,
@@ -283,12 +283,6 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         if self.args.registers_mapping is None:
             raise ValueError("registers_mapping should be specified, but got None.")
 
-        final_mapping = (
-            {v: v for v in self.args.registers_mapping.values()}
-            if self.args.bitstring_mapping is None
-            else {k: self.args.bitstring_mapping[v] for k, v in self.args.registers_mapping.items()}
-        )
-
         if isinstance(counts_used, Iterable):
             if max(counts_used) >= len(self.afterwards.counts):
                 raise ValueError(
@@ -301,26 +295,9 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         else:
             counts = self.afterwards.counts
 
-        bitstring_sampling = list(counts[0].keys())[0]
-        bitstring_sampling_divided = bitstring_sampling.split(" ")
-        if len(bitstring_sampling_divided) > 1:
-            bitstring_shift = len(bitstring_sampling_divided) - 1
-            for clbit_cluster in bitstring_sampling_divided[1:]:
-                bitstring_shift += len(clbit_cluster)
-            bitstring_mapping = {
-                v: v + bitstring_shift for v in self.args.registers_mapping.values()
-            }
-            if self.args.bitstring_mapping is None:
-                ...
-            elif any(self.args.bitstring_mapping[k] != v for k, v in bitstring_mapping.items()):
-                raise ValueError(
-                    "The .args.registers_mapping is wrong "
-                    + "for not really showing the bitstring shift. "
-                    f"bitstring_sampling: {bitstring_sampling}, "
-                    + f".args.registers_mapping: {self.args.registers_mapping}, "
-                    + f"bitstring_mapping: {bitstring_mapping}."
-                    + f".args.bitstring_mapping: {self.args.bitstring_mapping}."
-                )
+        bitstring_mapping, final_mapping = bitstring_mapping_getter(
+            counts, self.args.registers_mapping
+        )
 
         available_all_system_source = [
             k
@@ -356,7 +333,7 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
             num_qubits=self.args.actual_num_qubits,
             selected_qubits=selected_qubits,
             registers_mapping=self.args.registers_mapping,
-            bitstring_mapping=self.args.bitstring_mapping,
+            bitstring_mapping=bitstring_mapping,
             shots=self.commons.shots,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,

@@ -194,3 +194,32 @@ def randomized_circuit_method(
     )
 
     return qc_exp1
+
+
+def bitstring_mapping_getter(
+    counts: list[dict[str, int]],
+    registers_mapping: dict[int, int],
+) -> tuple[dict[int, int], dict[int, int]]:
+    """Get the bitstring mapping and the final mapping.
+
+    Args:
+        counts (list[dict[str, int]]):
+            The counts of the experiment.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+
+    Returns:
+        tuple[dict[int, int], dict[int, int]]: The bitstring mapping and the final mapping.
+    """
+
+    bitstring_sampling = list(counts[0].keys())[0]
+    bitstring_sampling_divided = bitstring_sampling.split(" ")
+
+    if len(bitstring_sampling_divided) > 1:
+        bitstring_shift = len(bitstring_sampling_divided) - 1
+        for clbit_cluster in bitstring_sampling_divided[1:]:
+            bitstring_shift += len(clbit_cluster)
+        bitstring_mapping = {v: v + bitstring_shift for v in registers_mapping.values()}
+        final_mapping = {k: bitstring_mapping[v] for k, v in registers_mapping.items()}
+        return bitstring_mapping, final_mapping
+    return {v: v for v in registers_mapping.values()}, registers_mapping
