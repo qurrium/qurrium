@@ -17,7 +17,7 @@ from qiskit.providers import Backend, JobV1 as Job
 
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
-from ...qurrent.randomized_measure.utils import randomized_circuit_method
+from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
 from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
 from ...qurrium.utils import get_counts_and_exceptions
 from ...qurrium.utils.randomized import (
@@ -174,8 +174,6 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         registers_mapping_1 = qubit_mapper(actual_qubits_1, measure_1)
         qubits_measured_1 = list(registers_mapping_1)
-        bistring_shift_1 = len(target_circuit_1.clbits) + len(target_circuit_1.cregs)
-        bitstring_mapping_1 = {v: v + bistring_shift_1 for v in registers_mapping_1.values()}
         unitary_located_mapping_1 = qubit_mapper(actual_qubits_1, unitary_loc_1)
         assert list(unitary_located_mapping_1.values()) == list(
             range(len(unitary_located_mapping_1))
@@ -186,8 +184,6 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         registers_mapping_2 = qubit_mapper(actual_qubits_2, measure_2)
         qubits_measured_2 = list(registers_mapping_2)
-        bistring_shift_2 = len(target_circuit_2.clbits) + len(target_circuit_2.cregs)
-        bitstring_mapping_2 = {v: v + bistring_shift_2 for v in registers_mapping_2.values()}
         unitary_located_mapping_2 = qubit_mapper(actual_qubits_2, unitary_loc_2)
         assert list(unitary_located_mapping_2.values()) == list(
             range(len(unitary_located_mapping_2))
@@ -250,8 +246,6 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             qubits_measured_2=qubits_measured_2,
             registers_mapping_1=registers_mapping_1,
             registers_mapping_2=registers_mapping_2,
-            bitstring_mapping_1=bitstring_mapping_1,
-            bitstring_mapping_2=bitstring_mapping_2,
             actual_num_qubits_1=actual_qubits_1,
             actual_num_qubits_2=actual_qubits_2,
             unitary_located_mapping_1=unitary_located_mapping_1,
@@ -638,14 +632,13 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             + f"times: {self.args.times}."
         )
 
-        final_mapping_1 = (
-            {v: v for v in self.args.registers_mapping_1.values()}
-            if self.args.bitstring_mapping_1 is None
-            else {
-                k: self.args.bitstring_mapping_1[v]
-                for k, v in self.args.registers_mapping_1.items()
-            }
+        bitstring_mapping_1, final_mapping_1 = bitstring_mapping_getter(
+            first_countses, self.args.registers_mapping_1
         )
+        bitstring_mapping_2, final_mapping_2 = bitstring_mapping_getter(
+            second_countses, self.args.registers_mapping_2
+        )
+
         actual_bitstring_1_num_and_list = (
             len(list(first_countses[0].keys())[0]),
             list(final_mapping_1.values()),
@@ -659,14 +652,6 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             for counts in first_countses
         ]
 
-        final_mapping_2 = (
-            {v: v for v in self.args.registers_mapping_2.values()}
-            if self.args.bitstring_mapping_2 is None
-            else {
-                k: self.args.bitstring_mapping_2[v]
-                for k, v in self.args.registers_mapping_2.items()
-            }
-        )
         actual_bitstring_2_num_and_list = (
             len(list(second_countses[0].keys())[0]),
             list(final_mapping_2.values()),
@@ -697,6 +682,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             registers_mapping_2=self.args.registers_mapping_2,
             unitary_located_mapping_1=self.args.unitary_located_mapping_1,
             unitary_located_mapping_2=self.args.unitary_located_mapping_2,
+            bitstring_mapping_1=bitstring_mapping_1,
+            bitstring_mapping_2=bitstring_mapping_2,
             counts_used=counts_used,
             **qs,  # type: ignore
         )
