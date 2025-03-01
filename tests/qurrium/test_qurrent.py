@@ -443,7 +443,7 @@ def test_quantity_03(tgt):
     assert (
         "AnalysisHeader" in quantity_03["allSystemSource"]
     ), f"The source of all system is not from existed analysis: {quantity_03['allSystemSource']}."
-    
+
     diff = np.abs(quantity_01["purity"] - answer[tgt])
     is_correct = diff < THREDHOLD
     assert (not MANUAL_ASSERT_ERROR) and is_correct, (
