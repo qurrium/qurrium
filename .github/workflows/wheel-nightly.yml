@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_wheels:
-    if: github.repository == 'harui2019/qurry'
+    if: github.repository == 'qurrium/qurry'
     name: Build wheels on ${{ matrix.vers }} by ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
