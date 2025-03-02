@@ -81,10 +81,6 @@ jobs:
       # > So, we only use command line to build.
 
       # Build wheels
-      - name: Upgrade Python Environment
-        run: |
-          python -m pip install -r requirements-dev.txt --upgrade
-
       - name: Build wheels
         if: matrix.vers != 'linux-aarch64'
         run: |
