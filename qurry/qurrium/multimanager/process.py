@@ -144,7 +144,7 @@ def multiprocess_exporter_and_writer(
         jsonable=jsonable,
         mute=mute,
         multiprocess=True,
-        _pbar=_pbar,
+        pbar=_pbar,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."

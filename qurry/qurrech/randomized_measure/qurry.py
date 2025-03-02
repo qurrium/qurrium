@@ -79,10 +79,10 @@ class EchoListenRandomized(QurriumPrototype):
         wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
         wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure_1: Union[int, tuple[int, int], None] = None,
-        measure_2: Union[int, tuple[int, int], None] = None,
-        unitary_loc_1: Union[int, tuple[int, int], None] = None,
-        unitary_loc_2: Union[int, tuple[int, int], None] = None,
+        measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
+        unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
@@ -115,10 +115,20 @@ class EchoListenRandomized(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure_1 (Union[int, tuple[int, int], None], optional):
-                The measure range for the first quantum circuit. Defaults to `None`.
-            measure_2 (Union[int, tuple[int, int], None], optional):
-                The measure range for the second quantum circuit. Defaults to `None`.
+            measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement for the first quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
+            measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement for the second quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
             unitary_loc_1 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the first quantum circuit.
                 Defaults to `None`.
@@ -131,7 +141,7 @@ class EchoListenRandomized(QurriumPrototype):
             second_backend (Optional[Backend], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to None.
+                Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -155,7 +165,7 @@ class EchoListenRandomized(QurriumPrototype):
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
-                The quantum backend. Defaults to None.
+                The quantum backend. Defaults to `None`.
             exp_name (str, optional):
                 The name of the experiment.
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
@@ -166,16 +176,16 @@ class EchoListenRandomized(QurriumPrototype):
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
-                The passmanager. Defaults to None.
+                The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
-                The tags of the experiment. Defaults to None.
+                The tags of the experiment. Defaults to `None`.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to None.
+                The location to save the experiment. Defaults to `None`.
             mode (str, optional):
                 The mode to open the file. Defaults to 'w+'.
             indent (int, optional):
@@ -186,7 +196,7 @@ class EchoListenRandomized(QurriumPrototype):
                 Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                Defaults to `None`.
 
         Returns:
             EchoListenRandomizedOutputArgs: The output arguments.
@@ -229,10 +239,10 @@ class EchoListenRandomized(QurriumPrototype):
         wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
         wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure_1: Union[int, tuple[int, int], None] = None,
-        measure_2: Union[int, tuple[int, int], None] = None,
-        unitary_loc_1: Union[int, tuple[int, int], None] = None,
-        unitary_loc_2: Union[int, tuple[int, int], None] = None,
+        measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
+        unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
@@ -265,10 +275,20 @@ class EchoListenRandomized(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure_1 (Union[int, tuple[int, int], None], optional):
-                The measure range for the first quantum circuit. Defaults to `None`.
-            measure_2 (Union[int, tuple[int, int], None], optional):
-                The measure range for the second quantum circuit. Defaults to `None`.
+            measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement for the first quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
+            measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement for the second quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
             unitary_loc_1 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the first quantum circuit.
                 Defaults to `None`.
@@ -281,7 +301,7 @@ class EchoListenRandomized(QurriumPrototype):
             second_backend (Optional[Backend], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to None.
+                Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -305,7 +325,7 @@ class EchoListenRandomized(QurriumPrototype):
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
-                The quantum backend. Defaults to None.
+                The quantum backend. Defaults to `None`.
             exp_name (str, optional):
                 The name of the experiment.
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
@@ -316,16 +336,16 @@ class EchoListenRandomized(QurriumPrototype):
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
-                The passmanager. Defaults to None.
+                The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
-                The tags of the experiment. Defaults to None.
+                The tags of the experiment. Defaults to `None`.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to None.
+                The location to save the experiment. Defaults to `None`.
             mode (str, optional):
                 The mode to open the file. Defaults to 'w+'.
             indent (int, optional):
@@ -336,7 +356,7 @@ class EchoListenRandomized(QurriumPrototype):
                 Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                Defaults to `None`.
 
         Returns:
             str: The ID of the experiment.
@@ -393,14 +413,14 @@ class EchoListenRandomized(QurriumPrototype):
             summoner_name (str, optional):
                 Name for multimanager. Defaults to 'exps'.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Name for multimanager. Defaults to `None`.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of the MultiManager. Defaults to `None`.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.
@@ -457,7 +477,7 @@ class EchoListenRandomized(QurriumPrototype):
                     dict[str, Any], EchoListenRandomizedAnalyzeArgs, bool]
                 ]]], optional
             ):
-                The specific arguments for analysis. Defaults to None.
+                The specific arguments for analysis. Defaults to `None`.
             compress (bool, optional):
                 Whether to compress the export file. Defaults to False.
             write (bool, optional):
@@ -467,11 +487,11 @@ class EchoListenRandomized(QurriumPrototype):
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
-                Defaults to None.
+                Defaults to `None`.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
-                The index of the counts used. Defaults to None.
+                The index of the counts used. Defaults to `None`.
 
         Returns:
             str: The summoner_id of multimanager.

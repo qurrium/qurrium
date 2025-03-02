@@ -8,10 +8,13 @@ Test the qurry.qurrent module EntropyMeasure class.
 import os
 import pytest
 
-from qurry.qurrium import WavesExecuter, SamplingExecuter
+from utils import CNOTDynCase4To8
+
+from qurry.capsule import hoshi, mori
+from qurry.qurrium import SamplingExecuter, WavesExecuter
+from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
 from qurry.tools.backend import GeneralSimulator
-from qurry.capsule import mori, hoshi
-from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
+
 
 tag_list = mori.TagList()
 statesheet = hoshi.Hoshi()
@@ -22,15 +25,16 @@ exp_demo_02 = WavesExecuter()
 wave_adds_01 = []
 wave_adds_02 = []
 
-for i in range(4, 5, 2):
-    wave_adds_01.append(exp_demo_01.add(TrivialParamagnet(i), f"{i}-trivial"))
-    wave_adds_02.append(exp_demo_02.add(TrivialParamagnet(i), f"{i}-trivial"))
-
-    wave_adds_01.append(exp_demo_01.add(GHZ(i), f"{i}-GHZ"))
-    wave_adds_02.append(exp_demo_02.add(GHZ(i), f"{i}-GHZ"))
-
-    wave_adds_01.append(exp_demo_01.add(TopologicalParamagnet(i), f"{i}-topological"))
-    wave_adds_02.append(exp_demo_02.add(TopologicalParamagnet(i), f"{i}-topological"))
+wave_adds_01.append(exp_demo_01.add(TrivialParamagnet(4), "4-trivial"))
+wave_adds_02.append(exp_demo_02.add(TrivialParamagnet(4), "4-trivial"))
+wave_adds_01.append(exp_demo_01.add(GHZ(4), "4-GHZ"))
+wave_adds_02.append(exp_demo_02.add(GHZ(4), "4-GHZ"))
+wave_adds_01.append(exp_demo_01.add(TopologicalParamagnet(4), "4-topological"))
+wave_adds_02.append(exp_demo_02.add(TopologicalParamagnet(4), "4-topological"))
+wave_adds_01.append(exp_demo_01.add(CNOTDynCase4To8(4), "4-CNOTDynCase4To8"))
+wave_adds_02.append(
+    exp_demo_02.add(CNOTDynCase4To8(4, export="comparison"), "4-CNOTDynComparison4To8")
+)
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]

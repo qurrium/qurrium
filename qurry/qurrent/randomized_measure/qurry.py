@@ -120,8 +120,8 @@ class EntropyMeasureRandomized(QurriumPrototype):
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure: Union[int, tuple[int, int], None] = None,
-        unitary_loc: Union[int, tuple[int, int], None] = None,
+        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc: Optional[Union[int, tuple[int, int]]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -151,9 +151,14 @@ class EntropyMeasureRandomized(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Union[int, tuple[int, int], None], optional):
-                The measure range. Defaults to `None`.
-            unitary_loc (Union[int, tuple[int, int], None], optional):
+            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to None.
+            unitary_loc (Optional[Union[int, tuple[int, int]]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
@@ -249,8 +254,8 @@ class EntropyMeasureRandomized(QurriumPrototype):
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure: Union[int, tuple[int, int], None] = None,
-        unitary_loc: Union[int, tuple[int, int], None] = None,
+        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc: Optional[Union[int, tuple[int, int]]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -280,9 +285,14 @@ class EntropyMeasureRandomized(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Union[int, tuple[int, int], None], optional):
-                The measure range. Defaults to `None`.
-            unitary_loc (Union[int, tuple[int, int], None], optional):
+            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+                The selected qubits for the measurement.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to None.
+            unitary_loc (Optional[Union[int, tuple[int, int]]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.

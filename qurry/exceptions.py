@@ -47,9 +47,17 @@ class QurryDependenciesFailureError(QurryError):
     """The dependencies of Qurry like Qiskit raise some error."""
 
 
-class RandomizedMeasureUnitaryOperatorNotFullCovering(QurryError, ValueError):
+class RandomizedMeasureError(QurryError):
+    """The error for randomized measure."""
+
+
+class RandomizedMeasureUnitaryOperatorNotFullCovering(RandomizedMeasureError, ValueError):
     """Randomized measure unitary operator warning
     for not full covering the measure range."""
+
+
+class OverlapComparisonSizeDifferent(RandomizedMeasureError, ValueError):
+    """The sizes between two system that need to be compared are different."""
 
 
 # General Warning

@@ -17,9 +17,9 @@ jobs:
           - vers: linux-x86_64
             os: ubuntu-latest
             archs: X64
-          # - vers: linux-aarch64
-          #   os: ubuntu-latest
-          #   archs: ARM64 # Corss-compiling in test
+          - vers: linux-aarch64
+            os: ubuntu-24.04-arm
+            archs: ARM64
           - vers: macOS-x86_64
             os: macos-13
             archs: X64

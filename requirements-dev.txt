@@ -5,6 +5,10 @@ setuptools_rust
 # Lint tools
 flake8 
 pep440
+
 # Test tools
 matplotlib 
 pytest 
+
+# qiskit-aer
+qiskit-aer

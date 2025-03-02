@@ -9,8 +9,10 @@ from .construct import (
     qubit_selector,
     cycling_slice,
     degree_handler,
-    is_cycling_slice_active,
+    counts_under_degree,
+    counts_under_degree_pyrust,
     qubit_mapper,
+    is_cycling_slice_active,
     BACKEND_AVAILABLE as construct_availability,
 )
 from .randomized import (
