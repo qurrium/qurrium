@@ -71,11 +71,11 @@ class MultiManager:
 
         Args:
             security (bool, optional): Security for reset. Defaults to `False`.
-            muteWarning (bool, optional): Mute the warning message. Defaults to `False`.
+            mute_warning (bool, optional): Mute warning. Defaults to `False`.
         """
 
         if len(args) > 0:
-            raise ValueError(f"{self.__name__} can't be reset with positional arguments.")
+            raise ValueError("Use '.reset(security=True)' to reset the afterwards.")
 
         if security and isinstance(security, bool):
             self.afterwards = self.afterwards._replace(retrievedResult=TagList(), allCounts={})
@@ -829,7 +829,7 @@ class MultiManager:
 
         if remain_only_compressed:
             self.multicommons.datetimes.add_serial("uncompressedRemove")
-        _multiconfig = self._write_multiconfig()
+        self._write_multiconfig()
 
         print(f"| Compress multimanager of '{self.naming_complex.expsName}'...", end="\r")
         loc = self.easycompress(overwrite=compress_overwrite)
@@ -946,7 +946,7 @@ class MultiManager:
         """
 
         self.multicommons.datetimes.add_serial("compressed")
-        _multiconfig = self._write_multiconfig()
+        self._write_multiconfig()
 
         is_exists = os.path.exists(self.naming_complex.tarLocation)
         if is_exists and overwrite:

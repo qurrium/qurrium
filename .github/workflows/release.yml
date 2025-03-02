@@ -38,8 +38,8 @@ jobs:
 
       - name: Set up Git user
         run: |
-          git config --global user.name ${{ github.repository_owner }}_action_bot
-          git config --global user.email ${{ github.repository_owner }}@users.noreply.github.com
+          git config --local user.name ${{ github.repository_owner }}_action_bot
+          git config --local user.email ${{ github.repository_owner }}@users.noreply.github.com
 
       - name: Bump Version and Create Tag
         id: create_tag

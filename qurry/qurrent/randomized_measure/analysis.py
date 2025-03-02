@@ -37,6 +37,52 @@ class EntropyMeasureRandomizedAnalysis(AnalysisPrototype):
         The key is the index of the quantum register with the numerical order.
         The value is the index of the classical register with the numerical order.
         """
+        bitstring_mapping: Optional[dict[int, int]]
+        """The mapping of the bitstring with the classical registers.
+        When there are mulitple classical registers, 
+        the bitstring is the concatenation of the classical registers with space on bitstring.
+        For example, there are three registers with the size of 4, 4, and 6, 
+        which the first six bits are for the randomized measurement.
+
+        .. code-block:: python
+            {'010000 0100 0001': 1024}
+            # The bitstring is '010000 0100 0001'.
+            # The last four bits are the first classical register.
+            # The middle four bits are the second classical register.
+            # The first six bits are the last classical register for the randomized measurement.
+
+        So, the mapping will be like this.
+
+        .. code-block:: python
+
+            {
+                0: 10, # The classical register 0 is mapped to the bitstring on the index 0.
+                1: 11, # The classical register 0 is mapped to the bitstring on the index 1.
+                2: 12, # The classical register 0 is mapped to the bitstring on the index 2.
+                3: 13, # The classical register 0 is mapped to the bitstring on the index 3.
+                4: 14, # The classical register 0 is mapped to the bitstring on the index 4.
+                5: 15, # The classical register 0 is mapped to the bitstring on the index 5.
+            }
+
+        But, if there is only one classical register, 
+        the bitstring will map to the classical register directly.
+
+        .. code-block:: python
+            {'010000': 1024}
+
+        Will be like this.
+
+        .. code-block:: python
+            {
+                0: 0, # The classical register 0 is mapped to the bitstring on the index 0.
+                1: 1, # The classical register 0 is mapped to the bitstring on the index 1.
+                2: 2, # The classical register 0 is mapped to the bitstring on the index 2.
+                3: 3, # The classical register 0 is mapped to the bitstring on the index 3.
+                4: 4, # The classical register 0 is mapped to the bitstring on the index 4.
+                5: 5, # The classical register 0 is mapped to the bitstring on the index 5.
+            }
+
+        """
         shots: int
         """The number of shots."""
         unitary_located: Optional[list[int]] = None

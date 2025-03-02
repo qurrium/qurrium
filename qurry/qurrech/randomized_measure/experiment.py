@@ -17,8 +17,8 @@ from qiskit.providers import Backend, JobV1 as Job
 
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
-from ...qurrent.randomized_measure.utils import circuit_method_core
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
+from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
 from ...qurrium.utils import get_counts_and_exceptions
 from ...qurrium.utils.randomized import (
     random_unitary,
@@ -26,16 +26,17 @@ from ...qurrium.utils.randomized import (
     local_unitary_op_to_pauli_coeff,
 )
 from ...qurrium.utils.random_unitary import check_input_for_experiment
-from ...process.utils import qubit_mapper
+from ...process.utils import qubit_mapper, counts_under_degree_pyrust
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
     DEFAULT_PROCESS_BACKEND,
     WaveFuctionOverlapResult,
 )
-from ...tools import qurry_progressbar, ParallelManager, set_pbar_description, backend_name_getter
+from ...tools import ParallelManager, set_pbar_description, backend_name_getter
 from ...exceptions import (
     RandomizedMeasureUnitaryOperatorNotFullCovering,
+    OverlapComparisonSizeDifferent,
     SeperatedExecutingOverlapResult,
 )
 
@@ -57,14 +58,16 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         """The analysis instance for this experiment."""
         return EchoListenRandomizedAnalysis
 
+    report: AnalysesContainer[EchoListenRandomizedAnalysis]
+
     @classmethod
     def params_control(
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
         exp_name: str = "exps",
         times: int = 100,
-        measure_1: Optional[Union[tuple[int, int], int]] = None,
-        measure_2: Optional[Union[tuple[int, int], int, list[int]]] = None,
+        measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
@@ -86,15 +89,25 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 The number of random unitary operator. Defaults to 100.
                 It will denote as `N_U` in the experiment name.
             measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The measure range for the first quantum circuit. Defaults to None.
+                The selected qubits for the measurement for the first quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
             measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The measure range for the second quantum circuit. Defaults to None.
+                The selected qubits for the measurement for the second quantum circuit.
+                If it is None, then it will return the mapping of all qubits.
+                If it is int, then it will return the mapping of the last n qubits.
+                If it is tuple, then it will return the mapping of the qubits in the range.
+                If it is list, then it will return the mapping of the selected qubits.
+                Defaults to `None`.
             unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator for the first quantum circuit.
-                Defaults to None.
+                Defaults to `None`.
             unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator for the second quantum circuit.
-                Defaults to None.
+                Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
@@ -102,7 +115,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             second_backend (Optional[Any], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to None.
+                Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -117,12 +130,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds`
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             custom_kwargs (Any):
                 The custom parameters.
 
@@ -135,8 +150,10 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             tuple[EntropyMeasureRandomizedArguments, Commonparams, dict[str, Any]]:
                 The arguments of the experiment, the common parameters, and the custom parameters.
         """
-        assert len(targets) == 2, "The number of target circuits should be two."
-        assert isinstance(times, int), f"times should be an integer, but got {times}."
+        if len(targets) != 2:
+            raise ValueError("The number of target circuits should be two.")
+        if not isinstance(times, int):
+            raise TypeError(f"times should be an integer, but got {times}.")
 
         target_key_1, target_circuit_1 = targets[0]
         actual_qubits_1 = target_circuit_1.num_qubits
@@ -176,14 +193,14 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         ]
 
         if len(qubits_measured_1) != len(qubits_measured_2):
-            raise ValueError(
+            raise OverlapComparisonSizeDifferent(
                 "The qubits number of measuring range in two circuits should be the same, "
                 + "but got different number of qubits measured."
                 + f"Got circuit 1: {len(qubits_measured_1)} {qubits_measured_1}"
                 + f"and circuit 2: {len(qubits_measured_2)} {qubits_measured_2}."
             )
         if len(unitary_located_mapping_1) != len(unitary_located_mapping_2):
-            raise ValueError(
+            raise OverlapComparisonSizeDifferent(
                 "The qubits number of unitary location in two circuits should be the same, "
                 + "but got different number of qubits located."
                 + f"Got circuit 1: {len(unitary_located_mapping_1)} {unitary_located_mapping_1}"
@@ -216,7 +233,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         check_input_for_experiment(times, len(unitary_located_mapping_2), random_unitary_seeds)
 
         if not any([isinstance(second_backend, Backend), second_backend is None]):
-            raise ValueError(
+            raise TypeError(
                 f"second_backend should be Backend or not given, but got {type(second_backend)}."
             )
 
@@ -255,7 +272,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                Defaults to `None`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -309,7 +326,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
 
         set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
         circ_list = pool.starmap(
-            circuit_method_core,
+            randomized_circuit_method,
             [
                 (
                     n_u_i,
@@ -361,7 +378,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         Args:
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                Defaults to `None`.
 
         Raises:
             ValueError: No circuit ready.
@@ -460,7 +477,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to None.
+                The location to save the experiment. Defaults to `None`.
             mode (str, optional):
                 The mode to open the file. Defaults to 'w+'.
             indent (int, optional):
@@ -471,7 +488,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                Defaults to `None`.
 
         Returns:
             str: The ID of the experiment.
@@ -554,15 +571,15 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
-                Defaults to None.
+                Defaults to `None`.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
-                The index of the counts used. Defaults to None.
+                The index of the counts used. Defaults to `None`.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar API, you can use put a :cls:`tqdm` object here.
                 This function will update the progress bar description.
-                Defaults to None.
+                Defaults to `None`.
 
         Returns:
             EchoListenRandomizedAnalysis: The result of the experiment
@@ -606,41 +623,56 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 + f"selected: {selected_classical_registers}"
             )
 
-        first_counts = self.afterwards.counts[: self.args.times]
-        second_counts = self.afterwards.counts[self.args.times :]
-        assert len(first_counts) == len(second_counts), (
+        first_countses = self.afterwards.counts[: self.args.times]
+        second_countses = self.afterwards.counts[self.args.times :]
+        assert len(first_countses) == len(second_countses), (
             "The number of first and second counts should be the same, "
-            + f"but got {len(first_counts)} and {len(second_counts)}. "
+            + f"but got {len(first_countses)} and {len(second_countses)}. "
             + f"from counts with length {len(self.afterwards.counts)}, "
             + f"times: {self.args.times}."
         )
 
-        if isinstance(pbar, tqdm.tqdm):
-            qs = self.quantities(
-                shots=shots,
-                first_counts=first_counts,
-                second_counts=second_counts,
-                selected_classical_registers=selected_classical_registers,
-                backend=backend,
-                pbar=pbar,
-            )
+        bitstring_mapping_1, final_mapping_1 = bitstring_mapping_getter(
+            first_countses, self.args.registers_mapping_1
+        )
+        bitstring_mapping_2, final_mapping_2 = bitstring_mapping_getter(
+            second_countses, self.args.registers_mapping_2
+        )
 
-        else:
-            pbar_selfhost = qurry_progressbar(
-                range(1),
-                bar_format="simple",
+        actual_bitstring_1_num_and_list = (
+            len(list(first_countses[0].keys())[0]),
+            list(final_mapping_1.values()),
+        )
+        first_counts_of_last_clreg = [
+            counts_under_degree_pyrust(
+                counts,
+                actual_bitstring_1_num_and_list[0],
+                actual_bitstring_1_num_and_list[1],
             )
+            for counts in first_countses
+        ]
 
-            with pbar_selfhost as pb_self:
-                qs = self.quantities(
-                    shots=shots,
-                    first_counts=first_counts,
-                    second_counts=second_counts,
-                    selected_classical_registers=selected_classical_registers,
-                    backend=backend,
-                    pbar=pb_self,
-                )
-                pb_self.update()
+        actual_bitstring_2_num_and_list = (
+            len(list(second_countses[0].keys())[0]),
+            list(final_mapping_2.values()),
+        )
+        second_counts_of_last_clreg = [
+            counts_under_degree_pyrust(
+                counts,
+                actual_bitstring_2_num_and_list[0],
+                actual_bitstring_2_num_and_list[1],
+            )
+            for counts in second_countses
+        ]
+
+        qs = self.quantities(
+            shots=shots,
+            first_counts=first_counts_of_last_clreg,
+            second_counts=second_counts_of_last_clreg,
+            selected_classical_registers=selected_classical_registers,
+            backend=backend,
+            pbar=pbar,
+        )
 
         serial = len(self.reports)
         analysis = self.analysis_instance(
@@ -650,6 +682,8 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             registers_mapping_2=self.args.registers_mapping_2,
             unitary_located_mapping_1=self.args.unitary_located_mapping_1,
             unitary_located_mapping_2=self.args.unitary_located_mapping_2,
+            bitstring_mapping_1=bitstring_mapping_1,
+            bitstring_mapping_2=bitstring_mapping_2,
             counts_used=counts_used,
             **qs,  # type: ignore
         )
@@ -683,7 +717,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar API, you can use put a :cls:`tqdm` object here.
                 This function will update the progress bar description.
-                Defaults to None.
+                Defaults to `None`.
 
 
         Returns:

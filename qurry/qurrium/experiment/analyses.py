@@ -6,13 +6,15 @@ AnalysisContainer
 
 """
 
-from typing import Any
+from typing import Any, TypeVar
 from collections.abc import Hashable
 
 from ..analysis import AnalysisPrototype
 
+AP = TypeVar("AP", bound=AnalysisPrototype)
 
-class AnalysesContainer(dict[Hashable, AnalysisPrototype]):
+
+class AnalysesContainer(dict[Hashable, AP]):
     """A customized dictionary for storing `AnalysisPrototype` objects."""
 
     __name__ = "AnalysisContainer"

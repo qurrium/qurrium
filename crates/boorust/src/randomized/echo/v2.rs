@@ -1,6 +1,3 @@
-extern crate pyo3;
-extern crate rayon;
-
 use pyo3::prelude::*;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::prelude::*;
@@ -8,6 +5,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use crate::randomized::randomized::ensemble_cell_rust;
+use crate::construct::counts_under_degree_prototype;
 
 #[pyfunction]
 #[pyo3(signature = (idx, first_counts, second_counts, selected_classical_registers))]
@@ -15,22 +13,28 @@ pub fn echo_cell_2_rust(
     idx: i32,
     first_counts: HashMap<String, i32>,
     second_counts: HashMap<String, i32>,
-    selected_classical_registers: Vec<i32>,
+    selected_classical_registers: Vec<i32>
 ) -> (i32, f64, Vec<i32>) {
     let sample_shots_01: i32 = first_counts.values().sum();
     let sample_shots_02: i32 = second_counts.values().sum();
     assert_eq!(
-        sample_shots_01, sample_shots_02,
+        sample_shots_01,
+        sample_shots_02,
         "The number of shots must be equal, but the first count is {}, and the second count is {}, in the index {}",
-        sample_shots_01, sample_shots_02, idx,
+        sample_shots_01,
+        sample_shots_02,
+        idx
     );
 
     let num_classical_registers_01: i32 = first_counts.keys().next().unwrap().len() as i32;
     let num_classical_registers_02: i32 = second_counts.keys().next().unwrap().len() as i32;
     assert_eq!(
-        num_classical_registers_01, num_classical_registers_02,
+        num_classical_registers_01,
+        num_classical_registers_02,
         "The number of classical registers must be equal, but the first count is {}, and the second count is {}, in the index {}",
-        num_classical_registers_01, num_classical_registers_02, idx,
+        num_classical_registers_01,
+        num_classical_registers_02,
+        idx
     );
 
     let shots: i32 = sample_shots_01.clone();
@@ -40,39 +44,17 @@ pub fn echo_cell_2_rust(
     selected_classical_registers_sorted.sort();
     let subsystem_size = selected_classical_registers_sorted.len() as i32;
 
-    let mut first_counts_under_degree: HashMap<String, i32> = HashMap::new();
-    for (bit_string_all, count) in &first_counts {
-        let substring = selected_classical_registers
-            .iter()
-            .map(|&i| {
-                bit_string_all
-                    .chars()
-                    .nth((num_classical_registers - i - 1) as usize)
-                    .unwrap()
-            })
-            .collect::<String>();
-        let entry = first_counts_under_degree
-            .entry(substring.to_string())
-            .or_insert(0);
-        *entry += count;
-    }
+    let first_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
+        first_counts,
+        num_classical_registers,
+        selected_classical_registers_sorted.clone()
+    );
 
-    let mut second_counts_under_degree: HashMap<String, i32> = HashMap::new();
-    for (bit_string_all, count) in &second_counts {
-        let substring = selected_classical_registers
-            .iter()
-            .map(|&i| {
-                bit_string_all
-                    .chars()
-                    .nth((num_classical_registers - i - 1) as usize)
-                    .unwrap()
-            })
-            .collect::<String>();
-        let entry = second_counts_under_degree
-            .entry(substring.to_string())
-            .or_insert(0);
-        *entry += count;
-    }
+    let second_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
+        second_counts,
+        num_classical_registers,
+        selected_classical_registers_sorted.clone()
+    );
 
     let echo_cell: f64 = first_counts_under_degree
         .par_iter()
@@ -89,19 +71,19 @@ pub fn echo_cell_2_rust(
 }
 
 #[pyfunction]
-#[pyo3(signature = (shots, first_counts, second_counts, selected_classical_registers=None))]
+#[pyo3(signature = (shots, first_counts, second_counts, selected_classical_registers = None))]
 pub fn overlap_echo_core_2_rust(
     shots: i32,
     first_counts: Vec<HashMap<String, i32>>,
     second_counts: Vec<HashMap<String, i32>>,
-    selected_classical_registers: Option<Vec<i32>>,
+    selected_classical_registers: Option<Vec<i32>>
 ) -> (HashMap<i32, f64>, Vec<i32>, &'static str, f64) {
     assert_eq!(
         first_counts.len(),
         second_counts.len(),
         "The number of counts must be equal, but the first count is {}, and the second count is {}",
         first_counts.len(),
-        second_counts.len(),
+        second_counts.len()
     );
 
     let sample_shots_01: i32 = first_counts[0].values().sum();
@@ -109,26 +91,27 @@ pub fn overlap_echo_core_2_rust(
     for (tmp01, tmp02, tmp01_name, tmp02_name) in vec![
         (shots, sample_shots_01, "shots", "first counts"),
         (shots, sample_shots_02, "shots", "second counts"),
-        (
-            sample_shots_01,
-            sample_shots_02,
-            "first counts",
-            "second counts",
-        ),
+        (sample_shots_01, sample_shots_02, "first counts", "second counts")
     ] {
         assert_eq!(
-            tmp01, tmp02,
+            tmp01,
+            tmp02,
             "The number of shots must be equal, but the {} is {}, and the {} is {}",
-            tmp01_name, tmp01, tmp02_name, tmp02,
+            tmp01_name,
+            tmp01,
+            tmp02_name,
+            tmp02
         );
     }
 
     let sample_bitstrings_num_01: i32 = first_counts[0].keys().next().unwrap().len() as i32;
     let sample_bitstrings_num_02: i32 = second_counts[0].keys().next().unwrap().len() as i32;
     assert_eq!(
-        sample_bitstrings_num_01, sample_bitstrings_num_02,
+        sample_bitstrings_num_01,
+        sample_bitstrings_num_02,
         "The number of bitstrings must be equal, but the first counts is {}, and the second counts is {}",
-        sample_bitstrings_num_01, sample_bitstrings_num_02,
+        sample_bitstrings_num_01,
+        sample_bitstrings_num_02
     );
     let measured_system_size: i32 = first_counts[0].keys().next().unwrap().len() as i32;
 
@@ -151,7 +134,7 @@ pub fn overlap_echo_core_2_rust(
                 identifier as i32,
                 data.clone(),
                 data2.clone(),
-                selected_classical_registers_actual.clone(),
+                selected_classical_registers_actual.clone()
             );
             // println!("| purity_cell: {:?} {}", result, subsystems_size);
             result
@@ -167,20 +150,20 @@ pub fn overlap_echo_core_2_rust(
     result_vec
         .collect::<Vec<(i32, f64, Vec<i32>)>>()
         .iter()
-        .for_each(
-            |(idx, purity_cell, selected_classical_registers_sorted_result)| {
-                echo_loader_2.insert(*idx, *purity_cell);
+        .for_each(|(idx, purity_cell, selected_classical_registers_sorted_result)| {
+            echo_loader_2.insert(*idx, *purity_cell);
 
-                let compare = selected_classical_registers_actual_sorted
-                    .iter()
-                    .zip(selected_classical_registers_sorted_result.iter())
-                    .all(|(a, b)| a == b);
-                if !compare {
-                    selected_classical_registers_checked
-                        .insert(*idx, selected_classical_registers_sorted_result.clone());
-                }
-            },
-        );
+            let compare = selected_classical_registers_actual_sorted
+                .iter()
+                .zip(selected_classical_registers_sorted_result.iter())
+                .all(|(a, b)| a == b);
+            if !compare {
+                selected_classical_registers_checked.insert(
+                    *idx,
+                    selected_classical_registers_sorted_result.clone()
+                );
+            }
+        });
     if selected_classical_registers_checked.len() > 0 {
         println!(
             "Selected classical registers are not the same: {:?}",
@@ -190,10 +173,5 @@ pub fn overlap_echo_core_2_rust(
 
     let duration_2: f64 = begin.elapsed().as_secs_f64() as f64;
 
-    (
-        echo_loader_2,
-        selected_classical_registers_actual_sorted,
-        "",
-        duration_2,
-    )
+    (echo_loader_2, selected_classical_registers_actual_sorted, "", duration_2)
 }
