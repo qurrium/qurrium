@@ -31,10 +31,14 @@ import numpy as np
 
 from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time_filename
 
+from qiskit_aer import AerSimulator
+
 from qurry.qurrech import EchoListen
 from qurry.tools.backend import GeneralSimulator
 from qurry.capsule import mori, hoshi, quickRead, quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
+
+dummy_aer_simulator = AerSimulator()
 
 tag_list = mori.TagList()
 statesheet = hoshi.Hoshi()

@@ -80,6 +80,7 @@ before-test = [
     'echo "======================================================================"',
     "pip install --prefer-binary --only-binary=numpy,scipy numpy scipy",
     "pip install pytest",
+    "pip install qiskit-aer",                                                        # For testing, qiskit-aer is required
     "pip install -r requirements-dev.txt --upgrade",
     "cd {project} && pip install . --upgrade && cd ..",
     'echo "======================================================================"',
