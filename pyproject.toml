@@ -63,7 +63,7 @@ before-build = [
     'echo "======================================================================"',
     'echo "| Which Python: "',
     'python -c "import sys; print(sys.executable)"',
-    'python -c "from distutils import util; print(util.get_platform())"',
+    'python -c "from setuptools._distutils.util import get_platform; print(get_platform())"',
     'echo "| Python Version: "',
     'python --version',
     'echo "| Platform: "',
@@ -138,7 +138,7 @@ before-all = [
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} && pipx run abi3audit --strict --report {wheel}"
 # Attention: If you are building universal2 binaries, 
 # confirm that you are using universal2 Python since version 3.9
-# It can be check by `python -c "from distutils import util; print(util.get_platform())"`
+# It can be check by `python -c "from setuptools._distutils.util import get_platform; print(get_platform())"`
 # You should see something like `macosx-10.*-universal2` in the output.
 
 [tool.cibuildwheel.windows]
