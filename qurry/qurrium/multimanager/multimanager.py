@@ -575,7 +575,7 @@ class MultiManager:
                         if path.exists():
                             path.unlink()
 
-        reading_results: list[_ExpInst] = experiment_instance.read(
+        reading_results: list[_ExpInst] = experiment_instance.read(  # type: ignore
             save_location=current_multimanager.multicommons.save_location,
             name_or_id=current_multimanager.multicommons.summoner_name,
         )

@@ -1,6 +1,6 @@
 """
 ================================================================
-ExperimentPrototype - The instance of experiment. 
+ExperimentPrototype - The instance of experiment
 (:mod:`qurry.qurrium.experiment.experiment`)
 ================================================================
 
@@ -1166,8 +1166,8 @@ class ExperimentPrototype(ABC):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             _qurryinfo_hold_access (str, optional):
-                Whether to hold the I/O of `qurryinfo`, then export by :cls:`multimanager`,
-                it should be control by :cls:`multimanager`.
+                Whether to hold the I/O of `qurryinfo`, then export by :cls:`MultiManager`,
+                it should be control by :cls:`MultiManager`.
                 Defaults to None.
 
         Returns:
@@ -1324,7 +1324,6 @@ class ExperimentPrototype(ABC):
         workers_num: Optional[int] = None,
     ) -> list["ExperimentPrototype"]:
         """Read the experiment from file.
-        Replacement of :func:`QurryV4().readLegacy`
 
         Args:
             name_or_id (Union[Path, str]):
