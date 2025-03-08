@@ -86,9 +86,10 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -178,9 +179,10 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -258,7 +260,7 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.

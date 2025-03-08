@@ -180,7 +180,7 @@ class Commonparams(NamedTuple):
 
     # Single job dedicated
     transpile_args: TranspileArgs
-    """Arguments of `qiskit.compiler.transpile`."""
+    """Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`."""
 
     tags: tuple[str, ...]
     """Tags of experiment."""
@@ -264,9 +264,9 @@ class Commonparams(NamedTuple):
     serial: Optional[int]
     """Index of experiment in a multiOutput."""
     summoner_id: Optional[str]
-    """ID of experiment of the multiManager."""
+    """ID of experiment of :cls:`MultiManager`."""
     summoner_name: Optional[str]
-    """Name of experiment of the multiManager."""
+    """Name of experiment of :cls:`MultiManager`."""
 
     # header
     datetimes: DatetimeDict
