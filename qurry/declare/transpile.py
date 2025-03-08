@@ -1,9 +1,8 @@
 """
-================================================================
-Extra arguments for :func:`transpile` 
-from :module:`qiskit.compiler.transpiler` 
-(:mod:`qurry.declare.transpile`)
-================================================================
+=========================================================================================
+Declaration - Transpile (:mod:`qurry.declare.transpile`)
+Arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+=========================================================================================
 
 """
 
@@ -20,42 +19,43 @@ from qiskit.transpiler.target import Target
 
 
 class TranspileArgs(TypedDict, total=False):
-    """Transpile arguments for :func:`transpile` from :module:`qiskit.compiler.transpiler`.
+    """Transpile arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
 
-    ```python
-    _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, List[QuantumCircuit]])
+    .. code-block:: python
+        _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, List[QuantumCircuit]])
 
-    def transpile(
-        circuits: _CircuitT,
-        backend: Optional[Backend] = None,
-        basis_gates: Optional[List[str]] = None,
-        inst_map: Optional[List[InstructionScheduleMap]] = None,
-        coupling_map: Optional[Union[CouplingMap, List[List[int]]]] = None,
-        backend_properties: Optional[BackendProperties] = None,
-        initial_layout: Optional[Union[Layout, Dict, List]] = None,
-        layout_method: Optional[str] = None,
-        routing_method: Optional[str] = None,
-        translation_method: Optional[str] = None,
-        scheduling_method: Optional[str] = None,
-        instruction_durations: Optional[InstructionDurationsType] = None,
-        dt: Optional[float] = None,
-        approximation_degree: Optional[float] = 1.0,
-        timing_constraints: Optional[Dict[str, int]] = None,
-        seed_transpiler: Optional[int] = None,
-        optimization_level: Optional[int] = None,
-        callback: Optional[Callable[[BasePass, DAGCircuit, float, PropertySet, int], Any]] = None,
-        output_name: Optional[Union[str, List[str]]] = None,
-        unitary_synthesis_method: str = "default",
-        unitary_synthesis_plugin_config: Optional[dict] = None,
-        target: Optional[Target] = None,
-        hls_config: Optional[HLSConfig] = None,
-        init_method: Optional[str] = None,
-        optimization_method: Optional[str] = None,
-        ignore_backend_supplied_default_methods: bool = False,
-        num_processes: Optional[int] = None,
-    ) -> _CircuitT:
-    ...
-    ```
+        def transpile(
+            circuits: _CircuitT,
+            backend: Optional[Backend] = None,
+            basis_gates: Optional[List[str]] = None,
+            inst_map: Optional[List[InstructionScheduleMap]] = None,
+            coupling_map: Optional[Union[CouplingMap, List[List[int]]]] = None,
+            backend_properties: Optional[BackendProperties] = None,
+            initial_layout: Optional[Union[Layout, Dict, List]] = None,
+            layout_method: Optional[str] = None,
+            routing_method: Optional[str] = None,
+            translation_method: Optional[str] = None,
+            scheduling_method: Optional[str] = None,
+            instruction_durations: Optional[InstructionDurationsType] = None,
+            dt: Optional[float] = None,
+            approximation_degree: Optional[float] = 1.0,
+            timing_constraints: Optional[Dict[str, int]] = None,
+            seed_transpiler: Optional[int] = None,
+            optimization_level: Optional[int] = None,
+            callback: Optional[Callable[[
+                BasePass, DAGCircuit, float, PropertySet, int
+            ], Any]] = None,
+            output_name: Optional[Union[str, List[str]]] = None,
+            unitary_synthesis_method: str = "default",
+            unitary_synthesis_plugin_config: Optional[dict] = None,
+            target: Optional[Target] = None,
+            hls_config: Optional[HLSConfig] = None,
+            init_method: Optional[str] = None,
+            optimization_method: Optional[str] = None,
+            ignore_backend_supplied_default_methods: bool = False,
+            num_processes: Optional[int] = None,
+        ) -> _CircuitT:
+        ...
 
     """
 

@@ -194,7 +194,7 @@ class BackendWrapper:
             'automatic', 'statevector', 'density_matrix', 'stabilizer',
             'matrix_product_state', 'extended_stabilizer', 'unitary', 'superop'
         )`
-        Even parts of method has GPU support by :module:`qiskit-aer-gpu`
+        Even parts of method has GPU support by :mod:`qiskit-aer-gpu`
 
     So this wrapper only call :cls:`AerSimulator('aer_simulator')` as simulator backend,
     and use :meth:`set_option` to get different backends.
@@ -438,7 +438,7 @@ class BackendWrapper:
 
 class BackendManager(BackendWrapper):
     """A wrapper includes accout loading and backend loading.
-    And deal wtth either :module:`qiskit-ibmq-provider`
+    And deal wtth either :mod:`qiskit-ibmq-provider`
     or the older version `qiskit.providers.ibmq`.
     """
 

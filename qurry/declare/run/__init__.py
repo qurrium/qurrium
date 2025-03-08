@@ -1,9 +1,8 @@
 """
-================================================================
-Extra arguments for :meth:`backend.run` 
-from :module:`qiskit.providers.backend` 
-(:mod:`qurry.declare.run.base_run`)
-================================================================
+=========================================================================================
+Declaration - Run (:mod:`qurry.declare.run`)
+Arguments for :meth:`run` of :cls:`Backend` from :mod:`qiskit.providers.backend`
+=========================================================================================
 
 """
 

@@ -98,7 +98,7 @@ def key_tuple_loads(o):
 
 
 class TagList(defaultdict[_K, list[Union[_V, Any]]]):
-    """Specific data structures of :module:`qurry` like `dict[str, list[any]]`.
+    """Specific data structures of :mod:`qurry` like `dict[str, list[any]]`.
 
     >>> bla = TagList()
 
