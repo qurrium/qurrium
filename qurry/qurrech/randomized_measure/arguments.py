@@ -12,13 +12,14 @@ from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
+from qiskit.transpiler.passmanager import PassManager
 
 from ...qurrium.experiment import ArgumentsPrototype
 from ...process.randomized_measure.wavefunction_overlap import (
     PostProcessingBackendLabel,
 )
 from ...tools import backend_name_getter
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...declare import BasicArgs, OutputArgs, AnalyzeArgs, TranspileArgs
 
 
 @dataclass(frozen=True)
@@ -103,6 +104,11 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
+    second_transpile_args: Optional[TranspileArgs] = None
+    """Arguments of :func:`qiskit.compiler.transpile` 
+    or :cls:`qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
+    And it only works when the second backend is given.
+    """
     random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -159,9 +165,13 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
     second_backend: Optional[Backend]
-    """The extra backend for the second quantum circuit.
+    """The extra backend for the second group of quantum circuits.
     If None, then use the same backend as the first quantum circuit.
     """
+    second_transpile_args: Optional[TranspileArgs]
+    """The transpile arguments for the second group of quantum circuits."""
+    second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]]
+    """The passmanager for the second quantum circuit."""
     random_unitary_seeds: Optional[dict[int, dict[int, int]]]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -206,6 +216,10 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
+    second_transpile_args: Optional[TranspileArgs]
+    """The transpile arguments for the second group of quantum circuits."""
+    second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]]
+    """The passmanager for the second quantum circuit."""
     random_unitary_seeds: Optional[dict[int, dict[int, int]]]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.

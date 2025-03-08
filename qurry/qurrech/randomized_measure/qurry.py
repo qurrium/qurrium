@@ -27,6 +27,7 @@ from .experiment import (
     DEFAULT_PROCESS_BACKEND,
 )
 from ...qurrium.qurrium import QurriumPrototype
+from ...qurrium.utils import passmanager_processor
 from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
@@ -74,6 +75,116 @@ class EchoListenRandomized(QurriumPrototype):
 
     exps: ExperimentContainer[EchoListenRandomizedExperiment]
 
+    def build(
+        self,
+        circuits: list[Union[QuantumCircuit, Hashable]],
+        shots: int = 1024,
+        backend: Optional[Backend] = None,
+        exp_name: str = "experiment",
+        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        transpile_args: Optional[TranspileArgs] = None,
+        passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        tags: Optional[tuple[str, ...]] = None,
+        # process tool
+        qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
+        export: bool = False,
+        save_location: Optional[Union[Path, str]] = None,
+        mode: str = "w+",
+        indent: int = 2,
+        encoding: str = "utf-8",
+        jsonable: bool = False,
+        pbar: Optional[tqdm.tqdm] = None,
+        # specific arguments
+        second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        **custom_and_main_kwargs: Any,
+    ) -> str:
+        """Build the experiment.
+
+        Args:
+            circuits (list[Union[QuantumCircuit, Hashable]]):
+                The circuits or keys of circuits in `.waves`.
+            shots (int, optional):
+                Shots of the job. Defaults to `1024`.
+            backend (Backend, optional):
+                The quantum backend. Defaults to AerSimulator().
+            exp_name (str, optional):
+                The name of the experiment.
+                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                This name is also used for creating a folder to store the exports.
+                Defaults to `'experiment'`.
+            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+                The extra arguments for running the job.
+                For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
+            transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
+            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]]], optional):
+                The passmanager. Defaults to None.
+            tags (Optional[tuple[str, ...]], optional):
+                Given the experiment multiple tags to make a dictionary for recongnizing it.
+
+            qasm_version (Literal["qasm2", "qasm3"], optional):
+                The export version of OpenQASM. Defaults to 'qasm3'.
+            export (bool, optional):
+                Whether to export the experiment. Defaults to False.
+            save_location (Optional[Union[Path, str]], optional):
+                The location to save the experiment. Defaults to None.
+            mode (str, optional):
+                The mode to open the file. Defaults to 'w+'.
+            indent (int, optional):
+                The indent of json file. Defaults to 2.
+            encoding (str, optional):
+                The encoding of json file. Defaults to 'utf-8'.
+            jsonable (bool, optional):
+                Whether to jsonablize the experiment output. Defaults to False.
+            pbar (Optional[tqdm.tqdm], optional):
+                The progress bar for showing the progress of the experiment.
+                Defaults to None.
+
+            second_passmanager (
+                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
+            ):
+                The passmanager for the second quantum circuit. Defaults to `None`.
+            custom_and_main_kwargs (Any):
+                Other custom arguments.
+
+        Returns:
+            ExperimentPrototype: The experiment.
+        """
+        passmanager_pair = passmanager_processor(
+            passmanager=passmanager, passmanager_container=self.passmanagers
+        )
+        second_passmanager_pair = passmanager_processor(
+            passmanager=second_passmanager, passmanager_container=self.passmanagers
+        )
+        targets = self.waves.process(circuits)
+
+        new_exps = self.experiment_instance.build(
+            targets=targets,
+            shots=shots,
+            backend=backend,
+            exp_name=exp_name,
+            run_args=run_args,
+            transpile_args=transpile_args,
+            passmanager_pair=passmanager_pair,
+            tags=tags,
+            # process tool
+            qasm_version=qasm_version,
+            export=export,
+            save_location=save_location,
+            mode=mode,
+            indent=indent,
+            encoding=encoding,
+            jsonable=jsonable,
+            pbar=pbar,
+            # specific arguments
+            second_passmanager_pair=second_passmanager_pair,
+            **custom_and_main_kwargs,
+        )
+
+        self.exps[new_exps.commons.exp_id] = new_exps
+        return new_exps.exp_id
+
     def measure_to_output(
         self,
         wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
@@ -85,6 +196,8 @@ class EchoListenRandomized(QurriumPrototype):
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
+        second_transpile_args: Optional[TranspileArgs] = None,
+        second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -142,6 +255,13 @@ class EchoListenRandomized(QurriumPrototype):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to `None`.
+            second_transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+                for the second quantum circuit. Defaults to `None`.
+            second_passmanager (
+                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
+            ):
+                The passmanager for the second quantum circuit. Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -172,9 +292,10 @@ class EchoListenRandomized(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
@@ -215,6 +336,8 @@ class EchoListenRandomized(QurriumPrototype):
             "unitary_loc_2": unitary_loc_2,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
             "second_backend": second_backend,
+            "second_transpile_args": second_transpile_args,
+            "second_passmanager": second_passmanager,
             "random_unitary_seeds": random_unitary_seeds,
             "shots": shots,
             "backend": backend,
@@ -245,6 +368,8 @@ class EchoListenRandomized(QurriumPrototype):
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
+        second_transpile_args: Optional[TranspileArgs] = None,
+        second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -302,6 +427,13 @@ class EchoListenRandomized(QurriumPrototype):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to `None`.
+            second_transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+                for the second quantum circuit. Defaults to `None`.
+            second_passmanager (
+                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
+            ):
+                The passmanager for the second quantum circuit. Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -328,13 +460,15 @@ class EchoListenRandomized(QurriumPrototype):
                 The quantum backend. Defaults to `None`.
             exp_name (str, optional):
                 The name of the experiment.
-                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                Naming this experiment to recognize it
+                when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
@@ -372,6 +506,8 @@ class EchoListenRandomized(QurriumPrototype):
             unitary_loc_2=unitary_loc_2,
             unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
             second_backend=second_backend,
+            second_transpile_args=second_transpile_args,
+            second_passmanager=second_passmanager,
             random_unitary_seeds=random_unitary_seeds,
             shots=shots,
             backend=backend,
@@ -420,7 +556,7 @@ class EchoListenRandomized(QurriumPrototype):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to `None`.
+                Tags of experiment of :cls:`MultiManager`. Defaults to `None`.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.
