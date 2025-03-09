@@ -257,6 +257,9 @@ def test_quantity_02(tgt):
         wave1=tgt,
         wave2=tgt,
         times=20,
+        second_transpile_args={
+            "optimization_level": 3,
+        },
         random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
         backend=backend,
     )
@@ -294,6 +297,9 @@ def test_multi_output_02():
             "wave1": k,
             "wave2": k,
             "times": 20,
+            "transpile_args": {
+                "optimization_level": 2,
+            },
             "random_unitary_seeds": {i: random_unitary_seeds[seed_usage[k]][i] for i in range(20)},
         }
         for k in wave_adds["02"][:3]
