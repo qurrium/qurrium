@@ -21,17 +21,19 @@ from qiskit.transpiler.target import Target
 class TranspileArgs(TypedDict, total=False):
     """Transpile arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
 
-    .. code-block:: python
-        _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, List[QuantumCircuit]])
+    - :mod:`qiskit` 1.4.1
 
-        def transpile(
+    .. code-block:: python
+        _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, list[QuantumCircuit]])
+
+        def transpile(  # pylint: disable=too-many-return-statements
             circuits: _CircuitT,
             backend: Optional[Backend] = None,
-            basis_gates: Optional[List[str]] = None,
-            inst_map: Optional[List[InstructionScheduleMap]] = None,
-            coupling_map: Optional[Union[CouplingMap, List[List[int]]]] = None,
+            basis_gates: Optional[list[str]] = None,
+            inst_map: Optional[list[InstructionScheduleMap]] = None,
+            coupling_map: Optional[Union[CouplingMap, list[list[int]]]] = None,
             backend_properties: Optional[BackendProperties] = None,
-            initial_layout: Optional[Union[Layout, Dict, List]] = None,
+            initial_layout: Optional[Union[Layout, dict, list]] = None,
             layout_method: Optional[str] = None,
             routing_method: Optional[str] = None,
             translation_method: Optional[str] = None,
@@ -39,13 +41,13 @@ class TranspileArgs(TypedDict, total=False):
             instruction_durations: Optional[InstructionDurationsType] = None,
             dt: Optional[float] = None,
             approximation_degree: Optional[float] = 1.0,
-            timing_constraints: Optional[Dict[str, int]] = None,
+            timing_constraints: Optional[dict[str, int]] = None,
             seed_transpiler: Optional[int] = None,
             optimization_level: Optional[int] = None,
-            callback: Optional[Callable[[
-                BasePass, DAGCircuit, float, PropertySet, int
-            ], Any]] = None,
-            output_name: Optional[Union[str, List[str]]] = None,
+            callback: Optional[
+                Callable[[BasePass, DAGCircuit, float, PropertySet, int], Any]
+            ] = None,
+            output_name: Optional[Union[str, list[str]]] = None,
             unitary_synthesis_method: str = "default",
             unitary_synthesis_plugin_config: Optional[dict] = None,
             target: Optional[Target] = None,
@@ -54,6 +56,7 @@ class TranspileArgs(TypedDict, total=False):
             optimization_method: Optional[str] = None,
             ignore_backend_supplied_default_methods: bool = False,
             num_processes: Optional[int] = None,
+            qubits_initially_zero: bool = True,
         ) -> _CircuitT:
         ...
 
@@ -84,3 +87,4 @@ class TranspileArgs(TypedDict, total=False):
     optimization_method: Optional[str]
     ignore_backend_supplied_default_methods: bool
     num_processes: Optional[int]
+    qubits_initially_zero: bool
