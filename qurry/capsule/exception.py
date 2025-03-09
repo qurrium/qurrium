@@ -7,7 +7,7 @@ CapSule Exceptions (:mod:`qurry.capsule.exception`)
 
 
 class CapSuleError(Exception):
-    """Base class for errors raised by :module:`capsule`."""
+    """Base class for errors raised by :mod:`capsule`."""
 
     def __init__(self, *message):
         """Set the error message."""
@@ -20,12 +20,12 @@ class CapSuleError(Exception):
 
 
 class CapSuleValuedError(CapSuleError, ValueError):
-    """ValueErrors raised by :module:`capsule."""
+    """ValueErrors raised by :mod:`capsule."""
 
 
 # General Warning
 class CapSuleWarning(Warning):
-    """Base class for warning raised by :module:`capsule."""
+    """Base class for warning raised by :mod:`capsule."""
 
     def __init__(self, *message):
         """Set the error message."""

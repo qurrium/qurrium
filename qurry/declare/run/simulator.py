@@ -1,10 +1,7 @@
 """
-================================================================
-Extra arguments for :meth:`backend.run` 
-from :mod:`qiskit.providers.backend`
-For each qiskit simulator.
-(:mod:`qurry.declare.run.simulator`)
-================================================================
+=========================================================================================
+Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
+=========================================================================================
 
 """
 
@@ -20,49 +17,48 @@ from .base_run import BaseRunArgs
 
 
 class BasicSimulatorRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :module:`qiskit.providers.backend`.
+    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
     For :cls:`BasicSimulator` from :mod:`qiskit.providers.basic_provider`:
 
-    ```python
-    def _assemble(
-        experiments: Union[
-            QuantumCircuit,
-            List[QuantumCircuit],
-            Schedule,
-            List[Schedule],
-            ScheduleBlock,
-            List[ScheduleBlock],
-        ],
-        backend: Optional[Backend] = None,
-        qobj_id: Optional[str] = None,
-        qobj_header: Optional[Union[QobjHeader, Dict]] = None,
-        shots: Optional[int] = None,
-        memory: Optional[bool] = False,
-        seed_simulator: Optional[int] = None,
-        qubit_lo_freq: Optional[List[float]] = None,
-        meas_lo_freq: Optional[List[float]] = None,
-        qubit_lo_range: Optional[List[float]] = None,
-        meas_lo_range: Optional[List[float]] = None,
-        schedule_los: Optional[
-            Union[
-                List[Union[Dict[PulseChannel, float], LoConfig]],
-                Union[Dict[PulseChannel, float], LoConfig],
-            ]
-        ] = None,
-        meas_level: Union[int, MeasLevel] = MeasLevel.CLASSIFIED,
-        meas_return: Union[str, MeasReturnType] = MeasReturnType.AVERAGE,
-        meas_map: Optional[List[List[Qubit]]] = None,
-        memory_slot_size: int = 100,
-        rep_time: Optional[int] = None,
-        rep_delay: Optional[float] = None,
-        parameter_binds: Optional[List[Dict[Parameter, float]]] = None,
-        parametric_pulses: Optional[List[str]] = None,
-        init_qubits: bool = True,
-        **run_config: Dict,
-    ) -> Union[QasmQobj, PulseQobj]:
-    ...
+    .. code-block:: python
+        def _assemble(
+            experiments: Union[
+                QuantumCircuit,
+                List[QuantumCircuit],
+                Schedule,
+                List[Schedule],
+                ScheduleBlock,
+                List[ScheduleBlock],
+            ],
+            backend: Optional[Backend] = None,
+            qobj_id: Optional[str] = None,
+            qobj_header: Optional[Union[QobjHeader, Dict]] = None,
+            shots: Optional[int] = None,
+            memory: Optional[bool] = False,
+            seed_simulator: Optional[int] = None,
+            qubit_lo_freq: Optional[List[float]] = None,
+            meas_lo_freq: Optional[List[float]] = None,
+            qubit_lo_range: Optional[List[float]] = None,
+            meas_lo_range: Optional[List[float]] = None,
+            schedule_los: Optional[
+                Union[
+                    List[Union[Dict[PulseChannel, float], LoConfig]],
+                    Union[Dict[PulseChannel, float], LoConfig],
+                ]
+            ] = None,
+            meas_level: Union[int, MeasLevel] = MeasLevel.CLASSIFIED,
+            meas_return: Union[str, MeasReturnType] = MeasReturnType.AVERAGE,
+            meas_map: Optional[List[List[Qubit]]] = None,
+            memory_slot_size: int = 100,
+            rep_time: Optional[int] = None,
+            rep_delay: Optional[float] = None,
+            parameter_binds: Optional[List[Dict[Parameter, float]]] = None,
+            parametric_pulses: Optional[List[str]] = None,
+            init_qubits: bool = True,
+            **run_config: Dict,
+        ) -> Union[QasmQobj, PulseQobj]:
+        ...
 
-    ```
     """
 
     qobj_id: Optional[str]
@@ -94,7 +90,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
 
 
 class AerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :module:`qiskit.providers.backend`.
+    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
     For :cls:`AerBackend` from :mod:`qiskit_aer.backends.aerbackend`
     or :cls:`AerBackend` from :mod:`qiskit.providers.aer.backends.aerbackend`,
     the old import path.:
@@ -161,7 +157,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
 
 
 class BasicAerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :module:`qiskit.providers.backend`.
+    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
     For :cls:`QasmSimulatorPy` from :mod:`qiskit.providers.basicaer`:
 
     ```python

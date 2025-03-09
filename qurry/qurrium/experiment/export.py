@@ -73,8 +73,8 @@ class Export(NamedTuple):
 
     ### Multi-experiment:
 
-    If this experiment is called by :cls:`multimanager`, 
-    then the it will be named after `summoner_name` as known as the name of :cls:`multimanager`.
+    If this experiment is called by :cls:`MultiManager`, 
+    then the it will be named after `summoner_name` as known as the name of :cls:`MultiManager`.
 
     .. code-block:: python
         files = {
@@ -98,7 +98,7 @@ class Export(NamedTuple):
                 './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
         }
 
-    which `BLBLA_project` is the example :cls:`multimanager` name 
+    which `BLBLA_project` is the example :cls:`MultiManager` name 
     stored at :prop:`commonparams.summoner_name`.
     At this senerio, the :prop:`exp_name` will never apply as filename.
 

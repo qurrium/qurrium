@@ -1,7 +1,7 @@
 """
 ===========================================================
 Qurrium - A Qiskit Macro
-(:mod:`qurry.qurry.qurrium.qurrium`)
+(:mod:`qurry.qurrium.qurrium`)
 ===========================================================
 """
 
@@ -155,7 +155,8 @@ class QurriumPrototype(ABC):
                 The extra arguments for running the job.
                 For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -252,9 +253,10 @@ class QurriumPrototype(ABC):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -370,7 +372,7 @@ class QurriumPrototype(ABC):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.
@@ -459,7 +461,7 @@ class QurriumPrototype(ABC):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.
@@ -556,7 +558,7 @@ class QurriumPrototype(ABC):
             provider (Optional[Any], optional):
                 The provider. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[dict[str, Any]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.

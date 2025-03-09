@@ -1,6 +1,7 @@
 """
 ================================================================
-Type declarations for Qurry (:mod:`qurry.declare.type`)
+Declaration - Types (:mod:`qurry.declare.type`)
+Type declarations for Qurry 
 ================================================================
 
 """

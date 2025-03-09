@@ -1,6 +1,6 @@
 """
 ================================================================
-ExperimentPrototype - The instance of experiment. 
+ExperimentPrototype - The instance of experiment
 (:mod:`qurry.qurrium.experiment.experiment`)
 ================================================================
 
@@ -273,9 +273,10 @@ class ExperimentPrototype(ABC):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
                 Given the experiment multiple tags to make a dictionary for recongnizing it.
                 Defaults to None.
@@ -287,11 +288,11 @@ class ExperimentPrototype(ABC):
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of the multiManager.
+                ID of experiment of :cls:`MultiManager`.
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of the multiManager.
+                Name of experiment of :cls:`MultiManager`.
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 _description_. Defaults to None.
             mute_outfields_warning (bool, optional):
@@ -444,9 +445,10 @@ class ExperimentPrototype(ABC):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -461,11 +463,11 @@ class ExperimentPrototype(ABC):
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of the multiManager.
+                ID of experiment of :cls:`MultiManager`.
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of the multiManager.
+                Name of experiment of :cls:`MultiManager`.
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
                 _description_. Defaults to None.
 
@@ -1164,8 +1166,8 @@ class ExperimentPrototype(ABC):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             _qurryinfo_hold_access (str, optional):
-                Whether to hold the I/O of `qurryinfo`, then export by :cls:`multimanager`,
-                it should be control by :cls:`multimanager`.
+                Whether to hold the I/O of `qurryinfo`, then export by :cls:`MultiManager`,
+                it should be control by :cls:`MultiManager`.
                 Defaults to None.
 
         Returns:
@@ -1322,7 +1324,6 @@ class ExperimentPrototype(ABC):
         workers_num: Optional[int] = None,
     ) -> list["ExperimentPrototype"]:
         """Read the experiment from file.
-        Replacement of :func:`QurryV4().readLegacy`
 
         Args:
             name_or_id (Union[Path, str]):

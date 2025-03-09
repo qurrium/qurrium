@@ -1,6 +1,6 @@
 """
 ================================================================
-The container for quantities of analysis for :cls:`MultiManager`.
+The container for quantities of analysis for multimanager.
 (:mod:`qurry.qurrium.container.multiquantity`)
 ================================================================
 """
@@ -14,7 +14,7 @@ from ...capsule.mori import TagList
 
 
 class QuantityContainer(dict[str, TagList[Hashable, dict[str, float]]]):
-    """The container for quantities of analysis for :cls:`MultiManager`."""
+    """The container for quantities of analysis for multimanager."""
 
     __name__ = "QuantityContainer"
 

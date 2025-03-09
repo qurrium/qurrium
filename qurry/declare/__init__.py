@@ -1,7 +1,7 @@
 """
 ================================================================
-Declare - TypedDicts for some complex data structures
-(:mod:`qurry.declare`)
+Declaration (:mod:`qurry.declare`)
+TypedDicts for some complex data structures
 ================================================================
 """
 

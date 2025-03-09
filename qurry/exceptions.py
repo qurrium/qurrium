@@ -146,3 +146,19 @@ class QurryUnknownExportOption(QurryWarning):
 
 class SeperatedExecutingOverlapResult(QurryWarning):
     """When the seperated executing overlap the result with the same backend"""
+
+
+class OpenQASMProcessingWarning(QurryWarning):
+    """OpenQASM processing warning."""
+
+
+class OpenQASM3Issue13362Warning(OpenQASMProcessingWarning):
+    """OpenQASM3 warning for Qiskit issue 12632.
+    You will need to upgrade your Qiskit version to 1.3.2 for fixing this issue.
+
+    - The issues report: https://github.com/Qiskit/qiskit/issues/13362
+    - Pull Requests merged:
+        1. https://github.com/Qiskit/qiskit/pull/13633
+        2. https://github.com/Qiskit/qiskit/pull/13663
+
+    """

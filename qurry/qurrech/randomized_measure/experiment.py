@@ -6,20 +6,21 @@ EchoListenRandomized - Experiment
 
 """
 
-from typing import Union, Optional, Type, Any
+from typing import Union, Optional, Any, Type, Literal
 from collections.abc import Iterable, Hashable
 from pathlib import Path
 import warnings
 import tqdm
 
-from qiskit import QuantumCircuit
+from qiskit import transpile, QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
+from qiskit.transpiler.passmanager import PassManager
 
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
 from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
-from ...qurrium.utils import get_counts_and_exceptions
+from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,
@@ -34,10 +35,12 @@ from ...process.randomized_measure.wavefunction_overlap import (
     WaveFuctionOverlapResult,
 )
 from ...tools import ParallelManager, set_pbar_description, backend_name_getter
+from ...declare import BaseRunArgs, TranspileArgs
 from ...exceptions import (
     RandomizedMeasureUnitaryOperatorNotFullCovering,
     OverlapComparisonSizeDifferent,
     SeperatedExecutingOverlapResult,
+    QurryTranspileConfigurationIgnored,
 )
 
 
@@ -71,7 +74,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        second_backend: Optional[Any] = None,
+        second_backend: Optional[Union[Backend, str]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
     ) -> tuple[EchoListenRandomizedArguments, Commonparams, dict[str, Any]]:
@@ -112,7 +115,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            second_backend (Optional[Any], optional):
+            second_backend (Optional[Union[Backend, str]], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to `None`.
@@ -367,6 +370,265 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         side_product["randomized"] = dict(enumerate(randomized_list))
 
         return circ_list, side_product
+
+    @classmethod
+    def build(
+        cls,
+        targets: list[tuple[Hashable, QuantumCircuit]],
+        shots: int = 1024,
+        backend: Optional[Backend] = None,
+        exp_name: str = "experiment",
+        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        transpile_args: Optional[TranspileArgs] = None,
+        passmanager_pair: Optional[tuple[str, PassManager]] = None,
+        tags: Optional[tuple[str, ...]] = None,
+        # multimanager
+        default_analysis: Optional[list[dict[str, Any]]] = None,
+        serial: Optional[int] = None,
+        summoner_id: Optional[Hashable] = None,
+        summoner_name: Optional[str] = None,
+        # process tool
+        qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
+        export: bool = False,
+        save_location: Optional[Union[Path, str]] = None,
+        mode: str = "w+",
+        indent: int = 2,
+        encoding: str = "utf-8",
+        jsonable: bool = False,
+        pbar: Optional[tqdm.tqdm] = None,
+        # special
+        second_passmanager_pair: Optional[tuple[str, PassManager]] = None,
+        **custom_and_main_kwargs: Any,
+    ):
+        """Construct the experiment.
+
+        Args:
+            targets (list[tuple[Hashable, QuantumCircuit]]):
+                The circuits of the experiment.
+            shots (int, optional):
+                Shots of the job. Defaults to `1024`.
+            backend (Optional[Backend], optional):
+                The quantum backend. Defaults to None.
+            exp_name (str, optional):
+                The name of the experiment.
+                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                This name is also used for creating a folder to store the exports.
+                Defaults to `'experiment'`.
+            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
+            transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
+            passmanager_pair (Optional[tuple[str, PassManager]], optional):
+                The passmanager pair for transpile. Defaults to None.
+            tags (Optional[tuple[str, ...]], optional):
+                Given the experiment multiple tags to make a dictionary for recongnizing it.
+                Defaults to None.
+
+            default_analysis (list[dict[str, Any]], optional):
+                The analysis methods will be excuted after counts has been computed.
+                Defaults to [].
+            serial (Optional[int], optional):
+                Index of experiment in a multiOutput.
+                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Defaults to None.
+            summoner_id (Optional[Hashable], optional):
+                ID of experiment of :cls:`MultiManager`.
+                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Defaults to None.
+            summoner_name (Optional[str], optional):
+                Name of experiment of :cls:`MultiManager`.
+                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                _description_. Defaults to None.
+
+            qasm_version (Literal["qasm2", "qasm3"], optional):
+                The export version of OpenQASM. Defaults to 'qasm3'.
+            export (bool, optional):
+                Whether to export the experiment. Defaults to False.
+            save_location (Optional[Union[Path, str]], optional):
+                The location to save the experiment. Defaults to None.
+            mode (str, optional):
+                The mode to open the file. Defaults to 'w+'.
+            indent (int, optional):
+                The indent of json file. Defaults to 2.
+            encoding (str, optional):
+                The encoding of json file. Defaults to 'utf-8'.
+            jsonable (bool, optional):
+                Whether to jsonablize the experiment output. Defaults to False.
+            pbar (Optional[tqdm.tqdm], optional):
+                The progress bar for showing the progress of the experiment.
+                Defaults to None.
+            second_passmanager_pair (Optional[tuple[str, PassManager]], optional):
+                The passmanager pair for transpile of the second circuit.
+                Defaults to None.
+            custom_and_main_kwargs (Any):
+                Other custom arguments.
+
+        Returns:
+            ExperimentPrototype: The experiment.
+        """
+
+        # preparing
+        set_pbar_description(pbar, "Parameter loading...")
+
+        current_exp = cls._params_control_core(
+            targets=targets,
+            shots=shots,
+            backend=backend,
+            run_args=run_args,
+            transpile_args=transpile_args,
+            tags=tags,
+            exp_name=exp_name,
+            default_analysis=default_analysis,
+            serial=serial,
+            summoner_id=summoner_id,
+            summoner_name=summoner_name,
+            pbar=pbar,
+            **custom_and_main_kwargs,
+        )
+        if not isinstance(current_exp.commons.backend, Backend):
+            if isinstance(backend, Backend):
+                set_pbar_description(pbar, "Backend replacing...")
+                current_exp.replace_backend(backend)
+            else:
+                raise ValueError(
+                    "No vaild backend to run, exisited backend: "
+                    + f"{current_exp.commons.backend} as type "
+                    + f"{type(current_exp.commons.backend)}, "
+                    + f"given backend: {backend} as type {type(backend)}."
+                )
+        assert isinstance(current_exp.commons.backend, Backend), (
+            f"Invalid backend: {current_exp.commons.backend} as "
+            + f"type {type(current_exp.commons.backend)}."
+        )
+
+        # circuit
+        set_pbar_description(pbar, "Circuit creating...")
+
+        for tk, tv in targets:
+            current_exp.beforewards.target.append((tk, tv))
+        cirqs, side_prodict = current_exp.method(
+            targets=targets, arguments=current_exp.args, pbar=pbar
+        )
+        current_exp.beforewards.side_product.update(side_prodict)
+
+        # qasm
+        pool = ParallelManager()
+        set_pbar_description(pbar, "Exporting OpenQASM string...")
+
+        tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
+        for qasm_str in tmp_qasm:
+            current_exp.beforewards.circuit_qasm.append(qasm_str)
+
+        targets_keys, targets_values = zip(*targets)
+        targets_keys: tuple[Hashable, ...]
+        targets_values: tuple[QuantumCircuit, ...]
+
+        tmp_target_qasm_items = zip(
+            targets_keys, pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values])
+        )
+        for tk, qasm_str in tmp_target_qasm_items:
+            current_exp.beforewards.target_qasm.append((str(tk), qasm_str))
+
+        transpiled_circs: list[QuantumCircuit] = []
+        # transpile
+        if passmanager_pair is not None:
+            passmanager_name, passmanager = passmanager_pair
+            set_pbar_description(
+                pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
+            )
+            transpiled_circs += passmanager.run(circuits=cirqs[: current_exp.args.times])
+            if len(current_exp.commons.transpile_args) > 0:
+                warnings.warn(
+                    f"Passmanager '{passmanager_name}' is given, "
+                    + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
+                    category=QurryTranspileConfigurationIgnored,
+                )
+        else:
+            set_pbar_description(pbar, "Circuit transpiling...")
+            transpiled_circs += transpile(
+                cirqs[: current_exp.args.times],
+                backend=current_exp.commons.backend,
+                **current_exp.commons.transpile_args,
+            )
+
+        assert isinstance(current_exp.args.second_backend, (Backend, type(None))), (
+            "second_backend should be Backend or not given, "
+            + f"but got {type(current_exp.args.second_backend)}."
+        )
+        if second_passmanager_pair is not None:
+            second_passmanager_name, second_passmanager = second_passmanager_pair
+            set_pbar_description(
+                pbar, f"Circuit transpiling by second passmanager '{second_passmanager_name}'..."
+            )
+            transpiled_circs += second_passmanager.run(circuits=cirqs[current_exp.args.times :])
+            if current_exp.args.second_transpile_args is not None:
+                warnings.warn(
+                    f"Passmanager '{passmanager_name}' is given, "
+                    + f"the second_transpile_args will be ignored in '{current_exp.exp_id}'",
+                    category=QurryTranspileConfigurationIgnored,
+                )
+        elif current_exp.args.second_transpile_args is not None:
+            transpiled_circs += transpile(
+                cirqs[current_exp.args.times :],
+                backend=(
+                    current_exp.commons.backend
+                    if current_exp.args.second_backend is None
+                    else current_exp.args.second_backend
+                ),
+                **(current_exp.args.second_transpile_args),
+            )
+        elif passmanager_pair is not None:
+            passmanager_name, passmanager = passmanager_pair
+            set_pbar_description(
+                pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
+            )
+            transpiled_circs += passmanager.run(circuits=cirqs[current_exp.args.times :])
+            if len(current_exp.commons.transpile_args) > 0:
+                warnings.warn(
+                    f"Passmanager '{passmanager_name}' is given, "
+                    + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
+                    category=QurryTranspileConfigurationIgnored,
+                )
+        else:
+            set_pbar_description(pbar, "Circuit transpiling...")
+            transpiled_circs += transpile(
+                cirqs[current_exp.args.times :],
+                backend=(
+                    current_exp.commons.backend
+                    if current_exp.args.second_backend is None
+                    else current_exp.args.second_backend
+                ),
+                **(current_exp.commons.transpile_args),
+            )
+
+        assert len(transpiled_circs) == 2 * current_exp.args.times, (
+            "The number of transpiled circuits is not correct, "
+            + f"expected {2 * current_exp.args.times}, but got {len(transpiled_circs)}."
+        )
+
+        set_pbar_description(pbar, "Circuit loading...")
+        for _w in transpiled_circs:
+            current_exp.beforewards.circuit.append(_w)
+
+        # commons
+        note_and_date = current_exp.commons.datetimes.add_only("build")
+        set_pbar_description(
+            pbar, f"Building Completed, denoted '{note_and_date[0]}' date: {note_and_date[1]}..."
+        )
+
+        # export may be slow, consider export at finish or something
+        if isinstance(save_location, (Path, str)) and export:
+            set_pbar_description(pbar, "Setup data exporting...")
+            current_exp.write(
+                save_location=save_location,
+                mode=mode,
+                indent=indent,
+                encoding=encoding,
+                jsonable=jsonable,
+            )
+
+        return current_exp
 
     # local execution
     def run(

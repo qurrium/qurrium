@@ -74,9 +74,10 @@ class QurryV9(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -165,9 +166,10 @@ class QurryV9(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
