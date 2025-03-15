@@ -6,14 +6,17 @@ Test the qurry.qurrent module EntropyMeasure class.
 """
 
 import os
+import warnings
 import pytest
 
 from utils import CNOTDynCase4To8
 
 from qurry.capsule import hoshi, mori
 from qurry.qurrium import SamplingExecuter, WavesExecuter
-from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
 from qurry.tools.backend import GeneralSimulator
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
+from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
+from qurry.exceptions import QurryDependenciesNotWorking
 
 
 tag_list = mori.TagList()
@@ -31,10 +34,18 @@ wave_adds_01.append(exp_demo_01.add(GHZ(4), "4-GHZ"))
 wave_adds_02.append(exp_demo_02.add(GHZ(4), "4-GHZ"))
 wave_adds_01.append(exp_demo_01.add(TopologicalParamagnet(4), "4-topological"))
 wave_adds_02.append(exp_demo_02.add(TopologicalParamagnet(4), "4-topological"))
-wave_adds_01.append(exp_demo_01.add(CNOTDynCase4To8(4), "4-CNOTDynCase4To8"))
-wave_adds_02.append(
-    exp_demo_02.add(CNOTDynCase4To8(4, export="comparison"), "4-CNOTDynComparison4To8")
-)
+if SIM_DEFAULT_SOURCE == "qiskit_aer":
+    wave_adds_01.append(exp_demo_01.add(CNOTDynCase4To8(4), "4-CNOTDynCase4To8"))
+    wave_adds_02.append(
+        exp_demo_02.add(CNOTDynCase4To8(4, export="comparison"), "4-CNOTDynComparison4To8")
+    )
+else:
+    warnings.warn(
+        f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
+        + "which is guaranteed to work with dynamic circuit. "
+        + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
+        category=QurryDependenciesNotWorking,
+    )
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
