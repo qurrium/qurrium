@@ -63,7 +63,7 @@ before-build = [
     'echo "======================================================================"',
     'echo "| Which Python: "',
     'python -c "import sys; print(sys.executable)"',
-    'python -c "from distutil.utils import get_platform; print(get_platform())" || python -c "from setuptools._distutils.util import get_platform; print(get_platform())" || echo "| Failed to get platform..."',
+    'python -c "from sysconfig import get_platform; print(get_platform())" || echo "| Failed to get platform..."',
     'echo "| Python Version: "',
     'python --version',
     'echo "| Platform: "',
