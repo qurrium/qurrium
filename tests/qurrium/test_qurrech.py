@@ -26,19 +26,19 @@ Test the qurry.qurrech module EchoListen class.
 """
 
 import os
+import warnings
 import pytest
 import numpy as np
 
 from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time_filename
 
-from qiskit_aer import AerSimulator
-
 from qurry.qurrech import EchoListen
 from qurry.tools.backend import GeneralSimulator
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
 from qurry.capsule import mori, hoshi, quickRead, quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
+from qurry.exceptions import QurryDependenciesNotWorking
 
-dummy_aer_simulator = AerSimulator()
 
 tag_list = mori.TagList()
 statesheet = hoshi.Hoshi()
@@ -115,50 +115,58 @@ for i in range(4, 7, 2):
     }
     # purity = 0.25
 
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
-    )
-    answer[f"{i}-entangle-by-dyn"] = 1
-    seed_usage[f"{i}-entangle-by-dyn"] = i
-    measure_dyn[f"{i}-entangle-by-dyn"] = {
-        "02_with_extra_clbits": [0, i - 1],
-    }
-    # purity = 1, de-facto all system when selected qubits is [0, i - 1]
-
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn-half")
-    )
-    answer[f"{i}-entangle-by-dyn-half"] = 0.5
-    seed_usage[f"{i}-entangle-by-dyn-half"] = i
-    measure_dyn[f"{i}-entangle-by-dyn-half"] = {
-        "02_with_extra_clbits": [0],
-    }
-    # purity = 0.5, when selected qubits is [0]
-
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(
-            DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+    if SIM_DEFAULT_SOURCE == "qiskit_aer":
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
         )
-    )
-    answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
-    seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
-    measure_dyn[f"{i}-dummy-2-body-with-clbits"] = {
-        "02_with_extra_clbits": [i - 2, i - 1],
-    }
-    # purity = 1.0
+        answer[f"{i}-entangle-by-dyn"] = 1
+        seed_usage[f"{i}-entangle-by-dyn"] = i
+        measure_dyn[f"{i}-entangle-by-dyn"] = {
+            "02_with_extra_clbits": [0, i - 1],
+        }
+        # purity = 1, de-facto all system when selected qubits is [0, i - 1]
 
-    cross_test_name = (
-        f"{i}-entangle-by-dyn",
-        exp_method_02_with_extra_clbits.add(
-            CNOTDynCase4To8(i, export="comparison"), f"{i}-entangle-by-dyn-comparison"
-        ),
-    )
-    wave_adds["02_cross_test"].append(cross_test_name)
-    answer[cross_test_name] = 1.0
-    seed_usage[cross_test_name] = i
-    measure_dyn[cross_test_name] = {
-        "02_cross_test": [0, i - 1],
-    }
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn-half")
+        )
+        answer[f"{i}-entangle-by-dyn-half"] = 0.5
+        seed_usage[f"{i}-entangle-by-dyn-half"] = i
+        measure_dyn[f"{i}-entangle-by-dyn-half"] = {
+            "02_with_extra_clbits": [0],
+        }
+        # purity = 0.5, when selected qubits is [0]
+
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(
+                DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+            )
+        )
+        answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
+        seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
+        measure_dyn[f"{i}-dummy-2-body-with-clbits"] = {
+            "02_with_extra_clbits": [i - 2, i - 1],
+        }
+        # purity = 1.0
+
+        cross_test_name = (
+            f"{i}-entangle-by-dyn",
+            exp_method_02_with_extra_clbits.add(
+                CNOTDynCase4To8(i, export="comparison"), f"{i}-entangle-by-dyn-comparison"
+            ),
+        )
+        wave_adds["02_cross_test"].append(cross_test_name)
+        answer[cross_test_name] = 1.0
+        seed_usage[cross_test_name] = i
+        measure_dyn[cross_test_name] = {
+            "02_cross_test": [0, i - 1],
+        }
+    else:
+        warnings.warn(
+            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
+            + "which is guaranteed to work with dynamic circuit. "
+            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
+            category=QurryDependenciesNotWorking,
+        )
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
