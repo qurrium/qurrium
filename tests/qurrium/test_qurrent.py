@@ -362,58 +362,67 @@ def test_quantity_02_with_extra_clbits(tgt):
         tgt (Hashable): The target wave key in Qurry.
     """
 
-    exp_id = exp_method_02_with_extra_clbits.measure(
-        wave=tgt,
-        times=50,
-        measure=measure_dyn[tgt]["02_with_extra_clbits"],
-        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(50)},
-        backend=backend,
-    )
-    analysis_01 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"]
-    )
-    quantity_01 = analysis_01.content._asdict()
-    analysis_02 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
-    )
-    quantity_02 = analysis_02.content._asdict()
-    analysis_03 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
-    )
-    quantity_03 = analysis_03.content._asdict()
+    if SIM_DEFAULT_SOURCE == "qiskit_aer":
+        exp_id = exp_method_02_with_extra_clbits.measure(
+            wave=tgt,
+            times=50,
+            measure=measure_dyn[tgt]["02_with_extra_clbits"],
+            random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(50)},
+            backend=backend,
+        )
+        analysis_01 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"]
+        )
+        quantity_01 = analysis_01.content._asdict()
+        analysis_02 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
+        )
+        quantity_02 = analysis_02.content._asdict()
+        analysis_03 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
+        )
+        quantity_03 = analysis_03.content._asdict()
 
-    assert all(
-        ["entropy" in quantity_01, "purity" in quantity_01]
-    ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
-    assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
-        "The all system entropy is not changed: "
-        + f"counts_used: {quantity_01['counts_used']}: {quantity_02['entropyAllSys']}, "
-        + f"counts_used: {quantity_02['counts_used']}: {quantity_02['entropyAllSys']},"
-    )
-    assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
-        "The all system entropy is not changed: "
-        + f"{quantity_03['entropyAllSys']} != {quantity_02['entropyAllSys']}."
-    )
-    assert (
-        quantity_02["all_system_source"] == "independent"
-    ), f"The source of all system is not independent: {quantity_02['all_system_source']}."
-    assert (
-        "AnalysisHeader" in quantity_03["all_system_source"]
-    ), f"The source of all system is not from existed analysis: {quantity_03['all_system_source']}."
+        assert all(
+            ["entropy" in quantity_01, "purity" in quantity_01]
+        ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
+        assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
+            "The all system entropy is not changed: "
+            + f"counts_used: {quantity_01['counts_used']}: {quantity_02['entropyAllSys']}, "
+            + f"counts_used: {quantity_02['counts_used']}: {quantity_02['entropyAllSys']},"
+        )
+        assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
+            "The all system entropy is not changed: "
+            + f"{quantity_03['entropyAllSys']} != {quantity_02['entropyAllSys']}."
+        )
+        assert (
+            quantity_02["all_system_source"] == "independent"
+        ), f"The source of all system is not independent: {quantity_02['all_system_source']}."
+        assert "AnalysisHeader" in quantity_03["all_system_source"], (
+            "The source of all system is not "
+            + f"from existed analysis: {quantity_03['all_system_source']}."
+        )
 
-    diff = np.abs(quantity_01["purity"] - answer[tgt])
-    is_correct = diff < THREDHOLD
-    assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-        "The randomized measurement result is wrong: "
-        + f"{diff} !< {THREDHOLD}."
-        + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
-    )
-    results[tgt] = {
-        "answer": answer[tgt],
-        "difference": diff,
-        "is_correct": is_correct,
-        "quantity": quantity_01,
-    }
+        diff = np.abs(quantity_01["purity"] - answer[tgt])
+        is_correct = diff < THREDHOLD
+        assert (not MANUAL_ASSERT_ERROR) and is_correct, (
+            "The randomized measurement result is wrong: "
+            + f"{diff} !< {THREDHOLD}."
+            + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
+        )
+        results[tgt] = {
+            "answer": answer[tgt],
+            "difference": diff,
+            "is_correct": is_correct,
+            "quantity": quantity_01,
+        }
+    else:
+        warnings.warn(
+            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
+            + "which is guaranteed to work with dynamic circuit. "
+            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
+            category=QurryDependenciesNotWorking,
+        )
 
 
 @pytest.mark.parametrize("tgt", wave_adds["03"])
