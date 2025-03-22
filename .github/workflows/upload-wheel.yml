@@ -1,7 +1,20 @@
 name: Upload Wheel to PyPI
 on:
-  repository_dispatch:
-    types: [upload_wheel]
+  workflow_dispatch:
+    inputs:
+      wheel_path:
+        description: "Wheel Path"
+        required: true
+        type: string
+      wheel_name:
+        description: "Wheel Name"
+        required: true
+        type: string
+      repository_url:
+        description: "PyPI URL"
+        required: false
+        default: "https://test.pypi.org/legacy/"
+        type: string
 
 jobs:
   upload_wheel:
@@ -18,7 +31,7 @@ jobs:
       - name: Copy wheel from local path
         run: |
           mkdir -p dist
-          cp "${{ github.event.client_payload.wheel_path }}/${{ github.event.client_payload.wheel_name }}" dist/
+          cp "${{ inputs.wheel_path }}/${{ inputs.wheel_name }}" dist/
           ls -la dist/
 
       - name: Set up Python
@@ -35,5 +48,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          repository-url: ${{ github.event.client_payload.repository_url || 'https://upload.pypi.org/legacy/' }}
+          repository-url: ${{ inputs.repository_url || 'https://test.pypi.org/legacy/' }}
           skip-existing: true
