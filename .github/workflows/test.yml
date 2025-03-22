@@ -51,7 +51,7 @@ jobs:
   test_py_latest_and_oldest:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
     name: Test on Python Latest and Oldest
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
     strategy:
@@ -79,7 +79,7 @@ jobs:
   test_py:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
     name: Test on Python
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
       - test_py_latest_and_oldest

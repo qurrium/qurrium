@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   create_tag:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
