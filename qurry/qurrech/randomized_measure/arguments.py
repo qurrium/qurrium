@@ -218,8 +218,6 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     """
     second_transpile_args: Optional[TranspileArgs]
     """The transpile arguments for the second group of quantum circuits."""
-    second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]]
-    """The passmanager for the second quantum circuit."""
     random_unitary_seeds: Optional[dict[int, dict[int, int]]]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -242,6 +240,8 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
+    second_passmanager_pair: Optional[tuple[str, PassManager]]
+    """The passmanager for the second quantum circuit."""
 
 
 class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
