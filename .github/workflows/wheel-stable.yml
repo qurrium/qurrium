@@ -9,7 +9,9 @@ jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
     name: Build wheels on ${{ matrix.vers }} by ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on:
+      - ${{ matrix.os }}
+      - self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -20,9 +22,9 @@ jobs:
           # - vers: linux-aarch64
           #   os: ubuntu-24.04-arm
           #   archs: ARM64
-          - vers: macOS-x86_64
-            os: macos-13
-            archs: X64
+          # - vers: macOS-x86_64
+          #   os: macos-13
+          #   archs: X64
           # - vers: macOS-arm64
           #   os: macos-14
           #   archs: ARM64
