@@ -1,12 +1,14 @@
 """
 ================================================================
-Qurries - Other Qurry Cases 
+Qurries - Other Qurry Modules
 (:mod:`qurry.qurries`)
 ================================================================
 
 """
 
-# from typing import Literal
+from typing import Literal
+
+from .magnet_square import MagnetSquare
 
 # from .qurstrop import StringOperatorV3 as StringOperatorOrigin
 
@@ -31,15 +33,3 @@ Qurries - Other Qurry Cases
 #         return StringOperatorOrigin(*args, **kwargs)
 #     else:
 #         return StringOperatorOrigin(*args, **kwargs)
-
-
-# def MagnetSquare(
-#     *args,
-#     **kwargs,
-# ) -> MagnetSquareOrigin:
-#     """Call `MagnetSquare` methods.
-
-#     Returns:
-#         MagnetSquareOrigin: method.
-#     """
-#     return MagnetSquareOrigin(*args, **kwargs)
