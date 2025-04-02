@@ -11,7 +11,7 @@ from ..n_body import TwoBody
 
 
 class Intracell(TwoBody):
-    """The entangled circuit :cls:`Intracell`.
+    r"""The entangled circuit :cls:`Intracell`.
 
     .. code-block:: text
 
@@ -34,6 +34,11 @@ class Intracell(TwoBody):
         q7: ┤ X ├─────┤ X ├
             └───┘     └───┘
 
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
+
     .. code-block:: text
 
         # At state `plus` with 8 qubits:
@@ -54,6 +59,11 @@ class Intracell(TwoBody):
             ├───┤┌─┴─┐
         q7: ┤ X ├┤ X ├
             └───┘└───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} + {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): Number of qubits.
@@ -129,7 +139,7 @@ class Intracell(TwoBody):
 
 
 class Singlet(Intracell):
-    """:cls:`Siglet`, the entangled circuit :cls:`Intracell` with `singlet` state.
+    r""":cls:`Siglet`, the entangled circuit :cls:`Intracell` with `singlet` state.
 
     .. code-block:: text
 
@@ -151,6 +161,11 @@ class Singlet(Intracell):
             ├───┤└───┘┌─┴─┐
         q7: ┤ X ├─────┤ X ├
             └───┘     └───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): Number of qubits.
