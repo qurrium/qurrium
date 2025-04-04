@@ -38,7 +38,7 @@ runs:
           python -m pip install --upgrade urllib3
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi
-        if {{ inputs.qiskit == "yes" }}; then
+        if [[ "${{ inputs.qiskit-v1 }}" == "yes" ]]; then
           echo "| Installing Qiskit v1"
           python -m pip install qiskit<=2.0.0
         fi
