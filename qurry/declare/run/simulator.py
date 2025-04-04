@@ -5,13 +5,9 @@ Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
 
 """
 
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 from qiskit.circuit import Parameter, Qubit
-from qiskit.pulse import LoConfig
-from qiskit.pulse.channels import PulseChannel
-from qiskit.qobj import QobjHeader
-from qiskit.qobj.utils import MeasLevel, MeasReturnType
 
 from .base_run import BaseRunArgs
 
@@ -62,7 +58,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     """
 
     qobj_id: Optional[str]
-    qobj_header: Optional[Union[QobjHeader, dict]]
+    qobj_header: Optional[Union[Any, dict]]
     shots: Optional[int]
     memory: Optional[bool]
     seed_simulator: Optional[int]
@@ -72,13 +68,13 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     meas_lo_range: Optional[list[float]]
     schedule_los: Optional[
         Union[
-            list[Union[dict[PulseChannel, float], LoConfig]],
-            Union[dict[PulseChannel, float], LoConfig],
+            list[Union[dict[Any, float], Any]],
+            Union[dict[Any, float], Any],
         ]
     ]
 
-    meas_level: Union[int, MeasLevel]
-    meas_return: Union[str, MeasReturnType]
+    meas_level: Union[int, Any]
+    meas_return: Union[str, Any]
     meas_map: Optional[list[list[Qubit]]]
     memory_slot_size: int
     rep_time: Optional[int]
