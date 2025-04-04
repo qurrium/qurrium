@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from qiskit import QuantumCircuit
 
 from ...qurrium.experiment import ArgumentsPrototype
-from ...process.magnet_square.magnet_square import PostProcessingBackendLabel
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
@@ -45,4 +44,4 @@ class MagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of the analyze method."""
 
 
-SHORT_NAME = "qurrent_magnet_square"
+SHORT_NAME = "qurries_magnet_square"

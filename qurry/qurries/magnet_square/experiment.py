@@ -151,6 +151,7 @@ class MagnetSquareExperiment(ExperimentPrototype):
         serial = len(self.reports)
         analysis = self.analysis_instance(
             serial=serial,
+            shots=self.commons.shots,
             **qs,
         )
 
@@ -166,7 +167,7 @@ class MagnetSquareExperiment(ExperimentPrototype):
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> MagnetSquare:
-        """Randomized magnet square with complex.
+        """Calculate magnet square with more information combined.
 
         Args:
             shots (int):

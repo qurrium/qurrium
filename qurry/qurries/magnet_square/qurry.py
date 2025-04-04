@@ -27,7 +27,10 @@ from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
+from ...tools.except_decorator import unproven_feature
 
+
+@unproven_feature("The implementation is not proven, we can not guarantee the correctness.")
 class MagnetSquare(QurriumPrototype):
     """Magnet Square Qurry."""
 

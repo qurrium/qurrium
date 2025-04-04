@@ -22,6 +22,8 @@ class MagnetSquareAnalysis(AnalysisPrototype):
 
         num_qubits: int
         """The number of qubits."""
+        shots: int
+        """The number of shots."""
 
     input: AnalysisInput
 
