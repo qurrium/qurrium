@@ -35,7 +35,7 @@ class GHZ(OneBody):
 
     .. math::
 
-        \frac{1}{\sqrt{2}} 
+        \frac{1}{\sqrt{2}}
             \left({|0\rangle}^{\otimes N} + {|1\rangle}^{\otimes N} \right), N = 8
 
     Args:
@@ -87,7 +87,7 @@ class Cat(GHZ):
 
     .. math::
 
-        \frac{1}{\sqrt{2}} 
+        \frac{1}{\sqrt{2}}
             \left({|0\rangle}^{\otimes N} + {|1\rangle}^{\otimes N} \right), N = 8
 
     Args:
