@@ -162,3 +162,10 @@ class OpenQASM3Issue13362Warning(OpenQASMProcessingWarning):
         2. https://github.com/Qiskit/qiskit/pull/13663
 
     """
+
+
+class QurryUnprovenFeatureWarning(QurryWarning):
+    """Unproven feature warning.
+    This feature is not proven to be working or not.
+    Please report if you find any issue with this feature.
+    """
