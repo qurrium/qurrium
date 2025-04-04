@@ -88,10 +88,14 @@ def purity_echo_core(
 
     Raises:
         Warning: Expected '0' and '1', but there is no such keys
+        ValueError: The length of counts is not 1.
+        ValueError: shots does not match sample_shots.
 
     Returns:
         dict[str, float]: Quantity of the experiment.
     """
+    if len(counts) != 1:
+        raise ValueError(f"counts should be a list of counts with length 1, but got {len(counts)}")
 
     if backend == "Rust":
         if RUST_AVAILABLE:
