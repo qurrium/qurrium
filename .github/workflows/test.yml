@@ -106,8 +106,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - step: python-other-310
-            depends_on: [python-oldest]
+          - step: py-other-310
+            depends_on: []
             python-version: "3.10"
             qiskit-v1: "no"
           - step: py-other-311
