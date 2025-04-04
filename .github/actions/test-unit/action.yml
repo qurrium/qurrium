@@ -40,7 +40,7 @@ runs:
         fi
         if [[ "${{ inputs.qiskit-v1 }}" == "yes" ]]; then
           echo "| Installing Qiskit v1"
-          python -m pip install qiskit<=2.0.0
+          python -m pip install "qiskit<2.0.0"
         fi
         python -c "print('| Preparing setup.py '.ljust(70, '.'))"
         python -m pip install -e .
