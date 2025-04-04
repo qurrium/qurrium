@@ -6,7 +6,7 @@ Import IBM (:mod:`qurry.tools.backend.import_ibm`)
 For qiskit-aer has been divided into two packages since qiskit some version,
 So it needs to be imported differently by trying to import qiskit-aer first.
 
-And qiskit-ibmq-provider has been deprecated, 
+And qiskit-ibmq-provider has been deprecated,
 but for some user may still need to use it,
 so it needs to be imported also differently by trying to import qiskit-ibm-provider first.
 
@@ -14,21 +14,28 @@ So this file is used to unify the import point of AerProvider, IBMProvider/IBMQP
 Avoiding the import error occurs on different parts of Qurry.
 """
 
-from typing import Literal, Optional, Type, overload, Union
-from qiskit.providers import Backend, Provider
+from typing import Literal, Optional, Type, overload, Union, Any
+from qiskit.providers import Backend
 
+
+# from .import_simulator import Provider
 from .utils import backend_name_getter, shorten_name
 from ..qiskit_version import QISKIT_VERSION
 from ...exceptions import QurryExtraPackageRequired
 
 
-class DummyProvider(Provider):
+class DummyProvider:
     """A dummy provider for :class:`qurry.tools.backend.backendWrapper`
     to use when the real provider is not available,
     And it will print a warning message when you try to use it.
     Also it is a cheatsheet for type checking in this scenario.
 
     """
+
+    version = 0
+
+    def __init__(self):
+        pass
 
     @staticmethod
     def save_account():
@@ -80,15 +87,15 @@ ImportPointOrder: list[ImportPointType] = [
     "qiskit_ibmq_provider",
 ]
 REAL_BACKEND_SOURCES: dict[ImportPointType, Optional[Type[Backend]]] = {}
-REAL_PROVIDER_SOURCES: dict[
-    ImportPointType, Optional[Union[Type[Provider], Type["QiskitRuntimeService"]]]
-] = {}
+REAL_PROVIDER_SOURCES: dict[ImportPointType, Optional[Union[Any, Type["QiskitRuntimeService"]]]] = (
+    {}
+)
 REAL_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
 REAL_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 REAL_SOURCE_AVAILABLE: dict[ImportPointType, bool] = {}
 
 try:
-    from qiskit_ibm_runtime import (
+    from qiskit_ibm_runtime import (  # type: ignore
         QiskitRuntimeService,
         __version__ as qiskit_ibm_runtime_version,
         IBMBackend as IBMRuntimeBackend,
@@ -168,8 +175,8 @@ def real_backend_loader(
 
 @overload
 def real_backend_loader(
-    real_provider: Provider,
-) -> tuple[dict[str, str], dict[str, Backend], Provider]: ...
+    real_provider: Union[Any, Type["QiskitRuntimeService"]],
+) -> tuple[dict[str, str], dict[str, Backend], Union[Any, Type["QiskitRuntimeService"]]]: ...
 
 
 def real_backend_loader(real_provider=None):

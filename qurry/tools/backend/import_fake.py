@@ -12,7 +12,7 @@ Avoiding the import error occurs on different parts of Qurry.
 from typing import Literal, Type, Union, Optional, overload
 import warnings
 
-from qiskit.providers import BackendV2, BackendV1, Backend
+from qiskit.providers import BackendV2, Backend
 
 from .utils import backend_name_getter, shorten_name
 from ...exceptions import QurryDependenciesNotWorking, QurryDependenciesFailureError
@@ -26,11 +26,7 @@ ImportPointOrder: list[ImportPointType] = [
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
-FAKE_BACKEND_SOURCES: dict[ImportPointType, Optional[Type[BackendV1]]] = {}
 FAKE_BACKENDV2_SOURCES: dict[ImportPointType, Optional[Type[BackendV2]]] = {}
-FAKE_PROVIDER_SOURCES: dict[
-    ImportPointType, Optional[Union[Type["FakeProviderDep"], Type["FakeProviderIndep"]]]
-] = {}
 FAKE_PROVIDERFORV2_SOURCES: dict[
     ImportPointType,
     Optional[Union[Type["FakeProviderForBackendV2Dep"], Type["FakeProviderForBackendV2Indep"]]],
@@ -46,7 +42,7 @@ QISKIT_IBM_RUNTIME_ISSUE_1318 = (
 )
 
 try:
-    from qiskit_ibm_runtime import __version__ as qiskit_ibm_runtime_version
+    from qiskit_ibm_runtime import __version__ as qiskit_ibm_runtime_version  # type: ignore
 
     major, minor, _ = qiskit_ibm_runtime_version.split(".")
     IS_V1_REMOVE = int(major) >= 0 and int(minor) >= 31
@@ -56,7 +52,7 @@ try:
             category=QurryDependenciesNotWorking,
         )
 
-    from qiskit_ibm_runtime.fake_provider import (
+    from qiskit_ibm_runtime.fake_provider import (  # type: ignore
         FakeProviderForBackendV2 as FakeProviderForBackendV2Indep,  # type: ignore
     )
     from qiskit_ibm_runtime.fake_provider.fake_backend import (  # type: ignore
@@ -65,40 +61,20 @@ try:
 
     FAKE_BACKENDV2_SOURCES["qiskit_ibm_runtime.fake_provider"] = FakeBackendV2Indep
     FAKE_PROVIDERFORV2_SOURCES["qiskit_ibm_runtime.fake_provider"] = FakeProviderForBackendV2Indep
-
-    if IS_V1_REMOVE:
-        FAKE_BACKEND_SOURCES["qiskit_ibm_runtime.fake_provider"] = None
-        FAKE_PROVIDER_SOURCES["qiskit_ibm_runtime.fake_provider"] = None
-
-    else:
-        from qiskit_ibm_runtime.fake_provider import (
-            FakeProvider as FakeProviderIndep,  # type: ignore
-        )
-        from qiskit_ibm_runtime.fake_provider.fake_backend import (  # type: ignore
-            FakeBackend as FakeBackendIndep,  # type: ignore
-        )
-
-        FAKE_BACKEND_SOURCES["qiskit_ibm_runtime.fake_provider"] = FakeBackendIndep
-        FAKE_PROVIDER_SOURCES["qiskit_ibm_runtime.fake_provider"] = FakeProviderIndep
-
     FAKE_VERSION_INFOS["qiskit_ibm_runtime.fake_provider"] = qiskit_ibm_runtime_version
 
 except ImportError as err:
     FAKE_IMPORT_ERROR_INFOS["qiskit_ibm_runtime.fake_provider"] = err
 
-if len(FAKE_BACKEND_SOURCES) == 0:
+if len(FAKE_BACKENDV2_SOURCES) == 0:
     try:
         from qiskit.providers.fake_provider import (
-            FakeProvider as FakeProviderDep,  # type: ignore
             FakeProviderForBackendV2 as FakeProviderForBackendV2Dep,  # type: ignore
-            FakeBackend as FakeBackendDep,  # type: ignore
             FakeBackendV2 as FakeBackendV2Dep,  # type: ignore
         )
         from qiskit import __version__ as qiskit_version
 
-        FAKE_BACKEND_SOURCES["qiskit.providers.fake_provider"] = FakeBackendDep
         FAKE_BACKENDV2_SOURCES["qiskit.providers.fake_provider"] = FakeBackendV2Dep
-        FAKE_PROVIDER_SOURCES["qiskit.providers.fake_provider"] = FakeProviderDep
         FAKE_PROVIDERFORV2_SOURCES["qiskit.providers.fake_provider"] = FakeProviderForBackendV2Dep
         FAKE_VERSION_INFOS["qiskit.providers.fake_provider"] = qiskit_version
 
@@ -113,7 +89,7 @@ def get_default_fake_provider() -> Optional[ImportPointType]:
         ImportPointType: The default fake provider.
     """
     for source in ImportPointOrder:
-        if source in FAKE_PROVIDER_SOURCES:
+        if source in FAKE_PROVIDERFORV2_SOURCES:
             return source
     return None
 
@@ -140,16 +116,6 @@ Many of the fake backends are not available in qiskit-ibm-runtime.
 """.replace(
     "\n", " "
 ).strip()
-
-
-@overload
-def fack_backend_loader(
-    version: Literal["v1"],
-) -> tuple[
-    dict[str, str],
-    dict[str, Backend],
-    Union["FakeProviderDep", "FakeProviderIndep"],
-]: ...
 
 
 @overload
@@ -189,7 +155,6 @@ def fack_backend_loader(version=None):
         return {}, {}, None
     provider_version = FAKE_VERSION_INFOS.get(FAKE_DEFAULT_SOURCE, None)
     assert provider_version is not None, LUCKY_MSG
-    _fake_provider_v1_becalled = FAKE_PROVIDER_SOURCES.get(FAKE_DEFAULT_SOURCE, None)
     _fake_provider_v2_becalled = FAKE_PROVIDERFORV2_SOURCES.get(FAKE_DEFAULT_SOURCE, None)
 
     major2, minor2, _ = provider_version.split(".")
@@ -201,7 +166,7 @@ def fack_backend_loader(version=None):
     ):
         if version == "v1":
             warnings.warn(
-                "'qiskit-ibm-runtime' since 0.31.0 has been removed FakeProvider for BackendV1, "
+                "'qiskit-ibm-runtime' since 0.31.0 has been removed FakeProvider for "
                 + "version 'v1' is not available anymore, reset to 'v2'.",
             )
         version = "v2"
@@ -210,12 +175,9 @@ def fack_backend_loader(version=None):
         _fake_provider = _fake_provider_v2_becalled()
 
     else:
-        assert _fake_provider_v1_becalled is not None, LUCKY_MSG
         assert _fake_provider_v2_becalled is not None, LUCKY_MSG
         try:
-            _fake_provider = (
-                _fake_provider_v1_becalled() if version == "v1" else _fake_provider_v2_becalled()
-            )
+            _fake_provider = _fake_provider_v2_becalled()
         except FileNotFoundError as err1318:
             raise QurryDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
 

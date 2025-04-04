@@ -6,7 +6,7 @@ Backend Utils (:mod:`qurry.tools.backend.utils`)
 For qiskit-aer has been divided into two packages since qiskit some version,
 So it needs to be imported differently by trying to import qiskit-aer first.
 
-And qiskit-ibmq-provider has been deprecated, 
+And qiskit-ibmq-provider has been deprecated,
 but for some user may still need to use it,
 so it needs to be imported also differently by trying to import qiskit-ibm-provider first.
 
@@ -17,26 +17,23 @@ Avoiding the import error occurs on different parts of Qurry.
 
 from typing import Union, Callable, Optional
 
-from qiskit.providers import BackendV1, BackendV2, Backend
-from qiskit.providers.models.backendconfiguration import QasmBackendConfiguration
+from qiskit.providers import BackendV2, Backend
 
 
-backendName: Callable[[Union[BackendV1, BackendV2, Backend]], str] = lambda back: (
-    back.name
-    if isinstance(back, BackendV2)
-    else (back.name() if isinstance(back, BackendV1) else "unknown_backend")
+backendName: Callable[[Union[BackendV2, Backend]], str] = lambda back: (
+    back.name if isinstance(back, BackendV2) else "unknown_backend"
 )
 """Get the name of backend.
 
 Args:
-    back (Union[BackendV1, BackendV2, Backend]): The backend instance.
+    back (Union[BackendV2, Backend]): The backend instance.
 
 Returns:
     str: The name of backend.
 """
 
 
-def backend_name_getter(back: Union[BackendV1, BackendV2, Backend, str]) -> str:
+def backend_name_getter(back: Union[BackendV2, Backend, str]) -> str:
     """Get the name of backend.
 
     Args:
@@ -50,15 +47,8 @@ def backend_name_getter(back: Union[BackendV1, BackendV2, Backend, str]) -> str:
         return back
     if isinstance(back, BackendV2):
         return back.name
-    if isinstance(back, BackendV1):
-        return back.name()
-    if hasattr(back, "configuration"):
-        test_call = back.configuration()  # type: ignore
-        if isinstance(test_call, QasmBackendConfiguration):
-            assert isinstance(
-                test_call, QasmBackendConfiguration
-            ), f"Invalid configuration: {test_call}"
-            return test_call.backend_name
+    if isinstance(back, Callable):
+        return back.name()  # type: ignore
     if isinstance(back, Backend):
         return str(back)
     return "unknown_backend"
