@@ -6,14 +6,12 @@ Arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
 
 """
 
-from typing import Optional, Union, Callable, TypedDict, Any
+from typing import Union, Callable, Any, Optional, TypedDict
 
 from qiskit.dagcircuit import DAGCircuit
-from qiskit.providers.models.backendproperties import BackendProperties
-from qiskit.pulse import InstructionScheduleMap
+from qiskit.providers.backend import Backend
 from qiskit.transpiler import Layout, CouplingMap, PropertySet
 from qiskit.transpiler.basepasses import BasePass
-from qiskit.transpiler.instruction_durations import InstructionDurationsType
 from qiskit.transpiler.passes.synthesis.high_level_synthesis import HLSConfig
 from qiskit.transpiler.target import Target
 
@@ -21,7 +19,7 @@ from qiskit.transpiler.target import Target
 class TranspileArgs(TypedDict, total=False):
     """Transpile arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
 
-    - :mod:`qiskit` 1.4.1
+    - :mod:`qiskit` 2.0.0
 
     .. code-block:: python
         _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, list[QuantumCircuit]])
@@ -30,23 +28,19 @@ class TranspileArgs(TypedDict, total=False):
             circuits: _CircuitT,
             backend: Optional[Backend] = None,
             basis_gates: Optional[list[str]] = None,
-            inst_map: Optional[list[InstructionScheduleMap]] = None,
             coupling_map: Optional[Union[CouplingMap, list[list[int]]]] = None,
-            backend_properties: Optional[BackendProperties] = None,
             initial_layout: Optional[Union[Layout, dict, list]] = None,
             layout_method: Optional[str] = None,
             routing_method: Optional[str] = None,
             translation_method: Optional[str] = None,
             scheduling_method: Optional[str] = None,
-            instruction_durations: Optional[InstructionDurationsType] = None,
             dt: Optional[float] = None,
             approximation_degree: Optional[float] = 1.0,
-            timing_constraints: Optional[dict[str, int]] = None,
             seed_transpiler: Optional[int] = None,
             optimization_level: Optional[int] = None,
-            callback: Optional[
-                Callable[[BasePass, DAGCircuit, float, PropertySet, int], Any]
-            ] = None,
+            callback: Optional[Callable[[
+                BasePass, DAGCircuit, float, PropertySet, int
+            ], Any]] = None,
             output_name: Optional[Union[str, list[str]]] = None,
             unitary_synthesis_method: str = "default",
             unitary_synthesis_plugin_config: Optional[dict] = None,
@@ -62,19 +56,16 @@ class TranspileArgs(TypedDict, total=False):
 
     """
 
+    backend: Optional[Backend]
     basis_gates: Optional[list[str]]
-    inst_map: Optional[list[InstructionScheduleMap]]
     coupling_map: Optional[Union[CouplingMap, list[list[int]]]]
-    backend_properties: Optional[BackendProperties]
     initial_layout: Optional[Union[Layout, dict, list]]
     layout_method: Optional[str]
     routing_method: Optional[str]
     translation_method: Optional[str]
     scheduling_method: Optional[str]
-    instruction_durations: Optional[InstructionDurationsType]
     dt: Optional[float]
     approximation_degree: Optional[float]
-    timing_constraints: Optional[dict[str, int]]
     seed_transpiler: Optional[int]
     optimization_level: Optional[int]
     callback: Optional[Callable[[BasePass, DAGCircuit, float, PropertySet, int], Any]]
