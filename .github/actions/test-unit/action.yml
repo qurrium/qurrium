@@ -1,6 +1,14 @@
 name: Test Unit
 author: Harui (Huai-Chun Chang)
 description: "The basic unit to test Qurry and Qurecipe. Including the parts written in Cython and Rust"
+branding:
+  icon: "check"
+  color: "blue"
+inputs:
+  qiskit-v1:
+    description: "The Qiskit version to test, yes for Qiskit v1, no for Qiskit v2"
+    required: false
+    default: "no"
 
 runs:
   using: "composite"
@@ -29,6 +37,10 @@ runs:
           python -m pip install flake8 pytest matplotlib pep440
           python -m pip install --upgrade urllib3
           python -m pip install --upgrade --user setuptools setuptools_rust
+        fi
+        if {{ inputs.qiskit == "yes" }}; then
+          echo "| Installing Qiskit v1"
+          python -m pip install qiskit<=2.0.0
         fi
         python -c "print('| Preparing setup.py '.ljust(70, '.'))"
         python -m pip install -e .

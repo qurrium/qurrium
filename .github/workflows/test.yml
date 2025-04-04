@@ -60,9 +60,19 @@ jobs:
           - step: python-latest
             depends_on: []
             python-version: "3.13"
+            qiskit-v1: "no"
           - step: python-oldest
             depends_on: [python-latest]
             python-version: "3.9"
+            qiskit-v1: "no"
+          - step: python-latest-qiskit-v1
+            depends_on: [python-oldest]
+            python-version: "3.13"
+            qiskit-v1: "yes"
+          - step: python-oldest-qiskit-v1
+            depends_on: [python-latest-qiskit-v1]
+            python-version: "3.9"
+            qiskit-v1: "yes"
       fail-fast: false
       max-parallel: 3
 
@@ -73,8 +83,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Is Qiskit v1
+        run: |
+          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
+            echo "Qiskit v1"
+          else
+            echo "Qiskit v2"
+          fi
+
       - name: Run Test Unit
         uses: ./.github/actions/test-unit
+        with:
+          qiskit-v1: ${{ matrix.qiskit-v1 }}
 
   test_py:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
@@ -89,12 +109,27 @@ jobs:
           - step: python-other-310
             depends_on: [python-oldest]
             python-version: "3.10"
+            qiskit-v1: "no"
           - step: py-other-311
             depends_on: [py-other-310]
             python-version: "3.11"
+            qiskit-v1: "no"
           - step: py-other-312
             depends_on: [py-other-311]
             python-version: "3.12"
+            qiskit-v1: "no"
+          - step: py-other-310-qiskit-v1
+            depends_on: [py-other-312]
+            python-version: "3.10"
+            qiskit-v1: "yes"
+          - step: py-other-311-qiskit-v1
+            depends_on: [py-other-310-qiskit-v1]
+            python-version: "3.11"
+            qiskit-v1: "yes"
+          - step: py-other-312-qiskit-v1
+            depends_on: [py-other-311-qiskit-v1]
+            python-version: "3.12"
+            qiskit-v1: "yes"
       fail-fast: false
       max-parallel: 3
 
@@ -105,5 +140,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Is Qiskit v1
+        run: |
+          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
+            echo "Qiskit v1"
+          else
+            echo "Qiskit v2"
+          fi
+
       - name: Run Test Unit
         uses: ./.github/actions/test-unit
+        with:
+          qiskit-v1: ${{ matrix.qiskit-v1 }}
