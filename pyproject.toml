@@ -71,7 +71,8 @@ before-build = [
     'echo "| Install dependencies..."',
     "pip install --upgrade pipenv wheel pip",
     "pip install --upgrade auditwheel auditwheel-symbols delocate",
-    "pip install --upgrade setuptools_rust setuptools wheel",
+    'pip install "setuptools<77.0.0"',
+    "pip install --upgrade setuptools_rust wheel",
 ]
 before-test = [
     "echo ''",
@@ -185,7 +186,8 @@ before-build = [
     'echo "| Install dependencies..."',
     "python -m pip install --upgrade pipenv wheel pip",
     "python -m pip install --upgrade auditwheel auditwheel-symbols delocate",
-    "python -m pip install --upgrade setuptools_rust setuptools wheel",
+    'python -m pip install --upgrade "setuptools<77.0.0"',
+    "python -m pip install --upgrade setuptools_rust wheel"
 ]
 
 [tool.pylint."messages control"]
