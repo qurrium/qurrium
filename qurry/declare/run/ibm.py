@@ -8,9 +8,6 @@ Declaration - Run - IBM (:mod:`qurry.declare.run.ibm`)
 from typing import Optional, Union, Any
 
 from qiskit.circuit import QuantumCircuit, Parameter
-from qiskit.pulse import LoConfig
-from qiskit.pulse.channels import PulseChannel
-from qiskit.qobj.utils import MeasLevel, MeasReturnType
 
 from .base_run import BaseRunArgs
 
@@ -51,8 +48,8 @@ class IBMRuntimeBackendRunArgs(BaseRunArgs, total=False):
     header: Optional[dict]
     shots: Optional[Union[int, float]]
     memory: Optional[bool]
-    meas_level: Optional[Union[int, MeasLevel]]
-    meas_return: Optional[Union[str, MeasReturnType]]
+    meas_level: Optional[Union[int, Any]]
+    meas_return: Optional[Union[str, Any]]
     rep_delay: Optional[float]
     init_qubits: Optional[bool]
     use_measure_esp: Optional[bool]
@@ -95,8 +92,8 @@ class IBMProviderBackendRunArgs(BaseRunArgs, total=False):
     header: Optional[dict]
     shots: Optional[Union[int, float]]
     memory: Optional[bool]
-    meas_level: Optional[Union[int, MeasLevel]]
-    meas_return: Optional[Union[str, MeasReturnType]]
+    meas_level: Optional[Union[int, Any]]
+    meas_return: Optional[Union[str, Any]]
     rep_delay: Optional[float]
     init_qubits: Optional[bool]
     use_measure_esp: Optional[bool]
@@ -152,12 +149,12 @@ class IBMQBackendRunArgs(BaseRunArgs, total=False):
     meas_lo_freq: Optional[list[int]]
     schedule_los: Optional[
         Union[
-            list[Union[dict[PulseChannel, float], LoConfig]],
-            Union[dict[PulseChannel, float], LoConfig],
+            list[Union[dict[Any, float], Any]],
+            Union[dict[Any, float], Any],
         ]
     ]
-    meas_level: Optional[Union[int, MeasLevel]]
-    meas_return: Optional[Union[str, MeasReturnType]]
+    meas_level: Optional[Union[int, Any]]
+    meas_return: Optional[Union[str, Any]]
     memory_slots: Optional[int]
     memory_slot_size: Optional[int]
     rep_time: Optional[int]

@@ -170,7 +170,6 @@ for i in range(4, 7, 2):
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
-print(backend.configuration())  # type: ignore
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
 
 

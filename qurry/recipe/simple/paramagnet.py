@@ -11,7 +11,7 @@ from ..n_body import OneBody
 
 
 class TrivialParamagnet(OneBody):
-    """The product state circuit :cls:`TrivialParamagnet`.
+    r"""The product state circuit :cls:`TrivialParamagnet`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
@@ -34,6 +34,8 @@ class TrivialParamagnet(OneBody):
             ├───┤
         q7: ┤ H ├
             └───┘
+
+    .. math:: {|+\rangle}^{\otimes N}, N = 8
 
     Args:
         num_qubits (int): Number of qubits.

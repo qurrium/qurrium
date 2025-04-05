@@ -11,12 +11,13 @@ So it needs to be imported differently by trying to import qiskit-aer first,
 from random import random
 from typing import Optional, Union, Literal, TypedDict, Any
 
-from qiskit.providers import Backend, Provider
+from qiskit.providers import Backend
 
 from .utils import backend_name_getter, shorten_name
 from .import_simulator import (
     GeneralProvider,
     SIM_DEFAULT_SOURCE as sim_default_source,
+    Provider,
 )
 from .import_fake import fack_backend_loader
 from .import_ibm import (
@@ -467,7 +468,7 @@ class BackendManager(BackendWrapper):
         if real_provider_source == "qiskit_ibm_provider":
             print("| Provider by 'qiskit_ibm_provider'.")
             try:
-                from qiskit_ibm_provider import IBMProvider
+                from qiskit_ibm_provider import IBMProvider  # type: ignore
 
                 new_provider = IBMProvider(instance=self.instance)
                 super().__init__(
@@ -483,7 +484,7 @@ class BackendManager(BackendWrapper):
         elif real_provider_source == "qiskit_ibm_runtime":
             print("| Provider by 'qiskit_ibm_runtime'.")
             try:
-                from qiskit_ibm_runtime import QiskitRuntimeService
+                from qiskit_ibm_runtime import QiskitRuntimeService  # type: ignore
 
                 new_provider = QiskitRuntimeService(instance=self.instance)
                 super().__init__(
@@ -574,7 +575,7 @@ class BackendManager(BackendWrapper):
         # pylint: disable=import-outside-toplevel, import-error, no-name-in-module
         if real_provider_source == "qiskit_ibm_provider":
             try:
-                from qiskit_ibm_provider import IBMProvider
+                from qiskit_ibm_provider import IBMProvider  # type: ignore
 
                 IBMProvider.save_account(token=token, overwrite=overwrite, **kwargs)
             except ImportError as err:
@@ -597,7 +598,7 @@ class BackendManager(BackendWrapper):
 
         elif real_provider_source == "qiskit_ibm_runtime":
             try:
-                from qiskit_ibm_runtime import QiskitRuntimeService
+                from qiskit_ibm_runtime import QiskitRuntimeService  # type: ignore
 
                 QiskitRuntimeService.save_account(token=token, overwrite=overwrite, **kwargs)
 

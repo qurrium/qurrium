@@ -49,7 +49,6 @@ else:
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
-print(backend.configuration())  # type: ignore
 
 
 @pytest.mark.parametrize("tgt", wave_adds_01)
