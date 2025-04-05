@@ -71,6 +71,7 @@ jobs:
 
       - name: Prepare CIBW
         run: |
+          python -m pip install --upgrade "setuptools==76.1.0"
           python -m pip install cibuildwheel==2.21.3 --upgrade
           echo "| $(python -m pip --version)"
           echo "| $(python -m pip list | grep cibuildwheel)"
