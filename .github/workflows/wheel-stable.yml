@@ -111,7 +111,7 @@ jobs:
         run: |
           # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
           # Prevent using outdated image
-          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1)
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
 
   publish-to-testpypi:
     if: github.repository == 'qurrium/qurry'
@@ -143,4 +143,4 @@ jobs:
         run: |
           # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
           # Prevent using outdated image
-          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1)
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
