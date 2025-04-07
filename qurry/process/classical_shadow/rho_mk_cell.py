@@ -6,7 +6,7 @@ Postprocessing - Classical Shadow - Rho M K Cell
 
 """
 
-from typing import Literal, Union
+from typing import Literal, Union, Any
 import numpy as np
 
 from .unitary_set import U_M_MATRIX, OUTER_PRODUCT, IDENTITY
@@ -61,6 +61,7 @@ def rho_mk_cell_py(
 ) -> tuple[
     int,
     dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    dict[str, int],
     list[int],
 ]:
     r""":math:`\rho_{mk}` calculation for single cell.
@@ -91,7 +92,8 @@ def rho_mk_cell_py(
         tuple[
             int,
             dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-            list[int]
+            dict[str, int],
+            list[int],
         ]:
             Index, rho_mk, the sorted list of the selected qubits
     """
@@ -115,26 +117,26 @@ def rho_mk_cell_py(
             single_counts_under_degree[bitstring] = num_counts_all
 
     # core calculation
-    rho_m_k_i_dict: dict[str, dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = {}
+    rho_m_k_i_dict: dict[
+        str, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]
+    ] = {}
     rho_m_k_dict: dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = {}
+    rho_m_k_counts_num: dict[str, int] = {}
 
     for bitstring, num_bitstring in single_counts_under_degree.items():
         rho_m_k_i_dict[bitstring] = {}
+        rho_m_k_counts_num[bitstring] = num_bitstring
         for q_i, s_q in zip(selected_classical_registers_sorted, bitstring):
             rho_m_k_i_dict[bitstring][q_i] = (
-                (
-                    3
-                    * U_M_MATRIX[nu_shadow_direction[q_i]].conj().T
-                    @ OUTER_PRODUCT[s_q]
-                    @ U_M_MATRIX[nu_shadow_direction[q_i]]
-                )
-                - IDENTITY
-            ) * num_bitstring
+                3
+                * U_M_MATRIX[nu_shadow_direction[q_i]].conj().T
+                @ OUTER_PRODUCT[s_q]
+                @ U_M_MATRIX[nu_shadow_direction[q_i]]
+            ) - IDENTITY
 
-        rho_m_k_dict[bitstring] = rho_m_k_i_dict[bitstring][selected_classical_registers_sorted[0]]
+        tmp: Any = rho_m_k_i_dict[bitstring][selected_classical_registers_sorted[0]]
         for q_i in selected_classical_registers_sorted[1:]:
-            rho_m_k_dict[bitstring] = np.kron(
-                rho_m_k_dict[bitstring], rho_m_k_i_dict[bitstring][q_i]
-            )
+            tmp = np.kron(tmp, rho_m_k_i_dict[bitstring][q_i])
+        rho_m_k_dict[bitstring] = tmp
 
-    return idx, rho_m_k_dict, selected_classical_registers_sorted
+    return idx, rho_m_k_dict, rho_m_k_counts_num, selected_classical_registers_sorted

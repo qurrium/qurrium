@@ -100,12 +100,30 @@ def rho_m_core_py(
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
-    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = {}
+    rho_m_dict = {
+        idx: np.zeros(
+            (
+                2 ** len(selected_classical_registers_sorted),
+                2 ** len(selected_classical_registers_sorted),
+            ),
+            dtype=np.complex128,
+        )
+        for idx in range(len(rho_mk_py_result_list))
+    }
     selected_qubits_checked: dict[int, bool] = {}
-    for idx, rho_mk, selected_classical_registers_sorted_result in rho_mk_py_result_list:
-        rho_m_dict[idx] = np.sum(rho_mk.values(), axis=0) / shots
-        if selected_classical_registers_sorted_result != selected_classical_registers_sorted:
-            selected_qubits_checked[idx] = False
+    for (
+        idx,
+        rho_mk_dict,
+        rho_mk_counts_num,
+        selected_classical_registers_sorted_result,
+    ) in rho_mk_py_result_list:
+
+        for bitstring, rho_mk in rho_mk_dict.items():
+            rho_m_dict[idx] += rho_mk * rho_mk_counts_num[bitstring]
+        rho_m_dict[idx] /= shots
+        selected_qubits_checked[idx] = (
+            selected_classical_registers_sorted_result == selected_classical_registers_sorted
+        )
 
     if len(selected_qubits_checked) > 0:
         warnings.warn(

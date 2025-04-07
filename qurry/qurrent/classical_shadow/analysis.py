@@ -57,10 +57,6 @@ class ShadowUnveilAnalysis(AnalysisPrototype):
 
         rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
         """The dictionary of Rho M."""
-        rho_m_i_dict: dict[
-            int, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]
-        ]
-        """The dictionary of Rho M I."""
         classical_registers_actually: list[int]
         """The list of the selected_classical_registers."""
         taking_time: float
@@ -72,9 +68,6 @@ class ShadowUnveilAnalysis(AnalysisPrototype):
     @property
     def side_product_fields(self) -> Iterable[str]:
         """The fields that will be stored as side product."""
-        return [
-            "rho_m_dict",
-            "rho_m_i_dict",
-        ]
+        return ["rho_m_dict"]
 
     content: AnalysisContent

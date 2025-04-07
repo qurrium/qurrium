@@ -74,7 +74,9 @@ def expectation_rho_core(
         ),
         dtype=np.complex128,
     )
-    expect_rho = np.sum(rho_m_dict.values(), axis=0) / len(rho_m_dict)
+    for rho_m in rho_m_dict.values():
+        expect_rho += rho_m
+    expect_rho /= len(rho_m_dict)
 
     return expect_rho
 
@@ -170,16 +172,17 @@ def trace_rho_square_core(
     rho_traced_sum: float = 0
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
+    num_combinations = 0
 
-    assert len(rho_m_dict_combinations) * 2 == num_n_u * (num_n_u - 1), (
-        f"The number of combinations: {len(rho_m_dict_combinations)} "
-        + f"and the number of rho_m_dict: {num_n_u} are different."
-    )
-    rho_traced_sum: float = np.sum(
-        np.trace(np.kron(rho_m1, rho_m2)) + np.trace(np.kron(rho_m2, rho_m1))
-        for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
-    )
+    for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations:
+        rho_traced_sum += np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+        num_combinations += 2
     rho_traced_sum /= num_n_u * (num_n_u - 1)
+
+    assert num_combinations == num_n_u * (num_n_u - 1), (
+        f"The number of combinations: {num_combinations} "
+        + f"and the number of num_n_u * (num_n_u - 1): {num_n_u * (num_n_u - 1)} are different."
+    )
 
     return rho_traced_sum
 
