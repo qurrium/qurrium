@@ -11,7 +11,7 @@ The followings are unitary operators for our classical shadow implementation.
 
 And the set of unitary operators :math:`U_M` will represent by following dictionary.:
 
-0. :math:`R_X(\frac{\pi}{2})` 
+0. :math:`R_X(\frac{\pi}{2})`
 1. :math:`R_Y(-\frac{\pi}{2})`
 2. :math:`R_Z(0) = \mathbb{I}`
 
@@ -35,11 +35,13 @@ for the unitary operators :math:`U_M` in the classical shadow.
 
 The set of unitary operators :math:`U_M` will represent by following dictionary.:
 
-{
-    0: :math:`R_X(\frac{\pi}{2})`,
-    1: :math:`R_Y(-\frac{\pi}{2})`,
-    2: :math:`R_Z(0) = \mathbb{I}`
-}
+.. code-block:: text
+
+    {
+        0: :math:`R_X(\frac{\pi}{2})`,
+        1: :math:`R_Y(-\frac{\pi}{2})`,
+        2: :math:`R_Z(0) = \mathbb{I}`
+    }
 """
 
 # U_M_MATRIX: dict[int, npt.NDArray[np.complex128]] = {
@@ -73,11 +75,13 @@ for the unitary operators :math:`U_M` in the classical shadow.
 
 The set of unitary operators :math:`U_M` will represent by following dictionary.:
 
-{
-    0: :math:`R_X(\frac{\pi}{2})`,
-    1: :math:`R_Y(-\frac{\pi}{2})`,
-    2: :math:`R_Z(0) = \mathbb{I}`
-}
+.. code-block:: text
+
+    {
+        0: :math:`R_X(\frac{\pi}{2})`,
+        1: :math:`R_Y(-\frac{\pi}{2})`,
+        2: :math:`R_Z(0) = \mathbb{I}`
+    }
 """
 
 
@@ -108,10 +112,12 @@ for the outer product of :math:`|0\rangle` and :math:`|1\rangle`.
 
 The set of outer product will represent by following dictionary.:
 
-{
-    "0": :math:`|0\rangle\langle0|`,
-    "1": :math:`|1\rangle\langle1|`
-}
+.. code-block:: text
+
+    {
+        "0": :math:`|0\rangle\langle0|`,
+        "1": :math:`|1\rangle\langle1|`
+    }
 """
 
 IDENTITY = np.array(

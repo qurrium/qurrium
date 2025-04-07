@@ -37,10 +37,6 @@ class ClassicalShadowBasic(TypedDict):
 
     rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     """The dictionary of Rho M."""
-    rho_m_i_dict: dict[
-        int, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]
-    ]
-    """The dictionary of Rho M I."""
     classical_registers_actually: list[int]
     """The list of the selected_classical_registers."""
     taking_time: float
@@ -78,9 +74,7 @@ def expectation_rho_core(
         ),
         dtype=np.complex128,
     )
-    for _, rho_m in rho_m_dict.items():
-        expect_rho += rho_m
-    expect_rho /= len(rho_m_dict)
+    expect_rho = np.sum(rho_m_dict.values(), axis=0) / len(rho_m_dict)
 
     return expect_rho
 
@@ -128,7 +122,7 @@ def expectation_rho(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, rho_m_i_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
         shots,
         counts,
         random_unitary_um,
@@ -136,9 +130,6 @@ def expectation_rho(
     )
     if pbar is not None:
         pbar.set_description(msg)
-    assert len(counts) == len(
-        rho_m_dict
-    ), f"The number of counts: {len(counts)} and rho_m: {len(rho_m_dict)} are different"
 
     expect_rho = expectation_rho_core(
         rho_m_dict=rho_m_dict,
@@ -148,7 +139,6 @@ def expectation_rho(
     return ClassicalShadowExpectation(
         expect_rho=expect_rho,
         rho_m_dict=rho_m_dict,
-        rho_m_i_dict=rho_m_i_dict,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
@@ -177,18 +167,17 @@ def trace_rho_square_core(
     """
 
     num_n_u = len(rho_m_dict)
-    rho_traced_sum = 0
-    num_n_u_combinations = 0
+    rho_traced_sum: float = 0
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
-    for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations:
 
-        rho_traced_sum += np.trace(np.kron(rho_m1, rho_m2))
-        rho_traced_sum += np.trace(np.kron(rho_m2, rho_m1))
-        num_n_u_combinations += 2
-    assert num_n_u_combinations == num_n_u * (num_n_u - 1), (
-        f"The number of combinations: {num_n_u_combinations} "
+    assert len(rho_m_dict_combinations) * 2 == num_n_u * (num_n_u - 1), (
+        f"The number of combinations: {len(rho_m_dict_combinations)} "
         + f"and the number of rho_m_dict: {num_n_u} are different."
+    )
+    rho_traced_sum: float = np.sum(
+        np.trace(np.kron(rho_m1, rho_m2)) + np.trace(np.kron(rho_m2, rho_m1))
+        for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
     )
     rho_traced_sum /= num_n_u * (num_n_u - 1)
 
@@ -238,7 +227,7 @@ def trace_rho_square(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, rho_m_i_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
         shots,
         counts,
         random_unitary_um,
@@ -254,67 +243,9 @@ def trace_rho_square(
         purity=trace_rho_sum,
         entropy=entropy,
         rho_m_dict=rho_m_dict,
-        rho_m_i_dict=rho_m_i_dict,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
-
-
-def trace_rho_m_square_core(
-    rho_m_i_dict: dict[
-        int, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]
-    ],
-    selected_classical_registers_sorted: list[int],
-) -> float:
-    """Calculate the trace of Rho square.
-
-    Args:
-        rho_m_dict (dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
-            The dictionary of Rho M.
-
-    Returns:
-        float: The trace of Rho square.
-    """
-
-    num_n_u = len(rho_m_i_dict)
-    rho_traced_sum = 0
-    num_n_u_combinations = 0
-
-    rho_m_dict_combinations = combinations(rho_m_i_dict.items(), 2)
-    for (_idx1, rho_m_i_dict_1), (_idx2, rho_m_i_dict_2) in rho_m_dict_combinations:
-        rho_m_a_target = {}
-        rho_m_b_target = {}
-        for ci1, rho_m_i_1 in rho_m_i_dict_1.items():
-            if ci1 in selected_classical_registers_sorted:
-                rho_m_b_target[ci1] = rho_m_i_1
-            else:
-                rho_m_a_target[ci1] = rho_m_i_1
-        for ci2, rho_m_i_2 in rho_m_i_dict_2.items():
-            if ci2 in selected_classical_registers_sorted:
-                rho_m_a_target[ci2] = rho_m_i_2
-            else:
-                rho_m_b_target[ci2] = rho_m_i_2
-        assert list(rho_m_a_target.keys()) == list(rho_m_b_target.keys()), (
-            f"The keys of rho_m_a_target: {list(rho_m_a_target.keys())} "
-            + f"and the keys of rho_m_b_target: {list(rho_m_b_target.keys())} are different."
-        )
-
-        rho_m_a = rho_m_a_target[selected_classical_registers_sorted[0]]
-        rho_m_b = rho_m_b_target[selected_classical_registers_sorted[0]]
-        for ci in selected_classical_registers_sorted[1:]:
-            rho_m_a = np.kron(rho_m_a, rho_m_a_target[ci])
-            rho_m_b = np.kron(rho_m_b, rho_m_b_target[ci])
-
-        rho_traced_sum += np.trace(np.kron(rho_m_a, rho_m_b))
-        rho_traced_sum += np.trace(np.kron(rho_m_b, rho_m_a))
-        num_n_u_combinations += 2
-    assert num_n_u_combinations == num_n_u * (num_n_u - 1), (
-        f"The number of combinations: {num_n_u_combinations} "
-        + f"and the number of rho_m_dict: {num_n_u} are different."
-    )
-    rho_traced_sum /= num_n_u * (num_n_u - 1)
-
-    return rho_traced_sum
 
 
 class ClassicalShadowComplex(ClassicalShadowBasic):
@@ -372,7 +303,7 @@ def classical_shadow_complex(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, rho_m_i_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
         shots,
         counts,
         random_unitary_um,
@@ -386,11 +317,7 @@ def classical_shadow_complex(
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
-    # trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict)
-    trace_rho_sum = trace_rho_m_square_core(
-        rho_m_i_dict=rho_m_i_dict,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
-    )
+    trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict)
     entropy = -np.log2(trace_rho_sum)
 
     return ClassicalShadowComplex(
@@ -398,7 +325,6 @@ def classical_shadow_complex(
         purity=trace_rho_sum,
         entropy=entropy,
         rho_m_dict=rho_m_dict,
-        rho_m_i_dict=rho_m_i_dict,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
