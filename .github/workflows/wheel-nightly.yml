@@ -107,6 +107,13 @@ jobs:
           packages-dir: wheelhouse
           repository-url: https://test.pypi.org/legacy/
 
+      - name: Clean up Docker Image of PyPI Publish
+        if: matrix.vers == 'linux-x86_64'
+        run: |
+          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+          # Prevent using outdated image
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1)
+
   # publish-to-testpypi:
   #   if: github.repository == 'qurrium/qurry'
   #   name: Publish Python 🐍 distribution 📦 to TestPyPI
@@ -133,3 +140,9 @@ jobs:
   #       with:
   #         packages-dir: deploy
   #         repository-url: https://test.pypi.org/legacy/
+
+  #     - name: Clean up Docker Image of PyPI Publish
+  #       run: |
+  #         # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+  #         # Prevent using outdated image
+  #         docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1)
