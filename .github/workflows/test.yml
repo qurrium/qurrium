@@ -74,7 +74,7 @@ jobs:
             python-version: "3.9"
             qiskit-v1: "yes"
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
 
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
             python-version: "3.12"
             qiskit-v1: "yes"
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
 
     steps:
       - uses: actions/checkout@v4
