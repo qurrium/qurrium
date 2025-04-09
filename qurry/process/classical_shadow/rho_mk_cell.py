@@ -98,7 +98,7 @@ def rho_mk_cell_py(
         ]:
             Index, rho_mk, the sorted list of the selected qubits
     """
-    
+
     # subsystem making
     num_classical_register = len(list(single_counts.keys())[0])
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
