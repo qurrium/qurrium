@@ -20,18 +20,6 @@ from ..qiskit_version import QISKIT_VERSION
 from .utils import backend_name_getter
 
 
-class Provider:
-    """This is a dummy class.
-    It is used to avoid import errors when qiskit v2 is used.
-    In qiskit v2, the Provider class has been removed.
-    """
-
-    version = 0
-
-    def __init__(self):
-        pass
-
-
 # pylint: disable=ungrouped-imports
 ImportPointType = Literal[
     "qiskit_aer",
