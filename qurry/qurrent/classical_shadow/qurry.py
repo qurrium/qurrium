@@ -140,8 +140,8 @@ class ShadowUnveil(QurriumPrototype):
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure: Union[int, tuple[int, int], None] = None,
-        unitary_loc: Union[int, tuple[int, int], None] = None,
+        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -171,9 +171,9 @@ class ShadowUnveil(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Union[int, tuple[int, int], None], optional):
+            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to `None`.
-            unitary_loc (Union[int, tuple[int, int], None], optional):
+            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
@@ -270,8 +270,8 @@ class ShadowUnveil(QurriumPrototype):
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
-        measure: Union[int, tuple[int, int], None] = None,
-        unitary_loc: Union[int, tuple[int, int], None] = None,
+        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
+        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -301,9 +301,9 @@ class ShadowUnveil(QurriumPrototype):
                 The number of random unitary operator.
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Union[int, tuple[int, int], None], optional):
+            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to `None`.
-            unitary_loc (Union[int, tuple[int, int], None], optional):
+            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.

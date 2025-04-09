@@ -121,7 +121,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[int, tuple[int, int]]] = None,
+        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -158,7 +158,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            unitary_loc (Optional[Union[int, tuple[int, int]]], optional):
+            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
@@ -256,7 +256,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         times: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[int, tuple[int, int]]] = None,
+        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
@@ -293,7 +293,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            unitary_loc (Optional[Union[int, tuple[int, int]]], optional):
+            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator. Defaults to `None`.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.

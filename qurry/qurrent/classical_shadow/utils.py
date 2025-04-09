@@ -8,7 +8,7 @@ ShadowUnveil - Utils
 
 from collections.abc import Hashable
 
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, ClassicalRegister
 
 from ...process.classical_shadow.unitary_set import U_M_GATES
 
@@ -41,28 +41,31 @@ def circuit_method_core(
         QuantumCircuit: The circuit for the experiment.
     """
 
-    num_qubits = target_circuit.num_qubits
     old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
 
-    q_func1 = QuantumRegister(num_qubits, "q1")
-    c_meas1 = ClassicalRegister(len(registers_mapping), "c1")
-    qc_exp1 = QuantumCircuit(q_func1, c_meas1)
-    qc_exp1.name = (
+    qc_exp1 = target_circuit.copy(
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
         else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
     )
+    c_meas1 = ClassicalRegister(
+        len(registers_mapping),
+        None if "m1" in [reg.name for reg in (qc_exp1.qregs + qc_exp1.cregs)] else "m1",
+    )
+    qc_exp1.add_register(c_meas1)
 
-    # TODO: When tatget has more clbits or qubits than dest, it will raise an error.
-    # See qiskit/circuit/quantumcircuit.py:1961
-    # if other.num_qubits > dest.num_qubits or other.num_clbits > dest.num_clbits:
-    qc_exp1.compose(target_circuit, [q_func1[i] for i in range(num_qubits)], inplace=True)
+    qc_exp1.barrier()
 
     qc_exp1.barrier()
     for qi, um in single_unitary_um.items():
         qc_exp1.append(U_M_GATES[um], [qi])
 
     for qi, ci in registers_mapping.items():
-        qc_exp1.measure(q_func1[qi], c_meas1[ci])
+        qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])
+
+    assert qc_exp1.cregs[-1] == c_meas1, (
+        f"The last classical register should be the measurement register {c_meas1},"
+        + f" but get {qc_exp1.cregs[-1]} in {qc_exp1.cregs}. From {exp_name} on index {idx}."
+    )
 
     return qc_exp1
