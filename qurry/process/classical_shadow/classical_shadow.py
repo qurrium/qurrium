@@ -149,15 +149,15 @@ def expectation_rho(
 class ClassicalShadowPurity(ClassicalShadowBasic):
     """The expectation value of Rho."""
 
-    purity: float
+    purity: Union[float, np.float64]
     """The purity calculated by classical shadow."""
-    entropy: float
+    entropy: Union[float, np.float64]
     """The entropy calculated by classical shadow."""
 
 
 def trace_rho_square_core(
     rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-) -> float:
+) -> np.complex128:
     """Calculate the trace of Rho square.
 
     Args:
@@ -165,11 +165,11 @@ def trace_rho_square_core(
             The dictionary of Rho M.
 
     Returns:
-        float: The trace of Rho square.
+        np.complex128: The trace of Rho square.
     """
 
     num_n_u = len(rho_m_dict)
-    rho_traced_sum: float = 0
+    rho_traced_sum: np.complex128 = np.complex128(0)
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
     num_combinations = 0
@@ -240,10 +240,16 @@ def trace_rho_square(
         pbar.set_description(msg)
 
     trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict)
-    entropy = -np.log2(trace_rho_sum)
+    trace_rho_sum_real = trace_rho_sum.real
+    if trace_rho_sum.imag != 0:
+        warnings.warn(
+            "The imaginary part of the trace of Rho square is not zero. "
+            + f"The imaginary part is {trace_rho_sum.imag}.",
+        )
+    entropy = -np.log2(trace_rho_sum_real)
 
     return ClassicalShadowPurity(
-        purity=trace_rho_sum,
+        purity=trace_rho_sum_real,
         entropy=entropy,
         rho_m_dict=rho_m_dict,
         classical_registers_actually=selected_classical_registers_sorted,
@@ -256,9 +262,9 @@ class ClassicalShadowComplex(ClassicalShadowBasic):
 
     expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]]
     """The expectation value of Rho."""
-    purity: float
+    purity: Union[float, np.float64]
     """The purity calculated by classical shadow."""
-    entropy: float
+    entropy: Union[float, np.float64]
     """The entropy calculated by classical shadow."""
 
 
@@ -321,11 +327,17 @@ def classical_shadow_complex(
     )
 
     trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict)
-    entropy = -np.log2(trace_rho_sum)
+    if trace_rho_sum.imag != 0:
+        warnings.warn(
+            "The imaginary part of the trace of Rho square is not zero. "
+            + f"The imaginary part is {trace_rho_sum.imag}.",
+        )
+    trace_rho_sum_real = trace_rho_sum.real
+    entropy = -np.log2(trace_rho_sum_real)
 
     return ClassicalShadowComplex(
         expect_rho=expect_rho,
-        purity=trace_rho_sum,
+        purity=trace_rho_sum_real,
         entropy=entropy,
         rho_m_dict=rho_m_dict,
         classical_registers_actually=selected_classical_registers_sorted,
