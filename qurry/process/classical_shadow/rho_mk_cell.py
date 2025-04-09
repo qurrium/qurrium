@@ -15,6 +15,7 @@ from ..availability import (
     default_postprocessing_backend,
     # PostProcessingBackendLabel,
 )
+from ..utils import counts_under_degree_pyrust
 
 # from ..exceptions import (
 #     PostProcessingRustImportError,
@@ -97,24 +98,13 @@ def rho_mk_cell_py(
         ]:
             Index, rho_mk, the sorted list of the selected qubits
     """
-
-    num_classical_register = len(list(single_counts.keys())[0])
-    assert num_classical_register == len(
-        nu_shadow_direction
-    ), "The number of qubits and the number of shadow directions should be the same."
-
+    
     # subsystem making
+    num_classical_register = len(list(single_counts.keys())[0])
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    single_counts_under_degree: dict[str, int] = {}
-    for bitstring_all, num_counts_all in single_counts.items():
-        bitstring = "".join(
-            bitstring_all[num_classical_register - q_i - 1]
-            for q_i in selected_classical_registers_sorted
-        )
-        if bitstring in single_counts_under_degree:
-            single_counts_under_degree[bitstring] += num_counts_all
-        else:
-            single_counts_under_degree[bitstring] = num_counts_all
+    single_counts_under_degree = counts_under_degree_pyrust(
+        single_counts, num_classical_register, selected_classical_registers_sorted
+    )
 
     # core calculation
     rho_m_k_i_dict: dict[
@@ -126,17 +116,17 @@ def rho_mk_cell_py(
     for bitstring, num_bitstring in single_counts_under_degree.items():
         rho_m_k_i_dict[bitstring] = {}
         rho_m_k_counts_num[bitstring] = num_bitstring
-        for q_i, s_q in zip(selected_classical_registers_sorted, bitstring):
-            rho_m_k_i_dict[bitstring][q_i] = (
+        for q_di, s_q in zip(selected_classical_registers_sorted, bitstring):
+            rho_m_k_i_dict[bitstring][q_di] = (
                 3
-                * U_M_MATRIX[nu_shadow_direction[q_i]].conj().T
+                * U_M_MATRIX[nu_shadow_direction[q_di]].conj().T
                 @ OUTER_PRODUCT[s_q]
-                @ U_M_MATRIX[nu_shadow_direction[q_i]]
+                @ U_M_MATRIX[nu_shadow_direction[q_di]]
             ) - IDENTITY
 
         tmp: Any = rho_m_k_i_dict[bitstring][selected_classical_registers_sorted[0]]
-        for q_i in selected_classical_registers_sorted[1:]:
-            tmp = np.kron(tmp, rho_m_k_i_dict[bitstring][q_i])
+        for q_di in selected_classical_registers_sorted[1:]:
+            tmp = np.kron(tmp, rho_m_k_i_dict[bitstring][q_di])
         rho_m_k_dict[bitstring] = tmp
 
     return idx, rho_m_k_dict, rho_m_k_counts_num, selected_classical_registers_sorted
