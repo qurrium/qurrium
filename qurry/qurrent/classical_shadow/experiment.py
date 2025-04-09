@@ -17,6 +17,7 @@ from qiskit import QuantumCircuit
 from .analysis import ShadowUnveilAnalysis
 from .arguments import ShadowUnveilArguments, SHORT_NAME
 from .utils import circuit_method_core
+from ..randomized_measure.utils import bitstring_mapping_getter
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...qurrium.utils.random_unitary import check_input_for_experiment
 from ...process.utils import qubit_mapper
@@ -26,7 +27,7 @@ from ...process.classical_shadow.classical_shadow import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...tools import qurry_progressbar, ParallelManager, set_pbar_description
+from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
@@ -249,6 +250,8 @@ class ShadowUnveilExperiment(ExperimentPrototype):
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
 
+        assert self.args.registers_mapping is not None, "registers_mapping should be not None."
+
         self.args: ShadowUnveilArguments
         self.reports: dict[int, ShadowUnveilAnalysis]
         assert (
@@ -271,44 +274,29 @@ class ShadowUnveilExperiment(ExperimentPrototype):
         else:
             counts = self.afterwards.counts
 
+        bitstring_mapping, final_mapping = bitstring_mapping_getter(
+            counts, self.args.registers_mapping
+        )
+
         selected_qubits = [qi % self.args.actual_num_qubits for qi in selected_qubits]
-        assert len(set(selected_qubits)) == len(
-            selected_qubits
-        ), f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
-        selected_classical_registers = [self.args.registers_mapping[qi] for qi in selected_qubits]
+        if len(set(selected_qubits)) != len(selected_qubits):
+            raise ValueError(
+                f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
+            )
+
         random_unitary_ids_classical_registers = {
-            n_u_i: {
-                ci: random_unitary_id[n_u_qi] for n_u_qi, ci in self.args.registers_mapping.items()
-            }
+            n_u_i: {ci: random_unitary_id[n_u_qi] for n_u_qi, ci in final_mapping.items()}
             for n_u_i, random_unitary_id in random_unitary_ids.items()
         }
 
-        if isinstance(pbar, tqdm.tqdm):
-            qs = self.quantities(
-                shots=self.commons.shots,
-                counts=counts,
-                random_unitary_ids=random_unitary_ids_classical_registers,
-                selected_classical_registers=selected_classical_registers,
-                backend=backend,
-                pbar=pbar,
-            )
-
-        else:
-            pbar_selfhost = qurry_progressbar(
-                range(1),
-                bar_format="simple",
-            )
-
-            with pbar_selfhost as pb_self:
-                qs = self.quantities(
-                    shots=self.commons.shots,
-                    counts=counts,
-                    random_unitary_ids=random_unitary_ids,
-                    selected_classical_registers=selected_classical_registers,
-                    backend=backend,
-                    pbar=pbar,
-                )
-                pb_self.update()
+        qs = self.quantities(
+            shots=self.commons.shots,
+            counts=counts,
+            random_unitary_ids=random_unitary_ids_classical_registers,
+            selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
+            backend=backend,
+            pbar=pbar,
+        )
 
         serial = len(self.reports)
         analysis = self.analysis_instance(
@@ -316,6 +304,7 @@ class ShadowUnveilExperiment(ExperimentPrototype):
             num_qubits=self.args.actual_num_qubits,
             selected_qubits=selected_qubits,
             registers_mapping=self.args.registers_mapping,
+            bitstring_mapping=bitstring_mapping,
             shots=self.commons.shots,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,

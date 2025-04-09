@@ -119,22 +119,14 @@ Many of the fake backends are not available in qiskit-ibm-runtime.
 
 
 @overload
-def fack_backend_loader(
-    version: Union[Literal["v2"], str],
-) -> tuple[
-    dict[str, str],
-    dict[str, Backend],
-    Union["FakeProviderForBackendV2Dep", "FakeProviderForBackendV2Indep"],
-]: ...
+def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
 
 
 @overload
-def fack_backend_loader(
-    version: None,
-) -> tuple[dict[str, str], dict[str, Backend], None]: ...
+def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
 
 
-def fack_backend_loader(version=None):
+def fack_backend_loader():
     """Load the fake backend.
 
     Args:
@@ -142,48 +134,28 @@ def fack_backend_loader(version=None):
         "v1" for FakeProvider, "v2" for FakeProviderForBackendV2.
 
     Returns:
-        tuple[dict[str, str], dict[str, Backend], Optional[Provider]]:
+        tuple[dict[str, str], dict[str, Backend]]:
             The callsign of fake backend,
             the fake backend dict,
             the fake provider.
     """
-    if version is None:
-        return {}, {}, None
 
     if FAKE_DEFAULT_SOURCE is None:
         warnings.warn(LUCKY_MSG, category=QurryDependenciesNotWorking)
-        return {}, {}, None
-    provider_version = FAKE_VERSION_INFOS.get(FAKE_DEFAULT_SOURCE, None)
-    assert provider_version is not None, LUCKY_MSG
+        return {}, {}
+
     _fake_provider_v2_becalled = FAKE_PROVIDERFORV2_SOURCES.get(FAKE_DEFAULT_SOURCE, None)
 
-    major2, minor2, _ = provider_version.split(".")
-
-    if (
-        FAKE_DEFAULT_SOURCE == "qiskit_ibm_runtime.fake_provider"
-        and int(major2) >= 0
-        and int(minor2) >= 31
-    ):
-        if version == "v1":
-            warnings.warn(
-                "'qiskit-ibm-runtime' since 0.31.0 has been removed FakeProvider for "
-                + "version 'v1' is not available anymore, reset to 'v2'.",
-            )
-        version = "v2"
-
-        assert _fake_provider_v2_becalled is not None, LUCKY_MSG
+    if _fake_provider_v2_becalled is None:
+        raise QurryDependenciesFailureError(LUCKY_MSG)
+    try:
         _fake_provider = _fake_provider_v2_becalled()
-
-    else:
-        assert _fake_provider_v2_becalled is not None, LUCKY_MSG
-        try:
-            _fake_provider = _fake_provider_v2_becalled()
-        except FileNotFoundError as err1318:
-            raise QurryDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
+    except FileNotFoundError as err1318:
+        raise QurryDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
 
     backend_fake: dict[str, Backend] = {
         backend_name_getter(b): b for b in _fake_provider.backends()
     }
     backend_fake_callsign = {shorten_name(bn, ["_v2"]): bn for bn in backend_fake}
     backend_fake_callsign["fake_qasm"] = "fake_qasm_simulator"
-    return backend_fake_callsign, backend_fake, _fake_provider
+    return backend_fake_callsign, backend_fake

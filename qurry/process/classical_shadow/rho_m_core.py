@@ -11,7 +11,7 @@ import warnings
 from typing import Literal, Union
 import numpy as np
 
-from .rho_m_cell import rho_m_cell_py
+from .rho_mk_cell import rho_mk_cell_py
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -39,12 +39,11 @@ def rho_m_core_py(
     selected_classical_registers: list[int],
 ) -> tuple[
     dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    dict[int, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]],
     list[int],
     str,
     float,
 ]:
-    """Rho M Core calculation.
+    """Rho M Cell Core calculation.
 
     Args:
         shots (int):
@@ -59,9 +58,6 @@ def rho_m_core_py(
     Returns:
         tuple[
             dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-            dict[int, dict[
-                int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]
-            ]],
             list[int],
             str,
             float
@@ -94,28 +90,40 @@ def rho_m_core_py(
     begin = time.time()
 
     pool = ParallelManager(launch_worker)
-    rho_m_py_result_list = pool.starmap(
-        rho_m_cell_py,
+    rho_mk_py_result_list = pool.starmap(
+        rho_mk_cell_py,
         [
             (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
             for idx, single_counts in enumerate(counts)
         ],
     )
 
-    taken = round(time.time() - begin, 3)
-
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
-    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = {}
-    rho_m_i_dict: dict[
-        int, dict[int, np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]]
-    ] = {}
+    rho_m_dict = {
+        idx: np.zeros(
+            (
+                2 ** len(selected_classical_registers_sorted),
+                2 ** len(selected_classical_registers_sorted),
+            ),
+            dtype=np.complex128,
+        )
+        for idx in range(len(rho_mk_py_result_list))
+    }
     selected_qubits_checked: dict[int, bool] = {}
-    for idx, rho_m, rho_m_i, selected_classical_registers_sorted_result in rho_m_py_result_list:
-        rho_m_dict[idx] = rho_m
-        rho_m_i_dict[idx] = rho_m_i
-        if selected_classical_registers_sorted_result != selected_classical_registers_sorted:
-            selected_qubits_checked[idx] = False
+    for (
+        idx,
+        rho_mk_dict,
+        rho_mk_counts_num,
+        selected_classical_registers_sorted_result,
+    ) in rho_mk_py_result_list:
+
+        for bitstring, rho_mk in rho_mk_dict.items():
+            rho_m_dict[idx] += rho_mk * rho_mk_counts_num[bitstring]
+        rho_m_dict[idx] /= shots
+        selected_qubits_checked[idx] = (
+            selected_classical_registers_sorted_result == selected_classical_registers_sorted
+        )
 
     if len(selected_qubits_checked) > 0:
         warnings.warn(
@@ -123,4 +131,6 @@ def rho_m_core_py(
             RuntimeWarning,
         )
 
-    return rho_m_dict, rho_m_i_dict, selected_classical_registers_sorted, msg, taken
+    taken = round(time.time() - begin, 3)
+
+    return rho_m_dict, selected_classical_registers_sorted, msg, taken

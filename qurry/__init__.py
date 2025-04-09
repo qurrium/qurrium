@@ -18,7 +18,6 @@ from .qurrium import WavesExecuter, SamplingExecuter
 
 from .tools import (
     BackendWrapper,
-    BackendManager,
     version_check,
     cmd_wrapper,
     pytorch_cuda_check,

@@ -45,10 +45,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install twine --upgrade
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
           skip-existing: true
+
+      - name: Clean up Docker Image of PyPI Publish
+        run: |
+          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+          # Prevent using outdated image
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"

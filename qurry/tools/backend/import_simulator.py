@@ -20,18 +20,6 @@ from ..qiskit_version import QISKIT_VERSION
 from .utils import backend_name_getter
 
 
-class Provider:
-    """This is a dummy class.
-    It is used to avoid import errors when qiskit v2 is used.
-    In qiskit v2, the Provider class has been removed.
-    """
-
-    version = 0
-
-    def __init__(self):
-        pass
-
-
 # pylint: disable=ungrouped-imports
 ImportPointType = Literal[
     "qiskit_aer",
@@ -65,6 +53,16 @@ except ImportError as err:
     SIM_IMPORT_ERROR_INFOS["qiskit_aer"] = err
 
 try:
+    from qiskit.providers.basic_provider import BasicSimulator, BasicProvider  # type: ignore
+
+    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = QISKIT_VERSION.get("qiskit")
+    SIMULATOR_SOURCES["qiskit.providers.basic_provider"] = BasicSimulator
+    SIM_BACKEND_SOURCES["qiskit.providers.basic_provider"] = BackendV2
+    SIM_PROVIDER_SOURCES["qiskit.providers.basic_provider"] = BasicProvider
+except ImportError as err:
+    SIM_IMPORT_ERROR_INFOS["qiskit.providers.basic_provider"] = err
+
+try:
     from qiskit.providers.aer import (  # type: ignore
         AerProvider as AerProviderDep,  # type: ignore
         AerSimulator as AerSimulatorDep,  # type: ignore
@@ -93,16 +91,6 @@ try:
     SIM_PROVIDER_SOURCES["qiskit.providers.basicaer"] = BasicAerProvider
 except ImportError as err:
     SIM_IMPORT_ERROR_INFOS["qiskit.providers.basicaer"] = err
-
-try:
-    from qiskit.providers.basic_provider import BasicSimulator, BasicProvider  # type: ignore
-
-    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = QISKIT_VERSION.get("qiskit")
-    SIMULATOR_SOURCES["qiskit.providers.basic_provider"] = BasicSimulator
-    SIM_BACKEND_SOURCES["qiskit.providers.basic_provider"] = BackendV2
-    SIM_PROVIDER_SOURCES["qiskit.providers.basic_provider"] = BasicProvider
-except ImportError as err:
-    SIM_IMPORT_ERROR_INFOS["qiskit.providers.basic_provider"] = err
 
 
 def get_default_sim_source() -> ImportPointType:
@@ -140,22 +128,3 @@ class GeneralSimulator(SIMULATOR_SOURCES[SIM_DEFAULT_SOURCE]):
 
 class GeneralBackend(SIM_BACKEND_SOURCES[SIM_DEFAULT_SOURCE]):
     """The abstract class of default simulator."""
-
-
-# Determine the provider base class first
-ProviderBaseClass = SIM_PROVIDER_SOURCES.get(SIM_DEFAULT_SOURCE, Provider)
-
-
-class GeneralProvider(ProviderBaseClass):
-    """Provider of default backend."""
-
-    def __repr__(self):
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.basicaer":
-            return "<BasicAerProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.basic_provider":
-            return "<BasicProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit_aer":
-            return "<AerProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.aer":
-            return "<AerProviderDep>"
-        return super().__repr__()
