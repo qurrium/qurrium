@@ -1,8 +1,5 @@
-"""
-===========================================================
-EntropyMeasureRandomizedV1 - Utility
+"""EntropyMeasureRandomizedV1 - Utility
 (:mod:`qurry.qurrent.randomized_measure_v1.utils`)
-===========================================================
 
 This is a deprecated version of the randomized measure module.
 

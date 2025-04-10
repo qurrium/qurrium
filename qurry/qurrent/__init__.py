@@ -1,9 +1,5 @@
-"""
-================================================================
-Qurrent - Second Renyi Entropy Measurement
-Qurshady - Classical Shadow with Second Renyi Entropy
+"""Qurrent/Qurshady - Second Renyi Entropy Measurement/Classical Shadow
 (:mod:`qurry.qurrent`)
-================================================================
 
 .. tip::
     1.  The name "qurrent" was the second proposed name for this package.
@@ -27,6 +23,7 @@ Qurshady - Classical Shadow with Second Renyi Entropy
 
     5.  So there is the evolution of the package name: 
         `xproc -> qurrent -> qurry -> qurrium`
+
 """
 
 from typing import Literal, Union, overload

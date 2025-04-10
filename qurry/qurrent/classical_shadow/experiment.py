@@ -1,8 +1,5 @@
-"""
-===========================================================
-ShadowUnveil - Experiment
+"""ShadowUnveil - Experiment
 (:mod:`qurry.qurrent.classical_shadow.experiment`)
-===========================================================
 
 """
 

@@ -1,9 +1,5 @@
-"""
-================================================================
-EntropyMeasureHadamard - 
-The Second Order Renyi Entropy by Hadamard Test
+"""EntropyMeasureHadamard - The Second Order Renyi Entropy by Hadamard Test
 (:mod:`qurry.qurrent.hadamard_test`)
-================================================================
 
 """
 

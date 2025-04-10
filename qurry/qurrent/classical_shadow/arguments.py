@@ -1,8 +1,5 @@
-"""
-===========================================================
-ShadowUnveil - Arguments
+"""ShadowUnveil - Arguments
 (:mod:`qurry.qurrent.classical_shadow.arguments`)
-===========================================================
 
 """
 

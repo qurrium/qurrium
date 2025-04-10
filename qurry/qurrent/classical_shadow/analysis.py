@@ -1,8 +1,5 @@
-"""
-===========================================================
-ShadowUnveil - Analysis
+"""ShadowUnveil - Analysis
 (:mod:`qurry.qurrent.classical_shadow.analysis`)
-===========================================================
 
 """
 

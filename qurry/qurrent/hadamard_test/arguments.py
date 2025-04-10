@@ -1,8 +1,5 @@
-"""
-===========================================================
-EntropyMeasureHadamard - Arguments
+"""EntropyMeasureHadamard - Arguments
 (:mod:`qurry.qurrent.hadamard_test.arguments`)
-===========================================================
 
 """
 
