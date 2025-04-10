@@ -1,9 +1,4 @@
-"""
-============================================================================
-Test the qurry.boorust module.
-============================================================================
-
-"""
+"""Test the qurry.boorust module."""
 
 from typing import Union
 import pytest

@@ -1,7 +1,4 @@
-"""
-================================================================
-Tests - qurry.process.utils.randomized
-================================================================
+"""Tests qurry.process.utils.randomized module.
 
 """
 

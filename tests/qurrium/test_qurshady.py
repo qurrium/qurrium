@@ -1,7 +1,4 @@
-"""
-================================================================
-Test the qurry.qurrent module ShadowUnveil class
-================================================================
+"""Test the qurry.qurrent module ShadowUnveil class.
 
 - classical shadow at N_U = 100, shots = 1024
     - [4-trivial] 0.1396211346712979 <= 0.25, 0.8603788653287021 ~= 1.0

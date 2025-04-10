@@ -1,7 +1,4 @@
-"""
-================================================================
-Test the qurry.qurrech module EchoListen class.
-================================================================
+"""Test the qurry.qurrech module EchoListen class.
 
 - hadamard test
     - [4-trivial] 0.0 <= 0.26, 1.0 ~= 1.0

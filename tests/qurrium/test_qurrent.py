@@ -1,7 +1,4 @@
-"""
-================================================================
-Test the qurry.qurrent module EntropyMeasure class.
-================================================================
+"""Test the qurry.qurrent module EntropyMeasure class.
 
 - hadamard test at shots = 1024
     - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
