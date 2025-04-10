@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - String Operator - String Operator Core
+"""Post Processing - String Operator - String Operator Core
 (:mod:`qurry.process.string_operator.strop_core`)
-================================================================
 
 """
 
@@ -88,7 +85,7 @@ def string_operator_core(
         shots (int):
             Shots of the experiment on quantum machine.
         backend (PostProcessingBackendLabel, optional):
-            Postprocessing backend. Defaults to DEFAULT_PROCESS_BACKEND.
+            Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         Union[float, np.float64]: String operator value.

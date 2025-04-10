@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Hadamard Test
+"""Post Processing - Hadamard Test
 (:mod:`qurry.process.hadamard_test`)
-================================================================
 
 """
 

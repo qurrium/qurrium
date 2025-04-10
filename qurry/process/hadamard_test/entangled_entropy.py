@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Hadamard Test - Entangled Entropy
+"""Post Processing - Hadamard Test - Entangled Entropy
 (:mod:`qurry.process.hadamard_test.entangled_entropy`)
-================================================================
 
 """
 
@@ -22,10 +19,7 @@ def hadamard_entangled_entropy(
     pbar: Optional[tqdm.tqdm] = None,
 ) -> dict[str, float]:
     """Calculate entangled entropy with more information combined.
-
-    - Which entropy:
-
-        The entropy we compute is the Second Order Rényi Entropy.
+    The entropy we compute is the Second Order Rényi Entropy.
 
     Args:
         shots (int):

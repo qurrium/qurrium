@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Utils - Randomized
+"""Post Processing - Utils - Randomized
 (:mod:`qurry.process.utils.randomized`)
-================================================================
 
 """
 

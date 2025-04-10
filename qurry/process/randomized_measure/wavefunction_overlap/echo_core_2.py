@@ -1,8 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Wavefunction Overlap - Echo Core 2
+"""Post Processing - Randomized Measure - Wavefunction Overlap - Echo Core 2
 (:mod:`qurry.process.randomized_measure.wavefunction_overlap.echo_core_2`)
-=========================================================================================
 
 """
 

@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Classical Shadow - Rho M K Cell
+"""Post Processing - Classical Shadow - Rho M K Cell
 (:mod:`qurry.process.classical_shadow.rho_mk_cell`)
-================================================================
 
 """
 

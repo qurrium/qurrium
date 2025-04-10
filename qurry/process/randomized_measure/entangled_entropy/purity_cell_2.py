@@ -1,8 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Entangled Entropy - Purity Cell 2
+"""Post Processing - Randomized Measure - Entangled Entropy - Purity Cell 2
 (:mod:`qurry.process.randomized_measure.entangled_entropy.purity_cell_2`)
-=========================================================================================
 
 This version introduces another way to process subsystems.
 

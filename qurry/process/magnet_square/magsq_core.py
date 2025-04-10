@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Magnet Square - Magnet Square Core
+"""Post Processing - Magnet Square - Magnet Square Core
 (:mod:`qurry.process.magnet_square.magsq_core`)
-================================================================
 
 """
 
@@ -80,7 +77,7 @@ def magnetic_square_core_pyrust(
         num_qubits (int):
             Number of qubits.
         backend (PostProcessingBackendLabel, optional):
-            Postprocessing backend. Defaults to DEFAULT_PROCESS_BACKEND.
+            Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[
@@ -137,7 +134,7 @@ def magnetic_square_core(
         num_qubits (int):
             Number of qubits.
         backend (PostProcessingBackendLabel, optional):
-            Postprocessing backend. Defaults to DEFAULT_PROCESS_BACKEND.
+            Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[

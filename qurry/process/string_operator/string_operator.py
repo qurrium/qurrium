@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - String Operator - String Operator
+"""Post Processing - String Operator - String Operator
 (:mod:`qurry.process.string_operator.string_operator`)
-================================================================
 
 """
 

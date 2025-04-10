@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Magnet Square - Magnet Square
+"""Post Processing - Magnet Square - Magnet Square
 (:mod:`qurry.process.magnet_square.magnet_square`)
-================================================================
 
 """
 

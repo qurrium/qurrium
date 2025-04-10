@@ -1,8 +1,5 @@
-r"""
-================================================================
-Postprocessing - Classical Shadow - Unitary Set
+r"""Post Processing - Classical Shadow - Unitary Set
 (:mod:`qurry.process.classical_shadow.unitary_set`)
-================================================================
 
 The followings are unitary operators for our classical shadow implementation.
 

@@ -1,8 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Entangled Entropy - Core 2
+"""Post Processing - Randomized Measure - Entangled Entropy - Core 2
 (:mod:`qurry.process.randomized_measure.entangled_entropy.entropy_core_2`)
-=========================================================================================
 
 This version introduces another way to process subsystems.
 

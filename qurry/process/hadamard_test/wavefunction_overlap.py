@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Hadamard Test - Wavefunction Overlap
+"""Post Processing - Hadamard Test - Wavefunction Overlap
 (:mod:`qurry.process.hadamard_test.wavefunction_overlap`)
-================================================================
 
 """
 
@@ -21,10 +18,7 @@ def hadamard_overlap_echo(
     pbar: Optional[tqdm.tqdm] = None,
 ) -> dict[str, float]:
     """Calculate overlap echo with more information combined.
-
-    - Which echo:
-
-            The echo we compute is the overlap echo.
+    The echo we compute is the Loschmidt Echo.
 
     Args:
         shots (int):
