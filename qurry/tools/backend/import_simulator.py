@@ -13,11 +13,12 @@ which are used in different qiskit, qiskit-aer version,
 and ordered by priority.
 """
 
-from typing import Literal, Type, Optional
-from qiskit.providers import BackendV1, BackendV2, Backend, Provider
+from typing import Literal, Type, Optional, Any
+from qiskit.providers import BackendV2, Backend
 
 from ..qiskit_version import QISKIT_VERSION
 from .utils import backend_name_getter
+
 
 # pylint: disable=ungrouped-imports
 ImportPointType = Literal[
@@ -34,14 +35,14 @@ ImportPointOrder = [
 ]
 SIMULATOR_SOURCES: dict[ImportPointType, Type[Backend]] = {}
 SIM_BACKEND_SOURCES: dict[ImportPointType, Type[Backend]] = {}
-SIM_PROVIDER_SOURCES: dict[ImportPointType, Type[Provider]] = {}
+SIM_PROVIDER_SOURCES: dict[ImportPointType, Type[Any]] = {}
 SIM_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
 SIM_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 
 try:
-    from qiskit_aer import AerProvider, AerSimulator
-    from qiskit_aer.backends.aerbackend import AerBackend
-    from qiskit_aer.version import get_version_info as get_version_info_aer
+    from qiskit_aer import AerProvider, AerSimulator  # type: ignore
+    from qiskit_aer.backends.aerbackend import AerBackend  # type: ignore
+    from qiskit_aer.version import get_version_info as get_version_info_aer  # type: ignore
 
     SIM_VERSION_INFOS["qiskit_aer"] = get_version_info_aer()
     SIMULATOR_SOURCES["qiskit_aer"] = AerSimulator
@@ -50,6 +51,16 @@ try:
     # wtf, AerProvider is not inherited from Provider for qiskit-aer 0.15.0
 except ImportError as err:
     SIM_IMPORT_ERROR_INFOS["qiskit_aer"] = err
+
+try:
+    from qiskit.providers.basic_provider import BasicSimulator, BasicProvider  # type: ignore
+
+    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = QISKIT_VERSION.get("qiskit")
+    SIMULATOR_SOURCES["qiskit.providers.basic_provider"] = BasicSimulator
+    SIM_BACKEND_SOURCES["qiskit.providers.basic_provider"] = BackendV2
+    SIM_PROVIDER_SOURCES["qiskit.providers.basic_provider"] = BasicProvider
+except ImportError as err:
+    SIM_IMPORT_ERROR_INFOS["qiskit.providers.basic_provider"] = err
 
 try:
     from qiskit.providers.aer import (  # type: ignore
@@ -76,20 +87,10 @@ try:
 
     SIM_VERSION_INFOS["qiskit.providers.basicaer"] = QISKIT_VERSION.get("qiskit")
     SIMULATOR_SOURCES["qiskit.providers.basicaer"] = QasmSimulatorPy
-    SIM_BACKEND_SOURCES["qiskit.providers.basicaer"] = BackendV1
+    SIM_BACKEND_SOURCES["qiskit.providers.basicaer"] = Backend
     SIM_PROVIDER_SOURCES["qiskit.providers.basicaer"] = BasicAerProvider
 except ImportError as err:
     SIM_IMPORT_ERROR_INFOS["qiskit.providers.basicaer"] = err
-
-try:
-    from qiskit.providers.basic_provider import BasicSimulator, BasicProvider  # type: ignore
-
-    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = QISKIT_VERSION.get("qiskit")
-    SIMULATOR_SOURCES["qiskit.providers.basic_provider"] = BasicSimulator
-    SIM_BACKEND_SOURCES["qiskit.providers.basic_provider"] = BackendV2
-    SIM_PROVIDER_SOURCES["qiskit.providers.basic_provider"] = BasicProvider
-except ImportError as err:
-    SIM_IMPORT_ERROR_INFOS["qiskit.providers.basic_provider"] = err
 
 
 def get_default_sim_source() -> ImportPointType:
@@ -127,18 +128,3 @@ class GeneralSimulator(SIMULATOR_SOURCES[SIM_DEFAULT_SOURCE]):
 
 class GeneralBackend(SIM_BACKEND_SOURCES[SIM_DEFAULT_SOURCE]):
     """The abstract class of default simulator."""
-
-
-class GeneralProvider(SIM_PROVIDER_SOURCES[SIM_DEFAULT_SOURCE]):
-    """Provider of default backend."""
-
-    def __repr__(self):
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.basicaer":
-            return "<BasicAerProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.basic_provider":
-            return "<BasicProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit_aer":
-            return "<AerProvider>"
-        if SIM_DEFAULT_SOURCE == "qiskit.providers.aer":
-            return "<AerProviderDep>"
-        return super().__repr__()

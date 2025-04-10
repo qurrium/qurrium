@@ -1,8 +1,5 @@
-"""
-================================================================
-Qurrech - Wave Function Overlap
+"""Qurrech - Wave Function Overlap
 (:mod:`qurry.qurrech`)
-================================================================
 
 """
 
@@ -40,6 +37,7 @@ def EchoListen(
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.
+
             Defaults to 'randomized'.
 
     Returns:
@@ -80,6 +78,7 @@ def WaveFunctionOverlap(
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.
+
             Defaults to 'randomized'.
 
     Returns:

@@ -1,31 +1,33 @@
-"""
-================================================================
-Test the qurry.qurrent module EntropyMeasure class.
-================================================================
+"""Test the qurry.qurrent module EntropyMeasure class.
 
-- hadamard test
-    - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0.
-    - [4-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5.
-    - [4-topological-period] 0.033203125 <= 0.25. 0.283203125 ~= 0.25.
-    - [6-trivial] 0.0 <= 0.25. 1.0 ~= 1.0.
-    - [6-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5.
-    - [6-topological-period] 0.041015625 <= 0.25. 0.291015625 ~= 0.25.
+- hadamard test at shots = 1024
+    - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
+    - [4-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
+    - [4-topological-period] 0.033203125 <= 0.25. 0.283203125 ~= 0.25
+    - [6-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
+    - [6-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
+    - [6-topological-period] 0.041015625 <= 0.25. 0.291015625 ~= 0.25
 
-- randomized measurement and randomized measurement v1
-    - [4-trivial] 0.10342769622802739 <= 0.25. 1.1034276962280274 ~= 1.0.
-    - [4-GHZ] 0.14542131423950194 <= 0.25. 0.35457868576049806 ~= 0.5.
-    - [4-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
-    - [6-trivial] 0.18802957534790044 <= 0.25. 0.8119704246520996 ~= 1.0.
-    - [6-GHZ] 0.018079471588134777 <= 0.25. 0.4819205284118652 ~= 0.5.
-    - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
+- randomized measurement and randomized measurement v1 at N_U = 20, shots = 1024
+    - [4-trivial] 1.1271525859832763 <= 0.25. 1.1034276962280274 ~= 1.0
+    - [4-GHZ] 0.14542131423950194 <= 0.25. 0.35457868576049806 ~= 0.5
+    - [4-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25
+    - [6-trivial] 0.18802957534790044 <= 0.25. 0.8119704246520996 ~= 1.0
+    - [6-GHZ] 0.018079471588134777 <= 0.25. 0.4819205284118652 ~= 0.5
+    - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25
 
-- randomized measurement with dynamic CNOT gate
-    - [4-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
-    - [6-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+- randomized measurement at N_U = 50, shots = 1024 with dynamic CNOT gate
+    - [4-entangle-by-dyn] 0.035245056152343866 <= 0.25. 1.0352450561523439 ~= 1.0
+    - [4-entangle-by-dyn-half] 0.0016211700439453525 <= 0.25. 0.5016211700439454 ~= 0.5
+    - [4-dummy-2-body-with-clbits] 0.171049690246582 <= 0.25. 0.828950309753418 ~= 1.0
+    - [6-entangle-by-dyn] 0.171562385559082 <= 0.25. 1.171562385559082 ~= 1.0
+    - [6-entangle-by-dyn-half] 0.0015624618530273304 <= 0.25. 0.5015624618530273 ~= 0.5
+    - [6-dummy-2-body-with-clbits] 0.04613777160644528 <= 0.25. 1.0461377716064453 ~= 1.0
 
 """
 
 import os
+import warnings
 import pytest
 import numpy as np
 
@@ -33,8 +35,11 @@ from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time
 
 from qurry.qurrent import EntropyMeasure
 from qurry.tools.backend import GeneralSimulator
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
 from qurry.capsule import mori, hoshi, quickRead, quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
+from qurry.exceptions import QurryDependenciesNotWorking
+
 
 tag_list = mori.TagList()
 statesheet = hoshi.Hoshi()
@@ -65,7 +70,12 @@ wave_adds = {
 answer = {}
 measure_dyn = {}
 
-results = {}
+results = {
+    "hadamard": {},
+    "randomized": {},
+    "randomized_with_extra_clbits": {},
+    "randomized_v1": {},
+}
 
 for i in range(4, 7, 2):
     wave_adds["01"].append(exp_method_01.add(TrivialParamagnet(i), f"{i}-trivial"))
@@ -110,41 +120,48 @@ for i in range(4, 7, 2):
     }
     # purity = 0.25
 
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
-    )
-    answer[f"{i}-entangle-by-dyn"] = 1
-    seed_usage[f"{i}-entangle-by-dyn"] = i
-    measure_dyn[f"{i}-entangle-by-dyn"] = {
-        "02_with_extra_clbits": [0, i - 1],
-    }
-    # purity = 1, de-facto all system when selected qubits is [0, i - 1]
-
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn-half")
-    )
-    answer[f"{i}-entangle-by-dyn-half"] = 0.5
-    seed_usage[f"{i}-entangle-by-dyn-half"] = i
-    measure_dyn[f"{i}-entangle-by-dyn-half"] = {
-        "02_with_extra_clbits": [0],
-    }
-    # purity = 0.5, when selected qubits is [0]
-
-    wave_adds["02_with_extra_clbits"].append(
-        exp_method_02_with_extra_clbits.add(
-            DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+    if SIM_DEFAULT_SOURCE == "qiskit_aer":
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
         )
-    )
-    answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
-    seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
-    measure_dyn[f"{i}-dummy-2-body-with-clbits"] = {
-        "02_with_extra_clbits": [i - 2, i - 1],
-    }
-    # purity = 1.0
+        answer[f"{i}-entangle-by-dyn"] = 1
+        seed_usage[f"{i}-entangle-by-dyn"] = i
+        measure_dyn[f"{i}-entangle-by-dyn"] = {
+            "02_with_extra_clbits": [0, i - 1],
+        }
+        # purity = 1, de-facto all system when selected qubits is [0, i - 1]
+
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn-half")
+        )
+        answer[f"{i}-entangle-by-dyn-half"] = 0.5
+        seed_usage[f"{i}-entangle-by-dyn-half"] = i
+        measure_dyn[f"{i}-entangle-by-dyn-half"] = {
+            "02_with_extra_clbits": [0],
+        }
+        # purity = 0.5, when selected qubits is [0]
+
+        wave_adds["02_with_extra_clbits"].append(
+            exp_method_02_with_extra_clbits.add(
+                DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
+            )
+        )
+        answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
+        seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
+        measure_dyn[f"{i}-dummy-2-body-with-clbits"] = {
+            "02_with_extra_clbits": [i - 2, i - 1],
+        }
+        # purity = 1.0
+    else:
+        warnings.warn(
+            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
+            + "which is guaranteed to work with dynamic circuit. "
+            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
+            category=QurryDependenciesNotWorking,
+        )
 
 backend = GeneralSimulator()
 # backend = BasicAer.backends()[0]
-print(backend.configuration())  # type: ignore
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
 
 
@@ -170,11 +187,11 @@ def test_quantity_01(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["hadamard"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity["purity"],
         "is_correct": is_correct,
-        "quantity": quantity,
     }
 
 
@@ -273,11 +290,11 @@ def test_quantity_02(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["randomized"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity_01["purity"],
         "is_correct": is_correct,
-        "quantity": quantity_01,
     }
 
 
@@ -350,58 +367,67 @@ def test_quantity_02_with_extra_clbits(tgt):
         tgt (Hashable): The target wave key in Qurry.
     """
 
-    exp_id = exp_method_02_with_extra_clbits.measure(
-        wave=tgt,
-        times=50,
-        measure=measure_dyn[tgt]["02_with_extra_clbits"],
-        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(50)},
-        backend=backend,
-    )
-    analysis_01 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"]
-    )
-    quantity_01 = analysis_01.content._asdict()
-    analysis_02 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
-    )
-    quantity_02 = analysis_02.content._asdict()
-    analysis_03 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-        measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
-    )
-    quantity_03 = analysis_03.content._asdict()
+    if SIM_DEFAULT_SOURCE == "qiskit_aer":
+        exp_id = exp_method_02_with_extra_clbits.measure(
+            wave=tgt,
+            times=50,
+            measure=measure_dyn[tgt]["02_with_extra_clbits"],
+            random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(50)},
+            backend=backend,
+        )
+        analysis_01 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"]
+        )
+        quantity_01 = analysis_01.content._asdict()
+        analysis_02 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
+        )
+        quantity_02 = analysis_02.content._asdict()
+        analysis_03 = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
+            measure_dyn[tgt]["02_with_extra_clbits"], counts_used=range(5)
+        )
+        quantity_03 = analysis_03.content._asdict()
 
-    assert all(
-        ["entropy" in quantity_01, "purity" in quantity_01]
-    ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
-    assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
-        "The all system entropy is not changed: "
-        + f"counts_used: {quantity_01['counts_used']}: {quantity_02['entropyAllSys']}, "
-        + f"counts_used: {quantity_02['counts_used']}: {quantity_02['entropyAllSys']},"
-    )
-    assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
-        "The all system entropy is not changed: "
-        + f"{quantity_03['entropyAllSys']} != {quantity_02['entropyAllSys']}."
-    )
-    assert (
-        quantity_02["all_system_source"] == "independent"
-    ), f"The source of all system is not independent: {quantity_02['all_system_source']}."
-    assert (
-        "AnalysisHeader" in quantity_03["all_system_source"]
-    ), f"The source of all system is not from existed analysis: {quantity_03['all_system_source']}."
+        assert all(
+            ["entropy" in quantity_01, "purity" in quantity_01]
+        ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
+        assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
+            "The all system entropy is not changed: "
+            + f"counts_used: {quantity_01['counts_used']}: {quantity_02['entropyAllSys']}, "
+            + f"counts_used: {quantity_02['counts_used']}: {quantity_02['entropyAllSys']},"
+        )
+        assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
+            "The all system entropy is not changed: "
+            + f"{quantity_03['entropyAllSys']} != {quantity_02['entropyAllSys']}."
+        )
+        assert (
+            quantity_02["all_system_source"] == "independent"
+        ), f"The source of all system is not independent: {quantity_02['all_system_source']}."
+        assert "AnalysisHeader" in quantity_03["all_system_source"], (
+            "The source of all system is not "
+            + f"from existed analysis: {quantity_03['all_system_source']}."
+        )
 
-    diff = np.abs(quantity_01["purity"] - answer[tgt])
-    is_correct = diff < THREDHOLD
-    assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-        "The randomized measurement result is wrong: "
-        + f"{diff} !< {THREDHOLD}."
-        + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
-    )
-    results[tgt] = {
-        "answer": answer[tgt],
-        "difference": diff,
-        "is_correct": is_correct,
-        "quantity": quantity_01,
-    }
+        diff = np.abs(quantity_01["purity"] - answer[tgt])
+        is_correct = diff < THREDHOLD
+        assert (not MANUAL_ASSERT_ERROR) and is_correct, (
+            "The randomized measurement result is wrong: "
+            + f"{diff} !< {THREDHOLD}."
+            + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
+        )
+        results["randomized_with_extra_clbits"][tgt] = {
+            "answer": answer[tgt],
+            "difference": diff,
+            "target_quantity": quantity_01["purity"],
+            "is_correct": is_correct,
+        }
+    else:
+        warnings.warn(
+            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
+            + "which is guaranteed to work with dynamic circuit. "
+            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
+            category=QurryDependenciesNotWorking,
+        )
 
 
 @pytest.mark.parametrize("tgt", wave_adds["03"])
@@ -451,11 +477,11 @@ def test_quantity_03(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["randomized_v1"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity_01["purity"],
         "is_correct": is_correct,
-        "quantity": quantity_01,
     }
 
 

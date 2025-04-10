@@ -1,8 +1,5 @@
-"""
-===========================================================
-EchoListenRandomizedV1 - Qurry
+"""EchoListenRandomizedV1 - Qurry
 (:mod:`qurry.qurrech.randomized_measure_v1.qurry`)
-===========================================================
 
 This is a deprecated version of the randomized measure module.
 
@@ -38,35 +35,34 @@ class EchoListenRandomizedV1(QurriumPrototype):
     """Randomized Measure for wave function overlap.
     a.k.a. loschmidt echo when processes time evolution system.
 
-    .. note::
+    Reference:
+        .. note::
+            - Statistical correlations between locally randomized measurements:
+            A toolbox for probing entanglement in many-body quantum states -
+            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+            [PhysRevA.99.052323](
+                https://doi.org/10.1103/PhysRevA.99.052323
+            )
 
-        - Statistical correlations between locally randomized measurements:
-        A toolbox for probing entanglement in many-body quantum states -
-        A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-        [PhysRevA.99.052323](
-            https://doi.org/10.1103/PhysRevA.99.052323
-        )
-
-    .. code-block:: bibtex
-
-        @article{PhysRevA.99.052323,
-            title = {Statistical correlations between locally randomized measurements:
-            A toolbox for probing entanglement in many-body quantum states},
-            author = {Elben, A. and Vermersch, B. and Roos, C. F. and Zoller, P.},
-            journal = {Phys. Rev. A},
-            volume = {99},
-            issue = {5},
-            pages = {052323},
-            numpages = {12},
-            year = {2019},
-            month = {May},
-            publisher = {American Physical Society},
-            doi = {10.1103/PhysRevA.99.052323},
-            url = {https://link.aps.org/doi/10.1103/PhysRevA.99.052323}
-        }
+        .. code-block:: bibtex
+            @article{PhysRevA.99.052323,
+                title = {Statistical correlations between locally randomized measurements:
+                A toolbox for probing entanglement in many-body quantum states},
+                author = {Elben, A. and Vermersch, B. and Roos, C. F. and Zoller, P.},
+                journal = {Phys. Rev. A},
+                volume = {99},
+                issue = {5},
+                pages = {052323},
+                numpages = {12},
+                year = {2019},
+                month = {May},
+                publisher = {American Physical Society},
+                doi = {10.1103/PhysRevA.99.052323},
+                url = {https://link.aps.org/doi/10.1103/PhysRevA.99.052323}
+            }
     """
 
-    __name__ = "EchoListenRandomized"
+    __name__ = "EchoListenRandomizedV1"
     short_name = SHORT_NAME
 
     @property
@@ -147,9 +143,10 @@ class EchoListenRandomizedV1(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -276,9 +273,10 @@ class EchoListenRandomizedV1(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -360,7 +358,7 @@ class EchoListenRandomizedV1(QurriumPrototype):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to None.
+                Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.

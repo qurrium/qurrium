@@ -1,14 +1,11 @@
-"""
-================================================================
-Postprocessing - Magnet Square - Magnet Square Core
+"""Post Processing - Magnetic Square - Magnetic Square Core
 (:mod:`qurry.process.magnet_square.magsq_core`)
-================================================================
 
 """
 
 import time
 import warnings
-from typing import Union, Optional
+from typing import Union
 import numpy as np
 
 from .magsq_cell import magsq_cell_py  # , magsq_cell_rust
@@ -68,7 +65,6 @@ def magnetic_square_core_pyrust(
     counts: list[dict[str, int]],
     shots: int,
     num_qubits: int,
-    multiprocess_pool_size: Optional[int] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[Union[float, np.float64], dict[int, Union[float, np.float64]], int, float, str]:
     """The core function of magnet square by Python and Rust.
@@ -80,10 +76,8 @@ def magnetic_square_core_pyrust(
             Shots of the experiment on quantum machine.
         num_qubits (int):
             Number of qubits.
-        multiprocess_pool_size (int, optional):
-            Number of workers. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
-            Postprocessing backend. Defaults to DEFAULT_PROCESS_BACKEND.
+            Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[
@@ -98,8 +92,7 @@ def magnetic_square_core_pyrust(
     """
 
     # Determine worker number
-    launch_worker = workers_distribution(multiprocess_pool_size)
-    msg = ""
+    launch_worker = workers_distribution()
 
     length = len(counts)
     begin = time.time()
@@ -107,24 +100,16 @@ def magnetic_square_core_pyrust(
     if backend == "Rust":
         warnings.warn(
             PostProcessingRustUnavailableWarning(
-                "Rust is not ready, using python to calculate magnetic square."
+                "Rust is not ready, using Python to calculate magnetic square."
             )
         )
     cell_calculations = magsq_cell_py  # if backend == "Python" else magsq_cell_rust
 
-    if launch_worker == 1:
-        magnetsq_cell_items: list[tuple[int, Union[float, np.float64]]] = []
-        msg += f", single process, {length} overlaps, it will take a lot of time."
-        print(msg)
-        for i, c in enumerate(counts):
-            magnetsq_cell_items.append(cell_calculations(i, c, shots))
-
-    else:
-        msg += f", {launch_worker} workers, {length} counts."
-        pool = ParallelManager(launch_worker)
-        magnetsq_cell_items = pool.starmap(
-            cell_calculations, [(i, c, shots) for i, c in enumerate(counts)]
-        )
+    msg = f", {launch_worker} workers, {length} counts."
+    pool = ParallelManager(launch_worker)
+    magnetsq_cell_items = pool.starmap(
+        cell_calculations, [(i, c, shots) for i, c in enumerate(counts)]
+    )
 
     taken = round(time.time() - begin, 3)
     magnetsq_cell_dict = dict(magnetsq_cell_items)
@@ -137,7 +122,6 @@ def magnetic_square_core(
     counts: list[dict[str, int]],
     shots: int,
     num_qubits: int,
-    multiprocess_pool_size: Optional[int] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[Union[float, np.float64], dict[int, Union[float, np.float64]], int, float, str]:
     """The core function of magnet square by Python.
@@ -149,10 +133,8 @@ def magnetic_square_core(
             Shots of the experiment on quantum machine.
         num_qubits (int):
             Number of qubits.
-        multiprocess_pool_size (int, optional):
-            Number of workers. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
-            Postprocessing backend. Defaults to DEFAULT_PROCESS_BACKEND.
+            Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[
@@ -182,4 +164,4 @@ def magnetic_square_core(
             )
         )
 
-    return magnetic_square_core_pyrust(counts, shots, num_qubits, multiprocess_pool_size, backend)
+    return magnetic_square_core_pyrust(counts, shots, num_qubits, backend)

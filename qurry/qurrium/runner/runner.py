@@ -7,9 +7,9 @@ Runner for pending and retrieve jobs from remote backend.
 
 import warnings
 from abc import abstractmethod, ABC
-from typing import Optional, Literal, Union, Any
+from typing import Optional, Literal
 
-from qiskit.providers import Backend, Provider
+from qiskit.providers import Backend
 
 from ..experiment import ExperimentPrototype
 from ..container import ExperimentContainer
@@ -28,8 +28,6 @@ class Runner(ABC):
     """The current :cls:`Multimanager` been used."""
     backend: Optional[Backend]
     """The backend been used."""
-    provider: Union[Provider, Any, None]
-    """The provider used for this backend."""
     experiment_container: ExperimentContainer[ExperimentPrototype]
     """The experimental container from Qurry instance."""
 
@@ -55,7 +53,6 @@ class Runner(ABC):
             f"<{self.__name__}("
             + f"current_multimanager={self.current_multimanager._repr_oneline()}, "
             + f"backend={backend_repr}, "
-            + f"provider={self.provider}, "
             + f"experiment_container={self.experiment_container._repr_oneline()}, "
             + f"reports_num={len(self.reports)})>"
         )
@@ -63,7 +60,7 @@ class Runner(ABC):
     def _repr_oneline(self):
         backend_repr = self.backend if self.backend is None else backend_name_getter(self.backend)
 
-        return f"<{self.__name__}(backend={backend_repr}, provider={self.provider}, ...)>"
+        return f"<{self.__name__}(backend={backend_repr}, ...)>"
 
 
 # Using for Third-Party Backend

@@ -1,8 +1,5 @@
-"""
-===========================================================
-EntropyMeasureRandomized - Experiment
+"""EntropyMeasureRandomized - Experiment
 (:mod:`qurry.qurrent.randomized_measure.experiment`)
-===========================================================
 
 """
 
@@ -314,7 +311,7 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         )
 
         selected_qubits = [qi % self.args.actual_num_qubits for qi in selected_qubits]
-        if not len(set(selected_qubits)) == len(selected_qubits):
+        if len(set(selected_qubits)) != len(selected_qubits):
             raise ValueError(
                 f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
             )

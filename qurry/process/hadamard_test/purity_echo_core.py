@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Hadamard Test - Purity/Echo
+"""Post Processing - Hadamard Test - Purity/Echo
 (:mod:`qurry.process.hadamard_test.purity_echo_core`)
-================================================================
 
 """
 
@@ -77,10 +74,7 @@ def purity_echo_core(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> float:
     """Calculate entangled entropy with more information combined.
-
-    - Which entropy:
-
-        The entropy we compute is the Second Order Rényi Entropy.
+    The entropy we compute is the Second Order Rényi Entropy.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.
@@ -88,10 +82,14 @@ def purity_echo_core(
 
     Raises:
         Warning: Expected '0' and '1', but there is no such keys
+        ValueError: The length of counts is not 1.
+        ValueError: shots does not match sample_shots.
 
     Returns:
         dict[str, float]: Quantity of the experiment.
     """
+    if len(counts) != 1:
+        raise ValueError(f"counts should be a list of counts with length 1, but got {len(counts)}")
 
     if backend == "Rust":
         if RUST_AVAILABLE:

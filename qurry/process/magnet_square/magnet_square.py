@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Magnet Square - Magnet Square
+"""Post Processing - Magnetic Square - Magnetic Square
 (:mod:`qurry.process.magnet_square.magnet_square`)
-================================================================
 
 """
 
@@ -15,15 +12,15 @@ from .magsq_core import magnetic_square_core, DEFAULT_PROCESS_BACKEND
 
 
 class MagnetSquare(TypedDict):
-    """Magnet Square type."""
+    """Magnetic Square type."""
 
     magnet_square: Union[float, np.float64]
-    """Magnet Square."""
+    """Magnetic Square."""
     magnet_square_cells: dict[int, Union[float, np.float64]]
-    """Magnet Square cells."""
-    countsNum: int
+    """Magnetic Square cells."""
+    counts_num: int
     """Number of counts."""
-    takingTime: float
+    taking_time: float
     """Taking time."""
 
 
@@ -32,7 +29,6 @@ def magnet_square(
     counts: list[dict[str, int]],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    workers_num: Optional[int] = None,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> MagnetSquare:
     """Calculate the magnet square.
@@ -42,26 +38,24 @@ def magnet_square(
         counts (list[dict[str, int]]): List of counts.
         num_qubits (int): Number of qubits.
         backend (Optional[PostProcessingBackendLabel], optional): Backend to use. Defaults to None.
-        workers_num (Optional[int], optional): Number of workers. Defaults to None.
         pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
 
     Returns:
-        MagnetSquare: Magnet Square.
+        MagnetSquare: Magnetic Square.
     """
     if isinstance(pbar, tqdm.tqdm):
-        pbar.set_description("Magnet Square being calculated.")
+        pbar.set_description("Magnetic Square being calculated.")
     (magsq, magnet_square_cells, counts_num, taking_time, _msg) = magnetic_square_core(
         shots=shots,
         counts=counts,
         num_qubits=num_qubits,
         backend=backend,
-        multiprocess_pool_size=workers_num,
     )
     if isinstance(pbar, tqdm.tqdm):
-        pbar.set_description(f"Magnet Square calculated in {taking_time} seconds.")
+        pbar.set_description(f"Magnetic Square calculated in {taking_time} seconds.")
     return {
         "magnet_square": magsq,
         "magnet_square_cells": magnet_square_cells,
-        "countsNum": counts_num,
-        "takingTime": taking_time,
+        "counts_num": counts_num,
+        "taking_time": taking_time,
     }

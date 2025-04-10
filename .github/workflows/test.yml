@@ -15,8 +15,8 @@ on:
 
 jobs:
   check_version:
-    name: Check Version
-    runs-on: ubuntu-latest
+    name: Check Version and Lint Check
+    runs-on: [ubuntu-latest, self-hosted]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,10 +48,18 @@ jobs:
             echo "| Skip Test"
           fi
 
+      - name: Lint with flake8
+        run: |
+          python -m pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          python -m flake8 . --count --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          python -m flake8 . --count --exit-zero --statistics
+
   test_py_latest_and_oldest:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
     name: Test on Python Latest and Oldest
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
     strategy:
@@ -60,11 +68,21 @@ jobs:
           - step: python-latest
             depends_on: []
             python-version: "3.13"
+            qiskit-v1: "no"
           - step: python-oldest
             depends_on: [python-latest]
             python-version: "3.9"
+            qiskit-v1: "no"
+          - step: python-latest-qiskit-v1
+            depends_on: [python-oldest]
+            python-version: "3.13"
+            qiskit-v1: "yes"
+          - step: python-oldest-qiskit-v1
+            depends_on: [python-latest-qiskit-v1]
+            python-version: "3.9"
+            qiskit-v1: "yes"
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
 
     steps:
       - uses: actions/checkout@v4
@@ -73,30 +91,55 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Is Qiskit v1
+        run: |
+          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
+            echo "Qiskit v1"
+          else
+            echo "Qiskit v2"
+          fi
+
       - name: Run Test Unit
         uses: ./.github/actions/test-unit
+        with:
+          qiskit-v1: ${{ matrix.qiskit-v1 }}
 
   test_py:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
     name: Test on Python
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
       - test_py_latest_and_oldest
     strategy:
       matrix:
         include:
-          - step: python-other-310
-            depends_on: [python-oldest]
+          - step: py-other-310
+            depends_on: []
             python-version: "3.10"
+            qiskit-v1: "no"
           - step: py-other-311
             depends_on: [py-other-310]
             python-version: "3.11"
+            qiskit-v1: "no"
           - step: py-other-312
             depends_on: [py-other-311]
             python-version: "3.12"
+            qiskit-v1: "no"
+          - step: py-other-310-qiskit-v1
+            depends_on: [py-other-312]
+            python-version: "3.10"
+            qiskit-v1: "yes"
+          - step: py-other-311-qiskit-v1
+            depends_on: [py-other-310-qiskit-v1]
+            python-version: "3.11"
+            qiskit-v1: "yes"
+          - step: py-other-312-qiskit-v1
+            depends_on: [py-other-311-qiskit-v1]
+            python-version: "3.12"
+            qiskit-v1: "yes"
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 2
 
     steps:
       - uses: actions/checkout@v4
@@ -105,5 +148,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Is Qiskit v1
+        run: |
+          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
+            echo "Qiskit v1"
+          else
+            echo "Qiskit v2"
+          fi
+
       - name: Run Test Unit
         uses: ./.github/actions/test-unit
+        with:
+          qiskit-v1: ${{ matrix.qiskit-v1 }}

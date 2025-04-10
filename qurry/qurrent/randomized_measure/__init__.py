@@ -1,9 +1,5 @@
-"""
-===========================================================
-EntropyMeasureRandomized -
-The Second Order Renyi Entropy by Randomized Measurement
+"""EntropyMeasureRandomized - The Second Order Renyi Entropy by Randomized Measurement
 (:mod:`qurry.qurrent.randomized_measure`)
-===========================================================
 
 """
 

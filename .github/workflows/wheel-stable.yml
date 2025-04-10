@@ -9,7 +9,9 @@ jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
     name: Build wheels on ${{ matrix.vers }} by ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on:
+      - ${{ matrix.os }}
+      - self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -20,9 +22,9 @@ jobs:
           # - vers: linux-aarch64
           #   os: ubuntu-24.04-arm
           #   archs: ARM64
-          - vers: macOS-x86_64
-            os: macos-13
-            archs: X64
+          # - vers: macOS-x86_64
+          #   os: macos-13
+          #   archs: X64
           # - vers: macOS-arm64
           #   os: macos-14
           #   archs: ARM64
@@ -104,6 +106,13 @@ jobs:
         with:
           packages-dir: wheelhouse
 
+      - name: Clean up Docker Image of PyPI Publish
+        if: matrix.vers == 'linux-x86_64'
+        run: |
+          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+          # Prevent using outdated image
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
+
   publish-to-testpypi:
     if: github.repository == 'qurrium/qurry'
     name: Publish Python 🐍 distribution 📦 to PyPI
@@ -129,3 +138,9 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: deploy
+
+      - name: Clean up Docker Image of PyPI Publish
+        run: |
+          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+          # Prevent using outdated image
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"

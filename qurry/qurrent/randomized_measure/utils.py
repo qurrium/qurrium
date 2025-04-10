@@ -1,8 +1,5 @@
-"""
-===========================================================
-EntropyMeasureRandomized - Utility
+"""EntropyMeasureRandomized - Utility
 (:mod:`qurry.qurrent.randomized_measure.utils`)
-===========================================================
 
 """
 
@@ -188,7 +185,7 @@ def randomized_circuit_method(
     for qi, ci in registers_mapping.items():
         qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])
 
-    assert qc_exp1.cregs[-1] is c_meas1, (
+    assert qc_exp1.cregs[-1] == c_meas1, (
         f"The last classical register should be the measurement register {c_meas1},"
         + f" but get {qc_exp1.cregs[-1]} in {qc_exp1.cregs}. From {exp_name} on index {idx}."
     )

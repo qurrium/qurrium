@@ -1,9 +1,5 @@
-"""
-================================================================
-ShadowUnveil - 
-Classical Shadow with The Results of Second Order Renyi Entropy
+"""ShadowUnveil - Classical Shadow with The Results of Second Order Renyi Entropy
 (:mod:`qurry.qurrent.classical_shadow`)
-================================================================
 
 """
 

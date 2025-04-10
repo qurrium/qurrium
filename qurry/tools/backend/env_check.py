@@ -1,13 +1,13 @@
 """
 ================================================================
-Backend Environment Check 
+Backend Environment Check
 (:mod:`qurry.tools.backend.env_check`)
 ================================================================
 
 For qiskit-aer has been divided into two packages since qiskit some version,
 So it needs to be imported differently by trying to import qiskit-aer first.
 
-And qiskit-ibmq-provider has been deprecated, 
+And qiskit-ibmq-provider has been deprecated,
 but for some user may still need to use it,
 so it needs to be imported also differently by trying to import qiskit-ibm-provider first.
 
@@ -20,10 +20,6 @@ from typing import Any
 from importlib.metadata import distributions
 import requests
 
-from .import_ibm import (
-    REAL_VERSION_INFOS as real_version_infos,
-    REAL_DEFAULT_SOURCE as real_default_source,
-)
 from .import_simulator import (
     SIM_VERSION_INFOS as sim_version_infos,
     SIM_DEFAULT_SOURCE as sim_default_source,
@@ -112,17 +108,6 @@ def _version_check():
                 + "deprcated module 'qiskit-ibmq-provider'."
             ),
         )
-    )
-    check_msg.newline(
-        {
-            "type": "itemize",
-            "description": (real_default_source if real_default_source else "qiskit_ibm_provider"),
-            "value": (
-                real_version_infos[real_default_source]
-                if real_default_source
-                else "Not available, please install it first."
-            ),
-        }
     )
 
     if "qiskit-aer-gpu" in local_version_dict:

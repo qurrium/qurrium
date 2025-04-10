@@ -1,8 +1,5 @@
-"""
-===========================================================
-EchoListenRandomized - Qurry
+"""EchoListenRandomized - Qurry
 (:mod:`qurry.qurrech.randomized_measure.qurry`)
-===========================================================
 
 """
 
@@ -27,6 +24,7 @@ from .experiment import (
     DEFAULT_PROCESS_BACKEND,
 )
 from ...qurrium.qurrium import QurriumPrototype
+from ...qurrium.utils import passmanager_processor
 from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
@@ -36,32 +34,31 @@ class EchoListenRandomized(QurriumPrototype):
     """Randomized Measure for wave function overlap.
     a.k.a. loschmidt echo when processes time evolution system.
 
-    .. note::
+    Reference:
+        .. note::
+            - Statistical correlations between locally randomized measurements:
+            A toolbox for probing entanglement in many-body quantum states -
+            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+            [PhysRevA.99.052323](
+                https://doi.org/10.1103/PhysRevA.99.052323
+            )
 
-        - Statistical correlations between locally randomized measurements:
-        A toolbox for probing entanglement in many-body quantum states -
-        A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-        [PhysRevA.99.052323](
-            https://doi.org/10.1103/PhysRevA.99.052323
-        )
-
-    .. code-block:: bibtex
-
-        @article{PhysRevA.99.052323,
-            title = {Statistical correlations between locally randomized measurements:
-            A toolbox for probing entanglement in many-body quantum states},
-            author = {Elben, A. and Vermersch, B. and Roos, C. F. and Zoller, P.},
-            journal = {Phys. Rev. A},
-            volume = {99},
-            issue = {5},
-            pages = {052323},
-            numpages = {12},
-            year = {2019},
-            month = {May},
-            publisher = {American Physical Society},
-            doi = {10.1103/PhysRevA.99.052323},
-            url = {https://link.aps.org/doi/10.1103/PhysRevA.99.052323}
-        }
+        .. code-block:: bibtex
+            @article{PhysRevA.99.052323,
+                title = {Statistical correlations between locally randomized measurements:
+                A toolbox for probing entanglement in many-body quantum states},
+                author = {Elben, A. and Vermersch, B. and Roos, C. F. and Zoller, P.},
+                journal = {Phys. Rev. A},
+                volume = {99},
+                issue = {5},
+                pages = {052323},
+                numpages = {12},
+                year = {2019},
+                month = {May},
+                publisher = {American Physical Society},
+                doi = {10.1103/PhysRevA.99.052323},
+                url = {https://link.aps.org/doi/10.1103/PhysRevA.99.052323}
+            }
     """
 
     __name__ = "EchoListenRandomized"
@@ -85,6 +82,8 @@ class EchoListenRandomized(QurriumPrototype):
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
+        second_transpile_args: Optional[TranspileArgs] = None,
+        second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -142,6 +141,13 @@ class EchoListenRandomized(QurriumPrototype):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to `None`.
+            second_transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+                for the second quantum circuit. Defaults to `None`.
+            second_passmanager (
+                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
+            ):
+                The passmanager for the second quantum circuit. Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -172,9 +178,10 @@ class EchoListenRandomized(QurriumPrototype):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
@@ -206,6 +213,10 @@ class EchoListenRandomized(QurriumPrototype):
         if wave2 is None:
             raise ValueError("The `wave2` must be provided.")
 
+        second_passmanager_pair = passmanager_processor(
+            passmanager=second_passmanager, passmanager_container=self.passmanagers
+        )
+
         return {
             "circuits": [wave1, wave2],
             "times": times,
@@ -215,6 +226,7 @@ class EchoListenRandomized(QurriumPrototype):
             "unitary_loc_2": unitary_loc_2,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
             "second_backend": second_backend,
+            "second_transpile_args": second_transpile_args,
             "random_unitary_seeds": random_unitary_seeds,
             "shots": shots,
             "backend": backend,
@@ -232,6 +244,7 @@ class EchoListenRandomized(QurriumPrototype):
             "encoding": encoding,
             "jsonable": jsonable,
             "pbar": pbar,
+            "second_passmanager_pair": second_passmanager_pair,
         }
 
     def measure(
@@ -245,6 +258,8 @@ class EchoListenRandomized(QurriumPrototype):
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
+        second_transpile_args: Optional[TranspileArgs] = None,
+        second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -302,6 +317,13 @@ class EchoListenRandomized(QurriumPrototype):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to `None`.
+            second_transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+                for the second quantum circuit. Defaults to `None`.
+            second_passmanager (
+                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
+            ):
+                The passmanager for the second quantum circuit. Defaults to `None`.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -328,13 +350,15 @@ class EchoListenRandomized(QurriumPrototype):
                 The quantum backend. Defaults to `None`.
             exp_name (str, optional):
                 The name of the experiment.
-                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                Naming this experiment to recognize it
+                when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :func:`qiskit.execute`. Defaults to `{}`.
+                Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments for :func:`qiskit.transpile`. Defaults to `{}`.
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Defaults to `None`.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to `None`.
             tags (Optional[tuple[str, ...]], optional):
@@ -372,6 +396,8 @@ class EchoListenRandomized(QurriumPrototype):
             unitary_loc_2=unitary_loc_2,
             unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
             second_backend=second_backend,
+            second_transpile_args=second_transpile_args,
+            second_passmanager=second_passmanager,
             random_unitary_seeds=random_unitary_seeds,
             shots=shots,
             backend=backend,
@@ -420,7 +446,7 @@ class EchoListenRandomized(QurriumPrototype):
                 The quantum backend.
                 Defaults to AerSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of the MultiManager. Defaults to `None`.
+                Tags of experiment of :cls:`MultiManager`. Defaults to `None`.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
                 The extra arguments for running the job,
                 but for all experiments in the multimanager.
