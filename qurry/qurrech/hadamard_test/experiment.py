@@ -1,8 +1,5 @@
-"""
-================================================================
-EchoListenHadamard - Experiment
+"""EchoListenHadamard - Experiment
 (:mod:`qurry.qurrech.hadamard_test.experiment`)
-================================================================
 
 """
 

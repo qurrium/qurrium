@@ -1,8 +1,5 @@
-"""
-===========================================================
-EchoListenRandomizedV1 - Analysis
+"""EchoListenRandomizedV1 - Analysis
 (:mod:`qurry.qurrech.randomized_measure_v1.analysis`)
-===========================================================
 
 """
 

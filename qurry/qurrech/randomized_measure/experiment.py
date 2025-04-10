@@ -1,8 +1,5 @@
-"""
-===========================================================
-EchoListenRandomized - Experiment
+"""EchoListenRandomized - Experiment
 (:mod:`qurry.qurrech.randomized_measure.experiment`)
-===========================================================
 
 """
 
@@ -549,7 +546,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
             transpiled_circs += transpile(
                 cirqs[: current_exp.args.times],
                 backend=current_exp.commons.backend,
-                **current_exp.commons.transpile_args,
+                **current_exp.commons.transpile_args,  # type: ignore
             )
 
         assert isinstance(current_exp.args.second_backend, (Backend, type(None))), (
@@ -576,7 +573,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
-                **(current_exp.args.second_transpile_args),
+                **(current_exp.args.second_transpile_args),  # type: ignore
             )
         elif passmanager_pair is not None:
             passmanager_name, passmanager = passmanager_pair
@@ -599,7 +596,7 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
-                **(current_exp.commons.transpile_args),
+                **(current_exp.commons.transpile_args),  # type: ignore
             )
 
         assert len(transpiled_circs) == 2 * current_exp.args.times, (

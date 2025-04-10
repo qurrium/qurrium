@@ -1,8 +1,5 @@
-"""
-===========================================================
-EchoListenRandomizedV1 - Experiment
+"""EchoListenRandomizedV1 - Experiment
 (:mod:`qurry.qurrech.randomized_measure_v1.experiment`)
-===========================================================
 
 The deprecated version of the randomized measure experiment.
 
