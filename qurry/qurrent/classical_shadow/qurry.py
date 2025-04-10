@@ -58,7 +58,7 @@ class ShadowUnveil(QurriumPrototype):
                     measurements suffice to accurately predict M different functions of the state
                     with high success probability. The number of measurements is independent of
                     the system size and saturates information-theoretic lower bounds. Moreover,
-                    target properties to predict can be 
+                    target properties to predict can be
                     selected after the measurements are completed.
                     We support our theoretical findings with extensive numerical experiments.
                     We apply classical shadows to predict quantum fidelities,
@@ -98,10 +98,10 @@ class ShadowUnveil(QurriumPrototype):
                     desired property. The randomization of the measurement procedure has distinct
                     advantages. For example, a single data set can be used multiple times to pursue
                     a variety of applications, and imperfections in the measurements are mapped to
-                    a simplified noise model that can more easily be mitigated. 
-                    We discuss a range of cases that have already been realized in quantum devices, 
-                    including Hamiltonian simulation tasks, probes of quantum chaos, 
-                    measurements of non-local order parameters, 
+                    a simplified noise model that can more easily be mitigated.
+                    We discuss a range of cases that have already been realized in quantum devices,
+                    including Hamiltonian simulation tasks, probes of quantum chaos,
+                    measurements of non-local order parameters,
                     and comparison of quantum states produced in distantly separated
                     laboratories. By providing a workable method for translating a complex quantum
                     state into a succinct classical representation that preserves a rich variety of

@@ -158,9 +158,10 @@ def test_quantity_01(tgt):
     # analysis_03 = exp_method_01.exps[exp_id].analyze(measure_dyn[tgt]["01"], counts_used=range(5))
     # quantity_03 = analysis_03.content._asdict()
 
-    assert all(
-        ["entropy" in quantity_01, "purity" in quantity_01]
-    ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
+    assert all(["entropy" in quantity_01, "purity" in quantity_01, "expect_rho" in quantity_01]), (
+        "The necessary quantities 'entropy', 'purity', 'expect_rho' "
+        + f"are not found: {quantity_01.keys()}."
+    )
     # TODO: Error mitigation will be added in the future.
     # assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
     #     "The all system entropy is not changed: "
@@ -178,6 +179,10 @@ def test_quantity_01(tgt):
     #     "AnalysisHeader" in quantity_03["all_system_source"]
     # ), f"The source of all system is not from existed analysis:
     # {quantity_03['all_system_source']}."
+
+    assert all(v.imag == 0 for v in np.diag(quantity_01["expect_rho"])), (
+        "The expect_rho is not real: " + f"{np.diag(quantity_01['expect_rho'])}."
+    )
 
     diff = np.abs(quantity_01["purity"] - answer[tgt])
     is_correct = diff < THREDHOLD
@@ -312,11 +317,11 @@ def test_quantity_01_with_extra_clbits(tgt):
             + f"{diff} !< {THREDHOLD}."
             + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
         )
-        results[tgt] = {
+        results["classical_shadow_with_extra_clbits"][tgt] = {
             "answer": answer[tgt],
             "difference": diff,
+            "target_quantity": quantity_01["purity"],
             "is_correct": is_correct,
-            "quantity": quantity_01,
         }
     else:
         warnings.warn(

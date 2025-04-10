@@ -28,9 +28,7 @@ from ...declare import BaseRunArgs, TranspileArgs
 from ...tools.except_decorator import unproven_feature
 
 
-@unproven_feature(
-    message="The StringOperator is not proven, we can not guarantee the correctness."
-)
+@unproven_feature(message="The StringOperator is not proven, we can not guarantee the correctness.")
 class StringOperator(QurriumPrototype):
     """String Operator Order
 
