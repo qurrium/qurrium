@@ -1,5 +1,4 @@
-"""EchoListenRandomizedV1 - 
-Wave Function Overlap by Randomized Measure
+"""EchoListenRandomizedV1 - Wave Function Overlap by Randomized Measure
 (:mod:`qurry.qurrech.randomized_measure_v1`)
 
 """
