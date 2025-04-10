@@ -459,7 +459,7 @@ def classical_shadow_complex(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
-    """Calculate the expectation value of Rho and the purity by classical shadow.
+    r"""Calculate the expectation value of Rho and the purity by classical shadow.
 
     Reference:
         .. note::
