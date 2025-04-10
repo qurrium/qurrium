@@ -1,23 +1,21 @@
-"""
-===========================================================
-String Operator - Utilities
+"""String Operator - Utilities
 (:mod:`qurry.qurries.string_operator.utils`)
-===========================================================
 
 """
 
-from typing import Union, Literal, Never
+from typing import Union, Literal
 import numpy as np
 
 from qiskit import QuantumCircuit, ClassicalRegister
 
 
-AvailableStringOperatorTypes = Literal["i", "zy"]
+AvailableStringOperatorTypes = Union[Literal["i", "zy"], str]
 """Available string types.
+
 - "i": Identity string operator.
 - "zy": ZY string operator.
 """
-AvailableStringOperatorUnits = Union[tuple[Literal["rx", "ry", "rz"], float], tuple[Never]]
+AvailableStringOperatorUnits = Union[tuple[Literal["rx", "ry", "rz"], float], tuple[()]]
 """Available string operator units."""
 
 STRING_OPERATOR_LIB: dict[
@@ -36,21 +34,24 @@ STRING_OPERATOR_LIB: dict[
         -2: ("rx", np.pi / 2),
         -1: ("rz", 0),
     },
-    # "i": {
-    #     0: (),
-    #     "filling": ("rx", np.pi / 2),
-    #     -1: (),
-    # },
-    # "zy": {
-    #     0: (),
-    #     1: ("ry", -np.pi / 2),
-    #     "filling": ("rx", np.pi / 2),
-    #     -2: ("ry", -np.pi / 2),
-    #     -1: (),
-    # },
 }
 """Available string operator library.
 """
+
+STRING_OPERATOR_LIB2 = {
+    "i": {
+        0: (),
+        "filling": ("rx", np.pi / 2),
+        -1: (),
+    },
+    "zy": {
+        0: (),
+        1: ("ry", -np.pi / 2),
+        "filling": ("rx", np.pi / 2),
+        -2: ("ry", -np.pi / 2),
+        -1: (),
+    },
+}
 
 
 def circuit_method(

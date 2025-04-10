@@ -1,8 +1,5 @@
-"""
-================================================================
-StringOperator - Qurry
+"""StringOperator - Qurry
 (:mod:`qurry.qurries.string_operator.qurry`)
-================================================================
 
 """
 
@@ -31,30 +28,33 @@ from ...declare import BaseRunArgs, TranspileArgs
 from ...tools.except_decorator import unproven_feature
 
 
-@unproven_feature("The implementation is not proven, we can not guarantee the correctness.")
+@unproven_feature(
+    message="The StringOperator is not proven, we can not guarantee the correctness."
+)
 class StringOperator(QurriumPrototype):
     """String Operator Order
 
-    .. note::
-        - Crossing a topological phase transition with a quantum computer -
-        Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank,
-        [PhysRevResearch.4.L022020](https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020)
+    Reference:
+        .. note::
+            - Crossing a topological phase transition with a quantum computer -
+            Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank,
+            [PhysRevResearch.4.L022020](https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020)
 
-    .. code-block:: bibtex
-        @article{PhysRevResearch.4.L022020,
-            title = {Crossing a topological phase transition with a quantum computer},
-            author = {Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank},
-            journal = {Phys. Rev. Research},
-            volume = {4},
-            issue = {2},
-            pages = {L022020},
-            numpages = {8},
-            year = {2022},
-            month = {Apr},
-            publisher = {American Physical Society},
-            doi = {10.1103/PhysRevResearch.4.L022020},
-            url = {https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020}
-        }
+        .. code-block:: bibtex
+            @article{PhysRevResearch.4.L022020,
+                title = {Crossing a topological phase transition with a quantum computer},
+                author = {Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank},
+                journal = {Phys. Rev. Research},
+                volume = {4},
+                issue = {2},
+                pages = {L022020},
+                numpages = {8},
+                year = {2022},
+                month = {Apr},
+                publisher = {American Physical Society},
+                doi = {10.1103/PhysRevResearch.4.L022020},
+                url = {https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020}
+            }
 
     """
 

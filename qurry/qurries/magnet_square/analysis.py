@@ -1,8 +1,5 @@
-"""
-===========================================================
-MagnetSquare - Analysis
+"""MagnetSquare - Analysis
 (:mod:`qurry.qurries.magnet_square.analysis`)
-===========================================================
 
 """
 
@@ -31,9 +28,9 @@ class MagnetSquareAnalysis(AnalysisPrototype):
         """The content of the analysis."""
 
         magnet_square: Optional[Union[float, np.float64]] = None
-        """Magnet Square."""
+        """Magnetic Square."""
         magnet_square_cells: Optional[dict[int, Union[float, np.float64]]] = None
-        """Magnet Square cells."""
+        """Magnetic Square cells."""
         counts_num: Optional[int] = None
         """Number of counts."""
         taking_time: Optional[float] = None

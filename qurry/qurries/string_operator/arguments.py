@@ -1,8 +1,5 @@
-"""
-===========================================================
-StringOperator - Arguments
+"""StringOperator - Arguments
 (:mod:`qurry.qurries.string_operator.arguments`)
-===========================================================
 
 """
 

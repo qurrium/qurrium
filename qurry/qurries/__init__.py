@@ -1,10 +1,6 @@
-"""
-================================================================
-Qurries - Other Qurry Modules
-(:mod:`qurry.qurries`)
-================================================================
+"""Qurries - Other Qurry Modules (:mod:`qurry.qurries`)
 
-- MagnetSquare - Magnet Square (Not Test yet)
+- MagnetSquare - Magnetic Square (Not Test yet)
     - Formerly known as `qurmagsq`
 - StringOperator - String Operator (Not Test yet)
     - Formerly known as `qurstrop`
