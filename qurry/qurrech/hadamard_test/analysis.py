@@ -1,8 +1,5 @@
-"""
-================================================================
-Wave Function Overlap - Hadamard Test Analysis
+"""EchoListenHadamard - Analysis
 (:mod:`qurry.qurrech.hadamard_test.analysis`)
-================================================================
 
 """
 

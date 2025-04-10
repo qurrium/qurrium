@@ -1,8 +1,5 @@
-"""
-===========================================================
-StringOperator - Analysis
+"""StringOperator - Analysis
 (:mod:`qurry.qurries.string_operator.analysis`)
-===========================================================
 
 """
 

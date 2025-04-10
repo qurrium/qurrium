@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Hadamard Test - Purity/Echo
+"""Post Processing - Hadamard Test - Purity/Echo
 (:mod:`qurry.process.hadamard_test.purity_echo_core`)
-================================================================
 
 """
 
@@ -77,10 +74,7 @@ def purity_echo_core(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> float:
     """Calculate entangled entropy with more information combined.
-
-    - Which entropy:
-
-        The entropy we compute is the Second Order Rényi Entropy.
+    The entropy we compute is the Second Order Rényi Entropy.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.

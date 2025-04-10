@@ -1,10 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Entangled Entropy - Entangled Entropy 2
+"""Post Processing - Randomized Measure - Entangled Entropy - Entangled Entropy 2
 (:mod:`qurry.process.randomized_measure.entangled_entropy.entangled_entropy_2`)
-=========================================================================================
-
-This version introduces another way to process subsystems.
 
 """
 
@@ -79,7 +74,8 @@ def randomized_entangled_entropy(
             Our protocol represents a universal tool for probing and
             characterizing engineered quantum systems in the laboratory,
             which is applicable to arbitrary quantum states of up to
-            several tens of qubits.}}
+            several tens of qubits.}
+        }
 
     Args:
         shots (int):
@@ -292,23 +288,24 @@ def randomized_entangled_entropy_mitigated(
             Our protocol represents a universal tool for probing and
             characterizing engineered quantum systems in the laboratory,
             which is applicable to arbitrary quantum states of up to
-            several tens of qubits.}}
+            several tens of qubits.}
+        }
 
-            @article{PhysRevE.104.035309,
-                title = {Simple mitigation of global depolarizing errors in quantum simulations},
-                author = {Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
-                Christopher and Kim, M. S. and Knolle, Johannes},
-                journal = {Phys. Rev. E},
-                volume = {104},
-                issue = {3},
-                pages = {035309},
-                numpages = {8},
-                year = {2021},
-                month = {Sep},
-                publisher = {American Physical Society},
-                doi = {10.1103/PhysRevE.104.035309},
-                url = {https://link.aps.org/doi/10.1103/PhysRevE.104.035309}
-            }
+        @article{PhysRevE.104.035309,
+            title = {Simple mitigation of global depolarizing errors in quantum simulations},
+            author = {Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
+            Christopher and Kim, M. S. and Knolle, Johannes},
+            journal = {Phys. Rev. E},
+            volume = {104},
+            issue = {3},
+            pages = {035309},
+            numpages = {8},
+            year = {2021},
+            month = {Sep},
+            publisher = {American Physical Society},
+            doi = {10.1103/PhysRevE.104.035309},
+            url = {https://link.aps.org/doi/10.1103/PhysRevE.104.035309}
+        }
 
     Args:
         shots (int):

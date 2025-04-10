@@ -1,27 +1,28 @@
-"""
-================================================================
-Test the qurry.qurrent module EntropyMeasure class.
-================================================================
+"""Test the qurry.qurrent module EntropyMeasure class.
 
-- hadamard test
-    - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0.
-    - [4-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5.
-    - [4-topological-period] 0.033203125 <= 0.25. 0.283203125 ~= 0.25.
-    - [6-trivial] 0.0 <= 0.25. 1.0 ~= 1.0.
-    - [6-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5.
-    - [6-topological-period] 0.041015625 <= 0.25. 0.291015625 ~= 0.25.
+- hadamard test at shots = 1024
+    - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
+    - [4-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
+    - [4-topological-period] 0.033203125 <= 0.25. 0.283203125 ~= 0.25
+    - [6-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
+    - [6-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
+    - [6-topological-period] 0.041015625 <= 0.25. 0.291015625 ~= 0.25
 
-- randomized measurement and randomized measurement v1
-    - [4-trivial] 0.10342769622802739 <= 0.25. 1.1034276962280274 ~= 1.0.
-    - [4-GHZ] 0.14542131423950194 <= 0.25. 0.35457868576049806 ~= 0.5.
-    - [4-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
-    - [6-trivial] 0.18802957534790044 <= 0.25. 0.8119704246520996 ~= 1.0.
-    - [6-GHZ] 0.018079471588134777 <= 0.25. 0.4819205284118652 ~= 0.5.
-    - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25.
+- randomized measurement and randomized measurement v1 at N_U = 20, shots = 1024
+    - [4-trivial] 1.1271525859832763 <= 0.25. 1.1034276962280274 ~= 1.0
+    - [4-GHZ] 0.14542131423950194 <= 0.25. 0.35457868576049806 ~= 0.5
+    - [4-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25
+    - [6-trivial] 0.18802957534790044 <= 0.25. 0.8119704246520996 ~= 1.0
+    - [6-GHZ] 0.018079471588134777 <= 0.25. 0.4819205284118652 ~= 0.5
+    - [6-topological-period] 0.003579425811767567 <= 0.25. 0.25357942581176757 ~= 0.25
 
-- randomized measurement with dynamic CNOT gate
-    - [4-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
-    - [6-entangle-by-dyn] 0.0015944480895996316 <= 0.25. 0.5015944480895996 ~= 0.5.
+- randomized measurement at N_U = 50, shots = 1024 with dynamic CNOT gate
+    - [4-entangle-by-dyn] 0.035245056152343866 <= 0.25. 1.0352450561523439 ~= 1.0
+    - [4-entangle-by-dyn-half] 0.0016211700439453525 <= 0.25. 0.5016211700439454 ~= 0.5
+    - [4-dummy-2-body-with-clbits] 0.171049690246582 <= 0.25. 0.828950309753418 ~= 1.0
+    - [6-entangle-by-dyn] 0.171562385559082 <= 0.25. 1.171562385559082 ~= 1.0
+    - [6-entangle-by-dyn-half] 0.0015624618530273304 <= 0.25. 0.5015624618530273 ~= 0.5
+    - [6-dummy-2-body-with-clbits] 0.04613777160644528 <= 0.25. 1.0461377716064453 ~= 1.0
 
 """
 
@@ -69,7 +70,12 @@ wave_adds = {
 answer = {}
 measure_dyn = {}
 
-results = {}
+results = {
+    "hadamard": {},
+    "randomized": {},
+    "randomized_with_extra_clbits": {},
+    "randomized_v1": {},
+}
 
 for i in range(4, 7, 2):
     wave_adds["01"].append(exp_method_01.add(TrivialParamagnet(i), f"{i}-trivial"))
@@ -181,11 +187,11 @@ def test_quantity_01(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["hadamard"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity["purity"],
         "is_correct": is_correct,
-        "quantity": quantity,
     }
 
 
@@ -284,11 +290,11 @@ def test_quantity_02(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["randomized"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity_01["purity"],
         "is_correct": is_correct,
-        "quantity": quantity_01,
     }
 
 
@@ -409,11 +415,11 @@ def test_quantity_02_with_extra_clbits(tgt):
             + f"{diff} !< {THREDHOLD}."
             + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
         )
-        results[tgt] = {
+        results["randomized_with_extra_clbits"][tgt] = {
             "answer": answer[tgt],
             "difference": diff,
+            "target_quantity": quantity_01["purity"],
             "is_correct": is_correct,
-            "quantity": quantity_01,
         }
     else:
         warnings.warn(
@@ -471,11 +477,11 @@ def test_quantity_03(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["randomized_v1"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity_01["purity"],
         "is_correct": is_correct,
-        "quantity": quantity_01,
     }
 
 

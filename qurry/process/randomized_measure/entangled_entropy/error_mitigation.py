@@ -1,8 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Entangled Entropy - Error Mitigation
+"""Post Processing - Randomized Measure - Entangled Entropy - Error Mitigation
 (:mod:`qurry.process.randomized_measure.entangled_entropy.error_mitigation`)
-=========================================================================================
 
 """
 

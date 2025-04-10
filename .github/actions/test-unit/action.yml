@@ -34,7 +34,7 @@ runs:
           python -m pip install -r requirements-dev.txt
         else
           echo "| No requirements-dev.txt found, installing default dependencies"
-          python -m pip install flake8 pytest matplotlib pep440
+          python -m pip install pytest matplotlib pep440
           python -m pip install --upgrade urllib3
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi
@@ -45,13 +45,6 @@ runs:
         python -c "print('| Preparing setup.py '.ljust(70, '.'))"
         python -m pip install -e .
         python -c "print('| Dependencies are ready to go '.ljust(70, '.'))"
-    - name: Lint with flake8
-      shell: bash
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        python -m flake8 . --count --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        python -m flake8 . --count --exit-zero --statistics
 
     - name: Test with pytest
       shell: bash

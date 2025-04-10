@@ -1,8 +1,5 @@
-"""
-================================================================
-MagnetSquare - Qurry
+"""MagnetSquare - Qurry
 (:mod:`qurry.qurries.magnet_square.qurry`)
-================================================================
 
 """
 
@@ -30,9 +27,9 @@ from ...declare import BaseRunArgs, TranspileArgs
 from ...tools.except_decorator import unproven_feature
 
 
-@unproven_feature("The implementation is not proven, we can not guarantee the correctness.")
+@unproven_feature(message="Magnetic Square is not proven, we can not guarantee the correctness.")
 class MagnetSquare(QurriumPrototype):
-    """Magnet Square Qurry."""
+    """Magnetic Square Qurry."""
 
     __name__ = "MagnetSquare"
     short_name = SHORT_NAME

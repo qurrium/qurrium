@@ -1,8 +1,5 @@
-"""
-=========================================================================================
-Postprocessing - Randomized Measure - Entangled Entropy - Container
+"""Post Processing - Randomized Measure - Entangled Entropy - Container
 (:mod:`qurry.process.randomized_measure.entangled_entropy.container`)
-=========================================================================================
 
 """
 

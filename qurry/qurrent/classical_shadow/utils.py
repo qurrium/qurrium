@@ -1,8 +1,5 @@
-"""
-===========================================================
-ShadowUnveil - Utils
+"""ShadowUnveil - Utils
 (:mod:`qurry.qurrent.classical_shadow.utils`)
-===========================================================
 
 """
 

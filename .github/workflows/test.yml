@@ -15,7 +15,7 @@ on:
 
 jobs:
   check_version:
-    name: Check Version
+    name: Check Version and Lint Check
     runs-on: [ubuntu-latest, self-hosted]
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +47,14 @@ jobs:
           if [[ "${{ github.event.pull_request.title }}" == skip-test:* ]]; then
             echo "| Skip Test"
           fi
+
+      - name: Lint with flake8
+        run: |
+          python -m pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          python -m flake8 . --count --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          python -m flake8 . --count --exit-zero --statistics
 
   test_py_latest_and_oldest:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}

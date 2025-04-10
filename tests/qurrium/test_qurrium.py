@@ -1,7 +1,4 @@
-"""
-================================================================
-Test the qurry.qurrent module EntropyMeasure class.
-================================================================
+"""Test the qurry.qurrent module EntropyMeasure class.
 
 """
 

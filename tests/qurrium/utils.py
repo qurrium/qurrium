@@ -1,7 +1,6 @@
-"""
-================================================================
-Circuit Case
-================================================================
+"""Circuit Cases for testing.
+
+This module contains the circuit cases for testing the qurry package.
 
 """
 

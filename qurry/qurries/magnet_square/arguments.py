@@ -1,8 +1,5 @@
-"""
-===========================================================
-MagnetSquare - Arguments
+"""MagnetSquare - Arguments
 (:mod:`qurry.qurries.magnet_square.arguments`)
-===========================================================
 
 """
 

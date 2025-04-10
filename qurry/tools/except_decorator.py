@@ -1,34 +1,19 @@
-"""
-================================================================
-Eception Decorator (:mod:`qurry.tools.except_decorator`)
-================================================================
-"""
+"""Eception Decorator (:mod:`qurry.tools.except_decorator`)"""
 
 import functools
 import warnings
-from typing import Any, Callable, Type, TypeVar, overload
+import inspect
+from typing import Callable, Union, Type, TypeVar
 
 from ..exceptions import QurryUnprovenFeatureWarning
 
-T = TypeVar("T")
-F = TypeVar("F", bound=Callable[..., Any])
-C = TypeVar("C", bound=Type[Any])
+U = TypeVar("U", bound=Union[Type, Callable])
 
 
-@overload
-def unproven_feature(func: F) -> F: ...
-@overload
-def unproven_feature(*, message: str = None) -> Callable[[F], F]: ...
-@overload
-def unproven_feature(cls: C) -> C: ...
-
-
-def unproven_feature(func_or_cls=None, *, message=None):
+def unproven_feature(message=None):
     """The decorator to mark a function or class as an unproven feature.
 
     Args:
-        func_or_cls (Optional[Union[Callable, Type]]):
-            The function or class to be marked.
         message (Optional[str]):
             The warning message to be displayed.
             If not provided, a default message will be used.
@@ -49,18 +34,22 @@ def unproven_feature(func_or_cls=None, *, message=None):
         ...     pass
     """
 
-    def decorator(func_or_cls):
-        # 獲取函數或類別名稱
+    def decorator(func_or_cls: U) -> U:
+        """The actual decorator function.
+        Args:
+            func_or_cls (Union[Callable, Type]):
+                The function or class to be marked.
+        Returns:
+            Union[Callable, Type]:
+        """
+
         name = func_or_cls.__qualname__
 
-        # 確定警告訊息
         warn_message = (
-            message
-            or f"This feature '{name}' is unproven and may be unstable or behave inconsistently."
-            + "Use with caution."
+            message or f"This feature '{name}' is unproven, we can not guarantee the correctness."
         )
 
-        if isinstance(func_or_cls, type):
+        if inspect.isclass(func_or_cls):
             original_init = func_or_cls.__init__
 
             @functools.wraps(original_init)
@@ -72,17 +61,15 @@ def unproven_feature(func_or_cls=None, *, message=None):
 
             func_or_cls.__unproven_feature__ = True
 
-            return func_or_cls
+            return func_or_cls  # type: ignore[return-value]
 
-        @functools.wraps(func_or_cls)
-        def wrapper(*args, **kwargs):
+        if inspect.isfunction(func_or_cls):
             warnings.warn(warn_message, QurryUnprovenFeatureWarning, stacklevel=2)
-            return func_or_cls(*args, **kwargs)
+            return func_or_cls  # type: ignore[return-value]
 
-        wrapper.__unproven_feature__ = True
+        raise TypeError(
+            "The decorator can only be applied to functions or classes."
+            + f" Got {type(func_or_cls)}."
+        )
 
-        return wrapper
-
-    if func_or_cls is None:
-        return decorator
-    return decorator(func_or_cls)
+    return decorator

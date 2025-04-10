@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Magnet Square - Magnet Square
+"""Post Processing - Magnetic Square - Magnetic Square
 (:mod:`qurry.process.magnet_square.magnet_square`)
-================================================================
 
 """
 
@@ -15,12 +12,12 @@ from .magsq_core import magnetic_square_core, DEFAULT_PROCESS_BACKEND
 
 
 class MagnetSquare(TypedDict):
-    """Magnet Square type."""
+    """Magnetic Square type."""
 
     magnet_square: Union[float, np.float64]
-    """Magnet Square."""
+    """Magnetic Square."""
     magnet_square_cells: dict[int, Union[float, np.float64]]
-    """Magnet Square cells."""
+    """Magnetic Square cells."""
     counts_num: int
     """Number of counts."""
     taking_time: float
@@ -44,10 +41,10 @@ def magnet_square(
         pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
 
     Returns:
-        MagnetSquare: Magnet Square.
+        MagnetSquare: Magnetic Square.
     """
     if isinstance(pbar, tqdm.tqdm):
-        pbar.set_description("Magnet Square being calculated.")
+        pbar.set_description("Magnetic Square being calculated.")
     (magsq, magnet_square_cells, counts_num, taking_time, _msg) = magnetic_square_core(
         shots=shots,
         counts=counts,
@@ -55,7 +52,7 @@ def magnet_square(
         backend=backend,
     )
     if isinstance(pbar, tqdm.tqdm):
-        pbar.set_description(f"Magnet Square calculated in {taking_time} seconds.")
+        pbar.set_description(f"Magnetic Square calculated in {taking_time} seconds.")
     return {
         "magnet_square": magsq,
         "magnet_square_cells": magnet_square_cells,

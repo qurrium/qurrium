@@ -1,8 +1,5 @@
-"""
-===========================================================
-EntropyMeasureRandomized - Experiment
+"""EntropyMeasureRandomized - Experiment
 (:mod:`qurry.qurrent.randomized_measure.experiment`)
-===========================================================
 
 """
 

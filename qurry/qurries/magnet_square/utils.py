@@ -1,8 +1,5 @@
-"""
-===========================================================
-Magnet Square - Utility
+"""Magnetic Square - Utility
 (:mod:`qurry.qurries.magnet_square.utils`)
-===========================================================
 
 """
 

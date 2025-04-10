@@ -1,9 +1,20 @@
-"""
-================================================================
-Test the qurry.qurrent module ShadowUnveil class
-================================================================
+"""Test the qurry.qurrent module ShadowUnveil class.
 
+- classical shadow at N_U = 100, shots = 1024
+    - [4-trivial] 0.1396211346712979 <= 0.25, 0.8603788653287021 ~= 1.0
+    - [4-GHZ] 0.020000482039018164 <= 0.25, 0.5200004820390182 ~= 0.5
+    - [4-topological-period] 4.4909390534142446e-07 <= 0.25, 0.25000044909390534 ~= 0.25
+    - [6-trivial] 0.1880350251631303 <= 0.25, 0.8119649748368697 ~= 1.0
+    - [6-GHZ] 0.06589450836181643 <= 0.25, 0.43410549163818357 ~= 0.5
+    - [6-topological-period] 8.716583251966448e-06 <= 0.25, 0.25000871658325197 ~= 0.25
 
+- classical shadow at N_U = 100, shots = 1024 with dynamic CNOT gate
+    - [4-entangle-by-dyn] 0.24680606321855025 <= 0.25, 0.7531939367814497 ~= 1.0
+    - [4-entangle-by-dyn-half] 1.4655373313188225e-05 <= 0.25, 0.4999853446266868 ~= 0.5
+    - [4-dummy-2-body-with-clbits] 0.014617952866987749 <= 0.25, 0.9853820471330123 ~= 1.0
+    - [6-entangle-by-dyn] 0.1609451276605785 <= 0.25, 0.839054872339422 ~= 1.0
+    - [6-entangle-by-dyn-half] 1.0452270507832484e-05 <= 0.25, 0.49998954772949217 ~= 0.5
+    - [6-dummy-2-body-with-clbits] 0.09746155305342241 <= 0.25, 0.9025384469465776 ~= 1.0
 
 """
 
@@ -47,7 +58,10 @@ wave_adds = {
 answer = {}
 measure_dyn = {}
 
-results = {}
+results = {
+    "classical_shadow": {},
+    "classical_shadow_with_extra_clbits": {},
+}
 
 for i in range(4, 7, 2):
     wave_adds["01"].append(exp_method_01.add(TrivialParamagnet(i), f"{i}-trivial"))
@@ -141,9 +155,10 @@ def test_quantity_01(tgt):
     # analysis_03 = exp_method_01.exps[exp_id].analyze(measure_dyn[tgt]["01"], counts_used=range(5))
     # quantity_03 = analysis_03.content._asdict()
 
-    assert all(
-        ["entropy" in quantity_01, "purity" in quantity_01]
-    ), f"The necessary quantities 'entropy', 'purity' are not found: {quantity_01.keys()}."
+    assert all(["entropy" in quantity_01, "purity" in quantity_01, "expect_rho" in quantity_01]), (
+        "The necessary quantities 'entropy', 'purity', 'expect_rho' "
+        + f"are not found: {quantity_01.keys()}."
+    )
     # TODO: Error mitigation will be added in the future.
     # assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
     #     "The all system entropy is not changed: "
@@ -162,6 +177,10 @@ def test_quantity_01(tgt):
     # ), f"The source of all system is not from existed analysis:
     # {quantity_03['all_system_source']}."
 
+    assert all(v.imag == 0 for v in np.diag(quantity_01["expect_rho"])), (
+        "The expect_rho is not real: " + f"{np.diag(quantity_01['expect_rho'])}."
+    )
+
     diff = np.abs(quantity_01["purity"] - answer[tgt])
     is_correct = diff < THREDHOLD
     assert (not MANUAL_ASSERT_ERROR) and is_correct, (
@@ -169,11 +188,11 @@ def test_quantity_01(tgt):
         + f"{diff} !< {THREDHOLD}."
         + f" {quantity_01['purity']} != {answer[tgt]}."
     )
-    results[tgt] = {
+    results["classical_shadow"][tgt] = {
         "answer": answer[tgt],
         "difference": diff,
+        "target_quantity": quantity_01["purity"],
         "is_correct": is_correct,
-        "quantity": quantity_01,
     }
 
 
@@ -254,9 +273,6 @@ def test_quantity_01_with_extra_clbits(tgt):
             random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(100)},
             backend=backend,
         )
-        exp_method_01_with_extra_clbits.exps[exp_id].write(
-            save_location=os.path.join(os.path.dirname(__file__), "exports")
-        )
         analysis_01 = exp_method_01_with_extra_clbits.exps[exp_id].analyze(
             measure_dyn[tgt]["01_with_extra_clbits"]
         )
@@ -298,11 +314,11 @@ def test_quantity_01_with_extra_clbits(tgt):
             + f"{diff} !< {THREDHOLD}."
             + f" {quantity_01['purity']} != {answer[tgt]}. {analysis_01}"
         )
-        results[tgt] = {
+        results["classical_shadow_with_extra_clbits"][tgt] = {
             "answer": answer[tgt],
             "difference": diff,
+            "target_quantity": quantity_01["purity"],
             "is_correct": is_correct,
-            "quantity": quantity_01,
         }
     else:
         warnings.warn(

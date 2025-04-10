@@ -1,8 +1,5 @@
-"""
-================================================================
-Postprocessing - Classical Shadow - Rho M Core
+"""Post Processing - Classical Shadow - Rho M Core
 (:mod:`qurry.process.classical_shadow.rho_m_core`)
-================================================================
 
 """
 

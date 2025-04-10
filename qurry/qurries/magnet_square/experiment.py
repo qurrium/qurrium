@@ -1,8 +1,5 @@
-"""
-===========================================================
-MagnetSquare - Experiment
+"""MagnetSquare - Experiment
 (:mod:`qurry.qurries.magnet_square.experiment`)
-===========================================================
 
 """
 
@@ -116,7 +113,7 @@ class MagnetSquareExperiment(ExperimentPrototype):
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
-        set_pbar_description(pbar, f"Building {len(permut)} circuits.")
+        set_pbar_description(pbar, "Building circuits...")
         circ_list = pool.starmap(
             circuit_method,
             [
@@ -185,8 +182,12 @@ class MagnetSquareExperiment(ExperimentPrototype):
             MagnetSquare: The result of the magnet square.
         """
 
-        if any(i is None for i in (shots, counts, num_qubits)):
-            raise ValueError("shots, counts, and num_qubits should be given.")
+        if counts is None:
+            raise ValueError("The counts should be given.")
+        if num_qubits is None:
+            raise ValueError("The number of qubits should be given.")
+        if shots is None:
+            raise ValueError("The number of shots should be given.")
 
         return magnet_square(
             shots=shots,
