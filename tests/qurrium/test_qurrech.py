@@ -36,7 +36,7 @@ import pytest
 
 from qiskit import QuantumCircuit
 
-from utils import current_time_filename, wave_loader, TestUnit, ResultUnit, check_unit
+from utils import current_time_filename, wave_loader, InputUnit, ResultUnit, check_unit
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, ghz_overlap_case
 
 from qurry.qurrech import EchoListen
@@ -72,7 +72,7 @@ if SIM_DEFAULT_SOURCE != "qiskit_aer":
         category=QurryDependenciesNotWorking,
     )
 
-test_items: dict[str, dict[str, TestUnit]] = {}
+test_items: dict[str, dict[str, InputUnit]] = {}
 """Test items. """
 result_items: dict[str, dict[str, ResultUnit]] = {}
 """Result items. """
@@ -283,7 +283,7 @@ def test_quantity_unit(
     exp_method: QurriumPrototype,
     test_item_division: str,
     test_item_name: str,
-    test_item: TestUnit,
+    test_item: InputUnit,
 ) -> None:
     """Test the quantity of echo.
 

@@ -205,3 +205,8 @@ disable = [
 [tool.black]
 line-length = 100
 target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
+
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning"]
+# Qiskit DeprecationWarning is very annoying,
+# it can raise 100k+ warnings in a single test. WTF?

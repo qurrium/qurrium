@@ -44,7 +44,7 @@ def wave_loader(
     return result
 
 
-class TestUnit(TypedDict):
+class InputUnit(TypedDict):
     """Test unit."""
 
     measure: dict[str, Any]
