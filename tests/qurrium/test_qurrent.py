@@ -31,7 +31,8 @@ import warnings
 import pytest
 import numpy as np
 
-from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time_filename
+from utils import current_time_filename
+from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import EntropyMeasure
 from qurry.tools.backend import GeneralSimulator

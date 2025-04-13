@@ -6,7 +6,7 @@ import os
 import warnings
 import pytest
 
-from utils import CNOTDynCase4To8
+from circuits import CNOTDynCase4To8
 
 from qurry.capsule import hoshi, mori
 from qurry.qurrium import SamplingExecuter, WavesExecuter

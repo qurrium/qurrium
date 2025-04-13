@@ -23,6 +23,7 @@
     - [6-entangle-by-dyn] 0.1653023529052735 <= 0.26, 1.1653023529052735 ~= 1.0
     - [6-entangle-by-dyn-half] 0.0005647659301757924 <= 0.26, 0.4994352340698242 ~= 0.5
     - [6-dummy-2-body-with-clbits] 0.04541765213012705 <= 0.26, 1.045417652130127 ~= 1.0
+
     - [4-entangle-by-dyn/4-entangle-by-dyn-comparison]
         0.17522192001342773 <= 0.26, 1.1752219200134277 ~= 1.0
     - [6-entangle-by-dyn/6-entangle-by-dyn-comparison]
@@ -35,7 +36,8 @@ import warnings
 import pytest
 import numpy as np
 
-from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time_filename
+from utils import current_time_filename
+from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrech import EchoListen
 from qurry.tools.backend import GeneralSimulator
