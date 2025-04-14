@@ -219,28 +219,28 @@ test_items["02_true_overlap"] = {
         "measure": {
             "wave1": circ_name_1,
             "wave2": circ_name_2,
-            "times": 20,
+            "times": 50,
             "measure_1": measure_range,
             "measure_2": measure_range,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(20)},
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(50)},
         },
-        "analyze": {"selected_classical_registers": range(-2, 0)},
+        "analyze": {"selected_classical_registers": selected_cregs},
         "answer": answer,
     }
-    for num_qubits, measure_range, circ_name_1, circ_name_2, answer in (
+    for num_qubits, measure_range, circ_name_1, circ_name_2, selected_cregs, answer in (
         [
-            (4, None, "4-GHZ", "4-GHZ-00", 0.5),
-            (4, None, "4-GHZ", "4-GHZ-01", 0),
-            (4, None, "4-GHZ", "4-GHZ-10", 0),
-            (4, None, "4-GHZ", "4-GHZ-11", 0.5),
-            # (4, None, "4-GHZ", "4-GHZ-x-init-GHZ", 0),  # TODO: check value
-            (4, None, "4-GHZ", "4-GHZ-singlet", 0),
-            (4, None, "4-GHZ", "4-GHZ-intracell-plus", 0),
+            (4, None, "4-GHZ", "4-GHZ-00", range(4), 0.5),
+            (4, None, "4-GHZ", "4-GHZ-01", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-10", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-11", range(4), 0.5),
+            (4, None, "4-GHZ", "4-GHZ-x-init-GHZ", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-singlet", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-intracell-plus", range(4), 0),
         ]
         + (
             [
-                (4, [0, 3], "4-entangle-by-dyn", "4-entangle-by-dyn-comparison", 1.0),
-                (6, [0, 5], "6-entangle-by-dyn", "6-entangle-by-dyn-comparison", 1.0),
+                (4, [0, 3], "4-entangle-by-dyn", "4-entangle-by-dyn-comparison", range(-2, 0), 1.0),
+                (6, [0, 5], "6-entangle-by-dyn", "6-entangle-by-dyn-comparison", range(-2, 0), 1.0),
             ]
             if SIM_DEFAULT_SOURCE == "qiskit_aer"
             else []
