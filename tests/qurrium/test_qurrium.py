@@ -1,150 +1,178 @@
-"""Test the qurry.qurrent module EntropyMeasure class.
-
-"""
+"""Test the qurry.qurrium module SamplingExecuter and WavesExecuter."""
 
 import os
-import warnings
 import pytest
 
-from circuits import CNOTDynCase4To8
+from qiskit import QuantumCircuit
 
-from qurry.capsule import hoshi, mori
+from utils import wave_loader, InputUnit, ResultUnit
+
 from qurry.qurrium import SamplingExecuter, WavesExecuter
+from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend import GeneralSimulator
-from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
 from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
-from qurry.exceptions import QurryDependenciesNotWorking
 
-
-tag_list = mori.TagList()
-statesheet = hoshi.Hoshi()
-
-exp_demo_01 = SamplingExecuter()
-exp_demo_02 = WavesExecuter()
-
-wave_adds_01 = []
-wave_adds_02 = []
-
-wave_adds_01.append(exp_demo_01.add(TrivialParamagnet(4), "4-trivial"))
-wave_adds_02.append(exp_demo_02.add(TrivialParamagnet(4), "4-trivial"))
-wave_adds_01.append(exp_demo_01.add(GHZ(4), "4-GHZ"))
-wave_adds_02.append(exp_demo_02.add(GHZ(4), "4-GHZ"))
-wave_adds_01.append(exp_demo_01.add(TopologicalParamagnet(4), "4-topological"))
-wave_adds_02.append(exp_demo_02.add(TopologicalParamagnet(4), "4-topological"))
-if SIM_DEFAULT_SOURCE == "qiskit_aer":
-    wave_adds_01.append(exp_demo_01.add(CNOTDynCase4To8(4), "4-CNOTDynCase4To8"))
-    wave_adds_02.append(
-        exp_demo_02.add(CNOTDynCase4To8(4, export="comparison"), "4-CNOTDynComparison4To8")
-    )
-else:
-    warnings.warn(
-        f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
-        + "which is guaranteed to work with dynamic circuit. "
-        + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
-        category=QurryDependenciesNotWorking,
-    )
+SEED_SIMULATOR = 2019  # <harmony/>
 
 backend = GeneralSimulator()
-# backend = BasicAer.backends()[0]
+backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
+
+test_items: dict[str, dict[str, InputUnit]] = {}
+"""Test items. """
+result_items: dict[str, dict[str, ResultUnit]] = {}
+"""Result items. """
+
+circuits: dict[str, QuantumCircuit] = {
+    "4-trivial": TrivialParamagnet(4),
+    "4-GHZ": GHZ(4),
+    "4-topological-period": TopologicalParamagnet(4),
+    "6-trivial": TrivialParamagnet(6),
+    "6-GHZ": GHZ(6),
+    "6-topological-period": TopologicalParamagnet(6),
+}
+"""Circuits. """
 
 
-@pytest.mark.parametrize("tgt", wave_adds_01)
-def test_quantity_01(tgt):
-    """Test the quantity of entropy and purity.
+exp_demo_01 = SamplingExecuter()
+test_items["01"] = {
+    circ_name: {
+        "measure": {
+            "wave": circ_name,
+            "sampling": 5,
+        },
+        "analyze": {},
+        "answer": 0,
+    }
+    for num_qubits, circ_name, answer in [
+        (4, "4-trivial", 1.0),
+        (4, "4-GHZ", 0.5),
+        (4, "4-topological-period", 0.25),
+    ]
+}
+wave_loader(
+    exp_demo_01,
+    [(circ_name, circuits[circ_name]) for circ_name in test_items["01"]],
+)
+
+
+exp_demo_02 = WavesExecuter()
+test_items["02"] = {
+    circ_name: {
+        "measure": {
+            "waves": [circ_name for _ in range(5)],
+        },
+        "analyze": {},
+        "answer": answer,
+    }
+    for num_qubits, circ_name, answer in [
+        (4, "4-trivial", 1.0),
+        (4, "4-GHZ", 0.5),
+        (4, "4-topological-period", 0.25),
+    ]
+}
+wave_loader(
+    exp_demo_02,
+    [(circ_name, circuits[circ_name]) for circ_name in test_items["02"]],
+)
+
+
+test_quantity_unit_targets = []
+"""Test quantity unit targets.
+"""
+for exp_method_tmp, test_item_division_tmp in [
+    (exp_demo_01, "01"),
+    (exp_demo_02, "02"),
+]:
+    for test_item_name_tmp, test_item_tmp in test_items[test_item_division_tmp].items():
+        test_quantity_unit_targets.append(
+            (exp_method_tmp, test_item_division_tmp, test_item_name_tmp, test_item_tmp)
+        )
+
+
+@pytest.mark.parametrize(
+    ["exp_method", "test_item_division", "test_item_name", "test_item"],
+    test_quantity_unit_targets,
+)
+def test_quantity_unit(
+    exp_method: QurriumPrototype,
+    test_item_division: str,
+    test_item_name: str,
+    test_item: InputUnit,
+) -> None:
+    """Test the quantity of echo.
 
     Args:
-        tgt (Hashable): The target wave key in Qurry.
+        exp_method (QurriumPrototype):
+            The QurriumPrototype instance.
+        test_item_division (str):
+            The test item division.
+        test_item_name (str):
+            The name of the test item.
+        test_item (TestUnit):
+            The test item.
     """
 
-    exp_id = exp_demo_01.measure(wave=tgt, sampling=5, backend=backend)
-    exp_demo_01.exps[exp_id].analyze()
-    quantity = exp_demo_01.exps[exp_id].reports[0].content._asdict()
-    assert all(
-        ["dummy" in quantity, "utlmatic_answer" in quantity]
-    ), f"The necessary quantities 'dummy', 'utlmatic_answer' are not found: {quantity.keys()}."
+    exp_id = exp_method.measure(**test_item["measure"], backend=backend)  # type: ignore
+
+    if test_item_division == "01":
+        assert isinstance(exp_method, SamplingExecuter), "The exp_method is not SamplingExecuter."
+        assert exp_method.exps[exp_id].args.sampling == test_item["measure"]["sampling"], (
+            "The sampling is wrong: "
+            + f"{exp_method.exps[exp_id].args.sampling} != {test_item['measure']['sampling']}, "
+            + f"on {test_item_name}."
+        )
+    else:
+        assert isinstance(exp_method, WavesExecuter), "The exp_method is not WavesExecuter."
+        assert len(exp_method.exps[exp_id].beforewards.circuit) == len(
+            test_item["measure"]["waves"]
+        ), (
+            "The number of waves is wrong: "
+            + f"{len(exp_method.exps[exp_id].beforewards.circuit)} != "
+            + f"{len(test_item['measure']['waves'])}, {test_item_name}."
+        )
 
 
-@pytest.mark.parametrize("tgt", wave_adds_02)
-def test_quantity_02(tgt):
-    """Test the quantity of entropy and purity.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    exp_id = exp_demo_02.measure(waves=[tgt], backend=backend)
-    exp_demo_02.exps[exp_id].analyze()
-    quantity = exp_demo_02.exps[exp_id].reports[0].content._asdict()
-    assert all(
-        ["dummy" in quantity, "utlmatic_answer" in quantity]
-    ), f"The necessary quantities 'dummy', 'utlmatic_answer' are not found: {quantity.keys()}."
-
-
-def test_multi_output_01():
+@pytest.mark.parametrize(
+    ["exp_method", "test_item_division", "summoner_name"],
+    [
+        (exp_demo_01, "01", "sampling_excuter"),
+        (exp_demo_02, "02", "waves_excuter"),
+    ],
+)
+def test_multi_output_all(
+    exp_method: QurriumPrototype,
+    test_item_division: str,
+    summoner_name: str,
+) -> None:
     """Test the multi-output of echo.
 
     Args:
-        tgt (Hashable): The target wave key in Qurry.
+        exp_method (QurriumPrototype):
+            The QurriumPrototype instance.
+        test_item_division (str):
+            The test item division.
+        summoner_name (str):
+            The summoner name.
     """
 
-    config_list = [{"wave": k} for k in wave_adds_01[:3]]
-    summoner_id = exp_demo_01.multiOutput(
-        config_list,
+    config_list, analysis_args, answer_list, test_item_name_list = [], [], [], []
+    for test_item_name, test_item in list(test_items[test_item_division].items())[:2]:
+        config_list.append(test_item["measure"])
+        analysis_args.append(test_item["analyze"])
+        answer_list.append(test_item["answer"])
+        test_item_name_list.append(test_item_name)
+
+    summoner_id = exp_method.multiOutput(
+        config_list,  # type: ignore
         backend=backend,
-        summoner_name="sampling_excuter",
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-    summoner_id = exp_demo_01.multiAnalysis(summoner_id)
-    quantity_container = exp_demo_01.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for quantity in quantities:
-                assert isinstance(quantity, dict), f"The quantity is not a dict: {quantity}."
-                assert all(["utlmatic_answer" in quantity]), (
-                    "The necessary quantities 'dummy', 'utlmatic_answer' "
-                    + f"are not found: {quantity.keys()}-{qk}-{rk}."
-                )
-
-    read_summoner_id = exp_demo_01.multiRead(
-        summoner_name=exp_demo_01.multimanagers[summoner_id].summoner_name,
+        summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
 
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
-
-
-def test_multi_output_02():
-    """Test the multi-output of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    config_list = [{"waves": [k]} for k in wave_adds_02[:3]]
-    summoner_id = exp_demo_02.multiOutput(
-        config_list,
-        backend=backend,
-        summoner_name="waves_excuter",
+    read_summoner_id = exp_method.multiRead(
+        summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    summoner_id = exp_demo_02.multiAnalysis(summoner_id)
-    quantity_container = exp_demo_02.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for quantity in quantities:
-                assert isinstance(quantity, dict), f"The quantity is not a dict: {quantity}."
-                assert all(["utlmatic_answer" in quantity]), (
-                    "The necessary quantities 'dummy', 'utlmatic_answer' "
-                    + f"are not found: {quantity.keys()}-{qk}-{rk}."
-                )
-
-    read_summoner_id = exp_demo_02.multiRead(
-        summoner_name=exp_demo_02.multimanagers[summoner_id].summoner_name,
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-
     assert (
         read_summoner_id == summoner_id
     ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
