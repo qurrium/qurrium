@@ -34,7 +34,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 
 from utils import current_time_filename, wave_loader, InputUnit, ResultUnit, check_unit
-from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, ghz_overlap_case
+from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import EntropyMeasure
 from qurry.qurrium.qurrium import QurriumPrototype
@@ -88,14 +88,6 @@ circuits: dict[str, QuantumCircuit] = {
     "6-entangle-by-dyn": CNOTDynCase4To8(6),
     "4-entangle-by-dyn-comparison": CNOTDynCase4To8(4, export="comparison"),
     "6-entangle-by-dyn-comparison": CNOTDynCase4To8(6, export="comparison"),
-    # true overlap
-    "4-GHZ-00": ghz_overlap_case(4, "00"),
-    "4-GHZ-01": ghz_overlap_case(4, "01"),
-    "4-GHZ-10": ghz_overlap_case(4, "10"),
-    "4-GHZ-11": ghz_overlap_case(4, "11"),
-    "4-GHZ-x-init-GHZ": ghz_overlap_case(4, "x-init-GHZ"),
-    "4-GHZ-singlet": ghz_overlap_case(4, "singlet"),
-    "4-GHZ-intracell-plus": ghz_overlap_case(4, "intracell-plus"),
 }
 """Circuits. """
 
