@@ -123,9 +123,7 @@ def rho_m_core_py(
         )
 
     if any(selected_qubits_checked.values()):
-        problematic_cells = [
-            idx for idx, checked in selected_qubits_checked.items() if checked
-        ]
+        problematic_cells = [idx for idx, checked in selected_qubits_checked.items() if checked]
         warnings.warn(
             f"Selected qubits are not sorted for {problematic_cells} cells.",
             RuntimeWarning,
