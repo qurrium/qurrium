@@ -119,12 +119,15 @@ def rho_m_core_py(
             rho_m_dict[idx] += rho_mk * rho_mk_counts_num[bitstring]
         rho_m_dict[idx] /= shots
         selected_qubits_checked[idx] = (
-            selected_classical_registers_sorted_result == selected_classical_registers_sorted
+            selected_classical_registers_sorted_result != selected_classical_registers_sorted
         )
 
-    if len(selected_qubits_checked) > 0:
+    if any(selected_qubits_checked.values()):
+        problematic_cells = [
+            idx for idx, checked in selected_qubits_checked.items() if checked
+        ]
         warnings.warn(
-            f"Selected qubits are not sorted for {len(selected_qubits_checked)} cells.",
+            f"Selected qubits are not sorted for {problematic_cells} cells.",
             RuntimeWarning,
         )
 
