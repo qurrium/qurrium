@@ -293,6 +293,7 @@ class MultiManager:
         pending_strategy: PendingStrategyLiteral = "tags",
         # save parameters
         save_location: Union[Path, str] = Path("./"),
+        skip_writing: bool = False,
     ) -> tuple[ExperimentContainer[_ExpInst], "MultiManager"]:
         """Build the multi-experiment.
 
@@ -312,6 +313,8 @@ class MultiManager:
                 The pending strategy of experiments. Defaults to "tags".
             save_location (Union[Path, str], optional):
                 Location of saving experiment. Defaults to Path("./").
+            skip_writing (bool, optional):
+                Whether skip writing. Defaults to False.
 
         Returns:
             tuple[ExperimentContainer[_ExpInst], MultiManager]:
@@ -379,7 +382,7 @@ class MultiManager:
             initial_config_list.append(
                 {
                     **config,
-                    "shots": shots,
+                    "shots": config.get("shots", shots),
                     "backend": backend,
                     "exp_name": current_multimanager.multicommons.summoner_name,
                     "save_location": current_multimanager.multicommons.save_location,
@@ -410,7 +413,8 @@ class MultiManager:
             tmp_exps_container[new_exps.commons.exp_id] = new_exps
 
         initial_config_list_progress.set_description_str("MultiManager writing...")
-        current_multimanager.write(exps_container=tmp_exps_container)
+        if not skip_writing:
+            current_multimanager.write(exps_container=tmp_exps_container)
 
         return tmp_exps_container, current_multimanager
 
@@ -915,7 +919,7 @@ class MultiManager:
                 )
 
             exps_container[k].write()
-            main, _tales = report.export()
+            main, _tales = report.export(jsonable=False)
             self.quantity_container[name][exps_container[k].commons.tags].append(main)
 
         self.multicommons.datetimes.add_only(name)

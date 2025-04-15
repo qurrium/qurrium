@@ -1,11 +1,8 @@
-extern crate pyo3;
-
 use dashmap::DashMap;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;

@@ -33,540 +33,360 @@
 import os
 import warnings
 import pytest
-import numpy as np
 
-from utils import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, current_time_filename
+from qiskit import QuantumCircuit
+
+from utils import current_time_filename, wave_loader, InputUnit, ResultUnit, check_unit
+from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, ghz_overlap_case
 
 from qurry.qurrech import EchoListen
-from qurry.tools.backend import GeneralSimulator
-from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
-from qurry.capsule import mori, hoshi, quickRead, quickJSON
+from qurry.qurrium.qurrium import QurriumPrototype
+from qurry.tools.backend.import_simulator import (
+    SIM_DEFAULT_SOURCE,
+    SIM_IMPORT_ERROR_INFOS,
+    GeneralSimulator,
+)
+from qurry.capsule import quickRead, quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
 from qurry.exceptions import QurryDependenciesNotWorking
 
 
-tag_list = mori.TagList()
-statesheet = hoshi.Hoshi()
-
-FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
 SEED_SIMULATOR = 2019  # <harmony/>
 THREDHOLD = 0.26
-MANUAL_ASSERT_ERROR = False
 
-exp_method_01 = EchoListen(method="hadamard")
-exp_method_02 = EchoListen(method="randomized")
-exp_method_02_with_extra_clbits = EchoListen(method="randomized")
-exp_method_03 = EchoListen(method="randomized_v1")
+backend = GeneralSimulator()
+backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
 
-random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(FILE_LOCATION)
+SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
+random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(SEED_FILE_LOCATION)
 random_unitary_seeds = {
     int(k): {int(k2): {int(k3): v3 for k3, v3 in v2.items()} for k2, v2 in v.items()}
     for k, v in random_unitary_seeds_raw.items()
 }
-seed_usage = {}
 
-wave_adds = {
-    "01": [],
-    "02": [],
-    "03": [],
-    "02_with_extra_clbits": [],
-    "02_true_overlap": [],
+
+if SIM_DEFAULT_SOURCE != "qiskit_aer":
+    warnings.warn(
+        f"Qiskit Aer is not used as the default simulator: {SIM_DEFAULT_SOURCE}. "
+        f"Please check the simulator source: {SIM_IMPORT_ERROR_INFOS}.",
+        category=QurryDependenciesNotWorking,
+    )
+
+test_items: dict[str, dict[str, InputUnit]] = {}
+"""Test items. """
+result_items: dict[str, dict[str, ResultUnit]] = {}
+"""Result items. """
+
+circuits: dict[str, QuantumCircuit] = {
+    "4-trivial": TrivialParamagnet(4),
+    "4-GHZ": GHZ(4),
+    "4-topological-period": TopologicalParamagnet(4),
+    "6-trivial": TrivialParamagnet(6),
+    "6-GHZ": GHZ(6),
+    "6-topological-period": TopologicalParamagnet(6),
+    # extra qubits
+    "4-dummy-2-body-with-clbits": DummyTwoBodyWithDedicatedClbits(4),
+    "6-dummy-2-body-with-clbits": DummyTwoBodyWithDedicatedClbits(6),
+    # dynamic circuit
+    "4-entangle-by-dyn": CNOTDynCase4To8(4),
+    "6-entangle-by-dyn": CNOTDynCase4To8(6),
+    "4-entangle-by-dyn-comparison": CNOTDynCase4To8(4, export="comparison"),
+    "6-entangle-by-dyn-comparison": CNOTDynCase4To8(6, export="comparison"),
+    # true overlap
+    "4-GHZ-00": ghz_overlap_case(4, "00"),
+    "4-GHZ-01": ghz_overlap_case(4, "01"),
+    "4-GHZ-10": ghz_overlap_case(4, "10"),
+    "4-GHZ-11": ghz_overlap_case(4, "11"),
+    "4-GHZ-x-init-GHZ": ghz_overlap_case(4, "x-init-GHZ"),
+    "4-GHZ-singlet": ghz_overlap_case(4, "singlet"),
+    "4-GHZ-intracell-plus": ghz_overlap_case(4, "intracell-plus"),
 }
-answer = {}
-measure_dyn = {}
+"""Circuits. """
 
-results = {
-    "hadamard": {},
-    "randomized": {},
-    "randomized_with_extra_clbits": {},
-    "randomized_true_overlap": {},
-    "randomized_v1": {},
+# hadamard test
+exp_method_01 = EchoListen(method="hadamard")
+test_items["01"] = {
+    circ_name: {
+        "measure": {"wave1": circ_name, "wave2": circ_name, "degree": (0, 2)},
+        "analyze": {},
+        "answer": answer,
+    }
+    for circ_name, answer in [
+        ("4-trivial", 1.0),
+        ("4-GHZ", 0.5),
+        ("4-topological-period", 0.25),
+        ("6-trivial", 1.0),
+        ("6-GHZ", 0.5),
+        ("6-topological-period", 0.25),
+    ]
 }
+wave_loader(exp_method_01, [(circ_name, circuits[circ_name]) for circ_name in test_items["01"]])
 
-for i in range(4, 7, 2):
-    wave_adds["01"].append(exp_method_01.add(TrivialParamagnet(i), f"{i}-trivial"))
-    wave_adds["02"].append(exp_method_02.add(TrivialParamagnet(i), f"{i}-trivial"))
-    wave_adds["03"].append(exp_method_03.add(TrivialParamagnet(i), f"{i}-trivial"))
-    answer[f"{i}-trivial"] = 1.0
-    seed_usage[f"{i}-trivial"] = i
-    measure_dyn[f"{i}-trivial"] = {
-        "01": (0, 2),
-        "02": range(-2, 0),
-        "03": (0, 2),
-    }
-    # purity = 1.0
-
-    wave_adds["01"].append(exp_method_01.add(GHZ(i), f"{i}-GHZ"))
-    wave_adds["02"].append(exp_method_02.add(GHZ(i), f"{i}-GHZ"))
-    wave_adds["03"].append(exp_method_03.add(GHZ(i), f"{i}-GHZ"))
-    answer[f"{i}-GHZ"] = 0.5
-    seed_usage[f"{i}-GHZ"] = i
-    measure_dyn[f"{i}-GHZ"] = {
-        "01": (0, 2),
-        "02": range(-2, 0),
-        "03": (0, 2),
-    }
-    # purity = 0.5
-
-    wave_adds["01"].append(
-        exp_method_01.add(TopologicalParamagnet(i, "period"), f"{i}-topological-period")
-    )
-    wave_adds["02"].append(
-        exp_method_02.add(TopologicalParamagnet(i, "period"), f"{i}-topological-period")
-    )
-    wave_adds["03"].append(
-        exp_method_03.add(TopologicalParamagnet(i, "period"), f"{i}-topological-period")
-    )
-    answer[f"{i}-topological-period"] = 0.5
-    seed_usage[f"{i}-topological-period"] = i
-    measure_dyn[f"{i}-topological-period"] = {
-        "01": (0, 2),
-        "02": range(-2, 0),
-        "03": (0, 2),
-    }
-    # purity = 0.25
-
-    if SIM_DEFAULT_SOURCE == "qiskit_aer":
-        wave_adds["02_with_extra_clbits"].append(
-            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn")
-        )
-        answer[f"{i}-entangle-by-dyn"] = 1
-        seed_usage[f"{i}-entangle-by-dyn"] = i
-        measure_dyn[f"{i}-entangle-by-dyn"] = {
-            "02_with_extra_clbits": [0, i - 1],
-        }
-        # purity = 1, de-facto all system when selected qubits is [0, i - 1]
-
-        wave_adds["02_with_extra_clbits"].append(
-            exp_method_02_with_extra_clbits.add(CNOTDynCase4To8(i), f"{i}-entangle-by-dyn-half")
-        )
-        answer[f"{i}-entangle-by-dyn-half"] = 0.5
-        seed_usage[f"{i}-entangle-by-dyn-half"] = i
-        measure_dyn[f"{i}-entangle-by-dyn-half"] = {
-            "02_with_extra_clbits": [0],
-        }
-        # purity = 0.5, when selected qubits is [0]
-
-        wave_adds["02_with_extra_clbits"].append(
-            exp_method_02_with_extra_clbits.add(
-                DummyTwoBodyWithDedicatedClbits(i), f"{i}-dummy-2-body-with-clbits"
-            )
-        )
-        answer[f"{i}-dummy-2-body-with-clbits"] = 1.0
-        seed_usage[f"{i}-dummy-2-body-with-clbits"] = i
-        measure_dyn[f"{i}-dummy-2-body-with-clbits"] = {
-            "02_with_extra_clbits": [i - 2, i - 1],
-        }
-        # purity = 1.0
-
-        cross_test_name = (
-            f"{i}-entangle-by-dyn",
-            exp_method_02_with_extra_clbits.add(
-                CNOTDynCase4To8(i, export="comparison"), f"{i}-entangle-by-dyn-comparison"
-            ),
-        )
-        wave_adds["02_true_overlap"].append(cross_test_name)
-        answer[cross_test_name] = 1.0
-        seed_usage[cross_test_name] = i
-        measure_dyn[cross_test_name] = {
-            "02_true_overlap": [0, i - 1],
-        }
-    else:
-        warnings.warn(
-            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
-            + "which is guaranteed to work with dynamic circuit. "
-            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
-            category=QurryDependenciesNotWorking,
-        )
-
-backend = GeneralSimulator()
-# backend = BasicAer.backends()[0]
-backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
-
-
-@pytest.mark.parametrize("tgt", wave_adds["01"])
-def test_quantity_01(tgt):
-    """Test the quantity of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    exp_id = exp_method_01.measure(tgt, tgt, (0, 2), backend=backend)
-    exp_method_01.exps[exp_id].analyze()
-    quantity = exp_method_01.exps[exp_id].reports[0].content._asdict()
-    assert all(
-        ["echo" in quantity]
-    ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
-
-    diff = np.abs(quantity["echo"] - answer[tgt])
-    is_correct = diff < THREDHOLD
-    assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-        "The hadamard test result is wrong: "
-        + f"{diff} !< {THREDHOLD}."
-        + f" {quantity['echo']} != {answer[tgt]}."
-    )
-
-    results["hadamard"][tgt] = {
-        "answer": answer[tgt],
-        "difference": diff,
-        "target_quantity": quantity["echo"],
-        "is_correct": is_correct,
-    }
-
-
-def test_multi_output_01():
-    """Test the multi-output of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    config_list = [
-        {
-            "wave1": k,
-            "wave2": k,
-            "degree": measure_dyn[k]["01"],
-        }
-        for k in wave_adds["01"][:3]
-    ]
-    answer_list = [answer[k] for k in wave_adds["01"][:3]]
-
-    summoner_id = exp_method_01.multiOutput(
-        config_list,  # type: ignore
-        backend=backend,
-        summoner_name="qurrech_hadamard",
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-    summoner_id = exp_method_01.multiAnalysis(summoner_id)
-    quantity_container = exp_method_01.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for qqi, quantity in enumerate(quantities):
-                assert isinstance(quantity, dict), f"The quantity is not a dict: {quantity}."
-                assert all(
-                    ["echo" in quantity]
-                ), f"The necessary quantities 'echo' are not found: {quantity.keys()}-{qk}-{rk}."
-                assert np.abs(quantity["echo"] - answer_list[qqi]) < THREDHOLD, (
-                    "The hadamard test result is wrong: "
-                    + f"{np.abs(quantity['echo'] - answer_list[qqi])} !< {THREDHOLD}."
-                    + f" {quantity['echo']} != {answer_list[qqi]}."
-                )
-
-    read_summoner_id = exp_method_01.multiRead(
-        summoner_name=exp_method_01.multimanagers[summoner_id].summoner_name,
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
-
-
-@pytest.mark.parametrize("tgt", wave_adds["02"])
-def test_quantity_02(tgt):
-    """Test the quantity of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    # pylint: disable=unexpected-keyword-arg
-    exp_id = exp_method_02.measure(
-        wave1=tgt,
-        wave2=tgt,
-        times=20,
-        second_transpile_args={
-            "optimization_level": 3,
-        },
-        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
-        backend=backend,
-    )
-    # pylint: enable=unexpected-keyword-arg
-    exp_method_02.exps[exp_id].analyze(measure_dyn[tgt]["02"])
-    quantity = exp_method_02.exps[exp_id].reports[0].content._asdict()
-    assert all(
-        ["echo" in quantity]
-    ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
-
-    diff = np.abs(quantity["echo"] - answer[tgt])
-    is_correct = diff < THREDHOLD
-    assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-        "The randomized measurement result is wrong: "
-        + f"{diff} !< {THREDHOLD}."
-        + f" {quantity['echo']} != {answer[tgt]}."
-    )
-    results["randomized"][tgt] = {
-        "answer": answer[tgt],
-        "difference": diff,
-        "target_quantity": quantity["echo"],
-        "is_correct": is_correct,
-    }
-
-
-def test_multi_output_02():
-    """Test the multi-output of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    config_list = [
-        {
-            "wave1": k,
-            "wave2": k,
+# randomized measurement
+exp_method_02 = EchoListen(method="randomized")
+test_items["02"] = {
+    circ_name: {
+        "measure": {
+            "wave1": circ_name,
+            "wave2": circ_name,
             "times": 20,
-            "transpile_args": {
-                "optimization_level": 2,
-            },
-            "random_unitary_seeds": {i: random_unitary_seeds[seed_usage[k]][i] for i in range(20)},
-        }
-        for k in wave_adds["02"][:3]
-    ]
-    answer_list = [answer[k] for k in wave_adds["02"][:3]]
-
-    summoner_id = exp_method_02.multiOutput(
-        config_list,  # type: ignore
-        backend=backend,
-        summoner_name="qurrech_randomized",
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-    summoner_id = exp_method_02.multiAnalysis(
-        summoner_id,
-        specific_analysis_args={
-            ck: {
-                "selected_classical_registers": measure_dyn[wk]["02"],
-            }
-            for wk, ck in zip(
-                wave_adds["02"][:3],
-                exp_method_02.multimanagers[summoner_id].afterwards.allCounts.keys(),
-            )
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(20)},
         },
-    )
-    quantity_container = exp_method_02.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for qqi, quantity in enumerate(quantities):
-                assert isinstance(quantity, dict), f"The quantity is not a dict: {quantity}."
-                assert all(
-                    ["echo" in quantity]
-                ), f"The necessary quantities 'echo' are not found: {quantity.keys()}-{qk}-{rk}."
-                assert np.abs(quantity["echo"] - answer_list[qqi]) < THREDHOLD, (
-                    "The randomized measurement result is wrong: "
-                    + f"{np.abs(quantity['echo'] - answer_list[qqi])} !< {THREDHOLD}."
-                    + f" {quantity['echo']} != {answer_list[qqi]}."
-                )
-
-    read_summoner_id = exp_method_02.multiRead(
-        summoner_name=exp_method_02.multimanagers[summoner_id].summoner_name,
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
-
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
-
-
-@pytest.mark.parametrize("tgt", wave_adds["02_with_extra_clbits"])
-def test_quantity_02_with_extra_clbits(tgt):
-    """Test the quantity of entropy and purity.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    if SIM_DEFAULT_SOURCE == "qiskit_aer":
-        # pylint: disable=unexpected-keyword-arg
-        exp_id = exp_method_02_with_extra_clbits.measure(
-            wave1=tgt,
-            wave2=tgt,
-            times=50,
-            measure_1=measure_dyn[tgt]["02_with_extra_clbits"],
-            measure_2=measure_dyn[tgt]["02_with_extra_clbits"],
-            random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(50)},
-            backend=backend,
-        )
-        # pylint: enable=unexpected-keyword-arg
-        exp_method_02_with_extra_clbits.exps[exp_id].write(
-            save_location=os.path.join(os.path.dirname(__file__), "exports")
-        )
-        analysis = exp_method_02_with_extra_clbits.exps[exp_id].analyze(
-            measure_dyn[tgt]["02_with_extra_clbits"]
-        )
-        quantity = analysis.content._asdict()
-        exp_method_02_with_extra_clbits.exps[exp_id].write(
-            save_location=os.path.join(os.path.dirname(__file__), "exports")
-        )
-
-        assert all(
-            ["echo" in quantity]
-        ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
-
-        diff = np.abs(quantity["echo"] - answer[tgt])
-        is_correct = diff < THREDHOLD
-        assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-            "The randomized measurement result is wrong: "
-            + f"{diff} !< {THREDHOLD}."
-            + f" {quantity['echo']} != {answer[tgt]}. exp_id: {exp_id}."
-        )
-
-        results["randomized_with_extra_clbits"][tgt] = {
-            "answer": answer[tgt],
-            "difference": diff,
-            "target_quantity": quantity["echo"],
-            "is_correct": is_correct,
-        }
-    else:
-        warnings.warn(
-            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
-            + "which is guaranteed to work with dynamic circuit. "
-            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
-            category=QurryDependenciesNotWorking,
-        )
-
-
-@pytest.mark.parametrize("tgt", wave_adds["02_true_overlap"])
-def test_quantity_02_true_overlap(tgt):
-    """Test the quantity of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    if SIM_DEFAULT_SOURCE == "qiskit_aer":
-        # pylint: disable=unexpected-keyword-arg
-        exp_id = exp_method_02_with_extra_clbits.measure(
-            wave1=tgt[0],
-            wave2=tgt[1],
-            times=20,
-            measure_1=measure_dyn[tgt]["02_true_overlap"],
-            measure_2=measure_dyn[tgt]["02_true_overlap"],
-            random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
-            backend=backend,
-        )
-        # pylint: enable=unexpected-keyword-arg
-        exp_method_02_with_extra_clbits.exps[exp_id].analyze(measure_dyn[tgt]["02_true_overlap"])
-        quantity = exp_method_02_with_extra_clbits.exps[exp_id].reports[0].content._asdict()
-        assert all(
-            ["echo" in quantity]
-        ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
-
-        diff = np.abs(quantity["echo"] - answer[tgt])
-        is_correct = diff < THREDHOLD
-        assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-            "The randomized measurement result is wrong: "
-            + f"{diff} !< {THREDHOLD}."
-            + f" {quantity['echo']} != {answer[tgt]}."
-        )
-        results["randomized_true_overlap"][tgt] = {
-            "answer": answer[tgt],
-            "difference": diff,
-            "target_quantity": quantity["echo"],
-            "is_correct": is_correct,
-        }
-    else:
-        warnings.warn(
-            f'The backend is {SIM_DEFAULT_SOURCE} instead of "qiskit_aer" '
-            + "which is guaranteed to work with dynamic circuit. "
-            + f"And here is the error message: {SIM_IMPORT_ERROR_INFOS['qiskit_aer']}.",
-            category=QurryDependenciesNotWorking,
-        )
-
-
-@pytest.mark.parametrize("tgt", wave_adds["03"])
-def test_quantity_03(tgt):
-    """Test the quantity of echo.
-
-    Args:
-        tgt (Hashable): The target wave key in Qurry.
-    """
-
-    # pylint: disable=unexpected-keyword-arg
-    exp_id = exp_method_03.measure(
-        wave1=tgt,
-        wave2=tgt,
-        times=20,
-        random_unitary_seeds={i: random_unitary_seeds[seed_usage[tgt]][i] for i in range(20)},
-        backend=backend,
-    )
-    # pylint: enable=unexpected-keyword-arg
-    exp_method_03.exps[exp_id].analyze(measure_dyn[tgt]["03"])
-    quantity = exp_method_03.exps[exp_id].reports[0].content._asdict()
-    assert all(
-        ["echo" in quantity]
-    ), f"The necessary quantities 'echo' are not found: {quantity.keys()}."
-
-    diff = np.abs(quantity["echo"] - answer[tgt])
-    is_correct = diff < THREDHOLD
-    assert (not MANUAL_ASSERT_ERROR) and is_correct, (
-        "The randomized measurement result is wrong: "
-        + f"{diff} !< {THREDHOLD}."
-        + f" {quantity['echo']} != {answer[tgt]}."
-    )
-
-    results["randomized_v1"][tgt] = {
-        "answer": answer[tgt],
-        "difference": diff,
-        "target_quantity": quantity["echo"],
-        "is_correct": is_correct,
+        "analyze": {"selected_classical_registers": range(-2, 0)},
+        "answer": answer,
     }
+    for num_qubits, circ_name, answer in [
+        (4, "4-trivial", 1.0),
+        (4, "4-GHZ", 0.5),
+        (4, "4-topological-period", 0.25),
+        (6, "6-trivial", 1.0),
+        (6, "6-GHZ", 0.5),
+        (6, "6-topological-period", 0.25),
+    ]
+}
+wave_loader(
+    exp_method_02,
+    [(circ_name, circuits[circ_name]) for circ_name in test_items["02"]],
+)
+
+# randomized measurement v1
+exp_method_03 = EchoListen(method="randomized_v1")
+test_items["03"] = {
+    circ_name: {
+        "measure": {
+            "wave1": circ_name,
+            "wave2": circ_name,
+            "times": 20,
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(20)},
+        },
+        "analyze": {"degree": (0, 2)},
+        "answer": answer,
+    }
+    for num_qubits, circ_name, answer in [
+        (4, "4-trivial", 1.0),
+        (4, "4-GHZ", 0.5),
+        (4, "4-topological-period", 0.25),
+        (6, "6-trivial", 1.0),
+        (6, "6-GHZ", 0.5),
+        (6, "6-topological-period", 0.25),
+    ]
+}
+wave_loader(
+    exp_method_03,
+    [(circ_name, circuits[circ_name]) for circ_name in test_items["03"]],
+)
+
+exp_method_02_extra_clbits = EchoListen(method="randomized")
+test_items["02_extra_clbits"] = {
+    circ_name: {
+        "measure": {
+            "wave1": circ_name,
+            "wave2": circ_name,
+            "times": 50,
+            "measure_1": measure_range,
+            "measure_2": measure_range,
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(50)},
+        },
+        "analyze": {"selected_classical_registers": measure_range},
+        "answer": answer,
+    }
+    for num_qubits, measure_range, circ_name, answer in (
+        [
+            (4, [2, 3], "4-dummy-2-body-with-clbits", 1.0),
+            (6, [4, 5], "6-dummy-2-body-with-clbits", 1.0),
+        ]
+        + (
+            [
+                (4, [0, 3], "4-entangle-by-dyn", 1.0),
+                (4, [0], "4-entangle-by-dyn", 0.5),
+                (6, [0, 5], "6-entangle-by-dyn", 1.0),
+                (6, [0], "6-entangle-by-dyn", 0.5),
+            ]
+            if SIM_DEFAULT_SOURCE == "qiskit_aer"
+            else []
+        )
+    )
+}
+wave_loader(
+    exp_method_02_extra_clbits,
+    [(circ_name, circuits[circ_name]) for circ_name in test_items["02_extra_clbits"]],
+)
 
 
-def test_multi_output_03():
+exp_method_02_true_overlap = EchoListen(method="randomized")
+test_items["02_true_overlap"] = {
+    f"{circ_name_1}.{circ_name_2}": {
+        "measure": {
+            "wave1": circ_name_1,
+            "wave2": circ_name_2,
+            "times": 50,
+            "measure_1": measure_range,
+            "measure_2": measure_range,
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(50)},
+        },
+        "analyze": {"selected_classical_registers": selected_cregs},
+        "answer": answer,
+    }
+    for num_qubits, measure_range, circ_name_1, circ_name_2, selected_cregs, answer in (
+        [
+            (4, None, "4-GHZ", "4-GHZ-00", range(4), 0.5),
+            (4, None, "4-GHZ", "4-GHZ-01", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-10", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-11", range(4), 0.5),
+            (4, None, "4-GHZ", "4-GHZ-x-init-GHZ", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-singlet", range(4), 0),
+            (4, None, "4-GHZ", "4-GHZ-intracell-plus", range(4), 0),
+        ]
+        + (
+            [
+                (4, [0, 3], "4-entangle-by-dyn", "4-entangle-by-dyn-comparison", range(-2, 0), 1.0),
+                (6, [0, 5], "6-entangle-by-dyn", "6-entangle-by-dyn-comparison", range(-2, 0), 1.0),
+            ]
+            if SIM_DEFAULT_SOURCE == "qiskit_aer"
+            else []
+        )
+    )
+}
+wave_needs_to_be_loaded = []
+for circ_name_combined in test_items["02_true_overlap"]:
+    circ_name_1, circ_name_2 = circ_name_combined.split(".")
+    if circ_name_1 not in wave_needs_to_be_loaded:
+        wave_needs_to_be_loaded.append(circ_name_1)
+    if circ_name_2 not in wave_needs_to_be_loaded:
+        wave_needs_to_be_loaded.append(circ_name_2)
+wave_loader(
+    exp_method_02_true_overlap,
+    [(circ_name, circuits[circ_name]) for circ_name in wave_needs_to_be_loaded],
+)
+
+test_quantity_unit_targets = []
+"""Test quantity unit targets.
+"""
+for exp_method_tmp, test_item_division_tmp in [
+    (exp_method_01, "01"),
+    (exp_method_02, "02"),
+    (exp_method_03, "03"),
+    (exp_method_02_extra_clbits, "02_extra_clbits"),
+    (exp_method_02_true_overlap, "02_true_overlap"),
+]:
+    for test_item_name_tmp, test_item_tmp in test_items[test_item_division_tmp].items():
+        test_quantity_unit_targets.append(
+            (exp_method_tmp, test_item_division_tmp, test_item_name_tmp, test_item_tmp)
+        )
+
+
+@pytest.mark.parametrize(
+    ["exp_method", "test_item_division", "test_item_name", "test_item"],
+    test_quantity_unit_targets,
+)
+def test_quantity_unit(
+    exp_method: QurriumPrototype,
+    test_item_division: str,
+    test_item_name: str,
+    test_item: InputUnit,
+) -> None:
+    """Test the quantity of echo.
+
+    Args:
+        exp_method (QurriumPrototype):
+            The QurriumPrototype instance.
+        test_item_division (str):
+            The test item division.
+        test_item_name (str):
+            The name of the test item.
+        test_item (TestUnit):
+            The test item.
+    """
+
+    exp_id = exp_method.measure(**test_item["measure"], backend=backend)  # type: ignore
+    exp_method.exps[exp_id].analyze(**test_item["analyze"])
+
+    quantity = exp_method.exps[exp_id].reports[0].content._asdict()
+
+    if test_item_division not in result_items:
+        result_items[test_item_division] = {}
+    result_items[test_item_division][test_item_name] = check_unit(
+        quantity,
+        "echo",
+        test_item["answer"],
+        THREDHOLD,
+        test_item_name,
+    )
+
+
+@pytest.mark.parametrize(
+    ["exp_method", "test_item_division", "summoner_name"],
+    [
+        (exp_method_01, "01", "qurrech_hadamard"),
+        (exp_method_02, "02", "qurrech_randomized"),
+        (exp_method_03, "03", "qurrech_randomized_v1"),
+        (exp_method_02_extra_clbits, "02_extra_clbits", "qurrech_randomized_extra_clbits"),
+        (exp_method_02_true_overlap, "02_true_overlap", "qurrech_randomized_true_overlap"),
+    ],
+)
+def test_multi_output_all(
+    exp_method: QurriumPrototype,
+    test_item_division: str,
+    summoner_name: str,
+) -> None:
     """Test the multi-output of echo.
 
     Args:
-        tgt (Hashable): The target wave key in Qurry.
+        exp_method (QurriumPrototype):
+            The QurriumPrototype instance.
+        test_item_division (str):
+            The test item division.
+        summoner_name (str):
+            The summoner name.
     """
 
-    config_list = [
-        {
-            "wave1": k,
-            "wave2": k,
-            "times": 20,
-            "random_unitary_seeds": {i: random_unitary_seeds[seed_usage[k]][i] for i in range(20)},
-        }
-        for k in wave_adds["03"][:3]
-    ]
-    answer_list = [answer[k] for k in wave_adds["03"][:3]]
+    config_list, analysis_args, answer_list, test_item_name_list = [], [], [], []
+    for test_item_name, test_item in list(test_items[test_item_division].items())[:2]:
+        config_list.append(test_item["measure"])
+        analysis_args.append(test_item["analyze"])
+        answer_list.append(test_item["answer"])
+        test_item_name_list.append(test_item_name)
 
-    summoner_id = exp_method_03.multiOutput(
+    summoner_id = exp_method.multiOutput(
         config_list,  # type: ignore
         backend=backend,
-        summoner_name="qurrech_randomized",
+        summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    summoner_id = exp_method_03.multiAnalysis(
-        summoner_id,
-        specific_analysis_args={
-            ck: {
-                "degree": measure_dyn[wk]["03"],
-            }
-            for wk, ck in zip(
-                wave_adds["03"][:3],
-                exp_method_03.multimanagers[summoner_id].afterwards.allCounts.keys(),
-            )
-        },
+
+    specific_analysis_args = dict(
+        zip(
+            exp_method.multimanagers[summoner_id].beforewards.exps_config.keys(),
+            analysis_args,
+        )
     )
-    quantity_container = exp_method_03.multimanagers[summoner_id].quantity_container
+    summoner_id = exp_method.multiAnalysis(
+        summoner_id, specific_analysis_args=specific_analysis_args  # type: ignore
+    )
+
+    quantity_container = exp_method.multimanagers[summoner_id].quantity_container
     for rk, report in quantity_container.items():
         for qk, quantities in report.items():
             for qqi, quantity in enumerate(quantities):
-                assert isinstance(quantity, dict), f"The quantity is not a dict: {quantity}."
-                assert all(
-                    ["echo" in quantity]
-                ), f"The necessary quantities 'echo' are not found: {quantity.keys()}-{qk}-{rk}."
-                assert np.abs(quantity["echo"] - answer_list[qqi]) < THREDHOLD, (
-                    "The randomized measurement result is wrong: "
-                    + f"{np.abs(quantity['echo'] - answer_list[qqi])} !< {THREDHOLD}."
-                    + f" {quantity['echo']} != {answer_list[qqi]}."
+                assert isinstance(
+                    quantity, dict
+                ), f"The quantity is not a dict: {quantity}, {quantity.keys()}-{qk}-{rk}."
+
+                if f"{test_item_division}_multi" not in result_items:
+                    result_items[f"{test_item_division}_multi"] = {}
+
+                result_items[f"{test_item_division}_multi"][test_item_name_list[qqi]] = check_unit(
+                    quantity,
+                    "echo",
+                    answer_list[qqi],
+                    THREDHOLD,
+                    test_item_name_list[qqi],
                 )
 
-    read_summoner_id = exp_method_03.multiRead(
-        summoner_name=exp_method_03.multimanagers[summoner_id].summoner_name,
+    read_summoner_id = exp_method.multiRead(
+        summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-
     assert (
         read_summoner_id == summoner_id
     ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
@@ -576,8 +396,8 @@ def test_export():
     """Export the results."""
 
     quickJSON(
-        results,
-        f"test_qurrech.{current_time_filename()}.json",
+        result_items,
+        f"results_qurrech.{current_time_filename()}.json",
         mode="w",
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
         jsonable=True,

@@ -1,8 +1,6 @@
-"""
-================================================================
-Availability for the post-processing module.
+"""Availability for the post-processing module.
 (:mod:`qurry.process.availability`)
-================================================================
+
 """
 
 from typing import Union, Literal, Optional, Callable

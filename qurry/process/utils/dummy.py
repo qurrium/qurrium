@@ -1,8 +1,5 @@
-"""
-================================================================
-Dummy Case Kit
+"""Post Processing - Utils - Toolkits for Dummy Case
 (:mod:`qurry.process.utils.dummy`)
-================================================================
 
 """
 

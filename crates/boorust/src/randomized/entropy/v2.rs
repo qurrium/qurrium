@@ -1,6 +1,3 @@
-extern crate pyo3;
-extern crate rayon;
-
 use pyo3::prelude::*;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::prelude::*;

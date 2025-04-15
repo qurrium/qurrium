@@ -1,5 +1,3 @@
-extern crate pyo3;
-
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::collections::HashMap;

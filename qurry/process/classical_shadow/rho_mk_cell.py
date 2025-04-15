@@ -7,48 +7,7 @@ from typing import Literal, Union, Any
 import numpy as np
 
 from .unitary_set import U_M_MATRIX, OUTER_PRODUCT, IDENTITY
-from ..availability import (
-    availablility,
-    default_postprocessing_backend,
-    # PostProcessingBackendLabel,
-)
 from ..utils import counts_under_degree_pyrust
-
-# from ..exceptions import (
-#     PostProcessingRustImportError,
-#     PostProcessingRustUnavailableWarning,
-#     PostProcessingBackendDeprecatedWarning,
-# )
-
-# try:
-
-#     from ...boorust import randomized  # type: ignore
-
-#     purity_cell_2_rust_source = randomized.purity_cell_2_rust
-
-#     RUST_AVAILABLE = True
-#     FAILED_RUST_IMPORT = None
-# except ImportError as err:
-#     RUST_AVAILABLE = False
-#     FAILED_RUST_IMPORT = err
-
-#     def purity_cell_rust_source(*args, **kwargs):
-#         """Dummy function for purity_cell_rust."""
-#         raise PostProcessingRustImportError(
-#             "Rust is not available, using python to calculate purity cell."
-#         ) from FAILED_RUST_IMPORT
-
-
-RUST_AVAILABLE = False
-FAILED_RUST_IMPORT = None
-
-BACKEND_AVAILABLE = availablility(
-    "classical_shadow.rho_m_cell",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
-)
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
 
 
 def rho_mk_cell_py(

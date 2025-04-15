@@ -1,8 +1,4 @@
-"""
-================================================================
-Post-processing - Utils - Construct
-(:mod:`qurry.process.utils.construct`)
-================================================================
+"""Post Processing - Utils - Construct (:mod:`qurry.process.utils.construct`)
 
 """
 

@@ -276,6 +276,8 @@ class StringOperator(QurriumPrototype):
         tags: Optional[tuple[str, ...]] = None,
         manager_run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
         save_location: Union[Path, str] = Path("./"),
+        skip_build_write: bool = False,
+        skip_output_write: bool = False,
         compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
@@ -302,6 +304,12 @@ class StringOperator(QurriumPrototype):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
+            skip_build_write (bool, optional):
+                Whether to skip the file writing during the building.
+                Defaults to False.
+            skip_output_write (bool, optional):
+                Whether to skip the file writing during the output.
+                Defaults to False.
             compress (bool, optional):
                 Whether to compress the export file. Defaults to False.
 
@@ -318,6 +326,8 @@ class StringOperator(QurriumPrototype):
             tags=tags,
             manager_run_args=manager_run_args,
             save_location=save_location,
+            skip_build_write=skip_build_write,
+            skip_output_write=skip_output_write,
             compress=compress,
         )
 
