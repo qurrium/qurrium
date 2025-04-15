@@ -9,7 +9,7 @@ from itertools import combinations
 import tqdm
 import numpy as np
 
-from .rho_m_core import rho_m_core_py
+from .rho_m_core import rho_m_core
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -201,11 +201,6 @@ def expectation_rho(
         ClassicalShadowExpectation: The expectation value of Rho.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -214,11 +209,12 @@ def expectation_rho(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -400,11 +396,6 @@ def trace_rho_square(
         float: The trace of Rho.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -413,11 +404,12 @@ def trace_rho_square(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -575,11 +567,6 @@ def classical_shadow_complex(
             The expectation value of Rho and the purity calculated by classical shadow.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -588,11 +575,12 @@ def classical_shadow_complex(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)
