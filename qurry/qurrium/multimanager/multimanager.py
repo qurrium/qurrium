@@ -379,7 +379,7 @@ class MultiManager:
             initial_config_list.append(
                 {
                     **config,
-                    "shots": shots,
+                    "shots": config.get("shots", shots),
                     "backend": backend,
                     "exp_name": current_multimanager.multicommons.summoner_name,
                     "save_location": current_multimanager.multicommons.save_location,
