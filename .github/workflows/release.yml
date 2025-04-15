@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   create_tag:
-    runs-on: [ubuntu-latest, self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,8 +38,8 @@ jobs:
 
       - name: Set up Git user
         run: |
-          git config --local user.name ${{ github.repository_owner }}_action_bot
-          git config --local user.email ${{ github.repository_owner }}@users.noreply.github.com
+          git config --local user.name harui2019_action_bot
+          git config --local user.email harui2019@users.noreply.github.com
 
       - name: Bump Version and Create Tag
         id: create_tag
