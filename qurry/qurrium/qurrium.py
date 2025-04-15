@@ -356,6 +356,7 @@ class QurriumPrototype(ABC):
         save_location: Union[Path, str] = Path("./"),
         jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
+        skip_build_write: bool = False,
     ) -> str:
         """Build the multimanager.
 
@@ -389,6 +390,9 @@ class QurriumPrototype(ABC):
                 Type of pending strategy.
                 - pendingStrategy: "default", "onetime", "each", "tags"
                 Defaults to "tags".
+            skip_build_write (bool, optional):
+                Whether to skip the file writing during the building.
+                Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -424,6 +428,7 @@ class QurriumPrototype(ABC):
             jobstype=jobstype,
             pending_strategy=pending_strategy,
             save_location=save_location,
+            skip_writing=skip_build_write,
         )
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager
         self.exps.update(tmp_exps_container)
@@ -444,6 +449,8 @@ class QurriumPrototype(ABC):
         tags: Optional[tuple[str, ...]] = None,
         manager_run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
         save_location: Union[Path, str] = Path("./"),
+        skip_build_write: bool = False,
+        skip_output_write: bool = False,
         compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
@@ -470,6 +477,12 @@ class QurriumPrototype(ABC):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
+            skip_build_write (bool, optional):
+                Whether to skip the file writing during the building.
+                Defaults to False.
+            skip_output_write (bool, optional):
+                Whether to skip the file writing during the output.
+                Defaults to False.
             compress (bool, optional):
                 Whether to compress the export file. Defaults to False.
 
@@ -491,6 +504,7 @@ class QurriumPrototype(ABC):
             save_location=save_location,
             jobstype="local",
             pending_strategy="tags",
+            skip_build_write=skip_build_write,
         )
         current_multimanager = self.multimanagers[besummonned]
         assert current_multimanager.summoner_id == besummonned
@@ -523,8 +537,9 @@ class QurriumPrototype(ABC):
             ].afterwards.counts
 
         current_multimanager.multicommons.datetimes.add_serial("output")
-        bewritten = self.multiWrite(besummonned, compress=compress)
-        assert bewritten == besummonned
+        if not skip_output_write:
+            bewritten = self.multiWrite(besummonned, compress=compress)
+            assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id
 
