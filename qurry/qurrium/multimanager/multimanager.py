@@ -915,7 +915,7 @@ class MultiManager:
                 )
 
             exps_container[k].write()
-            main, _tales = report.export()
+            main, _tales = report.export(jsonable=False)
             self.quantity_container[name][exps_container[k].commons.tags].append(main)
 
         self.multicommons.datetimes.add_only(name)
