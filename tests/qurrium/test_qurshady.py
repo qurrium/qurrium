@@ -21,8 +21,7 @@
 import os
 import warnings
 import pytest
-
-# import numpy as np
+import numpy as np
 
 from qiskit import QuantumCircuit
 
@@ -227,7 +226,10 @@ def test_quantity_unit(
         THREDHOLD,
         test_item_name,
         # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-        ["entropy"],
+        ["entropy", "expect_rho"],
+    )
+    assert np.trace(quantity_01["expect_rho"]) - 1 < 1e-12, (
+        "The trace of the expect_rho should be 1: " + f"{np.trace(quantity_01['expect_rho'])}."
     )
 
 
@@ -296,7 +298,11 @@ def test_multi_output_all(
                     THREDHOLD,
                     test_item_name_list[qqi],
                     # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-                    ["entropy"],
+                    ["entropy", "expect_rho"],
+                )
+                assert np.trace(quantity["expect_rho"]) - 1 < 1e-12, (
+                    "The trace of the expect_rho should be 1: "
+                    + f"{np.trace(quantity['expect_rho'])}."
                 )
 
     read_summoner_id = exp_method.multiRead(
