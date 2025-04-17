@@ -1,7 +1,4 @@
-"""
-=========================================================================================
-Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
-=========================================================================================
+"""Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
 
 This module reveals the full arguments of the :meth:`backend.run` method
 for the simulator backends to avoid the UNnEcEsSaRy and PAINFUL finding of

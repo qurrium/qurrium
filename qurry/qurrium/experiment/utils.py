@@ -1,10 +1,4 @@
-"""
-================================================================
-Experiment Utilities
-(:mod:`qurry.qurrium.experiment.utils`)
-================================================================
-
-"""
+"""Experiment Utilities (:mod:`qurry.qurrium.experiment.utils`)"""
 
 import warnings
 from uuid import uuid4, UUID

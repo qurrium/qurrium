@@ -1,10 +1,4 @@
-"""
-================================================================
-Extra backend accessor 
-(:mod:`qurry.qurrium.runner.accesor`)
-================================================================
-
-"""
+"""Extra backend accessor (:mod:`qurry.qurrium.runner.accesor`)"""
 
 from typing import Union, Optional, Any
 

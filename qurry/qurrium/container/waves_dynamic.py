@@ -1,8 +1,6 @@
-"""
-================================================================
-Dynamic Wave Container - A experimental feature of Qurry
+"""Dynamic Wave Container - A experimental feature of Qurry
 (:mod:`qurry.qurrium.container.waves_dynamic`)
-================================================================
+
 """
 
 from typing import Literal, Union, Optional, Type, MutableMapping, overload

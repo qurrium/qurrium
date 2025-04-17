@@ -1,9 +1,4 @@
-"""
-================================================================
-Multiprocess component for multimanager
-(:mod:`qurry.qurry.qurrium.multimanager.process`)
-================================================================
-"""
+"""Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
 
 from typing import Union, Optional, Any
 from collections.abc import Hashable

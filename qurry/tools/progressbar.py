@@ -1,9 +1,4 @@
-"""
-================================================================
-Progress Bar for Qurry (:mod:`qurry.tools.progressbar`)
-================================================================
-
-"""
+"""Progress Bar for Qurry (:mod:`qurry.tools.progressbar`)"""
 
 from typing import TypeVar, Iterable, Iterator, Optional
 import tqdm as real_tqdm

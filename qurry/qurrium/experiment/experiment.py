@@ -1,8 +1,5 @@
-"""
-================================================================
-ExperimentPrototype - The instance of experiment
+"""ExperimentPrototype - The instance of experiment
 (:mod:`qurry.qurrium.experiment.experiment`)
-================================================================
 
 """
 

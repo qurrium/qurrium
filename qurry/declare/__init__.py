@@ -1,8 +1,6 @@
-"""
-================================================================
-Declaration (:mod:`qurry.declare`)
+"""Declaration (:mod:`qurry.declare`)
+
 TypedDicts for some complex data structures
-================================================================
 """
 
 from .transpile import TranspileArgs

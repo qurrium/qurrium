@@ -1,8 +1,4 @@
-"""
-================================================================
-SamplingExecuter - Experiment
-(:mod:`qurry.qurrium.samplingqurry.experiment`)
-================================================================
+"""SamplingExecuter - Experiment (:mod:`qurry.qurrium.samplingqurry.experiment`)
 
 It is only for pendings and retrieve to remote backend.
 """

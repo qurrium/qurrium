@@ -1,10 +1,4 @@
-"""
-================================================================
-The experiment container - beforewards
-(:mod:`qurry.qurrium.experiment.beforewards`)
-================================================================
-
-"""
+"""Experiment - Beforewards (:mod:`qurry.qurrium.experiment.beforewards`)"""
 
 import json
 from typing import Optional, NamedTuple, Any, Union

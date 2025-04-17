@@ -20,7 +20,6 @@ from .arguments import (
 )
 from .experiment import MagnetSquareExperiment
 from ...qurrium.qurrium import QurriumPrototype
-from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
@@ -28,7 +27,7 @@ from ...tools.except_decorator import unproven_feature
 
 
 @unproven_feature(message="Magnetic Square is not proven, we can not guarantee the correctness.")
-class MagnetSquare(QurriumPrototype):
+class MagnetSquare(QurriumPrototype[MagnetSquareExperiment]):
     """Magnetic Square Qurry."""
 
     __name__ = "MagnetSquare"
@@ -38,8 +37,6 @@ class MagnetSquare(QurriumPrototype):
     def experiment_instance(self) -> Type[MagnetSquareExperiment]:
         """The container class responding to this Qurrium class."""
         return MagnetSquareExperiment
-
-    exps: ExperimentContainer[MagnetSquareExperiment]
 
     def measure_to_output(
         self,
@@ -229,7 +226,6 @@ class MagnetSquare(QurriumPrototype):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -261,8 +257,6 @@ class MagnetSquare(QurriumPrototype):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -279,7 +273,6 @@ class MagnetSquare(QurriumPrototype):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
-            compress=compress,
         )
 
     def multiAnalysis(
@@ -290,8 +283,7 @@ class MagnetSquare(QurriumPrototype):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], MagnetSquareAnalyzeArgs, bool]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
         # analysis arguments
         **analysis_args,
     ) -> str:
@@ -309,10 +301,8 @@ class MagnetSquare(QurriumPrototype):
                 ]]], optional
             ):
                 The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -323,7 +313,6 @@ class MagnetSquare(QurriumPrototype):
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
-            compress=compress,
-            write=write,
+            skip_write=skip_write,
             **analysis_args,
         )

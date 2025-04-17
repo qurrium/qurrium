@@ -1,8 +1,4 @@
-"""
-================================================================
-WavesExecuter - Arguments 
-(:mod:`qurry.qurrium.wavesqurry.arguments`)
-================================================================
+"""WavesExecuter - Arguments (:mod:`qurry.qurrium.wavesqurry.arguments`)
 
 It is only for pendings and retrieve to remote backend.
 """

@@ -1,7 +1,4 @@
-"""
-================================================================
-Import Fake (:mod:`qurry.tools.backend.import_fake`)
-================================================================
+"""Import Fake (:mod:`qurry.tools.backend.import_fake`)
 
 This file is used to unify the import point of FakeProvider, FakeBackend/FakeBackendV2
 from qiskit.providers.fake_provider and qiskit_ibm_runtime.fake_provider.

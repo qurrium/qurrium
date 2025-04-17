@@ -1,9 +1,4 @@
-"""
-================================================================
-Datetime Module for Qurry (:mod:`qurry.qurrium.utils.datetime`)
-================================================================
-
-"""
+"""Datetime (:mod:`qurry.qurrium.utils.datetime`)"""
 
 from datetime import datetime
 

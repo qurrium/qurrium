@@ -1,7 +1,4 @@
-"""
-
-================================================================
-CapSule - Qurry Data Structure Complex 
+"""CapSule - Qurry Data Structure Complex 
 
 ## Why CapSule?
 
@@ -31,7 +28,6 @@ CapSule - Qurry Data Structure Complex
     by Mori Calliope and Hoshimachi Suisei.
     I must be a coincidence. :3
 
-================================================================
 """
 
 import webbrowser

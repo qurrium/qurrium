@@ -1,7 +1,4 @@
-"""
-================================================================
-Import Simulator (:mod:`qurry.tools.backend.import_simulator`)
-================================================================
+"""Import Simulator (:mod:`qurry.tools.backend.import_simulator`)
 
 This module provides the default simulator for Qurry.
 For the simulator, the following sources are considered:

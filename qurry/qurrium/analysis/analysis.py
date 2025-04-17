@@ -1,10 +1,4 @@
-"""
-================================================================
-Analysis Instance
-(:mod:`qurry.qurrium.analysis`)
-================================================================
-
-"""
+"""Analysis Instance (:mod:`qurry.qurrium.analysis`)"""
 
 from typing import Optional, NamedTuple, Iterable, Any
 from abc import abstractmethod

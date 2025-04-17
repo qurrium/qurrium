@@ -1,9 +1,4 @@
-"""
-================================================================
-Input Fixer
-(:mod:`qurry.qurrium.utils.inputfixer`)
-================================================================
-"""
+"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)"""
 
 import warnings
 from typing import Any, Sequence

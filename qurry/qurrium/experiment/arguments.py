@@ -1,10 +1,4 @@
-"""
-================================================================
-The experiment container - arguments and common parameters
-(:mod:`qurry.qurrium.experiment.arguments`)
-================================================================
-
-"""
+"""The Arguments of Experiment (:mod:`qurry.qurrium.experiment.arguments`)"""
 
 import json
 from typing import Union, Optional, NamedTuple, TypedDict, Any

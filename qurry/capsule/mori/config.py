@@ -1,10 +1,4 @@
-"""
-
-================================================================
-Configuration for multiple experiment. 
-(:mod:`qurry.capsule.mori.config`)
-================================================================
-"""
+"""Configuration for multiple experiment. (:mod:`qurry.capsule.mori.config`)"""
 
 from typing import NamedTuple, Optional, Type, Any
 from collections import namedtuple

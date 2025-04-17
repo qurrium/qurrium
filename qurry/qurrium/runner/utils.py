@@ -1,10 +1,4 @@
-"""
-================================================================
-Runner Utils
-(:mod:`qurry.qurrium.runner.utils`)
-================================================================
-
-"""
+"""Runner Utils (:mod:`qurry.qurrium.runner.utils`)"""
 
 import warnings
 from typing import Union, Literal, Any, overload

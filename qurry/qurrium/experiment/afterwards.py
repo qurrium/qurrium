@@ -1,10 +1,4 @@
-"""
-================================================================
-The experiment container - afterwards
-(:mod:`qurry.qurrium.experimental.afterwards`)
-================================================================
-
-"""
+"""Experiment - Afterwards (:mod:`qurry.qurrium.experiment.afterwards`)"""
 
 import json
 from typing import NamedTuple, Any

@@ -1,8 +1,4 @@
-"""
-================================================================
-Pass Manager Container 
-(:mod:`qurry.qurrium.container.passmanagers`)
-================================================================
+"""PassManagerContainer (:mod:`qurry.qurrium.container.passmanagers`)
 
 """
 

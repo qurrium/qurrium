@@ -1,8 +1,4 @@
-"""
-================================================================
-WavesExecuter - Qurry
-(:mod:`qurry.qurrium.wavesqurry.qurry`)
-================================================================
+"""WavesExecuter (:mod:`qurry.qurrium.wavesqurry.qurry`)
 
 It is only for pendings and retrieve to remote backend.
 """
@@ -19,11 +15,10 @@ from qiskit.transpiler.passmanager import PassManager
 from .arguments import SHORT_NAME
 from .experiment import WavesExecuterExperiment
 from ..qurrium import QurriumPrototype
-from ..container import ExperimentContainer
 from ...declare import BaseRunArgs, TranspileArgs, OutputArgs
 
 
-class WavesExecuter(QurriumPrototype):
+class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
     """The pending and retrieve executer for waves."""
 
     __name__ = "WavesExecuter"
@@ -33,8 +28,6 @@ class WavesExecuter(QurriumPrototype):
     def experiment_instance(self) -> Type[WavesExecuterExperiment]:
         """The container class responding to this Qurrium class."""
         return WavesExecuterExperiment
-
-    exps: ExperimentContainer[WavesExecuterExperiment]
 
     def measure_to_output(
         self,

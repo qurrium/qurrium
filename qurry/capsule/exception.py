@@ -1,9 +1,4 @@
-"""
-
-================================================================
-CapSule Exceptions (:mod:`qurry.capsule.exception`)
-================================================================
-"""
+"""CapSule Exceptions (:mod:`qurry.capsule.exception`)"""
 
 
 class CapSuleError(Exception):

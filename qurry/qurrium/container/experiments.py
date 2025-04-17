@@ -1,10 +1,4 @@
-"""
-================================================================
-ExperimentContainer 
-(:mod:`qurry.qurry.qurrium.container.experiments`)
-================================================================
-
-"""
+"""ExperimentContainer (:mod:`qurry.qurry.qurrium.container.experiments`)"""
 
 from typing import TypeVar
 

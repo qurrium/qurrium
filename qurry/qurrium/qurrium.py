@@ -1,13 +1,8 @@
-"""
-===========================================================
-Qurrium - A Qiskit Macro
-(:mod:`qurry.qurrium.qurrium`)
-===========================================================
-"""
+"""Qurrium - A Qiskit Macro (:mod:`qurry.qurrium.qurrium`)"""
 
 import warnings
 from abc import abstractmethod, ABC
-from typing import Literal, Union, Optional, Any, Type
+from typing import Literal, Union, Optional, Any, Type, Generic
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
@@ -18,12 +13,13 @@ from qiskit.transpiler.passmanager import PassManager
 
 from .runner import RemoteAccessor, retrieve_counter
 from .utils import passmanager_processor
-from .experiment import ExperimentPrototype
 from .container import (
     WaveContainer,
     ExperimentContainer,
     MultiManagerContainer,
     PassManagerContainer,
+    ExperimentContainerWrapper,
+    _ExpInst,
 )
 from .multimanager.multimanager import (
     MultiManager,
@@ -35,7 +31,7 @@ from ..tools.backend import GeneralSimulator
 from ..declare import BaseRunArgs, TranspileArgs, OutputArgs, BasicArgs, AnalyzeArgs
 
 
-class QurriumPrototype(ABC):
+class QurriumPrototype(ABC, Generic[_ExpInst]):
     """Qurrium, A qiskit Macro.
     *~ Create countless adventure, legacy and tales. ~*
     """
@@ -92,7 +88,7 @@ class QurriumPrototype(ABC):
 
     @property
     @abstractmethod
-    def experiment_instance(self) -> Type[ExperimentPrototype]:
+    def experiment_instance(self) -> Type[_ExpInst]:
         """The instance of experiment."""
         raise NotImplementedError("The experiment is not defined.")
 
@@ -102,10 +98,10 @@ class QurriumPrototype(ABC):
         self.waves: WaveContainer = WaveContainer()
         """The wave functions container."""
 
-        self.exps: ExperimentContainer[ExperimentPrototype] = ExperimentContainer()
-        """The experiments container."""
+        self.orphan_exps: ExperimentContainer[_ExpInst] = ExperimentContainer()
+        """The orphan experiments container."""
 
-        self.multimanagers: MultiManagerContainer = MultiManagerContainer()
+        self.multimanagers: MultiManagerContainer[_ExpInst] = MultiManagerContainer()
         """The last multimanager be called."""
 
         self.accessor: Optional[RemoteAccessor] = None
@@ -115,6 +111,12 @@ class QurriumPrototype(ABC):
 
         self.passmanagers: PassManagerContainer = PassManagerContainer()
         """The collection of pass managers."""
+
+        self.exps: ExperimentContainerWrapper[_ExpInst] = ExperimentContainerWrapper(
+            orphan_exps=self.orphan_exps,
+            multimanagers=self.multimanagers,
+        )
+        """The wrapper of experiments container from orphan_exps and multimanagers."""
 
     def build(
         self,
@@ -211,7 +213,7 @@ class QurriumPrototype(ABC):
             **custom_and_main_kwargs,
         )
 
-        self.exps[new_exps.commons.exp_id] = new_exps
+        self.orphan_exps[new_exps.commons.exp_id] = new_exps
         return new_exps.exp_id
 
     def output(
@@ -320,9 +322,9 @@ class QurriumPrototype(ABC):
                 **custom_and_main_kwargs,
             )
 
-        runned_exp_id = self.exps[exp_id].run(pbar=pbar)
+        runned_exp_id = self.orphan_exps[exp_id].run(pbar=pbar)
 
-        resulted_exp_id = self.exps[runned_exp_id].result(
+        resulted_exp_id = self.orphan_exps[runned_exp_id].result(
             export=export,
             save_location=save_location,
             mode=mode,
@@ -417,7 +419,7 @@ class QurriumPrototype(ABC):
             ready_config_list.append(config_targets)
 
         print("| MultiManager building...")
-        tmp_exps_container, current_multimanager = MultiManager.build(
+        current_multimanager = MultiManager.build(
             config_list=ready_config_list,
             experiment_instance=self.experiment_instance,
             summoner_name=summoner_name,
@@ -430,12 +432,11 @@ class QurriumPrototype(ABC):
             save_location=save_location,
             skip_writing=skip_build_write,
         )
-        self.multimanagers[current_multimanager.summoner_id] = current_multimanager
-        self.exps.update(tmp_exps_container)
-
         assert len(current_multimanager.beforewards.pending_pool) == 0
         assert len(current_multimanager.beforewards.circuits_map) == 0
         assert len(current_multimanager.beforewards.job_id) == 0
+
+        self.multimanagers[current_multimanager.summoner_id] = current_multimanager
 
         return current_multimanager.multicommons.summoner_id
 
@@ -451,7 +452,6 @@ class QurriumPrototype(ABC):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -483,8 +483,6 @@ class QurriumPrototype(ABC):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -511,34 +509,36 @@ class QurriumPrototype(ABC):
 
         print("| MultiOutput running...")
         circ_serial: list[int] = []
-        experiment_progress = qurry_progressbar(current_multimanager.beforewards.exps_config)
+        experiment_progress = qurry_progressbar(current_multimanager.exps.items())
 
-        for id_exec in experiment_progress:
+        for exp_id, exp_instance in experiment_progress:
             experiment_progress.set_description_str("Experiments running...")
-            current_id = self.output(
-                exp_id=id_exec,
+
+            current_id = exp_instance.run(pbar=experiment_progress)
+            assert current_id == exp_id, f"exps_id output: {current_id} != exp_id: {exp_id}"
+
+            current_id = exp_instance.result(
+                export=False,
                 save_location=current_multimanager.multicommons.save_location,
             )
-            assert current_id == id_exec, f"exps_id output: {current_id} != input: {id_exec}"
+            assert current_id == exp_id, f"exps_id output: {current_id} != exp_id: {exp_id}"
 
             circ_serial_len = len(circ_serial)
             tmp_circ_serial = [
-                idx + circ_serial_len
-                for idx, _ in enumerate(self.exps[current_id].beforewards.circuit)
+                idx + circ_serial_len for idx, _ in enumerate(exp_instance.beforewards.circuit)
             ]
-
             circ_serial += tmp_circ_serial
-            current_multimanager.beforewards.pending_pool[current_id] = tmp_circ_serial
-            current_multimanager.beforewards.circuits_map[current_id] = tmp_circ_serial
-            current_multimanager.beforewards.job_id.append((current_id, "local"))
 
-            current_multimanager.afterwards.allCounts[current_id] = self.exps[
-                current_id
-            ].afterwards.counts
+            current_multimanager.beforewards.pending_pool[exp_id] = tmp_circ_serial
+            current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
+            current_multimanager.beforewards.job_id.append((exp_id, "local"))
+
+            current_multimanager.afterwards.allCounts[exp_id] = exp_instance.afterwards.counts
 
         current_multimanager.multicommons.datetimes.add_serial("output")
+
         if not skip_output_write:
-            bewritten = self.multiWrite(besummonned, compress=compress)
+            bewritten = self.multiWrite(besummonned)
             assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id
@@ -606,22 +606,16 @@ class QurriumPrototype(ABC):
             save_location=save_location,
             jobstype="local",
             pending_strategy="tags",
+            skip_build_write=True,
         )
         current_multimanager = self.multimanagers[besummonned]
         assert current_multimanager.summoner_id == besummonned
 
         print("| MultiPending running...")
-        tmp_exps_container: ExperimentContainer[ExperimentPrototype] = ExperimentContainer(
-            {
-                k: v
-                for k, v in self.exps.items()
-                if k in current_multimanager.beforewards.exps_config
-            }
-        )
 
         self.accessor = RemoteAccessor(
             multimanager=current_multimanager,
-            experiment_container=tmp_exps_container,
+            experiment_container=current_multimanager.exps,
             backend=backend,
             backend_type=jobstype,
             provider=provider,
@@ -642,8 +636,7 @@ class QurriumPrototype(ABC):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], AnalyzeArgs, bool, Any]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
         **analysis_args: Any,
     ) -> str:
         """Run the analysis for multiple experiments.
@@ -658,10 +651,8 @@ class QurriumPrototype(ABC):
                 Optional[dict[Hashable, Union[dict[str, Any], bool]]], optional
             ):
                 The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
             analysis_args (Any):
                 Other arguments for analysis.
 
@@ -676,15 +667,7 @@ class QurriumPrototype(ABC):
         else:
             raise ValueError("No such summoner_id in multimanagers.")
 
-        tmp_exps_container: ExperimentContainer[ExperimentPrototype] = ExperimentContainer(
-            {
-                k: v
-                for k, v in self.exps.items()
-                if k in current_multimanager.beforewards.exps_config
-            }
-        )
         report_name = current_multimanager.analyze(
-            exps_container=tmp_exps_container,
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
@@ -692,12 +675,8 @@ class QurriumPrototype(ABC):
         )
         print(f'| "{report_name}" has been completed.')
 
-        if write:
-            self.multiWrite(
-                summoner_id=summoner_id,
-                only_quantity=True,
-                compress=compress,
-            )
+        if not skip_write:
+            self.multiWrite(summoner_id=summoner_id)
 
         return current_multimanager.multicommons.summoner_id
 
@@ -708,8 +687,10 @@ class QurriumPrototype(ABC):
         compress: bool = False,
         compress_overwrite: bool = False,
         remain_only_compressed: bool = False,
-        only_quantity: bool = False,
         export_transpiled_circuit: bool = False,
+        skip_before_and_after: bool = False,
+        skip_exps: bool = False,
+        skip_quantities: bool = False,
     ) -> str:
         """Write the multimanager to the file.
 
@@ -728,12 +709,15 @@ class QurriumPrototype(ABC):
             remain_only_compressed (bool, optional):
                 Whether to remain only compressed file.
                 Defaults to False.
-            only_quantity (bool, optional):
-                Whether to export only the quantity of the experiment.
-                Defaults to False.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit.
                 Defaults to False.
+            skip_before_and_after (bool, optional):
+                Skip the beforewards and afterwards. Defaults to False.
+            skip_exps (bool, optional):
+                Skip the experiments. Defaults to False.
+            skip_quantities (bool, optional):
+                Skip the quantities container. Defaults to False.
 
         Raises:
             ValueError: summoner_id not in multimanagers.
@@ -748,18 +732,12 @@ class QurriumPrototype(ABC):
         current_multimanager = self.multimanagers[summoner_id]
         assert current_multimanager.summoner_id == summoner_id
 
-        tmp_exps_container: ExperimentContainer[ExperimentPrototype] = ExperimentContainer(
-            {
-                k: v
-                for k, v in self.exps.items()
-                if k in current_multimanager.beforewards.exps_config
-            }
-        )
         current_multimanager.write(
             save_location=save_location,
-            exps_container=tmp_exps_container,
             export_transpiled_circuit=export_transpiled_circuit,
-            _only_quantity=only_quantity,
+            skip_before_and_after=skip_before_and_after,
+            skip_exps=skip_exps,
+            skip_quantities=skip_quantities,
         )
 
         if compress:
@@ -820,7 +798,7 @@ class QurriumPrototype(ABC):
                 f"Multiple multimanager found for '{summoner_name}': {filtered_summoner_id_names}."
             )
 
-        tmp_exps_container, current_multimanager = MultiManager.read(
+        current_multimanager = MultiManager.read(
             summoner_name=summoner_name,
             experiment_instance=self.experiment_instance,
             save_location=save_location,
@@ -828,7 +806,6 @@ class QurriumPrototype(ABC):
             read_from_tarfile=read_from_tarfile,
         )
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager
-        self.exps.update(tmp_exps_container)
 
         return current_multimanager.multicommons.summoner_id
 
@@ -843,7 +820,6 @@ class QurriumPrototype(ABC):
         overwrite: bool = False,
         reload: bool = False,
         read_from_tarfile: bool = False,
-        compress: bool = False,
     ) -> str:
         """Retrieve the multiple experiments.
 
@@ -868,8 +844,6 @@ class QurriumPrototype(ABC):
                 Whether to reload the multimanager. Defaults to False.
             read_from_tarfile (bool, optional):
                 Whether to read from the tarfile. Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Raises:
             ValueError: No summoner_name or summoner_id given.
@@ -913,17 +887,9 @@ class QurriumPrototype(ABC):
         if backend is None and provider is None:
             raise ValueError("No backend or provider given.")
 
-        tmp_exps_container: ExperimentContainer[ExperimentPrototype] = ExperimentContainer(
-            {
-                k: v
-                for k, v in self.exps.items()
-                if k in current_multimanager.beforewards.exps_config
-            }
-        )
-
         self.accessor = RemoteAccessor(
             multimanager=current_multimanager,
-            experiment_container=tmp_exps_container,
+            experiment_container=current_multimanager.exps,
             backend=backend,
             provider=provider,
             backend_type=jobs_type,
@@ -954,7 +920,7 @@ class QurriumPrototype(ABC):
                 return besummonned
         else:
             print(f"| Retrieve {current_multimanager.summoner_name} completed.")
-        bewritten = self.multiWrite(besummonned, compress=compress)
+        bewritten = self.multiWrite(besummonned)
         assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id

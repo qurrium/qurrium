@@ -1,8 +1,5 @@
-"""
-================================================================
-MultiManager - The manager of multiple experiments.
+"""MultiManager - The manager of multiple experiments.
 (:mod:`qurry.qurry.qurrium.multimanager`)
-================================================================
 
 """
 
@@ -12,7 +9,7 @@ import shutil
 import tarfile
 import warnings
 from pathlib import Path
-from typing import Union, Optional, Any, Type
+from typing import Union, Optional, Any, Type, Generic
 from collections.abc import Hashable
 from uuid import uuid4
 
@@ -38,7 +35,7 @@ from ...exceptions import (
 )
 
 
-class MultiManager:
+class MultiManager(Generic[_ExpInst]):
     """The manager of multiple experiments."""
 
     __name__ = "MultiManager"
@@ -49,6 +46,8 @@ class MultiManager:
 
     quantity_container: QuantityContainer
     """The container of quantity."""
+    exps: ExperimentContainer[_ExpInst]
+    """The experiments container."""
 
     _unexports: list[str] = ["retrievedResult"]
     """The content would not be exported."""
@@ -179,6 +178,8 @@ class MultiManager:
         else:
             raise ValueError(f"gitignore must be list or GitSyncControl, not {type(gitignore)}.")
 
+        self.exps = ExperimentContainer()
+
         self.naming_complex = naming_complex
         self.multicommons = multicommons
         self.beforewards = beforewards
@@ -294,7 +295,7 @@ class MultiManager:
         # save parameters
         save_location: Union[Path, str] = Path("./"),
         skip_writing: bool = False,
-    ) -> tuple[ExperimentContainer[_ExpInst], "MultiManager"]:
+    ) -> "MultiManager":
         """Build the multi-experiment.
 
         Args:
@@ -317,8 +318,7 @@ class MultiManager:
                 Whether skip writing. Defaults to False.
 
         Returns:
-            tuple[ExperimentContainer[_ExpInst], MultiManager]:
-                The container of experiments and multi-experiment.
+            MultiManager: The container of experiments and multi-experiment.
         """
 
         if summoner_name is None:
@@ -394,7 +394,6 @@ class MultiManager:
 
         initial_config_list_progress = qurry_progressbar(initial_config_list)
         initial_config_list_progress.set_description_str("MultiManager building...")
-        tmp_exps_container: ExperimentContainer[_ExpInst] = ExperimentContainer()
 
         for config in initial_config_list_progress:
             config.pop("export", None)
@@ -410,13 +409,13 @@ class MultiManager:
                 config=config,
                 exps_instance=new_exps,
             )
-            tmp_exps_container[new_exps.commons.exp_id] = new_exps
+            current_multimanager.exps[new_exps.commons.exp_id] = new_exps
 
         initial_config_list_progress.set_description_str("MultiManager writing...")
         if not skip_writing:
-            current_multimanager.write(exps_container=tmp_exps_container)
+            current_multimanager.write()
 
-        return tmp_exps_container, current_multimanager
+        return current_multimanager
 
     @classmethod
     def read(
@@ -427,7 +426,7 @@ class MultiManager:
         is_read_or_retrieve: bool = False,
         read_from_tarfile: bool = False,
         encoding: str = "utf-8",
-    ) -> tuple[ExperimentContainer[_ExpInst], "MultiManager"]:
+    ) -> "MultiManager":
         """Read the multi-experiment.
 
         Args:
@@ -440,8 +439,7 @@ class MultiManager:
             read_from_tarfile (bool, optional): Whether read from tarfile. Defaults to False.
 
         Returns:
-            tuple[ExperimentContainer[_ExpInst], MultiManager]:
-                The container of experiments and multi-experiment.
+            MultiManager: The container of experiments and multi-experiment.
         """
         naming_complex = naming(
             is_read=is_read_or_retrieve,
@@ -583,11 +581,10 @@ class MultiManager:
             save_location=current_multimanager.multicommons.save_location,
             name_or_id=current_multimanager.multicommons.summoner_name,
         )
-        tmp_exps_container: ExperimentContainer[_ExpInst] = ExperimentContainer()
         for read_exps in reading_results:
-            tmp_exps_container[read_exps.commons.exp_id] = read_exps
+            current_multimanager.exps[read_exps.commons.exp_id] = read_exps
 
-        return tmp_exps_container, current_multimanager
+        return current_multimanager
 
     def update_save_location(
         self,
@@ -644,25 +641,29 @@ class MultiManager:
 
     def write(
         self,
-        exps_container: Optional[ExperimentContainer[_ExpInst]] = None,
         save_location: Optional[Union[Path, str]] = None,
         indent: int = 2,
         encoding: str = "utf-8",
         export_transpiled_circuit: bool = False,
-        _only_quantity: bool = False,
+        skip_before_and_after: bool = False,
+        skip_exps: bool = False,
+        skip_quantities: bool = False,
     ) -> dict[str, Any]:
         """Export the multi-experiment.
 
         Args:
-            exps_container (Optional[ExperimentContainer], optional):
-                The container of experiments. Defaults to None.
             save_location (Union[Path, str], optional): Location of saving experiment.
                 Defaults to None.
             indent (int, optional): The indent of json file. Defaults to 2.
             encoding (str, optional): The encoding of json file. Defaults to "utf-8".
             export_transpiled_circuit (bool, optional):
                 Export the transpiled circuit. Defaults to False.
-            _only_quantity (bool, optional): Whether only export quantity. Defaults to False.
+            skip_before_and_after (bool, optional):
+                Skip the beforewards and afterwards. Defaults to False.
+            skip_exps (bool, optional):
+                Skip the experiments. Defaults to False.
+            skip_quantities (bool, optional):
+                Skip the quantities container. Defaults to False.
 
         Returns:
             dict[str, Any]: The dict of multiConfig.
@@ -690,11 +691,7 @@ class MultiManager:
         # pylint: enable=protected-access
 
         export_progress = qurry_progressbar(
-            [
-                fname
-                for fname in self.afterwards._fields
-                if fname != "files_taglist" or exps_container is None
-            ]
+            [fname for fname in self.afterwards._fields if fname != "files_taglist"]
             + list(self.beforewards._fields),
             desc="exporting",
             bar_format="qurry-barless",
@@ -702,7 +699,7 @@ class MultiManager:
 
         # beforewards amd afterwards
         for i, k in enumerate(export_progress):
-            if _only_quantity or (k in self._unexports):
+            if skip_before_and_after or (k in self._unexports):
                 export_progress.set_description_str(f"{k} as {exporting_name[k]} - skip")
             elif isinstance(self[k], TagList):
                 export_progress.set_description_str(f"{k} as {exporting_name[k]}")
@@ -746,20 +743,23 @@ class MultiManager:
                 export_progress.set_description_str("exporting done")
 
         # tagMapQuantity or quantity
-        self.multicommons.files["quantity"] = self.quantity_container.write(
-            save_location=self.multicommons.export_location,
-            filetype=self.multicommons.filetype,
-            indent=indent,
-            encoding=encoding,
-        )
-        self.gitignore.sync(f"*.quantity.{self.multicommons.filetype}")
+        if not skip_quantities:
+            self.multicommons.files["quantity"] = self.quantity_container.write(
+                save_location=self.multicommons.export_location,
+                filetype=self.multicommons.filetype,
+                indent=indent,
+                encoding=encoding,
+            )
+            self.gitignore.sync(f"*.quantity.{self.multicommons.filetype}")
+
         # multiConfig
         multiconfig = self._write_multiconfig(encoding=encoding, mute=True)
         print(f"| Export multi.config.json for {self.summoner_id}")
 
         self.gitignore.export(self.multicommons.export_location)
 
-        if exps_container is not None:
+        # experiments
+        if not skip_exps:
             all_qurryinfo_loc = self.multicommons.export_location / "qurryinfo.json"
 
             exps_export_progress = qurry_progressbar(
@@ -771,7 +771,7 @@ class MultiManager:
             for id_exec in exps_export_progress:
                 tmp_id, tmp_qurryinfo_content = multiprocess_exporter_and_writer(
                     id_exec=id_exec,
-                    exps=exps_container[id_exec],
+                    exps=self.exps[id_exec],
                     save_location=self.multicommons.save_location,
                     mode="w+",
                     indent=indent,
@@ -786,7 +786,7 @@ class MultiManager:
 
             # for id_exec, files in all_qurryinfo_items:
             for id_exec, files in all_qurryinfo.items():
-                self.beforewards.files_taglist[exps_container[id_exec].commons.tags].append(files)
+                self.beforewards.files_taglist[self.exps[id_exec].commons.tags].append(files)
             self.beforewards.files_taglist.export(
                 name=None,
                 save_location=self.multicommons.export_location,
@@ -851,7 +851,6 @@ class MultiManager:
 
     def analyze(
         self,
-        exps_container: ExperimentContainer[_ExpInst],
         analysis_name: str = "report",
         no_serialize: bool = False,
         specific_analysis_args: Optional[
@@ -903,24 +902,23 @@ class MultiManager:
                             f"Skipped {k} in {self.summoner_id}."
                         )
                         continue
-                    report = exps_container[k].analyze(
+                    report = self.exps[k].analyze(
                         **analysis_args,
                         **({"pbar": all_counts_progress}),
                     )
                 else:
-                    report = exps_container[k].analyze(
+                    report = self.exps[k].analyze(
                         **v_args,
                         **({"pbar": all_counts_progress}),
                     )
             else:
-                report = exps_container[k].analyze(
+                report = self.exps[k].analyze(
                     **analysis_args,
                     **({"pbar": all_counts_progress}),
                 )
 
-            exps_container[k].write()
             main, _tales = report.export(jsonable=False)
-            self.quantity_container[name][exps_container[k].commons.tags].append(main)
+            self.quantity_container[name][self.exps[k].commons.tags].append(main)
 
         self.multicommons.datetimes.add_only(name)
 

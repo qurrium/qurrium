@@ -20,12 +20,11 @@ from .arguments import (
 )
 from .experiment import EntropyMeasureHadamardExperiment
 from ...qurrium.qurrium import QurriumPrototype
-from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
 
-class EntropyMeasureHadamard(QurriumPrototype):
+class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment]):
     """Hadamard test for entanglement entropy.
 
     - Which entropy:
@@ -41,8 +40,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
     def experiment_instance(self) -> Type[EntropyMeasureHadamardExperiment]:
         """The container class responding to this Qurrium class."""
         return EntropyMeasureHadamardExperiment
-
-    exps: ExperimentContainer[EntropyMeasureHadamardExperiment]
 
     def measure_to_output(
         self,
@@ -242,7 +239,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -274,8 +270,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -292,7 +286,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
-            compress=compress,
         )
 
     def multiAnalysis(
@@ -303,8 +296,7 @@ class EntropyMeasureHadamard(QurriumPrototype):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], EntropyMeasureHadamardAnalyzeArgs, bool]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
         # analysis arguments
         **analysis_args,
     ) -> str:
@@ -322,10 +314,8 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 ]]], optional
             ):
                 The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -336,7 +326,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
-            compress=compress,
-            write=write,
+            skip_write=skip_write,
             **analysis_args,
         )
