@@ -1,9 +1,4 @@
-"""
-=========================================================================================
-Declaration - Run - BaseRunArgs (:mod:`qurry.declare.run.base_run`)
-=========================================================================================
-
-"""
+"""Declaration - Run - BaseRunArgs (:mod:`qurry.declare.run.base_run`)"""
 
 from typing import TypedDict
 

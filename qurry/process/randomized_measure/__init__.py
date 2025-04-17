@@ -4,7 +4,6 @@
 There are all post-processing modules for randomized measure.
 
 Reference:
-Reference:
     - Randomized Measure - Entangled Entropy/Wavefunction Overlap
 
     .. note::

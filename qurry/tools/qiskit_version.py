@@ -1,7 +1,4 @@
-"""
-================================================================
-Qiskit Version (:mod:`qurry.tools.qiskit_version`)
-================================================================
+"""Qiskit Version (:mod:`qurry.tools.qiskit_version`)
 
 - This module is for checking the version of qiskit and its packages.
 - For remaking the deprecated :cls:`QiskitVersion` in :mod:`qiskit.version`

@@ -1,9 +1,4 @@
-"""
-================================================================
-ProcessManager (:mod:`qurry.tools.processmanager`)
-================================================================
-
-"""
+"""ProcessManager (:mod:`qurry.tools.processmanager`)"""
 
 import warnings
 from typing import Optional, Iterable, Callable, TypeVar, Any

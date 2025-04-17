@@ -1,9 +1,4 @@
-"""
-================================================================
-Exceptions (:mod:`qurry.exceptions`)
-================================================================
-
-"""
+"""Exceptions (:mod:`qurry.exceptions`)"""
 
 
 class QurryError(Exception):

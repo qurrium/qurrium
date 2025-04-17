@@ -1,7 +1,6 @@
 """Declaration - Transpile (:mod:`qurry.declare.transpile`)
 
 Arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
-
 """
 
 from typing import Union, Callable, Any, Optional, TypedDict

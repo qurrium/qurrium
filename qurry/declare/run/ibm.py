@@ -1,9 +1,4 @@
-"""
-=========================================================================================
-Declaration - Run - IBM (:mod:`qurry.declare.run.ibm`)
-=========================================================================================
-
-"""
+"""Declaration - Run - IBM (:mod:`qurry.declare.run.ibm`)"""
 
 from typing import Optional, Union, Any
 

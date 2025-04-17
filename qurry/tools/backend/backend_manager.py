@@ -1,9 +1,4 @@
-"""
-================================================================
-Backend Wrapper (:mod:`qurry.tools.backend.backend_manager`)
-================================================================
-
-"""
+"""Backend Wrapper (:mod:`qurry.tools.backend.backend_manager`)"""
 
 from typing import Union, Literal, Callable, Optional
 from random import random
