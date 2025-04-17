@@ -26,12 +26,11 @@ from .experiment import (
     DEFAULT_PROCESS_BACKEND,
 )
 from ...qurrium.qurrium import QurriumPrototype
-from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
 
-class EchoListenRandomizedV1(QurriumPrototype):
+class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment]):
     """Randomized Measure for wave function overlap.
     a.k.a. loschmidt echo when processes time evolution system.
 
@@ -69,8 +68,6 @@ class EchoListenRandomizedV1(QurriumPrototype):
     def experiment_instance(self) -> Type[EchoListenRandomizedV1Experiment]:
         """The container class responding to this Qurrium class."""
         return EchoListenRandomizedV1Experiment
-
-    exps: ExperimentContainer[EchoListenRandomizedV1Experiment]
 
     def measure_to_output(
         self,
@@ -343,7 +340,6 @@ class EchoListenRandomizedV1(QurriumPrototype):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -375,8 +371,6 @@ class EchoListenRandomizedV1(QurriumPrototype):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -393,7 +387,6 @@ class EchoListenRandomizedV1(QurriumPrototype):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
-            compress=compress,
         )
 
     def multiAnalysis(
@@ -404,8 +397,7 @@ class EchoListenRandomizedV1(QurriumPrototype):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], EchoListenRandomizedV1AnalyzeArgs, bool]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
         # analysis arguments
         degree: Optional[Union[tuple[int, int], int]] = None,
         counts_used: Optional[Iterable[int]] = None,
@@ -429,8 +421,8 @@ class EchoListenRandomizedV1(QurriumPrototype):
                 The specific arguments for analysis. Defaults to None.
             compress (bool, optional):
                 Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
 
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
             counts_used (Optional[Iterable[int]], optional):
@@ -454,8 +446,7 @@ class EchoListenRandomizedV1(QurriumPrototype):
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
-            compress=compress,
-            write=write,
+            skip_write=skip_write,
             degree=degree,
             counts_used=counts_used,
             workers_num=workers_num,

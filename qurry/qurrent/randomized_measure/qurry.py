@@ -24,12 +24,11 @@ from .experiment import (
     DEFAULT_PROCESS_BACKEND,
 )
 from ...qurrium.qurrium import QurriumPrototype
-from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
 
-class EntropyMeasureRandomized(QurriumPrototype):
+class EntropyMeasureRandomized(QurriumPrototype[EntropyMeasureRandomizedExperiment]):
     """Randomized Measure for entangled entropy.
     The entropy we compute is the Second Order Rényi Entropy.
 
@@ -110,8 +109,6 @@ class EntropyMeasureRandomized(QurriumPrototype):
     def experiment_instance(self) -> Type[EntropyMeasureRandomizedExperiment]:
         """The container class responding to this QurryV5 class."""
         return EntropyMeasureRandomizedExperiment
-
-    exps: ExperimentContainer[EntropyMeasureRandomizedExperiment]
 
     def measure_to_output(
         self,
@@ -395,7 +392,6 @@ class EntropyMeasureRandomized(QurriumPrototype):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        compress: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -427,8 +423,6 @@ class EntropyMeasureRandomized(QurriumPrototype):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -445,7 +439,6 @@ class EntropyMeasureRandomized(QurriumPrototype):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
-            compress=compress,
         )
 
     def multiAnalysis(
@@ -456,8 +449,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], EntropyMeasureRandomizedAnalyzeArgs, bool]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
         independent_all_system: bool = False,
@@ -479,10 +471,8 @@ class EntropyMeasureRandomized(QurriumPrototype):
                 ]]], optional
             ):
                 The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
 
             selected_qubits (Optional[list[int]], optional):
                 The selected qubits. Defaults to None.
@@ -502,8 +492,7 @@ class EntropyMeasureRandomized(QurriumPrototype):
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
-            compress=compress,
-            write=write,
+            skip_write=skip_write,
             selected_qubits=selected_qubits,
             independent_all_system=independent_all_system,
             backend=backend,
