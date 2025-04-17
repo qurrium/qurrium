@@ -1,10 +1,4 @@
-"""
-================================================================
-OpenQASM Processor
-(:mod:`qurry.qurrium.utils.qasm`)
-================================================================
-
-"""
+"""OpenQASM Processor (:mod:`qurry.qurrium.utils.qasm`)"""
 
 from typing import Literal, Optional
 import warnings

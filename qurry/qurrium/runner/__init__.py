@@ -1,8 +1,6 @@
-"""
-================================================================
-Runner for running on Different Backends (IBM, IBMQ, ThirdParty, etc.)
-(:mod:`qurry.qurry.qurrium.runner`)
-================================================================
+"""Runner for running on Remote Backends (:mod:`qurry.qurry.qurrium.runner`)
+
+It is only for pendings and retrieve to remote backend like IBMQ, IBM, or some ThirdParty.
 
 """
 

@@ -1,13 +1,9 @@
-"""
-================================================================
-Runner for qiskit-ibmq-provider
-(:mod:`qurry.qurrium.runner.ibmqrunner`)
+"""Runner for qiskit-ibmq-provider (:mod:`qurry.qurrium.runner.ibmqrunner`)
 
 Qutoes:
 > For those who still use IBMQ backend...
 > UPDATE YOUR CODE BASE AND QISKIT TO LATEST VERSION!!!
 > This package is deprecated for years.
-================================================================
 
 """
 

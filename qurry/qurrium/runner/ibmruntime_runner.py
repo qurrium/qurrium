@@ -1,10 +1,4 @@
-"""
-================================================================
-Runner for qiskit-ibm-runtime.
-(:mod:`qurry.qurrium.runner.runner_ibm_runtime`)
-================================================================
-
-"""
+"""Runner for qiskit-ibm-runtime (:mod:`qurry.qurrium.runner.runner_ibm_runtime`)"""
 
 import warnings
 from typing import Union, Optional, Literal

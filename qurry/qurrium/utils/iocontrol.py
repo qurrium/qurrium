@@ -1,9 +1,4 @@
-"""
-================================================================
-The module of IO control. (:mod:`qurry.qurrium.utils.iocontrol`)
-================================================================
-
-"""
+"""The module of IO control. (:mod:`qurry.qurrium.utils.iocontrol`)"""
 
 import os
 from pathlib import Path

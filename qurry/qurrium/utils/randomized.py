@@ -1,10 +1,4 @@
-"""
-================================================================
-Randomized Measure Kit for Qurry 
-(:mod:`qurry.qurrium.utils.randomized`)
-================================================================
-
-"""
+"""ToolKits for Randomized Measure (:mod:`qurry.qurrium.utils.randomized`)"""
 
 from typing import Union, Literal
 import numpy as np
@@ -29,7 +23,7 @@ RZmatrix: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]] = n
 
 
 def density_matrix_to_bloch(
-    rho: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]
+    rho: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]],
 ) -> list[float]:
     """Convert a density matrix to a Bloch vector.
 
@@ -58,10 +52,6 @@ def qubit_operator_to_pauli_coeff(
     Returns:
         list[tuple[float]]: The bloch vector divided as tuple of real number and image number.
     """
-    # Please let me know the outcome of the final duel between you guys.
-    # Numpy and Cython, about the issue https://github.com/cython/cython/issues/3573
-    # How the fxxk to write this sxxt, numpy code in cython?
-    # This function would nerver be rewritten in cython until this issue done.
 
     ax = np.trace(np.dot(rho, RXmatrix)) / 2
     ay = np.trace(np.dot(rho, RYmatrix)) / 2
@@ -105,7 +95,7 @@ def local_random_unitary_pauli_coeff(
 
 
 def local_unitary_op_to_list(
-    single_unitary_op_dict: dict[int, Operator]
+    single_unitary_op_dict: dict[int, Operator],
 ) -> dict[int, list[list[complex]]]:
     """Transform a dictionary of local unitary operators
     in :cls:`qiskit.quantum_info.operator.Operator`
@@ -122,7 +112,7 @@ def local_unitary_op_to_list(
 
 
 def local_unitary_op_to_pauli_coeff(
-    single_unitary_op_list_dict: dict[int, list[list[complex]]]
+    single_unitary_op_list_dict: dict[int, list[list[complex]]],
 ) -> dict[int, list[tuple[Union[float, np.float64], Union[float, np.float64]]]]:
     """Transform a dictionary of local unitary operators in :cls:`list[list[complex]]`
     with the qubit index as key to a dictionary of pauli coefficients.

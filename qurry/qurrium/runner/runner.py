@@ -1,8 +1,5 @@
-"""
-================================================================
-Runner for pending and retrieve jobs from remote backend.
+"""Runner for pending and retrieve jobs from remote backend.
 (:mod:`qurry.qurrium.runner.runner`)
-================================================================
 """
 
 import warnings

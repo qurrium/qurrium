@@ -1,10 +1,4 @@
-"""
-================================================================
-Runner for qiskit-ibm-provider
-(:mod:`qurry.qurrium.runner.runner_ibm_provider`)
-================================================================
-
-"""
+"""Runner for qiskit-ibm-provider (:mod:`qurry.qurrium.runner.runner_ibm_provider`)"""
 
 import warnings
 from typing import Union, Optional

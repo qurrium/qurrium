@@ -1,9 +1,4 @@
-"""
-================================================================
-Utility functions for qurry
-(:mod:`qurry.qurrium.utils`)
-================================================================
-"""
+"""Utility Modules for Qurrium (:mod:`qurry.qurrium.utils`)"""
 
 from .construct import decomposer, get_counts_and_exceptions
 from .qasm import qasm_dumps, qasm_version_detect, qasm_loads

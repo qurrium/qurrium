@@ -1,10 +1,4 @@
-"""
-================================================================
-Arguments for MultiManager 
-(:mod:`qurry.qurrium.multimanager.arguments`)
-================================================================
-
-"""
+"""MultiManager - Arguments (:mod:`qurry.qurrium.multimanager.arguments`)"""
 
 from pathlib import Path
 from typing import Literal, Union, Optional, NamedTuple, Any, TypedDict
