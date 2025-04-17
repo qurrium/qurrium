@@ -1,8 +1,4 @@
-"""
-================================================================
-Representation modification for Hoshi CapSule
-(:mod:`qurry.capsule.hoshi.repr_modify`)
-================================================================
+"""Representation modification for Hoshi CapSule (:mod:`qurry.capsule.hoshi.repr_modify`)
 
 I write this class just for having better representation for the functions
 :func:`internet_is_fxxking_awesome`. :3
@@ -44,7 +40,7 @@ class EasyReprModify:
 
 
 def easy_repr_modify_wrapper(
-    repr_content: Optional[Union[str, Callable[..., str]]]
+    repr_content: Optional[Union[str, Callable[..., str]]],
 ) -> Callable[..., Any]:
     """Wrapper for easy representation modification.
 

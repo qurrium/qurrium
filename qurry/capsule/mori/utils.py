@@ -1,8 +1,5 @@
-"""
-================================================================
-Utilities for :mod:`qurry.capsule.mori` --- *Mori* CapSule Utils
+"""Utilities for :mod:`qurry.capsule.mori` --- *Mori* CapSule Utils
 (:mod:`qurry.capsule.mori.utils`)
-================================================================
 """
 
 from typing import Literal, Union, Any
