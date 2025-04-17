@@ -1,15 +1,12 @@
-"""
-=========================================================================================
-Declaration - Transpile (:mod:`qurry.declare.transpile`)
+"""Declaration - Transpile (:mod:`qurry.declare.transpile`)
+
 Arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
-=========================================================================================
 
 """
 
 from typing import Union, Callable, Any, Optional, TypedDict
 
 from qiskit.dagcircuit import DAGCircuit
-from qiskit.providers.backend import Backend
 from qiskit.transpiler import Layout, CouplingMap, PropertySet
 from qiskit.transpiler.basepasses import BasePass
 from qiskit.transpiler.passes.synthesis.high_level_synthesis import HLSConfig
@@ -56,7 +53,6 @@ class TranspileArgs(TypedDict, total=False):
 
     """
 
-    backend: Optional[Backend]
     basis_gates: Optional[list[str]]
     coupling_map: Optional[Union[CouplingMap, list[list[int]]]]
     initial_layout: Optional[Union[Layout, dict, list]]
