@@ -1,7 +1,4 @@
-"""ShadowUnveil - Experiment
-(:mod:`qurry.qurrent.classical_shadow.experiment`)
-
-"""
+"""ShadowUnveil - Experiment (:mod:`qurry.qurrent.classical_shadow.experiment`)"""
 
 from typing import Union, Optional, Type, Any, Literal
 from collections.abc import Iterable, Hashable
@@ -28,7 +25,7 @@ from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
-class ShadowUnveilExperiment(ExperimentPrototype):
+class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUnveilAnalysis]):
     """The instance of experiment."""
 
     __name__ = "ShadowUnveilExperiment"
@@ -37,8 +34,6 @@ class ShadowUnveilExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[ShadowUnveilArguments]:
         """The arguments instance for this experiment."""
         return ShadowUnveilArguments
-
-    args: ShadowUnveilArguments
 
     @property
     def analysis_instance(self) -> Type[ShadowUnveilAnalysis]:
@@ -241,7 +236,7 @@ class ShadowUnveilExperiment(ExperimentPrototype):
                 The progress bar. Defaults to None.
 
         Returns:
-            EntropyMeasureRandomizedAnalysis: The result of the analysis.
+            ShadowUnveilAnalysis: The result of the analysis.
         """
 
         if selected_qubits is None:

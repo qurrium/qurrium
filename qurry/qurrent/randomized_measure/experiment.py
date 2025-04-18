@@ -1,7 +1,4 @@
-"""EntropyMeasureRandomized - Experiment
-(:mod:`qurry.qurrent.randomized_measure.experiment`)
-
-"""
+"""EntropyMeasureRandomized - Experiment (:mod:`qurry.qurrent.randomized_measure.experiment`)"""
 
 from typing import Union, Optional, Type, Any
 from collections.abc import Iterable, Hashable
@@ -16,7 +13,7 @@ from .utils import (
     randomized_entangled_entropy_complex,
     bitstring_mapping_getter,
 )
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
+from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,
@@ -33,7 +30,12 @@ from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
-class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
+class EntropyMeasureRandomizedExperiment(
+    ExperimentPrototype[
+        EntropyMeasureRandomizedArguments,
+        EntropyMeasureRandomizedAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedExperiment"
@@ -43,14 +45,10 @@ class EntropyMeasureRandomizedExperiment(ExperimentPrototype):
         """The arguments instance for this experiment."""
         return EntropyMeasureRandomizedArguments
 
-    args: EntropyMeasureRandomizedArguments
-
     @property
     def analysis_instance(self) -> Type[EntropyMeasureRandomizedAnalysis]:
         """The analysis instance for this experiment."""
         return EntropyMeasureRandomizedAnalysis
-
-    reports: AnalysesContainer[EntropyMeasureRandomizedAnalysis]
 
     @classmethod
     def params_control(

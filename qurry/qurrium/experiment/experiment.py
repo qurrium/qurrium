@@ -1,14 +1,11 @@
-"""ExperimentPrototype - The instance of experiment
-(:mod:`qurry.qurrium.experiment.experiment`)
-
-"""
+"""ExperimentPrototype - The instance of experiment (:mod:`qurry.qurrium.experiment.experiment`)"""
 
 import gc
 import os
 import json
 import warnings
 from abc import abstractmethod, ABC
-from typing import Union, Optional, Any, Type, Literal
+from typing import Union, Optional, Any, Type, Literal, Generic
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
@@ -17,10 +14,10 @@ from qiskit import transpile, QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
-from .arguments import ArgumentsPrototype, Commonparams
+from .arguments import Commonparams, _Arg
 from .beforewards import Before
 from .afterwards import After
-from .analyses import AnalysesContainer
+from .analyses import AnalysesContainer, _Analysis
 from .export import Export
 from .utils import (
     commons_dealing,
@@ -32,7 +29,6 @@ from ..utils import get_counts_and_exceptions
 from ..utils.qasm import qasm_dumps
 from ..utils.iocontrol import RJUST_LEN
 from ..utils.inputfixer import outfields_check, outfields_hint
-from ..analysis import AnalysisPrototype
 from ...tools import ParallelManager, DatetimeDict, set_pbar_description, backend_name_getter
 from ...tools.backend import GeneralSimulator
 from ...capsule import jsonablize, quickJSON
@@ -48,7 +44,7 @@ from ...exceptions import (
 )
 
 
-class ExperimentPrototype(ABC):
+class ExperimentPrototype(ABC, Generic[_Arg, _Analysis]):
     """The instance of experiment."""
 
     __name__ = "ExperimentPrototype"
@@ -56,24 +52,27 @@ class ExperimentPrototype(ABC):
 
     @property
     @abstractmethod
-    def arguments_instance(self) -> Type[ArgumentsPrototype]:
+    def arguments_instance(self) -> Type[_Arg]:
         """The arguments instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
-
-    args: ArgumentsPrototype
-    """The arguments of the experiment."""
 
     # analysis
     @property
     @abstractmethod
-    def analysis_instance(self) -> Type[AnalysisPrototype]:
+    def analysis_instance(self) -> Type[_Analysis]:
         """The analysis instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
 
+    args: _Arg
+    """The arguments of the experiment."""
     commons: Commonparams
+    """The common parameters of the experiment."""
     outfields: dict[str, Any]
+    """The outfields of the experiment."""
     beforewards: Before
+    """The beforewards of the experiment."""
     afterwards: After
+    """The afterwards of the experiment."""
 
     def _implementation_check(self):
         """Check whether the experiment is implemented correctly."""
@@ -86,7 +85,7 @@ class ExperimentPrototype(ABC):
 
     def __init__(
         self,
-        arguments: Union[ArgumentsPrototype, dict[str, Any]],
+        arguments: Union[_Arg, dict[str, Any]],
         commonparams: Union[Commonparams, dict[str, Any]],
         outfields: dict[str, Any],
         beforewards: Optional[Before] = None,
@@ -174,9 +173,10 @@ class ExperimentPrototype(ABC):
                 counts=[],
             )
         )
-        self.reports: AnalysesContainer[AnalysisPrototype] = (
+        self.reports: AnalysesContainer[_Analysis] = (
             reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
         )
+        """The reports of the experiment."""
 
         _summon_check = {
             "serial": self.commons.serial,
@@ -211,7 +211,7 @@ class ExperimentPrototype(ABC):
     @abstractmethod
     def params_control(
         cls, targets: list[tuple[Hashable, QuantumCircuit]], exp_name: str, **custom_kwargs: Any
-    ) -> tuple[ArgumentsPrototype, Commonparams, dict[str, Any]]:
+    ) -> tuple[_Arg, Commonparams, dict[str, Any]]:
         """Control the experiment's parameters.
 
         Args:
@@ -379,7 +379,7 @@ class ExperimentPrototype(ABC):
     def method(
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: ArgumentsPrototype,
+        arguments: _Arg,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -388,7 +388,7 @@ class ExperimentPrototype(ABC):
         Args:
             targets (list[tuple[Hashable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (ArgumentsPrototype):
+            arguments (_Arg):
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
@@ -843,7 +843,7 @@ class ExperimentPrototype(ABC):
         """
 
     @abstractmethod
-    def analyze(self) -> AnalysisPrototype:
+    def analyze(self) -> _Analysis:
         """Analyzing the example circuit results in specific method.
         Where should be overwritten by each construction of new measurement.
 
@@ -1283,7 +1283,7 @@ class ExperimentPrototype(ABC):
             reports=AnalysesContainer(),
         )
 
-        reports_read = exp_instance.analysis_instance.read(
+        reports_read: dict[str, _Analysis] = exp_instance.analysis_instance.read(
             file_index=file_index,
             save_location=save_location,
             encoding=encoding,
@@ -1292,25 +1292,6 @@ class ExperimentPrototype(ABC):
             exp_instance.reports[k] = v
 
         return exp_instance
-
-    @classmethod
-    def _read_core_wrapper(
-        cls,
-        args: tuple[str, dict[str, str], Union[Path, str], str],
-    ) -> "ExperimentPrototype":
-        """Wrapper of :func:`_read_core` for multiprocessing.
-
-        Args:
-            args (tuple[str, dict[str, str], Union[Path, str], str]):
-                exp_id, file_index, save_location, encoding.
-
-        Returns:
-            ExperimentPrototype: The experiment to be read.
-        """
-        assert isinstance(args[1], dict), (
-            "file_index should be dict, " + f"but we get {type(args[1])}, {args[1]}."
-        )
-        return cls._read_core(*args)
 
     @classmethod
     def read(

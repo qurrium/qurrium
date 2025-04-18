@@ -275,7 +275,7 @@ class AnalysisPrototype:
         file_index: dict[str, str],
         save_location: Path,
         encoding: str = "utf-8",
-    ) -> dict[str, "AnalysisPrototype"]:
+    ):
         """Read the analysis from file index.
 
         Args:
@@ -322,7 +322,7 @@ class AnalysisPrototype:
         del export_material_set
         gc.collect()
 
-        analysis_dict: dict[str, "AnalysisPrototype"] = {}
+        analysis_dict = {}
         for k, v in mains.items():
             analysis_dict[k] = cls.load(v, sides[k])
 

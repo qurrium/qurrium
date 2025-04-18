@@ -1,8 +1,6 @@
-"""EntropyMeasureRandomizedV1 - Experiment
-(:mod:`qurry.qurrent.randomized_measure_v1.experiment`)
+"""EntropyMeasureRandomizedV1 - Experiment (:mod:`qurry.qurrent.randomized_measure_v1.experiment`)
 
 This is a deprecated version of the randomized measure module.
-
 """
 
 from typing import Union, Optional, Type, Any
@@ -32,7 +30,12 @@ from ...tools import qurry_progressbar, ParallelManager
 from ...exceptions import QurryArgumentsExpectedNotNone, QurryDeprecatedWarning
 
 
-class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
+class EntropyMeasureRandomizedV1Experiment(
+    ExperimentPrototype[
+        EntropyMeasureRandomizedV1Arguments,
+        EntropyMeasureRandomizedV1Analysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedV1Experiment"
@@ -41,8 +44,6 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EntropyMeasureRandomizedV1Arguments]:
         """The arguments instance for this experiment."""
         return EntropyMeasureRandomizedV1Arguments
-
-    args: EntropyMeasureRandomizedV1Arguments
 
     @property
     def analysis_instance(self) -> Type[EntropyMeasureRandomizedV1Analysis]:
@@ -280,11 +281,7 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
 
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy, a list of each overlap, puritySD,
-                purity of all system, entropy of all system,
-                a list of each overlap in all system, puritySD of all system,
-                degree, actual measure range, actual measure range in all system, bitstring range.
+            EntropyMeasureRandomizedV1Analysis: The analysis of the experiment.
         """
         if degree is None:
             raise ValueError("degree should be specified.")

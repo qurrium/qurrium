@@ -5,10 +5,11 @@ from collections.abc import Hashable
 
 from ..analysis import AnalysisPrototype
 
-AP = TypeVar("AP", bound=AnalysisPrototype)
+_Analysis = TypeVar("_Analysis", bound=AnalysisPrototype)
+"""Type variable for :cls:`AnalysisPrototype`."""
 
 
-class AnalysesContainer(dict[Hashable, AP]):
+class AnalysesContainer(dict[Hashable, _Analysis]):
     """A customized dictionary for storing `AnalysisPrototype` objects."""
 
     __name__ = "AnalysisContainer"

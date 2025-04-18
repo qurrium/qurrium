@@ -1,7 +1,4 @@
-"""EntropyMeasureHadamard - Experiment
-(:mod:`qurry.qurrent.hadamard_test.experiment`)
-
-"""
+"""EntropyMeasureHadamard - Experiment (:mod:`qurry.qurrent.hadamard_test.experiment`)"""
 
 from typing import Optional, Type, Any
 from collections.abc import Hashable
@@ -16,7 +13,12 @@ from ...process.utils import qubit_selector
 from ...process.hadamard_test import hadamard_entangled_entropy
 
 
-class EntropyMeasureHadamardExperiment(ExperimentPrototype):
+class EntropyMeasureHadamardExperiment(
+    ExperimentPrototype[
+        EntropyMeasureHadamardArguments,
+        EntropyMeasureHadamardAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureHadamardExperiment"
@@ -25,8 +27,6 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EntropyMeasureHadamardArguments]:
         """The arguments instance for this experiment."""
         return EntropyMeasureHadamardArguments
-
-    args: EntropyMeasureHadamardArguments
 
     @property
     def analysis_instance(self) -> Type[EntropyMeasureHadamardAnalysis]:
@@ -157,8 +157,7 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
                 The progress bar. Defaults to None.
 
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
+            EntropyMeasureHadamardAnalysis: The result of the analysis.
         """
 
         if pbar is not None:

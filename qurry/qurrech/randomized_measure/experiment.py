@@ -1,7 +1,4 @@
-"""EchoListenRandomized - Experiment
-(:mod:`qurry.qurrech.randomized_measure.experiment`)
-
-"""
+"""EchoListenRandomized - Experiment (:mod:`qurry.qurrech.randomized_measure.experiment`)"""
 
 from typing import Union, Optional, Any, Type, Literal
 from collections.abc import Iterable, Hashable
@@ -16,7 +13,7 @@ from qiskit.transpiler.passmanager import PassManager
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
+from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.utils.randomized import (
     random_unitary,
@@ -41,7 +38,9 @@ from ...exceptions import (
 )
 
 
-class EchoListenRandomizedExperiment(ExperimentPrototype):
+class EchoListenRandomizedExperiment(
+    ExperimentPrototype[EchoListenRandomizedArguments, EchoListenRandomizedAnalysis]
+):
     """The instance of experiment."""
 
     __name__ = "EchoListenRandomizedExperiment"
@@ -51,14 +50,10 @@ class EchoListenRandomizedExperiment(ExperimentPrototype):
         """The arguments instance for this experiment."""
         return EchoListenRandomizedArguments
 
-    args: EchoListenRandomizedArguments
-
     @property
     def analysis_instance(self) -> Type[EchoListenRandomizedAnalysis]:
         """The analysis instance for this experiment."""
         return EchoListenRandomizedAnalysis
-
-    report: AnalysesContainer[EchoListenRandomizedAnalysis]
 
     @classmethod
     def params_control(

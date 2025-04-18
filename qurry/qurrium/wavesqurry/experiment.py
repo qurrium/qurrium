@@ -15,7 +15,12 @@ from ..experiment import ExperimentPrototype, Commonparams
 from ...exceptions import QurryExperimentCountsNotCompleted
 
 
-class WavesExecuterExperiment(ExperimentPrototype):
+class WavesExecuterExperiment(
+    ExperimentPrototype[
+        WavesExecuterArguments,
+        WavesExecuterAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "WavesExecuterExperiment"
@@ -24,8 +29,6 @@ class WavesExecuterExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[WavesExecuterArguments]:
         """The arguments instance for this experiment."""
         return WavesExecuterArguments
-
-    args: WavesExecuterArguments
 
     @property
     def analysis_instance(self) -> Type[WavesExecuterAnalysis]:

@@ -1,8 +1,6 @@
-"""EchoListenRandomizedV1 - Experiment
-(:mod:`qurry.qurrech.randomized_measure_v1.experiment`)
+"""EchoListenRandomizedV1 - Experiment (:mod:`qurry.qurrech.randomized_measure_v1.experiment`)
 
 The deprecated version of the randomized measure experiment.
-
 """
 
 from typing import Union, Optional, Type, Any
@@ -32,7 +30,9 @@ from ...tools import qurry_progressbar, ParallelManager
 from ...exceptions import QurryArgumentsExpectedNotNone
 
 
-class EchoListenRandomizedV1Experiment(ExperimentPrototype):
+class EchoListenRandomizedV1Experiment(
+    ExperimentPrototype[EchoListenRandomizedV1Arguments, EchoListenRandomizedV1Analysis]
+):
     """The instance of experiment."""
 
     __name__ = "EchoListenRandomizedV1Experiment"
@@ -41,8 +41,6 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EchoListenRandomizedV1Arguments]:
         """The arguments instance for this experiment."""
         return EchoListenRandomizedV1Arguments
-
-    args: EchoListenRandomizedV1Arguments
 
     @property
     def analysis_instance(self) -> Type[EchoListenRandomizedV1Analysis]:

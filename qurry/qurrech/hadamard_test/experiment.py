@@ -16,7 +16,9 @@ from ...process.utils import qubit_selector
 from ...process.hadamard_test import hadamard_overlap_echo as overlap_echo
 
 
-class EchoListenHadamardExperiment(ExperimentPrototype):
+class EchoListenHadamardExperiment(
+    ExperimentPrototype[EchoListenHadamardArguments, EchoListenHadamardAnalysis]
+):
     """The experiment for calculating entangled entropy with more information combined."""
 
     __name__ = "EchoListenHadamardExperiment"
@@ -25,8 +27,6 @@ class EchoListenHadamardExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EchoListenHadamardArguments]:
         """The arguments instance for this experiment."""
         return EchoListenHadamardArguments
-
-    args: EchoListenHadamardArguments
 
     @property
     def analysis_instance(self) -> Type[EchoListenHadamardAnalysis]:

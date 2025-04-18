@@ -1,7 +1,4 @@
-"""MagnetSquare - Experiment
-(:mod:`qurry.qurries.magnet_square.experiment`)
-
-"""
+"""MagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square.experiment`)"""
 
 from collections.abc import Hashable
 from typing import Optional, Type, Any
@@ -14,7 +11,7 @@ from .analysis import MagnetSquareAnalysis
 from .arguments import MagnetSquareArguments, SHORT_NAME
 from .utils import circuit_method
 
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
+from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.magnet_square.magnet_square import (
     magnet_square,
     MagnetSquare,
@@ -24,7 +21,12 @@ from ...process.magnet_square.magnet_square import (
 from ...tools import ParallelManager, set_pbar_description
 
 
-class MagnetSquareExperiment(ExperimentPrototype):
+class MagnetSquareExperiment(
+    ExperimentPrototype[
+        MagnetSquareArguments,
+        MagnetSquareAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedExperiment"
@@ -34,14 +36,10 @@ class MagnetSquareExperiment(ExperimentPrototype):
         """The arguments instance for this experiment."""
         return MagnetSquareArguments
 
-    args: MagnetSquareArguments
-
     @property
     def analysis_instance(self) -> Type[MagnetSquareAnalysis]:
         """The analysis instance for this experiment."""
         return MagnetSquareAnalysis
-
-    reports: AnalysesContainer[MagnetSquareAnalysis]
 
     @classmethod
     def params_control(
