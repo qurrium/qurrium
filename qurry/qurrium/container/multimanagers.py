@@ -1,10 +1,10 @@
 """Multimanagers Container (:mod:`qurry.qurrium.container.multimanagers`)"""
 
-from .experiments import _ExpInst
+from .experiments import _E
 from ..multimanager import MultiManager
 
 
-class MultiManagerContainer(dict[str, MultiManager[_ExpInst]]):
+class MultiManagerContainer(dict[str, MultiManager[_E]]):
     """A customized dictionary for storing `MultiManager` objects."""
 
     __name__ = "MultiManagerContainer"

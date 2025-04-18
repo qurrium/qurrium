@@ -3,10 +3,10 @@
 from typing import Generic, Any
 
 from ..multimanager import MultiManager
-from .experiments import ExperimentContainer, _ExpInst
+from .experiments import ExperimentContainer, _E
 
 
-class ExperimentContainerWrapper(Generic[_ExpInst]):
+class ExperimentContainerWrapper(Generic[_E]):
     """A wrapper for :cls:`ExperimentContainer` from :cls:`QurriumPrototype`
     and its corresponding :cls:`MultiManager`.
 
@@ -14,13 +14,13 @@ class ExperimentContainerWrapper(Generic[_ExpInst]):
 
     __name__ = "ExperimentContainerWrapper"
     __slots__ = ("_orphan_exps", "_multimanagers", "_all_exps_container")
-    _orphan_exps: ExperimentContainer[_ExpInst]
-    _multimanagers: dict[str, MultiManager[_ExpInst]]
+    _orphan_exps: ExperimentContainer[_E]
+    _multimanagers: dict[str, MultiManager[_E]]
 
     def __init__(
         self,
-        orphan_exps: ExperimentContainer[_ExpInst],
-        multimanagers: dict[str, MultiManager[_ExpInst]],
+        orphan_exps: ExperimentContainer[_E],
+        multimanagers: dict[str, MultiManager[_E]],
     ):
         """Initialize the wrapper with orphan experiments and their corresponding
         multimanagers.
@@ -35,7 +35,7 @@ class ExperimentContainerWrapper(Generic[_ExpInst]):
         self._all_exps_container = {}
 
     @property
-    def all_exps_container(self) -> dict[str, ExperimentContainer[_ExpInst]]:
+    def all_exps_container(self) -> dict[str, ExperimentContainer[_E]]:
         """Get all experiment containers.
 
         Returns:
@@ -56,7 +56,7 @@ class ExperimentContainerWrapper(Generic[_ExpInst]):
 
         return all_exps_container
 
-    def __getitem__(self, key: str) -> _ExpInst:
+    def __getitem__(self, key: str) -> _E:
         """Get the experiments from the container by key.
 
         Args:

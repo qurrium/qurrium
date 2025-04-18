@@ -19,7 +19,7 @@ from .container import (
     MultiManagerContainer,
     PassManagerContainer,
     ExperimentContainerWrapper,
-    _ExpInst,
+    _E,
 )
 from .multimanager.multimanager import (
     MultiManager,
@@ -31,7 +31,7 @@ from ..tools.backend import GeneralSimulator
 from ..declare import BaseRunArgs, TranspileArgs, OutputArgs, BasicArgs, AnalyzeArgs
 
 
-class QurriumPrototype(ABC, Generic[_ExpInst]):
+class QurriumPrototype(ABC, Generic[_E]):
     """Qurrium, A qiskit Macro.
     *~ Create countless adventure, legacy and tales. ~*
     """
@@ -88,7 +88,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
 
     @property
     @abstractmethod
-    def experiment_instance(self) -> Type[_ExpInst]:
+    def experiment_instance(self) -> Type[_E]:
         """The instance of experiment."""
         raise NotImplementedError("The experiment is not defined.")
 
@@ -98,10 +98,10 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         self.waves: WaveContainer = WaveContainer()
         """The wave functions container."""
 
-        self.orphan_exps: ExperimentContainer[_ExpInst] = ExperimentContainer()
+        self.orphan_exps: ExperimentContainer[_E] = ExperimentContainer()
         """The orphan experiments container."""
 
-        self.multimanagers: MultiManagerContainer[_ExpInst] = MultiManagerContainer()
+        self.multimanagers: MultiManagerContainer[_E] = MultiManagerContainer()
         """The last multimanager be called."""
 
         self.accessor: Optional[RemoteAccessor] = None
@@ -112,7 +112,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         self.passmanagers: PassManagerContainer = PassManagerContainer()
         """The collection of pass managers."""
 
-        self.exps: ExperimentContainerWrapper[_ExpInst] = ExperimentContainerWrapper(
+        self.exps: ExperimentContainerWrapper[_E] = ExperimentContainerWrapper(
             orphan_exps=self.orphan_exps,
             multimanagers=self.multimanagers,
         )
