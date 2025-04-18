@@ -134,7 +134,7 @@ class ArgumentsPrototype:
         return (cls(**infields), Commonparams(**commonsinput), outfields)  # type: ignore
 
 
-_Arg = TypeVar("_Arg", bound=ArgumentsPrototype)
+_A = TypeVar("_A", bound=ArgumentsPrototype)
 """Type variable for :cls:`ArgumentsPrototype`."""
 
 
