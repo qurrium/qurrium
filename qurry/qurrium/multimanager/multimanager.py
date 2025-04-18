@@ -1,6 +1,5 @@
 """MultiManager - The manager of multiple experiments.
 (:mod:`qurry.qurry.qurrium.multimanager`)
-
 """
 
 import os
@@ -18,13 +17,11 @@ from qiskit.providers import Backend
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import multiprocess_exporter_and_writer, datetimedict_process
+from .process import datetimedict_process, multiprocess_exporter
 from ..experiment import ExperimentPrototype
 from ..container import ExperimentContainer, QuantityContainer, _ExpInst
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
-from ...tools import qurry_progressbar
-from ...tools.backend import GeneralSimulator
-from ...tools.datetime import DatetimeDict
+from ...tools import qurry_progressbar, ParallelManager, GeneralSimulator, DatetimeDict
 from ...capsule import quickJSON
 from ...capsule.mori import TagList, GitSyncControl
 from ...declare import BaseRunArgs, AnalyzeArgs
@@ -762,27 +759,42 @@ class MultiManager(Generic[_ExpInst]):
         if not skip_exps:
             all_qurryinfo_loc = self.multicommons.export_location / "qurryinfo.json"
 
-            exps_export_progress = qurry_progressbar(
-                self.beforewards.exps_config,
-                desc="Exporting and writring...",
-                bar_format="qurry-barless",
-            )
-            all_qurryinfo = {}
-            for id_exec in exps_export_progress:
-                tmp_id, tmp_qurryinfo_content = multiprocess_exporter_and_writer(
-                    id_exec=id_exec,
-                    exps=self.exps[id_exec],
+            all_export_ids = list(self.beforewards.exps_config.keys())
+            first_export = multiprocess_exporter(
+                id_exec=all_export_ids[0],
+                exps_export=self.exps[all_export_ids[0]].export(
                     save_location=self.multicommons.save_location,
-                    mode="w+",
-                    indent=indent,
-                    encoding=encoding,
-                    jsonable=True,
-                    mute=True,
                     export_transpiled_circuit=export_transpiled_circuit,
-                    _pbar=None,
-                )
-                assert id_exec == tmp_id, "ID is not consistent."
-                all_qurryinfo[id_exec] = tmp_qurryinfo_content
+                ),
+                mode="w+",
+                indent=indent,
+                encoding=encoding,
+                jsonable=True,
+                mute=True,
+                pbar=None,
+            )
+
+            exporting_pool = ParallelManager()
+            all_qurryinfo_items_since_1 = exporting_pool.starmap(
+                multiprocess_exporter,
+                [
+                    (
+                        id_exec,
+                        self.exps[id_exec].export(
+                            save_location=self.multicommons.save_location,
+                            export_transpiled_circuit=export_transpiled_circuit,
+                        ),
+                        "w+",
+                        indent,
+                        encoding,
+                        True,
+                        True,
+                        None,
+                    )
+                    for id_exec in all_export_ids[1:]
+                ],
+            )
+            all_qurryinfo = dict([first_export] + all_qurryinfo_items_since_1)
 
             # for id_exec, files in all_qurryinfo_items:
             for id_exec, files in all_qurryinfo.items():
