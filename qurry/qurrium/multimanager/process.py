@@ -1,13 +1,31 @@
 """Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
 
-from typing import Optional, Any
+from typing import Optional, Any, Type
 from pathlib import Path
 import gc
 import tqdm
 
 from .arguments import MultiCommonparams
+from ..container import _E
 from ..experiment.export import Export
 from ..utils.iocontrol import IOComplex
+
+
+def multiprocess_builder(
+    experiment_instance: Type[_E],
+    config: dict[str, Any],
+) -> tuple[_E, dict[str, Any]]:
+    """Multiprocess builder for experiment.
+
+    Args:
+        experiment_instance (Type[_E]): The instance of experiment.
+        config (dict[str, Any]): The configuration of experiment.
+
+    Returns:
+        tuple[_E, dict[str, Any]]: The instance of experiment and the configuration.
+    """
+    exp_instance = experiment_instance.build(**config, multiprocess=False)
+    return exp_instance, config
 
 
 def multiprocess_exporter(

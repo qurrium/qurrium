@@ -340,6 +340,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Output the multiple experiments.
 
@@ -371,6 +372,8 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether to use multiprocess to write the file.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -387,6 +390,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
+            multiprocess_write=multiprocess_write,
         )
 
     def multiAnalysis(
@@ -398,6 +402,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             dict[Hashable, Union[dict[str, Any], EchoListenRandomizedV1AnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
+        multiprocess_write: bool = True,
         # analysis arguments
         degree: Optional[Union[tuple[int, int], int]] = None,
         counts_used: Optional[Iterable[int]] = None,
@@ -423,6 +428,8 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
                 Whether to compress the export file. Defaults to False.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether to use multiprocess to write the file. Defaults to True.
 
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
             counts_used (Optional[Iterable[int]], optional):
@@ -447,6 +454,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
             skip_write=skip_write,
+            multiprocess_write=multiprocess_write,
             degree=degree,
             counts_used=counts_used,
             workers_num=workers_num,

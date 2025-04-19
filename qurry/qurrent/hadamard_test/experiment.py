@@ -88,6 +88,7 @@ class EntropyMeasureHadamardExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EntropyMeasureHadamardArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -98,6 +99,8 @@ class EntropyMeasureHadamardExperiment(
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:

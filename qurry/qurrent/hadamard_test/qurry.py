@@ -239,6 +239,7 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Output the multiple experiments.
 
@@ -270,6 +271,8 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether to use multiprocess to write the file.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -286,6 +289,7 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
+            multiprocess_write=multiprocess_write,
         )
 
     def multiAnalysis(
@@ -297,6 +301,7 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
             dict[Hashable, Union[dict[str, Any], EntropyMeasureHadamardAnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
+        multiprocess_write: bool = True,
         # analysis arguments
         **analysis_args,
     ) -> str:
@@ -316,6 +321,8 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether to use multiprocess to write the file. Defaults to True.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -327,5 +334,6 @@ class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment])
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
             skip_write=skip_write,
+            multiprocess_write=multiprocess_write,
             **analysis_args,
         )

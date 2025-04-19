@@ -88,6 +88,7 @@ class MagnetSquareExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: MagnetSquareArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -99,12 +100,13 @@ class MagnetSquareExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
-        pool = ParallelManager()
 
         set_pbar_description(pbar, f"Prepare permutation for {arguments.num_qubits} qubits.")
         permut = permutations(range(arguments.num_qubits), 2)
@@ -112,13 +114,20 @@ class MagnetSquareExperiment(
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
         set_pbar_description(pbar, "Building circuits...")
-        circ_list = pool.starmap(
-            circuit_method,
-            [
-                (k, target_circuit, target_key, arguments.exp_name, i, j)
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                circuit_method,
+                [
+                    (k, target_circuit, target_key, arguments.exp_name, i, j)
+                    for k, (i, j) in enumerate(permut)
+                ],
+            )
+        else:
+            circ_list = [
+                circuit_method(k, target_circuit, target_key, arguments.exp_name, i, j)
                 for k, (i, j) in enumerate(permut)
-            ],
-        )
+            ]
 
         return circ_list, {}
 

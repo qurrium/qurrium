@@ -154,6 +154,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: ShadowUnveilArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -165,6 +166,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -172,7 +175,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         """
         side_product = {}
 
-        pool = ParallelManager()
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
 
         target_key, target_circuit = targets[0]
@@ -195,11 +197,26 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         }
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-        circ_list = []
-        circ_list = pool.starmap(
-            circuit_method_core,
-            [
-                (
+        assert arguments.registers_mapping is not None, "registers_mapping should be not None."
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                circuit_method_core,
+                [
+                    (
+                        n_u_i,
+                        target_circuit,
+                        target_key,
+                        arguments.exp_name,
+                        arguments.registers_mapping,
+                        random_unitary_ids[n_u_i],
+                    )
+                    for n_u_i in range(arguments.times)
+                ],
+            )
+        else:
+            circ_list = [
+                circuit_method_core(
                     n_u_i,
                     target_circuit,
                     target_key,
@@ -208,8 +225,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     random_unitary_ids[n_u_i],
                 )
                 for n_u_i in range(arguments.times)
-            ],
-        )
+            ]
 
         set_pbar_description(pbar, "Writing 'random_unitary_ids'.")
         side_product["random_unitary_ids"] = random_unitary_ids

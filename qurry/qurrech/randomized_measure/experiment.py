@@ -257,6 +257,7 @@ class EchoListenRandomizedExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EchoListenRandomizedArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -268,21 +269,20 @@ class EchoListenRandomizedExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
         side_product = {}
-
-        pool = ParallelManager()
-        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-
         target_key_1, target_circuit_1 = targets[0]
         target_key_1 = "" if isinstance(target_key_1, int) else str(target_key_1)
         target_key_2, target_circuit_2 = targets[1]
         target_key_2 = "" if isinstance(target_key_2, int) else str(target_key_2)
 
+        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
         assert (
             arguments.unitary_located_mapping_1 is not None
         ), "unitary_located_1 should be specified."
@@ -320,10 +320,49 @@ class EchoListenRandomizedExperiment(
             }
 
         set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
-        circ_list = pool.starmap(
-            randomized_circuit_method,
-            [
-                (
+        assert arguments.registers_mapping_1 is not None, "registers_mapping_1 should be specified."
+        assert arguments.registers_mapping_2 is not None, "registers_mapping_2 should be specified."
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                randomized_circuit_method,
+                [
+                    (
+                        n_u_i,
+                        target_circuit_1,
+                        target_key_1,
+                        arguments.exp_name,
+                        arguments.registers_mapping_1,
+                        unitary_dict[n_u_i],
+                    )
+                    for n_u_i in range(arguments.times)
+                ]
+                + [
+                    (
+                        n_u_i + arguments.times,
+                        target_circuit_2,
+                        target_key_2,
+                        arguments.exp_name,
+                        arguments.registers_mapping_2,
+                        unitary_dict[n_u_i + arguments.times],
+                    )
+                    for n_u_i in range(arguments.times)
+                ],
+            )
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = pool.starmap(
+                local_unitary_op_to_list,
+                [(unitary_dicts_source[n_u_i],) for n_u_i in range(arguments.times)],
+            )
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = pool.starmap(
+                local_unitary_op_to_pauli_coeff,
+                [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
+            )
+
+        else:
+            circ_list = [
+                randomized_circuit_method(
                     n_u_i,
                     target_circuit_1,
                     target_key_1,
@@ -332,9 +371,8 @@ class EchoListenRandomizedExperiment(
                     unitary_dict[n_u_i],
                 )
                 for n_u_i in range(arguments.times)
-            ]
-            + [
-                (
+            ] + [
+                randomized_circuit_method(
                     n_u_i + arguments.times,
                     target_circuit_2,
                     target_key_2,
@@ -343,22 +381,20 @@ class EchoListenRandomizedExperiment(
                     unitary_dict[n_u_i + arguments.times],
                 )
                 for n_u_i in range(arguments.times)
-            ],
-        )
+            ]
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = [
+                local_unitary_op_to_list(unitary_dicts_source[n_u_i])
+                for n_u_i in range(arguments.times)
+            ]
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = [
+                local_unitary_op_to_pauli_coeff(unitary_operator_list[n_u_i])
+                for n_u_i in range(arguments.times)
+            ]
         assert len(circ_list) == 2 * arguments.times, "The number of circuits is not correct."
 
-        set_pbar_description(pbar, "Writing 'unitaryOP'.")
-        unitary_operator_list = pool.starmap(
-            local_unitary_op_to_list,
-            [(unitary_dicts_source[n_u_i],) for n_u_i in range(arguments.times)],
-        )
         side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-
-        set_pbar_description(pbar, "Writing 'randomized'.")
-        randomized_list = pool.starmap(
-            local_unitary_op_to_pauli_coeff,
-            [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
-        )
         side_product["randomized"] = dict(enumerate(randomized_list))
 
         return circ_list, side_product
@@ -388,6 +424,7 @@ class EchoListenRandomizedExperiment(
         encoding: str = "utf-8",
         jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
         # special
         second_passmanager_pair: Optional[tuple[str, PassManager]] = None,
         **custom_and_main_kwargs: Any,
@@ -450,6 +487,9 @@ class EchoListenRandomizedExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
+
             second_passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile of the second circuit.
                 Defaults to None.
@@ -496,31 +536,33 @@ class EchoListenRandomizedExperiment(
 
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
-
-        for tk, tv in targets:
-            current_exp.beforewards.target.append((tk, tv))
+        current_exp.beforewards.target.extend(targets)
         cirqs, side_prodict = current_exp.method(
-            targets=targets, arguments=current_exp.args, pbar=pbar
+            targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
         current_exp.beforewards.side_product.update(side_prodict)
 
         # qasm
-        pool = ParallelManager()
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-
-        tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
-        for qasm_str in tmp_qasm:
-            current_exp.beforewards.circuit_qasm.append(qasm_str)
-
         targets_keys, targets_values = zip(*targets)
         targets_keys: tuple[Hashable, ...]
         targets_values: tuple[QuantumCircuit, ...]
 
-        tmp_target_qasm_items = zip(
-            targets_keys, pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values])
-        )
-        for tk, qasm_str in tmp_target_qasm_items:
-            current_exp.beforewards.target_qasm.append((str(tk), qasm_str))
+        if multiprocess:
+            pool = ParallelManager()
+            tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
+            tmp_target_qasm_items = zip(
+                str(targets_keys),
+                pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
+            )
+        else:
+            tmp_qasm = [qasm_dumps(q, qasm_version) for q in cirqs]
+            tmp_target_qasm_items = zip(
+                str(targets_keys), [qasm_dumps(q, qasm_version) for q in targets_values]
+            )
+
+        current_exp.beforewards.circuit_qasm.extend(tmp_qasm)
+        current_exp.beforewards.target_qasm.extend(tmp_target_qasm_items)
 
         transpiled_circs: list[QuantumCircuit] = []
         # transpile
@@ -553,7 +595,10 @@ class EchoListenRandomizedExperiment(
             set_pbar_description(
                 pbar, f"Circuit transpiling by second passmanager '{second_passmanager_name}'..."
             )
-            transpiled_circs += second_passmanager.run(circuits=cirqs[current_exp.args.times :])
+            transpiled_circs += second_passmanager.run(
+                circuits=cirqs[current_exp.args.times :],
+                num_processes=None if multiprocess else 1,  # type: ignore
+            )
             if current_exp.args.second_transpile_args is not None:
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
@@ -561,6 +606,8 @@ class EchoListenRandomizedExperiment(
                     category=QurryTranspileConfigurationIgnored,
                 )
         elif current_exp.args.second_transpile_args is not None:
+            second_transpile_args = current_exp.args.second_transpile_args.copy()
+            second_transpile_args["num_processes"] = None if multiprocess else 1
             transpiled_circs += transpile(
                 cirqs[current_exp.args.times :],
                 backend=(
@@ -568,14 +615,18 @@ class EchoListenRandomizedExperiment(
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
-                **(current_exp.args.second_transpile_args),  # type: ignore
+                **second_transpile_args,
             )
         elif passmanager_pair is not None:
             passmanager_name, passmanager = passmanager_pair
             set_pbar_description(
                 pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
             )
-            transpiled_circs += passmanager.run(circuits=cirqs[current_exp.args.times :])
+
+            transpiled_circs += passmanager.run(
+                circuits=cirqs[current_exp.args.times :],
+                num_processes=None if multiprocess else 1,  # type: ignore
+            )
             if len(current_exp.commons.transpile_args) > 0:
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
@@ -584,6 +635,8 @@ class EchoListenRandomizedExperiment(
                 )
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
+            transpile_args = current_exp.commons.transpile_args.copy()
+            transpile_args["num_processes"] = None if multiprocess else 1
             transpiled_circs += transpile(
                 cirqs[current_exp.args.times :],
                 backend=(
@@ -591,7 +644,7 @@ class EchoListenRandomizedExperiment(
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
-                **(current_exp.commons.transpile_args),  # type: ignore
+                **transpile_args,
             )
 
         assert len(transpiled_circs) == 2 * current_exp.args.times, (
@@ -600,8 +653,7 @@ class EchoListenRandomizedExperiment(
         )
 
         set_pbar_description(pbar, "Circuit loading...")
-        for _w in transpiled_circs:
-            current_exp.beforewards.circuit.append(_w)
+        current_exp.beforewards.circuit.extend(transpiled_circs)
 
         # commons
         note_and_date = current_exp.commons.datetimes.add_only("build")
@@ -663,7 +715,7 @@ class EchoListenRandomizedExperiment(
                 pbar, f"Executing completed '{event_name}', denoted date: {date}..."
             )
             # beforewards
-            self["job_id"] = f"{execution_1.job_id()}"
+            self.beforewards.job_id.append(execution_1.job_id())
             # afterwards
             result_1 = execution_1.result()
             self.afterwards.result.append(result_1)
@@ -706,7 +758,7 @@ class EchoListenRandomizedExperiment(
                 pbar, f"Executing completed '{event_name}', denoted date: {date}..."
             )
             # beforewards
-            self["job_id"] = f"{execution_1.job_id()}_{execution_2.job_id()}"
+            self.beforewards.job_id.append(f"{execution_1.job_id()}_{execution_2.job_id()}")
             # afterwards
             result_1 = execution_1.result()
             self.afterwards.result.append(result_1)
@@ -972,7 +1024,6 @@ class EchoListenRandomizedExperiment(
                 The progress bar API, you can use put a :cls:`tqdm` object here.
                 This function will update the progress bar description.
                 Defaults to `None`.
-
 
         Returns:
             WaveFuctionOverlapResult: A dictionary contains purity, entropy,

@@ -98,6 +98,7 @@ class EchoListenHadamardExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EchoListenHadamardArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 

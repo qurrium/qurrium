@@ -170,6 +170,7 @@ class EntropyMeasureRandomizedExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EntropyMeasureRandomizedArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -181,19 +182,18 @@ class EntropyMeasureRandomizedExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
         side_product = {}
-
-        pool = ParallelManager()
-        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
+        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
         assert arguments.unitary_located is not None, "unitary_located should be specified."
         unitary_dicts = {
             n_u_i: {
@@ -208,10 +208,36 @@ class EntropyMeasureRandomizedExperiment(
         }
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-        circ_list = pool.starmap(
-            randomized_circuit_method,
-            [
-                (
+        assert arguments.registers_mapping is not None, "registers_mapping should be specified."
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                randomized_circuit_method,
+                [
+                    (
+                        n_u_i,
+                        target_circuit,
+                        target_key,
+                        arguments.exp_name,
+                        arguments.registers_mapping,
+                        unitary_dicts[n_u_i],
+                    )
+                    for n_u_i in range(arguments.times)
+                ],
+            )
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = pool.starmap(
+                local_unitary_op_to_list,
+                [(unitary_dicts[n_u_i],) for n_u_i in range(arguments.times)],
+            )
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = pool.starmap(
+                local_unitary_op_to_pauli_coeff,
+                [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
+            )
+        else:
+            circ_list = [
+                randomized_circuit_method(
                     n_u_i,
                     target_circuit,
                     target_key,
@@ -220,29 +246,18 @@ class EntropyMeasureRandomizedExperiment(
                     unitary_dicts[n_u_i],
                 )
                 for n_u_i in range(arguments.times)
-            ],
-        )
+            ]
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = [
+                local_unitary_op_to_list(unitary_dicts[n_u_i]) for n_u_i in range(arguments.times)
+            ]
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = [
+                local_unitary_op_to_pauli_coeff(unitary_operator_list[n_u_i])
+                for n_u_i in range(arguments.times)
+            ]
 
-        set_pbar_description(pbar, "Writing 'unitaryOP'.")
-        # side_product["unitaryOP"] = {
-        #     k: {i: np.array(v[i]).tolist() for i in range(*arguments.unitary_loc)}
-        #     for k, v in unitary_dict.items()
-        # }
-        unitary_operator_list = pool.starmap(
-            local_unitary_op_to_list,
-            [(unitary_dicts[n_u_i],) for n_u_i in range(arguments.times)],
-        )
         side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-
-        set_pbar_description(pbar, "Writing 'randomized'.")
-        # side_product["randomized"] = {
-        #     i: {j: qubitOpToPauliCoeff(unitary_dict[i][j]) for j in range(*arguments.unitary_loc)}
-        #     for i in range(arguments.times)
-        # }
-        randomized_list = pool.starmap(
-            local_unitary_op_to_pauli_coeff,
-            [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
-        )
         side_product["randomized"] = dict(enumerate(randomized_list))
 
         return circ_list, side_product

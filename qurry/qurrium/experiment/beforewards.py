@@ -25,6 +25,20 @@ def v5_to_v7_field_transpose(advent: dict[str, Any]) -> dict[str, Any]:
     return advent
 
 
+def v7_to_v11_field_transpose(advent: dict[str, Any]) -> dict[str, Any]:
+    """Transpose the v7 field to v11 field."""
+
+    if "job_id" in advent:
+        if isinstance(advent["job_id"], str):
+            advent["job_id"] = [advent["job_id"]]
+        elif isinstance(advent["job_id"], list):
+            advent["job_id"] = advent["job_id"]
+        else:
+            raise TypeError("job_id must be str or list[str].")
+
+    return advent
+
+
 class Before(NamedTuple):
     """The data of experiment will be independently exported in the folder 'advent',
     which generated before the experiment.
@@ -43,7 +57,7 @@ class Before(NamedTuple):
     """Raw circuit figures which is the circuit before transpile."""
 
     # Export data
-    job_id: str
+    job_id: list[str]
     """ID of job for pending on real machine (IBMQBackend)."""
     exp_name: str
     """Name of experiment which is also showed on IBM Quantum Computing quene."""
@@ -60,8 +74,8 @@ class Before(NamedTuple):
             "target_qasm": [],
             "circuit": [],
             "circuit_qasm": [],
-            "job_id": None,
-            "exp_name": None,
+            "job_id": [],
+            "exp_name": [],
             "fig_original": [],
             "side_product": {},
         }
@@ -92,6 +106,7 @@ class Before(NamedTuple):
 
         advent: dict[str, Any] = raw_data["adventures"]
         advent = v5_to_v7_field_transpose(advent)
+        advent = v7_to_v11_field_transpose(advent)
         for k, dv in cls.default_value().items():
             if k not in advent:
                 advent[k] = dv

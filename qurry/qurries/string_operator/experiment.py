@@ -122,6 +122,7 @@ class StringOperatorExperiment(
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: StringOperatorArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -133,6 +134,8 @@ class StringOperatorExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
