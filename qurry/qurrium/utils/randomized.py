@@ -23,13 +23,20 @@ RZmatrix: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]] = n
 
 
 def density_matrix_to_bloch(
-    rho: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]],
+    rho: Union[
+        np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]], list[list[complex]]
+    ],
 ) -> list[float]:
     """Convert a density matrix to a Bloch vector.
 
     Args:
-        rho (np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]):
+        rho (Union[
+            np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]],
+            list[list[complex]]
+        ]):
             The density matrix.
+            It can be a :cls:`numpy.ndarray` or :cls:`list[list[complex]]`.
+            The matrix should be a 2x2 matrix.
 
     Returns:
         list[float]: The bloch vector.
@@ -42,12 +49,20 @@ def density_matrix_to_bloch(
 
 
 def qubit_operator_to_pauli_coeff(
-    rho: np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]],
+    rho: Union[
+        np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]], list[list[complex]]
+    ],
 ) -> list[tuple[Union[float, np.float64], Union[float, np.float64]]]:
     """Convert a random unitary operator matrix to a Bloch vector.
 
     Args:
-        rho (np.array): The random unitary operator matrix.
+        rho (Union[
+            np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]],
+            list[list[complex]]
+        ]):
+            The random unitary operator matrix.
+            It can be a :cls:`numpy.ndarray` or :cls:`list[list[complex]]`.
+            The matrix should be a 2x2 matrix.
 
     Returns:
         list[tuple[float]]: The bloch vector divided as tuple of real number and image number.
@@ -62,7 +77,7 @@ def qubit_operator_to_pauli_coeff(
 def local_random_unitary_operators(
     unitary_loc: tuple[int, int],
     unitary_op_list: Union[list[np.ndarray], dict[int, Operator]],
-) -> dict[int, list[np.ndarray]]:
+) -> dict[int, list[list[complex]]]:
     """Transform a list of unitary operators in :cls:`qiskit.quantum_info.operator.Operator`
     a list of unitary operators in :cls:`numpy.ndarray`.
 
@@ -72,26 +87,28 @@ def local_random_unitary_operators(
             The list of unitary operators.
 
     Returns:
-        dict[int, list[np.ndarray]]: The list of unitary operators.
+        dict[int, list[list[complex]]]:
+            The dictionary of unitary operators in `list[list[complex]]`.
     """
     return {i: np.array(unitary_op_list[i]).tolist() for i in range(*unitary_loc)}
 
 
 def local_random_unitary_pauli_coeff(
     unitary_loc: tuple[int, int],
-    unitary_op_list: list[np.ndarray],
+    unitary_op_dict: dict[int, list[list[complex]]],
 ) -> dict[int, list[tuple[Union[float, np.float64], Union[float, np.float64]]]]:
     """Transform a list of unitary operators in :cls:`numpy.ndarray`
     a list of pauli coefficients.
 
     Args:
         unitary_loc (tuple[int, int]): The location of unitary operator.
-        unitary_op_list (list[np.ndarray]): The list of unitary operators.
+        unitary_op_dict (dict[int, list[list[complex]]]):
+            The list of unitary operators or dictionary of unitary operators.
 
     Returns:
         dict[int, list[tuple[float, float]]]: The list of pauli coefficients.
     """
-    return {i: qubit_operator_to_pauli_coeff(unitary_op_list[i]) for i in range(*unitary_loc)}
+    return {i: qubit_operator_to_pauli_coeff(unitary_op_dict[i]) for i in range(*unitary_loc)}
 
 
 def local_unitary_op_to_list(
