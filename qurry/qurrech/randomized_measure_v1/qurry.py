@@ -340,7 +340,8 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -372,8 +373,10 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -390,6 +393,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
+            multiprocess_build=multiprocess_build,
             multiprocess_write=multiprocess_write,
         )
 
@@ -402,7 +406,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             dict[Hashable, Union[dict[str, Any], EchoListenRandomizedV1AnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_write: bool = False,
         # analysis arguments
         degree: Optional[Union[tuple[int, int], int]] = None,
         counts_used: Optional[Iterable[int]] = None,
@@ -429,7 +433,7 @@ class EchoListenRandomizedV1(QurriumPrototype[EchoListenRandomizedV1Experiment])
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file. Defaults to True.
+                Whether use multiprocess for writing. Defaults to False.
 
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
             counts_used (Optional[Iterable[int]], optional):

@@ -289,9 +289,7 @@ class EntropyMeasureRandomizedExperiment(
         """
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
-
-        if self.args.registers_mapping is None:
-            raise ValueError("registers_mapping should be specified, but got None.")
+        assert self.args.registers_mapping is not None, "registers_mapping should be not None."
 
         if isinstance(counts_used, Iterable):
             if max(counts_used) >= len(self.afterwards.counts):

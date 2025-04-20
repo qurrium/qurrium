@@ -428,7 +428,8 @@ class EchoListenRandomized(QurriumPrototype[EchoListenRandomizedExperiment]):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -460,8 +461,11 @@ class EchoListenRandomized(QurriumPrototype[EchoListenRandomizedExperiment]):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
+                Whether use multiprocess for writing. Defaults to False.
+
         Returns:
             str: The summoner_id of multimanager.
         """
@@ -478,6 +482,7 @@ class EchoListenRandomized(QurriumPrototype[EchoListenRandomizedExperiment]):
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
             multiprocess_write=multiprocess_write,
+            multiprocess_build=multiprocess_build,
         )
 
     def multiAnalysis(
@@ -489,7 +494,7 @@ class EchoListenRandomized(QurriumPrototype[EchoListenRandomizedExperiment]):
             dict[Hashable, Union[dict[str, Any], EchoListenRandomizedAnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_write: bool = False,
         # analysis arguments
         selected_classical_registers: Optional[Iterable[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
@@ -513,7 +518,7 @@ class EchoListenRandomized(QurriumPrototype[EchoListenRandomizedExperiment]):
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file. Defaults to True.
+                Whether use multiprocess for writing. Defaults to False.
 
             selected_classical_registers (Optional[Iterable[int]], optional):
                 The list of **the index of the selected_classical_registers**.

@@ -359,7 +359,8 @@ class QurriumPrototype(ABC, Generic[_E]):
         jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
         skip_build_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Build the multimanager.
 
@@ -396,9 +397,10 @@ class QurriumPrototype(ABC, Generic[_E]):
             skip_build_write (bool, optional):
                 Whether to skip the file writing during the building.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
-
+                Whether use multiprocess for writing. Defaults to False.
         Returns:
             str: The summoner_id of multimanager.
         """
@@ -434,6 +436,7 @@ class QurriumPrototype(ABC, Generic[_E]):
             pending_strategy=pending_strategy,
             save_location=save_location,
             skip_writing=skip_build_write,
+            multiprocess_build=multiprocess_build,
             multiprocess_write=multiprocess_write,
         )
         assert len(current_multimanager.beforewards.pending_pool) == 0
@@ -456,7 +459,8 @@ class QurriumPrototype(ABC, Generic[_E]):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -488,8 +492,10 @@ class QurriumPrototype(ABC, Generic[_E]):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -510,6 +516,7 @@ class QurriumPrototype(ABC, Generic[_E]):
             jobstype="local",
             pending_strategy="tags",
             skip_build_write=skip_build_write,
+            multiprocess_build=multiprocess_build,
             multiprocess_write=multiprocess_write,
         )
         current_multimanager = self.multimanagers[besummonned]
@@ -645,7 +652,7 @@ class QurriumPrototype(ABC, Generic[_E]):
             dict[Hashable, Union[dict[str, Any], AnalyzeArgs, bool, Any]]
         ] = None,
         skip_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_write: bool = False,
         **analysis_args: Any,
     ) -> str:
         """Run the analysis for multiple experiments.
@@ -663,7 +670,7 @@ class QurriumPrototype(ABC, Generic[_E]):
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file. Defaults to True.
+                Whether use multiprocess for writing. Defaults to False.
             analysis_args (Any):
                 Other arguments for analysis.
 
@@ -702,7 +709,8 @@ class QurriumPrototype(ABC, Generic[_E]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Write the multimanager to the file.
 

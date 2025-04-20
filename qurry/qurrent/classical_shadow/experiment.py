@@ -257,11 +257,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
-
         assert self.args.registers_mapping is not None, "registers_mapping should be not None."
 
-        self.args: ShadowUnveilArguments
-        self.reports: dict[int, ShadowUnveilAnalysis]
         assert (
             "random_unitary_ids" in self.beforewards.side_product
         ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."

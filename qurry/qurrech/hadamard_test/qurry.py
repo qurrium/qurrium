@@ -241,7 +241,8 @@ class EchoListenHadamard(QurriumPrototype[EchoListenHadamardExperiment]):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -273,10 +274,10 @@ class EchoListenHadamard(QurriumPrototype[EchoListenHadamardExperiment]):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -293,6 +294,7 @@ class EchoListenHadamard(QurriumPrototype[EchoListenHadamardExperiment]):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
+            multiprocess_build=multiprocess_build,
             multiprocess_write=multiprocess_write,
         )
 
@@ -305,7 +307,7 @@ class EchoListenHadamard(QurriumPrototype[EchoListenHadamardExperiment]):
             dict[Hashable, Union[dict[str, Any], EchoListenHadamardAnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
-        multiprocess_write: bool = True,
+        multiprocess_write: bool = False,
         **analysis_args,
     ) -> str:
         """Run the analysis for multiple experiments.
@@ -325,7 +327,7 @@ class EchoListenHadamard(QurriumPrototype[EchoListenHadamardExperiment]):
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file. Defaults to True.
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
