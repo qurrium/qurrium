@@ -14,6 +14,7 @@ from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from ...qurrium.experiment.utils import memory_usage_factor_expect
 from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.utils.randomized import (
     random_unitary,
@@ -654,6 +655,13 @@ class EchoListenRandomizedExperiment(
 
         set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
+
+        # memory usage factor
+        current_exp.memory_usage_factor = memory_usage_factor_expect(
+            target=current_exp.beforewards.target,
+            circuits=current_exp.beforewards.circuit,
+            commonparams=current_exp.commons,
+        )
 
         # commons
         note_and_date = current_exp.commons.datetimes.add_only("build")

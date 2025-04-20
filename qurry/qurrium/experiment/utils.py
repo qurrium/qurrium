@@ -2,8 +2,13 @@
 
 import warnings
 from uuid import uuid4, UUID
-from typing import Optional, Any
+from typing import Optional, Any, Union
+from collections.abc import Hashable
+import numpy as np
 
+from qiskit import QuantumCircuit
+
+from .arguments import Commonparams
 from ..analysis import AnalysisPrototype
 from ...tools.datetime import current_time, DatetimeDict
 from ...exceptions import QurryHashIDInvalid
@@ -83,3 +88,40 @@ def commons_dealing(
             commons_dict["tags"] = tuple(commons_dict["tags"])
 
     return commons_dict
+
+
+def memory_usage_factor_expect(
+    target: list[tuple[Hashable, Union[QuantumCircuit, str]]],
+    circuits: list[QuantumCircuit],
+    commonparams: Commonparams,
+) -> int:
+    """Estimate the memory usage of :cls:`ExperimentPrototype` by the circuits.
+
+    The memory usage is estimated by the number of instructions in the circuits and
+    the number of shots. The factor is calculated by the formula:
+
+    .. code-block:: txt
+        factor = target_circuit_instructions_num + sqrt(shots) * target_circuit_instructions_num
+
+    where `target_circuit_instructions_num` is the number of instructions in the target circuits,
+    `transpiled_circuit_instructions_num` is the number of instructions in the circuits
+    which has been transpiled and will be run on the backend,
+    and `shots` is the number of shots.
+
+    The factor is rounded to the nearest integer.
+    The factor is used to estimate the memory usage of the experiment.
+
+    Args:
+        circuits (list[QuantumCircuit]): The circuits to be estimated.
+        commonparams (Commonparams): The common parameters of the experiment.
+
+    Returns:
+        int: The factor of the memory usage.
+    """
+
+    circuit_instructions_num = sum(len(circuit.data) for circuit in circuits)
+
+    factor = circuit_instructions_num * np.sqrt(commonparams.shots)
+    factor += sum(len(circuit.data) for _, circuit in target if isinstance(circuit, QuantumCircuit))
+
+    return int(np.round(factor))
