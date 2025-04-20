@@ -417,9 +417,13 @@ class MultiManager(Generic[_E]):
                 desc="MultiManager building...",
             )
         else:
+            initial_config_list_progress = qurry_progressbar(
+                initial_config_list,
+                desc="MultiManager building...",
+            )
             exps_list: list[tuple[_E, dict[str, Any]]] = [
                 (experiment_instance.build(multiprocess=True, **config), config)
-                for config in initial_config_list
+                for config in initial_config_list_progress
             ]
 
         for new_exps, config in exps_list:

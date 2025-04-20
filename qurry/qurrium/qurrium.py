@@ -709,7 +709,6 @@ class QurriumPrototype(ABC, Generic[_E]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
-        multiprocess_build: bool = False,
         multiprocess_write: bool = False,
     ) -> str:
         """Write the multimanager to the file.
