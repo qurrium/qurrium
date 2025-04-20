@@ -23,6 +23,7 @@ from .export import Export
 from .utils import (
     commons_dealing,
     exp_id_process,
+    memory_usage_factor_expect,
     DEPRECATED_PROPERTIES,
     EXPERIMENT_UNEXPORTS,
 )
@@ -73,6 +74,25 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     """The beforewards of the experiment."""
     afterwards: After
     """The afterwards of the experiment."""
+    memory_usage_factor: int = -1
+    """The factor of the memory usage of the experiment.
+    When the experiment is created, it will be set to -1 for no measurement yet.
+    When the experiment is built, it will be set to the memory usage of the experiment.
+
+    The memory usage is estimated by the number of instructions in the circuits and
+    the number of shots. The factor is calculated by the formula:
+
+    .. code-block:: txt
+        factor = target_circuit_instructions_num + sqrt(shots) * target_circuit_instructions_num
+
+    where `target_circuit_instructions_num` is the number of instructions in the target circuits,
+    `transpiled_circuit_instructions_num` is the number of instructions in the circuits
+    which has been transpiled and will be run on the backend,
+    and `shots` is the number of shots.
+
+    The factor is rounded to the nearest integer.
+    The factor is used to estimate the memory usage of the experiment.
+    """
 
     def _implementation_check(self):
         """Check whether the experiment is implemented correctly."""
@@ -592,6 +612,13 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
+
+        # memory usage factor
+        current_exp.memory_usage_factor = memory_usage_factor_expect(
+            target=current_exp.beforewards.target,
+            circuits=current_exp.beforewards.circuit,
+            commonparams=current_exp.commons,
+        )
 
         # commons
         note_and_date = current_exp.commons.datetimes.add_only("build")
