@@ -117,16 +117,7 @@ def rho_m_core_py(
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
-    rho_m_dict = {
-        idx: np.zeros(
-            (
-                2 ** len(selected_classical_registers_sorted),
-                2 ** len(selected_classical_registers_sorted),
-            ),
-            dtype=np.complex128,
-        )
-        for idx in range(len(rho_mk_py_result_list))
-    }
+    rho_m_dict = {}
     selected_qubits_checked: dict[int, bool] = {}
     for (
         idx,
@@ -135,9 +126,19 @@ def rho_m_core_py(
         selected_classical_registers_sorted_result,
     ) in rho_mk_py_result_list:
 
-        for bitstring, rho_mk in rho_mk_dict.items():
-            rho_m_dict[idx] += rho_mk * rho_mk_counts_num[bitstring]
-        rho_m_dict[idx] /= shots
+        tmp_arr = np.array(
+            [rho_mk * rho_mk_counts_num[bitstring] for bitstring, rho_mk in rho_mk_dict.items()]
+        )
+        tmp = tmp_arr.sum(axis=0, dtype=np.complex128)
+        tmp /= shots
+        expected_shape = (
+            2 ** len(selected_classical_registers_sorted),
+            2 ** len(selected_classical_registers_sorted),
+        )
+        assert tmp.shape == expected_shape, (
+            f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
+        )
+        rho_m_dict[idx] = tmp
         selected_qubits_checked[idx] = (
             selected_classical_registers_sorted_result != selected_classical_registers_sorted
         )
