@@ -18,7 +18,7 @@ from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools import ParallelManager, workers_distribution
+from ...tools import ParallelManager
 
 
 # try:
@@ -89,9 +89,6 @@ def rho_m_core_py(
     sample_shots = sum(counts[0].values())
     assert sample_shots == shots, f"shots {shots} does not match sample_shots {sample_shots}"
 
-    # Determine worker number
-    launch_worker = workers_distribution()
-
     # Determine subsystem size
     measured_system_size = len(list(counts[0].keys())[0])
 
@@ -109,7 +106,7 @@ def rho_m_core_py(
 
     begin = time.time()
 
-    pool = ParallelManager(launch_worker)
+    pool = ParallelManager()
     rho_mk_py_result_list = pool.starmap(
         rho_mk_cell_py,
         [

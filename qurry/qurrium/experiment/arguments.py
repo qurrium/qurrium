@@ -1,7 +1,7 @@
 """The Arguments of Experiment (:mod:`qurry.qurrium.experiment.arguments`)"""
 
 import json
-from typing import Union, Optional, NamedTuple, TypedDict, Any
+from typing import Union, Optional, NamedTuple, TypedDict, Any, TypeVar
 from collections.abc import Hashable, Iterable
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -132,6 +132,10 @@ class ArgumentsPrototype:
                 outfields[k] = v
 
         return (cls(**infields), Commonparams(**commonsinput), outfields)  # type: ignore
+
+
+_A = TypeVar("_A", bound=ArgumentsPrototype)
+"""Type variable for :cls:`ArgumentsPrototype`."""
 
 
 class CommonparamsDict(TypedDict):
@@ -339,7 +343,7 @@ class Commonparams(NamedTuple):
         """Export the experiment's common parameters.
 
         Returns:
-            dict[str, Any]: The experiment's common parameters.
+            CommonparamsDict: The common parameters of experiment.
         """
         # pylint: disable=no-member
         commons: CommonparamsDict = jsonablize(self._asdict())

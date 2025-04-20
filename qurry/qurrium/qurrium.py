@@ -19,7 +19,7 @@ from .container import (
     MultiManagerContainer,
     PassManagerContainer,
     ExperimentContainerWrapper,
-    _ExpInst,
+    _E,
 )
 from .multimanager.multimanager import (
     MultiManager,
@@ -31,7 +31,7 @@ from ..tools.backend import GeneralSimulator
 from ..declare import BaseRunArgs, TranspileArgs, OutputArgs, BasicArgs, AnalyzeArgs
 
 
-class QurriumPrototype(ABC, Generic[_ExpInst]):
+class QurriumPrototype(ABC, Generic[_E]):
     """Qurrium, A qiskit Macro.
     *~ Create countless adventure, legacy and tales. ~*
     """
@@ -88,7 +88,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
 
     @property
     @abstractmethod
-    def experiment_instance(self) -> Type[_ExpInst]:
+    def experiment_instance(self) -> Type[_E]:
         """The instance of experiment."""
         raise NotImplementedError("The experiment is not defined.")
 
@@ -98,10 +98,10 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         self.waves: WaveContainer = WaveContainer()
         """The wave functions container."""
 
-        self.orphan_exps: ExperimentContainer[_ExpInst] = ExperimentContainer()
+        self.orphan_exps: ExperimentContainer[_E] = ExperimentContainer()
         """The orphan experiments container."""
 
-        self.multimanagers: MultiManagerContainer[_ExpInst] = MultiManagerContainer()
+        self.multimanagers: MultiManagerContainer[_E] = MultiManagerContainer()
         """The last multimanager be called."""
 
         self.accessor: Optional[RemoteAccessor] = None
@@ -112,7 +112,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         self.passmanagers: PassManagerContainer = PassManagerContainer()
         """The collection of pass managers."""
 
-        self.exps: ExperimentContainerWrapper[_ExpInst] = ExperimentContainerWrapper(
+        self.exps: ExperimentContainerWrapper[_E] = ExperimentContainerWrapper(
             orphan_exps=self.orphan_exps,
             multimanagers=self.multimanagers,
         )
@@ -359,6 +359,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
         skip_build_write: bool = False,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Build the multimanager.
 
@@ -395,7 +397,10 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             skip_build_write (bool, optional):
                 Whether to skip the file writing during the building.
                 Defaults to False.
-
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
         Returns:
             str: The summoner_id of multimanager.
         """
@@ -431,6 +436,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             pending_strategy=pending_strategy,
             save_location=save_location,
             skip_writing=skip_build_write,
+            multiprocess_build=multiprocess_build,
+            multiprocess_write=multiprocess_write,
         )
         assert len(current_multimanager.beforewards.pending_pool) == 0
         assert len(current_multimanager.beforewards.circuits_map) == 0
@@ -452,6 +459,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -483,6 +492,10 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -503,6 +516,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             jobstype="local",
             pending_strategy="tags",
             skip_build_write=skip_build_write,
+            multiprocess_build=multiprocess_build,
+            multiprocess_write=multiprocess_write,
         )
         current_multimanager = self.multimanagers[besummonned]
         assert current_multimanager.summoner_id == besummonned
@@ -538,7 +553,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         current_multimanager.multicommons.datetimes.add_serial("output")
 
         if not skip_output_write:
-            bewritten = self.multiWrite(besummonned)
+            bewritten = self.multiWrite(besummonned, multiprocess_write=multiprocess_write)
             assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id
@@ -637,6 +652,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             dict[Hashable, Union[dict[str, Any], AnalyzeArgs, bool, Any]]
         ] = None,
         skip_write: bool = False,
+        multiprocess_write: bool = False,
         **analysis_args: Any,
     ) -> str:
         """Run the analysis for multiple experiments.
@@ -653,6 +669,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
             analysis_args (Any):
                 Other arguments for analysis.
 
@@ -676,7 +694,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         print(f'| "{report_name}" has been completed.')
 
         if not skip_write:
-            self.multiWrite(summoner_id=summoner_id)
+            self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
 
         return current_multimanager.multicommons.summoner_id
 
@@ -691,6 +709,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Write the multimanager to the file.
 
@@ -718,6 +737,8 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
                 Skip the experiments. Defaults to False.
             skip_quantities (bool, optional):
                 Skip the quantities container. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether to use multiprocess to write the file.
 
         Raises:
             ValueError: summoner_id not in multimanagers.
@@ -738,6 +759,7 @@ class QurriumPrototype(ABC, Generic[_ExpInst]):
             skip_before_and_after=skip_before_and_after,
             skip_exps=skip_exps,
             skip_quantities=skip_quantities,
+            multiprocess=multiprocess_write,
         )
 
         if compress:

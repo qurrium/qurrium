@@ -1,7 +1,4 @@
-"""ShadowUnveil - Experiment
-(:mod:`qurry.qurrent.classical_shadow.experiment`)
-
-"""
+"""ShadowUnveil - Experiment (:mod:`qurry.qurrent.classical_shadow.experiment`)"""
 
 from typing import Union, Optional, Type, Any, Literal
 from collections.abc import Iterable, Hashable
@@ -28,7 +25,7 @@ from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
-class ShadowUnveilExperiment(ExperimentPrototype):
+class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUnveilAnalysis]):
     """The instance of experiment."""
 
     __name__ = "ShadowUnveilExperiment"
@@ -37,8 +34,6 @@ class ShadowUnveilExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[ShadowUnveilArguments]:
         """The arguments instance for this experiment."""
         return ShadowUnveilArguments
-
-    args: ShadowUnveilArguments
 
     @property
     def analysis_instance(self) -> Type[ShadowUnveilAnalysis]:
@@ -159,6 +154,7 @@ class ShadowUnveilExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: ShadowUnveilArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -170,6 +166,8 @@ class ShadowUnveilExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -177,7 +175,6 @@ class ShadowUnveilExperiment(ExperimentPrototype):
         """
         side_product = {}
 
-        pool = ParallelManager()
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
 
         target_key, target_circuit = targets[0]
@@ -200,11 +197,26 @@ class ShadowUnveilExperiment(ExperimentPrototype):
         }
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-        circ_list = []
-        circ_list = pool.starmap(
-            circuit_method_core,
-            [
-                (
+        assert arguments.registers_mapping is not None, "registers_mapping should be not None."
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                circuit_method_core,
+                [
+                    (
+                        n_u_i,
+                        target_circuit,
+                        target_key,
+                        arguments.exp_name,
+                        arguments.registers_mapping,
+                        random_unitary_ids[n_u_i],
+                    )
+                    for n_u_i in range(arguments.times)
+                ],
+            )
+        else:
+            circ_list = [
+                circuit_method_core(
                     n_u_i,
                     target_circuit,
                     target_key,
@@ -213,8 +225,7 @@ class ShadowUnveilExperiment(ExperimentPrototype):
                     random_unitary_ids[n_u_i],
                 )
                 for n_u_i in range(arguments.times)
-            ],
-        )
+            ]
 
         set_pbar_description(pbar, "Writing 'random_unitary_ids'.")
         side_product["random_unitary_ids"] = random_unitary_ids
@@ -241,16 +252,13 @@ class ShadowUnveilExperiment(ExperimentPrototype):
                 The progress bar. Defaults to None.
 
         Returns:
-            EntropyMeasureRandomizedAnalysis: The result of the analysis.
+            ShadowUnveilAnalysis: The result of the analysis.
         """
 
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
-
         assert self.args.registers_mapping is not None, "registers_mapping should be not None."
 
-        self.args: ShadowUnveilArguments
-        self.reports: dict[int, ShadowUnveilAnalysis]
         assert (
             "random_unitary_ids" in self.beforewards.side_product
         ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."

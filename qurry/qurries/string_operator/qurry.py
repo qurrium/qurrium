@@ -275,6 +275,8 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
         save_location: Union[Path, str] = Path("./"),
         skip_build_write: bool = False,
         skip_output_write: bool = False,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -306,6 +308,10 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
             skip_output_write (bool, optional):
                 Whether to skip the file writing during the output.
                 Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -322,6 +328,8 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
             save_location=save_location,
             skip_build_write=skip_build_write,
             skip_output_write=skip_output_write,
+            multiprocess_build=multiprocess_build,
+            multiprocess_write=multiprocess_write,
         )
 
     def multiAnalysis(
@@ -333,6 +341,7 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
             dict[Hashable, Union[dict[str, Any], StringOperatorAnalyzeArgs, bool]]
         ] = None,
         skip_write: bool = False,
+        multiprocess_write: bool = False,
         # analysis arguments
         **analysis_args,
     ) -> str:
@@ -352,6 +361,8 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -363,5 +374,6 @@ class StringOperator(QurriumPrototype[StringOperatorExperiment]):
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
             skip_write=skip_write,
+            multiprocess_write=multiprocess_write,
             **analysis_args,
         )

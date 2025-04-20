@@ -1,7 +1,4 @@
-"""MultiManager - The manager of multiple experiments.
-(:mod:`qurry.qurry.qurrium.multimanager`)
-
-"""
+"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurry.qurrium.multimanager`)"""
 
 import os
 import gc
@@ -18,13 +15,15 @@ from qiskit.providers import Backend
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import multiprocess_exporter_and_writer, datetimedict_process
-from ..experiment import ExperimentPrototype
-from ..container import ExperimentContainer, QuantityContainer, _ExpInst
+from .process import (
+    datetimedict_process,
+    multiprocess_exporter,
+    multiprocess_builder,
+    single_process_exporter,
+)
+from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
-from ...tools import qurry_progressbar
-from ...tools.backend import GeneralSimulator
-from ...tools.datetime import DatetimeDict
+from ...tools import qurry_progressbar, ParallelManager, GeneralSimulator, DatetimeDict
 from ...capsule import quickJSON
 from ...capsule.mori import TagList, GitSyncControl
 from ...declare import BaseRunArgs, AnalyzeArgs
@@ -35,7 +34,7 @@ from ...exceptions import (
 )
 
 
-class MultiManager(Generic[_ExpInst]):
+class MultiManager(Generic[_E]):
     """The manager of multiple experiments."""
 
     __name__ = "MultiManager"
@@ -46,7 +45,7 @@ class MultiManager(Generic[_ExpInst]):
 
     quantity_container: QuantityContainer
     """The container of quantity."""
-    exps: ExperimentContainer[_ExpInst]
+    exps: ExperimentContainer[_E]
     """The experiments container."""
 
     _unexports: list[str] = ["retrievedResult"]
@@ -254,7 +253,7 @@ class MultiManager(Generic[_ExpInst]):
         self,
         current_id: str,
         config: dict[str, Any],
-        exps_instance: ExperimentPrototype,
+        exps_instance: _E,
     ):
         """Register the experiment to multimanager.
 
@@ -284,7 +283,7 @@ class MultiManager(Generic[_ExpInst]):
     def build(
         cls,
         config_list: list[dict[str, Any]],
-        experiment_instance: Type[_ExpInst],
+        experiment_instance: Type[_E],
         summoner_name: Optional[str] = None,
         shots: Optional[int] = None,
         backend: Backend = GeneralSimulator(),
@@ -295,6 +294,8 @@ class MultiManager(Generic[_ExpInst]):
         # save parameters
         save_location: Union[Path, str] = Path("./"),
         skip_writing: bool = False,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> "MultiManager":
         """Build the multi-experiment.
 
@@ -316,6 +317,10 @@ class MultiManager(Generic[_ExpInst]):
                 Location of saving experiment. Defaults to Path("./").
             skip_writing (bool, optional):
                 Whether skip writing. Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             MultiManager: The container of experiments and multi-experiment.
@@ -379,6 +384,9 @@ class MultiManager(Generic[_ExpInst]):
 
         initial_config_list: list[dict[str, Any]] = []
         for serial, config in enumerate(config_list):
+            config.pop("export", None)
+            config.pop("pbar", None)
+            config.pop("multiprocess", None)
             initial_config_list.append(
                 {
                     **config,
@@ -392,18 +400,33 @@ class MultiManager(Generic[_ExpInst]):
                 }
             )
 
-        initial_config_list_progress = qurry_progressbar(initial_config_list)
-        initial_config_list_progress.set_description_str("MultiManager building...")
+        # initial_config_list_progress = qurry_progressbar(initial_config_list)
+        # initial_config_list_progress.set_description_str("MultiManager building...")
 
-        for config in initial_config_list_progress:
-            config.pop("export", None)
-            config.pop("pbar", None)
-            new_exps = experiment_instance.build(
-                **config,
-                export=False,  # export later for it's not efficient for one by one
-                pbar=initial_config_list_progress,
+        if multiprocess_build:
+            pool = ParallelManager()
+            exps_list: list[tuple[_E, dict[str, Any]]] = pool.process_map(
+                multiprocess_builder,
+                [
+                    (
+                        experiment_instance,
+                        config,
+                    )
+                    for config in initial_config_list
+                ],
+                desc="MultiManager building...",
             )
-            initial_config_list_progress.set_description_str("Loading data to multimanager...")
+        else:
+            initial_config_list_progress = qurry_progressbar(
+                initial_config_list,
+                desc="MultiManager building...",
+            )
+            exps_list: list[tuple[_E, dict[str, Any]]] = [
+                (experiment_instance.build(multiprocess=True, **config), config)
+                for config in initial_config_list_progress
+            ]
+
+        for new_exps, config in exps_list:
             current_multimanager.register(
                 current_id=new_exps.commons.exp_id,
                 config=config,
@@ -411,9 +434,8 @@ class MultiManager(Generic[_ExpInst]):
             )
             current_multimanager.exps[new_exps.commons.exp_id] = new_exps
 
-        initial_config_list_progress.set_description_str("MultiManager writing...")
         if not skip_writing:
-            current_multimanager.write()
+            current_multimanager.write(multiprocess=multiprocess_write)
 
         return current_multimanager
 
@@ -421,7 +443,7 @@ class MultiManager(Generic[_ExpInst]):
     def read(
         cls,
         summoner_name: str,
-        experiment_instance: Type[_ExpInst],
+        experiment_instance: Type[_E],
         save_location: Union[Path, str] = Path("./"),
         is_read_or_retrieve: bool = False,
         read_from_tarfile: bool = False,
@@ -577,7 +599,7 @@ class MultiManager(Generic[_ExpInst]):
                         if path.exists():
                             path.unlink()
 
-        reading_results: list[_ExpInst] = experiment_instance.read(  # type: ignore
+        reading_results: list[_E] = experiment_instance.read(  # type: ignore
             save_location=current_multimanager.multicommons.save_location,
             name_or_id=current_multimanager.multicommons.summoner_name,
         )
@@ -648,6 +670,7 @@ class MultiManager(Generic[_ExpInst]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
+        multiprocess: bool = False,
     ) -> dict[str, Any]:
         """Export the multi-experiment.
 
@@ -664,6 +687,8 @@ class MultiManager(Generic[_ExpInst]):
                 Skip the experiments. Defaults to False.
             skip_quantities (bool, optional):
                 Skip the quantities container. Defaults to False.
+            multiprocess (bool, optional):
+                Whether to use multiprocess for exporting. Defaults to False.
 
         Returns:
             dict[str, Any]: The dict of multiConfig.
@@ -761,28 +786,74 @@ class MultiManager(Generic[_ExpInst]):
         # experiments
         if not skip_exps:
             all_qurryinfo_loc = self.multicommons.export_location / "qurryinfo.json"
-
-            exps_export_progress = qurry_progressbar(
-                self.beforewards.exps_config,
-                desc="Exporting and writring...",
-                bar_format="qurry-barless",
-            )
-            all_qurryinfo = {}
-            for id_exec in exps_export_progress:
-                tmp_id, tmp_qurryinfo_content = multiprocess_exporter_and_writer(
-                    id_exec=id_exec,
-                    exps=self.exps[id_exec],
-                    save_location=self.multicommons.save_location,
+            if multiprocess:
+                all_export_ids = list(self.beforewards.exps_config.keys())
+                first_export = multiprocess_exporter(
+                    id_exec=all_export_ids[0],
+                    exps_export=self.exps[all_export_ids[0]].export(
+                        save_location=self.multicommons.save_location,
+                        export_transpiled_circuit=export_transpiled_circuit,
+                    ),
                     mode="w+",
                     indent=indent,
                     encoding=encoding,
                     jsonable=True,
                     mute=True,
-                    export_transpiled_circuit=export_transpiled_circuit,
-                    _pbar=None,
+                    pbar=None,
                 )
-                assert id_exec == tmp_id, "ID is not consistent."
-                all_qurryinfo[id_exec] = tmp_qurryinfo_content
+
+                exporting_pool = ParallelManager()
+                export_list = [
+                    (
+                        id_exec,
+                        self.exps[id_exec].export(
+                            save_location=self.multicommons.save_location,
+                            export_transpiled_circuit=export_transpiled_circuit,
+                        ),
+                        "w+",
+                        indent,
+                        encoding,
+                        True,
+                        True,
+                        None,
+                    )
+                    for id_exec in all_export_ids[1:]
+                ]
+
+                all_qurryinfo_items_since_1 = exporting_pool.process_map(
+                    multiprocess_exporter,
+                    export_list,
+                    bar_format="qurry-barless",
+                    desc="Exporting experiments...",
+                )
+                del export_list
+                all_qurryinfo = dict([first_export] + all_qurryinfo_items_since_1)
+
+            else:
+                all_qurryinfo = {}
+                exps_export_progress = qurry_progressbar(
+                    self.beforewards.exps_config,
+                    desc="Exporting experiments...",
+                    bar_format="qurry-barless",
+                )
+                for id_exec in exps_export_progress:
+                    tmp_id, tmp_qurryinfo_content = single_process_exporter(
+                        id_exec=id_exec,
+                        exps_export=self.exps[id_exec].export(
+                            save_location=self.multicommons.save_location,
+                            export_transpiled_circuit=export_transpiled_circuit,
+                        ),
+                        mode="w+",
+                        indent=indent,
+                        encoding=encoding,
+                        jsonable=True,
+                        mute=True,
+                        pbar=None,
+                    )
+                    assert id_exec == tmp_id, "ID is not consistent."
+                    all_qurryinfo[id_exec] = tmp_qurryinfo_content
+
+            gc.collect()
 
             # for id_exec, files in all_qurryinfo_items:
             for id_exec, files in all_qurryinfo.items():

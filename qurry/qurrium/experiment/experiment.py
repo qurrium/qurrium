@@ -1,14 +1,12 @@
-"""ExperimentPrototype - The instance of experiment
-(:mod:`qurry.qurrium.experiment.experiment`)
-
-"""
+"""ExperimentPrototype - The instance of experiment (:mod:`qurry.qurrium.experiment.experiment`)"""
 
 import gc
 import os
 import json
+import copy
 import warnings
 from abc import abstractmethod, ABC
-from typing import Union, Optional, Any, Type, Literal
+from typing import Union, Optional, Any, Type, Literal, Generic
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
@@ -17,10 +15,10 @@ from qiskit import transpile, QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
-from .arguments import ArgumentsPrototype, Commonparams
+from .arguments import Commonparams, _A
 from .beforewards import Before
 from .afterwards import After
-from .analyses import AnalysesContainer
+from .analyses import AnalysesContainer, _R
 from .export import Export
 from .utils import (
     commons_dealing,
@@ -32,7 +30,6 @@ from ..utils import get_counts_and_exceptions
 from ..utils.qasm import qasm_dumps
 from ..utils.iocontrol import RJUST_LEN
 from ..utils.inputfixer import outfields_check, outfields_hint
-from ..analysis import AnalysisPrototype
 from ...tools import ParallelManager, DatetimeDict, set_pbar_description, backend_name_getter
 from ...tools.backend import GeneralSimulator
 from ...capsule import jsonablize, quickJSON
@@ -42,13 +39,12 @@ from ...exceptions import (
     QurryInvalidInherition,
     QurryResetSecurityActivated,
     QurryResetAccomplished,
-    QurryProtectContent,
     QurrySummonerInfoIncompletion,
     QurryTranspileConfigurationIgnored,
 )
 
 
-class ExperimentPrototype(ABC):
+class ExperimentPrototype(ABC, Generic[_A, _R]):
     """The instance of experiment."""
 
     __name__ = "ExperimentPrototype"
@@ -56,24 +52,27 @@ class ExperimentPrototype(ABC):
 
     @property
     @abstractmethod
-    def arguments_instance(self) -> Type[ArgumentsPrototype]:
+    def arguments_instance(self) -> Type[_A]:
         """The arguments instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
-
-    args: ArgumentsPrototype
-    """The arguments of the experiment."""
 
     # analysis
     @property
     @abstractmethod
-    def analysis_instance(self) -> Type[AnalysisPrototype]:
+    def analysis_instance(self) -> Type[_R]:
         """The analysis instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
 
+    args: _A
+    """The arguments of the experiment."""
     commons: Commonparams
+    """The common parameters of the experiment."""
     outfields: dict[str, Any]
+    """The outfields of the experiment."""
     beforewards: Before
+    """The beforewards of the experiment."""
     afterwards: After
+    """The afterwards of the experiment."""
 
     def _implementation_check(self):
         """Check whether the experiment is implemented correctly."""
@@ -86,7 +85,7 @@ class ExperimentPrototype(ABC):
 
     def __init__(
         self,
-        arguments: Union[ArgumentsPrototype, dict[str, Any]],
+        arguments: Union[_A, dict[str, Any]],
         commonparams: Union[Commonparams, dict[str, Any]],
         outfields: dict[str, Any],
         beforewards: Optional[Before] = None,
@@ -161,7 +160,7 @@ class ExperimentPrototype(ABC):
                 circuit=[],
                 circuit_qasm=[],
                 fig_original=[],
-                job_id="",
+                job_id=[],
                 exp_name=self.args.exp_name,
                 side_product={},
             )
@@ -174,9 +173,10 @@ class ExperimentPrototype(ABC):
                 counts=[],
             )
         )
-        self.reports: AnalysesContainer[AnalysisPrototype] = (
+        self.reports: AnalysesContainer[_R] = (
             reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
         )
+        """The reports of the experiment."""
 
         _summon_check = {
             "serial": self.commons.serial,
@@ -211,7 +211,7 @@ class ExperimentPrototype(ABC):
     @abstractmethod
     def params_control(
         cls, targets: list[tuple[Hashable, QuantumCircuit]], exp_name: str, **custom_kwargs: Any
-    ) -> tuple[ArgumentsPrototype, Commonparams, dict[str, Any]]:
+    ) -> tuple[_A, Commonparams, dict[str, Any]]:
         """Control the experiment's parameters.
 
         Args:
@@ -379,8 +379,9 @@ class ExperimentPrototype(ABC):
     def method(
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: ArgumentsPrototype,
+        arguments: _A,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
         Where should be overwritten by each construction of new measurement.
@@ -388,11 +389,13 @@ class ExperimentPrototype(ABC):
         Args:
             targets (list[tuple[Hashable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (ArgumentsPrototype):
+            arguments (_Arg):
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -425,6 +428,7 @@ class ExperimentPrototype(ABC):
         encoding: str = "utf-8",
         jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
         **custom_and_main_kwargs: Any,
     ):
         """Construct the experiment.
@@ -485,6 +489,9 @@ class ExperimentPrototype(ABC):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
+
             custom_and_main_kwargs (Any):
                 Other custom arguments.
 
@@ -529,30 +536,34 @@ class ExperimentPrototype(ABC):
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
 
-        for tk, tv in targets:
-            current_exp.beforewards.target.append((tk, tv))
+        current_exp.beforewards.target.extend(targets)
         cirqs, side_prodict = current_exp.method(
-            targets=targets, arguments=current_exp.args, pbar=pbar
+            targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
         current_exp.beforewards.side_product.update(side_prodict)
 
         # qasm
-        pool = ParallelManager()
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-
-        tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
-        for qasm_str in tmp_qasm:
-            current_exp.beforewards.circuit_qasm.append(qasm_str)
 
         targets_keys, targets_values = zip(*targets)
         targets_keys: tuple[Hashable, ...]
         targets_values: tuple[QuantumCircuit, ...]
 
-        tmp_target_qasm_items = zip(
-            targets_keys, pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values])
-        )
-        for tk, qasm_str in tmp_target_qasm_items:
-            current_exp.beforewards.target_qasm.append((str(tk), qasm_str))
+        if multiprocess:
+            pool = ParallelManager()
+            tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
+            tmp_target_qasm_items = zip(
+                str(targets_keys),
+                pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
+            )
+        else:
+            tmp_qasm = [qasm_dumps(q, qasm_version) for q in cirqs]
+            tmp_target_qasm_items = zip(
+                str(targets_keys), [qasm_dumps(q, qasm_version) for q in targets_values]
+            )
+
+        current_exp.beforewards.circuit_qasm.extend(tmp_qasm)
+        current_exp.beforewards.target_qasm.extend(tmp_target_qasm_items)
 
         # transpile
         if passmanager_pair is not None:
@@ -560,7 +571,9 @@ class ExperimentPrototype(ABC):
             set_pbar_description(
                 pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
             )
-            transpiled_circs = passmanager.run(circuits=cirqs)  # type: ignore
+            transpiled_circs = passmanager.run(
+                circuits=cirqs, num_processes=None if multiprocess else 1  # type: ignore
+            )
             if len(current_exp.commons.transpile_args) > 0:
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
@@ -569,6 +582,8 @@ class ExperimentPrototype(ABC):
                 )
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
+            transpile_args = current_exp.commons.transpile_args.copy()
+            transpile_args["num_processes"] = None if multiprocess else 1
             transpiled_circs: list[QuantumCircuit] = transpile(
                 cirqs,
                 backend=current_exp.commons.backend,
@@ -576,8 +591,7 @@ class ExperimentPrototype(ABC):
             )
 
         set_pbar_description(pbar, "Circuit loading...")
-        for _w in transpiled_circs:
-            current_exp.beforewards.circuit.append(_w)
+        current_exp.beforewards.circuit.extend(transpiled_circs)
 
         # commons
         note_and_date = current_exp.commons.datetimes.add_only("build")
@@ -636,7 +650,7 @@ class ExperimentPrototype(ABC):
         # commons
         set_pbar_description(pbar, f"Executing completed '{event_name}', denoted date: {date}...")
         # beforewards
-        self["job_id"] = execution.job_id()
+        self.beforewards.job_id.append(execution.job_id())
         # afterwards
         result = execution.result()
         self.afterwards.result.append(result)
@@ -693,8 +707,7 @@ class ExperimentPrototype(ABC):
                 self.outfields["exceptions"][result_id] = exception_item
 
         set_pbar_description(pbar, "Counts loading...")
-        for _c in counts:
-            self.afterwards.counts.append(_c)
+        self.afterwards.counts.extend(counts)
 
         if len(self.commons.default_analysis) > 0:
             for i, _analysis in enumerate(self.commons.default_analysis):
@@ -793,35 +806,6 @@ class ExperimentPrototype(ABC):
         self.after_lock = True
         self.mute_auto_lock = mute_auto_lock
 
-    def __setitem__(self, key, value) -> None:
-        if key in self.beforewards._fields:
-            self.beforewards = self.beforewards._replace(**{key: value})
-        elif key in self.afterwards._fields:
-            if self.after_lock and isinstance(self.after_lock, bool):
-                self.afterwards = self.afterwards._replace(**{key: value})
-            else:
-                raise QurryProtectContent(
-                    f"Can't set value to :cls:`afterward` field {key} "
-                    + "because it's locked, use `.unlock_afterward()` "
-                    + "to unlock before setting item ."
-                )
-        elif key in DEPRECATED_PROPERTIES:
-            raise DeprecationWarning(f"{key} is deprecated.")
-        else:
-            raise ValueError(
-                f"{key} is not a valid field of " + f"'{Before.__name__}' and '{After.__name__}'."
-            )
-
-        gc.collect()
-        if self.after_lock is not False:
-            self.after_lock = False
-            if not self.mute_auto_lock:
-                print(
-                    "after_lock is locked automatically now, you can unlock by "
-                    + "using `.unlock_afterward()` to set value to :cls:`afterward`."
-                )
-            self.mute_auto_lock = False
-
     def __getitem__(self, key) -> Any:
         if key in self.beforewards._fields:
             return getattr(self.beforewards, key)
@@ -843,7 +827,7 @@ class ExperimentPrototype(ABC):
         """
 
     @abstractmethod
-    def analyze(self) -> AnalysisPrototype:
+    def analyze(self) -> _R:
         """Analyzing the example circuit results in specific method.
         Where should be overwritten by each construction of new measurement.
 
@@ -1054,12 +1038,14 @@ class ExperimentPrototype(ABC):
         if self.commons.save_location != save_location:
             self.commons = self.commons._replace(save_location=save_location)
 
-        adventures, tales = self.beforewards.export(
-            unexports=EXPERIMENT_UNEXPORTS,
-            export_transpiled_circuit=export_transpiled_circuit,
+        adventures, tales = copy.deepcopy(
+            self.beforewards.export(
+                unexports=EXPERIMENT_UNEXPORTS,
+                export_transpiled_circuit=export_transpiled_circuit,
+            )
         )
-        legacy = self.afterwards.export(unexports=EXPERIMENT_UNEXPORTS)
-        reports, tales_reports = self.reports.export()
+        legacy = copy.deepcopy(self.afterwards.export(unexports=EXPERIMENT_UNEXPORTS))
+        reports, tales_reports = copy.deepcopy(self.reports.export())
 
         # filename
         filename, folder = "", ""
@@ -1115,12 +1101,12 @@ class ExperimentPrototype(ABC):
             summoner_name=(None if self.commons.summoner_name else str(self.commons.summoner_name)),
             filename=str(filename),
             files={k: str(Path(v)) for k, v in files.items()},
-            args=jsonablize(self.args._asdict()),
-            commons=self.commons.export(),
-            outfields=jsonablize(self.outfields),
+            args=jsonablize(copy.deepcopy(self.args._asdict())),
+            commons=jsonablize(copy.deepcopy(self.commons.export())),
+            outfields=jsonablize(copy.deepcopy((self.outfields))),
             adventures=jsonablize(adventures),
             legacy=jsonablize(legacy),
-            tales=jsonablize(tales),
+            tales=tales,
             reports=reports,
             tales_reports=tales_reports,
         )
@@ -1283,7 +1269,7 @@ class ExperimentPrototype(ABC):
             reports=AnalysesContainer(),
         )
 
-        reports_read = exp_instance.analysis_instance.read(
+        reports_read: dict[str, _R] = exp_instance.analysis_instance.read(
             file_index=file_index,
             save_location=save_location,
             encoding=encoding,
@@ -1292,25 +1278,6 @@ class ExperimentPrototype(ABC):
             exp_instance.reports[k] = v
 
         return exp_instance
-
-    @classmethod
-    def _read_core_wrapper(
-        cls,
-        args: tuple[str, dict[str, str], Union[Path, str], str],
-    ) -> "ExperimentPrototype":
-        """Wrapper of :func:`_read_core` for multiprocessing.
-
-        Args:
-            args (tuple[str, dict[str, str], Union[Path, str], str]):
-                exp_id, file_index, save_location, encoding.
-
-        Returns:
-            ExperimentPrototype: The experiment to be read.
-        """
-        assert isinstance(args[1], dict), (
-            "file_index should be dict, " + f"but we get {type(args[1])}, {args[1]}."
-        )
-        return cls._read_core(*args)
 
     @classmethod
     def read(

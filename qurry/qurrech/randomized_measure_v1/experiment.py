@@ -1,8 +1,6 @@
-"""EchoListenRandomizedV1 - Experiment
-(:mod:`qurry.qurrech.randomized_measure_v1.experiment`)
+"""EchoListenRandomizedV1 - Experiment (:mod:`qurry.qurrech.randomized_measure_v1.experiment`)
 
 The deprecated version of the randomized measure experiment.
-
 """
 
 from typing import Union, Optional, Type, Any
@@ -28,11 +26,13 @@ from ...process.randomized_measure.wavefunction_overlap_v1 import (
     DEFAULT_PROCESS_BACKEND,
 )
 from ...process.availability import PostProcessingBackendLabel
-from ...tools import qurry_progressbar, ParallelManager
+from ...tools import qurry_progressbar, ParallelManager, set_pbar_description
 from ...exceptions import QurryArgumentsExpectedNotNone
 
 
-class EchoListenRandomizedV1Experiment(ExperimentPrototype):
+class EchoListenRandomizedV1Experiment(
+    ExperimentPrototype[EchoListenRandomizedV1Arguments, EchoListenRandomizedV1Analysis]
+):
     """The instance of experiment."""
 
     __name__ = "EchoListenRandomizedV1Experiment"
@@ -41,8 +41,6 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EchoListenRandomizedV1Arguments]:
         """The arguments instance for this experiment."""
         return EchoListenRandomizedV1Arguments
-
-    args: EchoListenRandomizedV1Arguments
 
     @property
     def analysis_instance(self) -> Type[EchoListenRandomizedV1Analysis]:
@@ -154,6 +152,7 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EchoListenRandomizedV1Arguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -165,6 +164,8 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -172,11 +173,10 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
         """
         side_product = {}
 
-        pool = ParallelManager(arguments.workers_num)
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(
-                f"Preparing {arguments.times} random unitary with {arguments.workers_num} workers."
-            )
+        set_pbar_description(
+            pbar,
+            f"Preparing {arguments.times} random unitary with {arguments.workers_num} workers.",
+        )
 
         target_key_01, target_circuit_01 = targets[0]
         target_key_01 = "" if isinstance(target_key_01, int) else str(target_key_01)
@@ -210,14 +210,52 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
             for i in range(arguments.times)
         }
 
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(
-                f"Building {2 * arguments.times} circuits with {arguments.workers_num} workers."
+        set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
+        assert arguments.unitary_loc is not None, "unitary_loc should be not None."
+        assert arguments.measure is not None, "measure should be not None."
+        if multiprocess:
+            pool = ParallelManager(arguments.workers_num)
+            circ_list = pool.starmap(
+                circuit_method_core_v1,
+                [
+                    (
+                        i,
+                        target_circuit_01,
+                        target_key_01,
+                        arguments.exp_name,
+                        arguments.unitary_loc,
+                        unitary_dict[i],
+                        arguments.measure,
+                    )
+                    for i in range(arguments.times)
+                ]
+                + [
+                    (
+                        i + arguments.times,
+                        target_circuit_02,
+                        target_key_02,
+                        arguments.exp_name,
+                        arguments.unitary_loc,
+                        unitary_dict[i],
+                        arguments.measure,
+                    )
+                    for i in range(arguments.times)
+                ],
             )
-        circ_list = pool.starmap(
-            circuit_method_core_v1,
-            [
-                (
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = pool.starmap(
+                local_random_unitary_operators,
+                [(arguments.unitary_loc, unitary_dict[i]) for i in range(arguments.times)],
+            )
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = pool.starmap(
+                local_random_unitary_pauli_coeff,
+                [(arguments.unitary_loc, unitary_operator_list[i]) for i in range(arguments.times)],
+            )
+
+        else:
+            circ_list = [
+                circuit_method_core_v1(
                     i,
                     target_circuit_01,
                     target_key_01,
@@ -227,9 +265,8 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
                     arguments.measure,
                 )
                 for i in range(arguments.times)
-            ]
-            + [
-                (
+            ] + [
+                circuit_method_core_v1(
                     i + arguments.times,
                     target_circuit_02,
                     target_key_02,
@@ -239,32 +276,21 @@ class EchoListenRandomizedV1Experiment(ExperimentPrototype):
                     arguments.measure,
                 )
                 for i in range(arguments.times)
-            ],
-        )
+            ]
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = [
+                local_random_unitary_operators(arguments.unitary_loc, unitary_dict[i])
+                for i in range(arguments.times)
+            ]
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = [
+                local_random_unitary_pauli_coeff(arguments.unitary_loc, unitary_operator_list[i])
+                for i in range(arguments.times)
+            ]
+
         assert len(circ_list) == 2 * arguments.times, "The number of circuits is not correct."
 
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Writing 'unitaryOP' with {arguments.workers_num} workers.")
-        # side_product["unitaryOP"] = {
-        #     k: {i: np.array(v[i]).tolist() for i in range(*arguments.unitary_loc)}
-        #     for k, v in unitary_dict.items()
-        # }
-        unitary_operator_list = pool.starmap(
-            local_random_unitary_operators,
-            [(arguments.unitary_loc, unitary_dict[i]) for i in range(arguments.times)],
-        )
         side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Writing 'randomized' with {arguments.workers_num} workers.")
-        # side_product["randomized"] = {
-        #     i: {j: qubitOpToPauliCoeff(unitary_dict[i][j]) for j in range(*arguments.unitary_loc)}
-        #     for i in range(arguments.times)
-        # }
-        randomized_list = pool.starmap(
-            local_random_unitary_pauli_coeff,
-            [(arguments.unitary_loc, unitary_operator_list[i]) for i in range(arguments.times)],
-        )
         side_product["randomized"] = dict(enumerate(randomized_list))
 
         return circ_list, side_product

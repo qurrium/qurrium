@@ -1,7 +1,4 @@
-"""StringOperator - Experiment
-(:mod:`qurry.qurries.string_operator.experiment`)
-
-"""
+"""StringOperator - Experiment (:mod:`qurry.qurries.string_operator.experiment`)"""
 
 from collections.abc import Hashable
 from typing import Optional, Type, Any
@@ -13,7 +10,7 @@ from .analysis import StringOperatorAnalysis
 from .arguments import StringOperatorArguments, SHORT_NAME
 from .utils import circuit_method, AvailableStringOperatorTypes, STRING_OPERATOR_LIB
 
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
+from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.string_operator.string_operator import (
     string_operator_order,
     StringOperator,
@@ -23,7 +20,12 @@ from ...process.string_operator.string_operator import (
 from ...tools import set_pbar_description
 
 
-class StringOperatorExperiment(ExperimentPrototype):
+class StringOperatorExperiment(
+    ExperimentPrototype[
+        StringOperatorArguments,
+        StringOperatorAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedExperiment"
@@ -33,14 +35,10 @@ class StringOperatorExperiment(ExperimentPrototype):
         """The arguments instance for this experiment."""
         return StringOperatorArguments
 
-    args: StringOperatorArguments
-
     @property
     def analysis_instance(self) -> Type[StringOperatorAnalysis]:
         """The analysis instance for this experiment."""
         return StringOperatorAnalysis
-
-    reports: AnalysesContainer[StringOperatorAnalysis]
 
     @classmethod
     def params_control(
@@ -124,6 +122,7 @@ class StringOperatorExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: StringOperatorArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -135,6 +134,8 @@ class StringOperatorExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:

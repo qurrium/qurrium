@@ -15,7 +15,12 @@ from ..experiment import ExperimentPrototype, Commonparams
 from ...exceptions import QurryExperimentCountsNotCompleted
 
 
-class WavesExecuterExperiment(ExperimentPrototype):
+class WavesExecuterExperiment(
+    ExperimentPrototype[
+        WavesExecuterArguments,
+        WavesExecuterAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "WavesExecuterExperiment"
@@ -24,8 +29,6 @@ class WavesExecuterExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[WavesExecuterArguments]:
         """The arguments instance for this experiment."""
         return WavesExecuterArguments
-
-    args: WavesExecuterArguments
 
     @property
     def analysis_instance(self) -> Type[WavesExecuterAnalysis]:
@@ -72,6 +75,7 @@ class WavesExecuterExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: WavesExecuterArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -83,6 +87,8 @@ class WavesExecuterExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -90,7 +96,7 @@ class WavesExecuterExperiment(ExperimentPrototype):
         """
         cirqs = []
         if pbar is not None:
-            pbar.set_description("| Loading circuits")
+            pbar.set_description_str("Loading circuits")
         for i, (k, q) in enumerate(targets):
             q_copy = q.copy()
             chosen_key = "" if isinstance(k, int) else str(k)

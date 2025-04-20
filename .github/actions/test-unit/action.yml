@@ -49,4 +49,4 @@ runs:
     - name: Test with pytest
       shell: bash
       run: |
-        python -m pytest -n auto || python -m pytest
+        python pytest -v -s --durations=0 -n auto || python -m pytest -v -s
