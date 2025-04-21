@@ -20,6 +20,7 @@ from .process import (
     multiprocess_exporter,
     multiprocess_builder,
     single_process_exporter,
+    very_easy_chunk_distribution,
 )
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
@@ -786,11 +787,16 @@ class MultiManager(Generic[_E]):
         # experiments
         if not skip_exps:
             all_qurryinfo_loc = self.multicommons.export_location / "qurryinfo.json"
+
             if multiprocess:
-                all_export_ids = list(self.beforewards.exps_config.keys())
+                respect_memory_array = [
+                    (id_exec, int(self.exps[id_exec].memory_usage_factor))
+                    for id_exec in self.beforewards.exps_config.keys()
+                ]
+                respect_memory_array.sort(key=lambda x: x[1])
                 first_export = multiprocess_exporter(
-                    id_exec=all_export_ids[0],
-                    exps_export=self.exps[all_export_ids[0]].export(
+                    id_exec=respect_memory_array[0][0],
+                    exps_export=self.exps[respect_memory_array[0][0]].export(
                         save_location=self.multicommons.save_location,
                         export_transpiled_circuit=export_transpiled_circuit,
                     ),
@@ -801,33 +807,45 @@ class MultiManager(Generic[_E]):
                     mute=True,
                     pbar=None,
                 )
-
-                exporting_pool = ParallelManager()
-                export_list = [
-                    (
-                        id_exec,
-                        self.exps[id_exec].export(
-                            save_location=self.multicommons.save_location,
-                            export_transpiled_circuit=export_transpiled_circuit,
-                        ),
-                        "w+",
-                        indent,
-                        encoding,
-                        True,
-                        True,
-                        None,
-                    )
-                    for id_exec in all_export_ids[1:]
-                ]
-
-                all_qurryinfo_items_since_1 = exporting_pool.process_map(
-                    multiprocess_exporter,
-                    export_list,
-                    bar_format="qurry-barless",
-                    desc="Exporting experiments...",
+                chucks_multiprocess_check, multiprocess_chunks = very_easy_chunk_distribution(
+                    respect_memory_array[1:]
                 )
-                del export_list
-                all_qurryinfo = dict([first_export] + all_qurryinfo_items_since_1)
+
+                exporting_pool = ParallelManager(
+                    workers_num=None if chucks_multiprocess_check else 1
+                )
+                export_chunks = {
+                    i: [
+                        (
+                            id_exec,
+                            self.exps[id_exec].export(
+                                save_location=self.multicommons.save_location,
+                                export_transpiled_circuit=export_transpiled_circuit,
+                            ),
+                            "w+",
+                            indent,
+                            encoding,
+                            True,
+                            True,
+                            None,
+                        )
+                        for id_exec, memory_usage in chunk
+                    ]
+                    for i, chunk in enumerate(multiprocess_chunks)
+                }
+
+                all_qurryinfo_items = [first_export]
+                for i in range(len(multiprocess_chunks)):
+                    all_qurryinfo_items += exporting_pool.process_map(
+                        multiprocess_exporter,
+                        export_chunks[i],
+                        bar_format="qurry-barless",
+                        desc=f"Exporting experiments... {i + 1}/{len(export_chunks)}",
+                    )
+                    del export_chunks[i]
+                    gc.collect()
+
+                all_qurryinfo = dict(all_qurryinfo_items)
 
             else:
                 all_qurryinfo = {}

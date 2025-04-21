@@ -1,9 +1,11 @@
 """Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
 
+import os
 from typing import Optional, Any, Type
 from pathlib import Path
 import gc
 import tqdm
+import numpy as np
 
 from .arguments import MultiCommonparams
 from ..container import _E
@@ -101,7 +103,7 @@ def single_process_exporter(
         encoding=encoding,
         jsonable=jsonable,
         mute=mute,
-        multiprocess=False,
+        multiprocess=True,
         pbar=pbar,
     )
     assert id_exec == qurryinfo_exp_id, (
@@ -147,3 +149,37 @@ def datetimedict_process(
         multicommons.datetimes.add_only("readV7")
         for k in old_files.keys():
             multicommons.files.pop(k, None)
+
+
+def very_easy_chunk_distribution(
+    respect_memory_array: list[tuple[str, int]],
+) -> tuple[bool, list[list[tuple[str, int]]]]:
+    """Distribute the chunk for multiprocess.
+    The chunk distribution is based on the number of CPU cores.
+
+    Args:
+        respect_memory_array (list[tuple[str, int]]):
+            The array of respect memory.
+            Each element is a tuple of (id, memory).
+            The id is the ID of the experiment, and the memory is the memory usage.
+            The array is sorted by the memory usage.
+
+    Returns:
+        tuple[bool, list[list[tuple[str, int]]]]:
+            Whether use multiprocess or not, the chunk distribution for multiprocess.
+    """
+
+    cpu_count = os.cpu_count()
+    if cpu_count is None:
+        return False, [[v] for v in respect_memory_array]
+
+    ideal_chunks_num = int(np.ceil(len(respect_memory_array) / cpu_count))
+    chunks_list = []
+    for i in range(ideal_chunks_num):
+        tmp = [
+            respect_memory_array[i + j * ideal_chunks_num]
+            for j in range(cpu_count)
+            if i + j * ideal_chunks_num < len(respect_memory_array)
+        ]
+        chunks_list.append(tmp)
+    return True, chunks_list

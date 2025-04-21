@@ -135,9 +135,9 @@ def rho_m_core_py(
             2 ** len(selected_classical_registers_sorted),
             2 ** len(selected_classical_registers_sorted),
         )
-        assert tmp.shape == expected_shape, (
-            f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
-        )
+        assert (
+            tmp.shape == expected_shape
+        ), f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
         rho_m_dict[idx] = tmp
         selected_qubits_checked[idx] = (
             selected_classical_registers_sorted_result != selected_classical_registers_sorted
