@@ -187,6 +187,7 @@ before-build = [
     "python -m pip install --upgrade auditwheel auditwheel-symbols delocate",
     "python -m pip install --upgrade setuptools_rust setuptools wheel pkginfo",
 ]
+test-command = ["pytest {project}/tests"]
 
 [tool.pylint."messages control"]
 disable = [
