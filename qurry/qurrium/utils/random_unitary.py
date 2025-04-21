@@ -1,10 +1,4 @@
-"""
-================================================================
-Kit for Random Unitary Operator
-(:mod:`qurry.qurrium.utils.random_unitary`)
-================================================================
-
-"""
+"""ToolKits for Random Unitary Operator (:mod:`qurry.qurrium.utils.random_unitary`)"""
 
 from typing import Union, Optional
 from collections.abc import Sequence

@@ -1,8 +1,4 @@
-"""
-================================================================
-SamplingExecuter - Arguments
-(:mod:`qurry.qurrium.samplingqurry.arguments`)
-================================================================
+"""SamplingExecuter - Arguments (:mod:`qurry.qurrium.samplingqurry.arguments`)
 
 It is only for pendings and retrieve to remote backend.
 """

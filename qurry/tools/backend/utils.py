@@ -1,7 +1,4 @@
-"""
-================================================================
-Backend Utils (:mod:`qurry.tools.backend.utils`)
-================================================================
+"""Backend Utils (:mod:`qurry.tools.backend.utils`)
 
 For qiskit-aer has been divided into two packages since qiskit some version,
 So it needs to be imported differently by trying to import qiskit-aer first.

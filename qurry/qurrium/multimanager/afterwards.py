@@ -1,10 +1,4 @@
-"""
-================================================================
-Afterwards
-(:mod:`qurry.qurrium.multimanager.afterwards`)
-================================================================
-
-"""
+"""MultiManager - Afterwards (:mod:`qurry.qurrium.multimanager.afterwards`)"""
 
 from pathlib import Path
 from collections.abc import Hashable

@@ -1,9 +1,4 @@
-"""
-================================================================
-Construct (:mod:`qurry.qurrium.utils.construct`)
-================================================================
-
-"""
+"""Construct (:mod:`qurry.qurrium.utils.construct`)"""
 
 import warnings
 from typing import Union, Optional
@@ -87,7 +82,7 @@ def get_counts_and_exceptions(
             else:
                 counts.append(get)
         except QiskitError as err_1:
-            exceptions[result.job_id] = err_1
+            exceptions[f"{result.job_id}"] = err_1
             print("| Failed Job result skip, Job ID:", result.job_id, err_1)
         return counts, exceptions
 

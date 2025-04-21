@@ -1,7 +1,4 @@
-"""EntropyMeasureHadamard - Experiment
-(:mod:`qurry.qurrent.hadamard_test.experiment`)
-
-"""
+"""EntropyMeasureHadamard - Experiment (:mod:`qurry.qurrent.hadamard_test.experiment`)"""
 
 from typing import Optional, Type, Any
 from collections.abc import Hashable
@@ -16,7 +13,12 @@ from ...process.utils import qubit_selector
 from ...process.hadamard_test import hadamard_entangled_entropy
 
 
-class EntropyMeasureHadamardExperiment(ExperimentPrototype):
+class EntropyMeasureHadamardExperiment(
+    ExperimentPrototype[
+        EntropyMeasureHadamardArguments,
+        EntropyMeasureHadamardAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureHadamardExperiment"
@@ -25,8 +27,6 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EntropyMeasureHadamardArguments]:
         """The arguments instance for this experiment."""
         return EntropyMeasureHadamardArguments
-
-    args: EntropyMeasureHadamardArguments
 
     @property
     def analysis_instance(self) -> Type[EntropyMeasureHadamardAnalysis]:
@@ -88,6 +88,7 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EntropyMeasureHadamardArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -98,6 +99,8 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -157,8 +160,7 @@ class EntropyMeasureHadamardExperiment(ExperimentPrototype):
                 The progress bar. Defaults to None.
 
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
+            EntropyMeasureHadamardAnalysis: The result of the analysis.
         """
 
         if pbar is not None:

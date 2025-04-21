@@ -20,12 +20,11 @@ from .arguments import (
 )
 from .experiment import EntropyMeasureHadamardExperiment
 from ...qurrium.qurrium import QurriumPrototype
-from ...qurrium.container import ExperimentContainer
 from ...tools.backend import GeneralSimulator
 from ...declare import BaseRunArgs, TranspileArgs
 
 
-class EntropyMeasureHadamard(QurriumPrototype):
+class EntropyMeasureHadamard(QurriumPrototype[EntropyMeasureHadamardExperiment]):
     """Hadamard test for entanglement entropy.
 
     - Which entropy:
@@ -41,8 +40,6 @@ class EntropyMeasureHadamard(QurriumPrototype):
     def experiment_instance(self) -> Type[EntropyMeasureHadamardExperiment]:
         """The container class responding to this Qurrium class."""
         return EntropyMeasureHadamardExperiment
-
-    exps: ExperimentContainer[EntropyMeasureHadamardExperiment]
 
     def measure_to_output(
         self,
@@ -240,7 +237,10 @@ class EntropyMeasureHadamard(QurriumPrototype):
         tags: Optional[tuple[str, ...]] = None,
         manager_run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
         save_location: Union[Path, str] = Path("./"),
-        compress: bool = False,
+        skip_build_write: bool = False,
+        skip_output_write: bool = False,
+        multiprocess_build: bool = False,
+        multiprocess_write: bool = False,
     ) -> str:
         """Output the multiple experiments.
 
@@ -266,8 +266,16 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
+            skip_build_write (bool, optional):
+                Whether to skip the file writing during the building.
+                Defaults to False.
+            skip_output_write (bool, optional):
+                Whether to skip the file writing during the output.
+                Defaults to False.
+            multiprocess_build (bool, optional):
+                Whether use multiprocess for building. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -282,7 +290,10 @@ class EntropyMeasureHadamard(QurriumPrototype):
             tags=tags,
             manager_run_args=manager_run_args,
             save_location=save_location,
-            compress=compress,
+            skip_build_write=skip_build_write,
+            skip_output_write=skip_output_write,
+            multiprocess_build=multiprocess_build,
+            multiprocess_write=multiprocess_write,
         )
 
     def multiAnalysis(
@@ -293,8 +304,8 @@ class EntropyMeasureHadamard(QurriumPrototype):
         specific_analysis_args: Optional[
             dict[Hashable, Union[dict[str, Any], EntropyMeasureHadamardAnalyzeArgs, bool]]
         ] = None,
-        compress: bool = False,
-        write: bool = True,
+        skip_write: bool = False,
+        multiprocess_write: bool = False,
         # analysis arguments
         **analysis_args,
     ) -> str:
@@ -312,10 +323,10 @@ class EntropyMeasureHadamard(QurriumPrototype):
                 ]]], optional
             ):
                 The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            write (bool, optional):
-                Whether to write the export file. Defaults to True.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -326,7 +337,7 @@ class EntropyMeasureHadamard(QurriumPrototype):
             analysis_name=analysis_name,
             no_serialize=no_serialize,
             specific_analysis_args=specific_analysis_args,
-            compress=compress,
-            write=write,
+            skip_write=skip_write,
+            multiprocess_write=multiprocess_write,
             **analysis_args,
         )

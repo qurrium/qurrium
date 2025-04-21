@@ -1,19 +1,13 @@
-"""
-================================================================
-ExperimentContainer 
-(:mod:`qurry.qurry.qurrium.container.experiments`)
-================================================================
-
-"""
+"""ExperimentContainer (:mod:`qurry.qurry.qurrium.container.experiments`)"""
 
 from typing import TypeVar
 
 from ..experiment import ExperimentPrototype
 
-_ExpInst = TypeVar("_ExpInst", bound=ExperimentPrototype)
+_E = TypeVar("_E", bound=ExperimentPrototype)
 
 
-class ExperimentContainer(dict[str, _ExpInst]):
+class ExperimentContainer(dict[str, _E]):
     """A customized dictionary for storing `ExperimentPrototype` objects."""
 
     __name__ = "ExperimentContainer"
@@ -24,7 +18,7 @@ class ExperimentContainer(dict[str, _ExpInst]):
     def call(
         self,
         exp_id: str,
-    ) -> _ExpInst:
+    ) -> _E:
         """Call an experiment by its id.
 
         Args:
@@ -41,7 +35,7 @@ class ExperimentContainer(dict[str, _ExpInst]):
     def __call__(
         self,
         exp_id: str,
-    ) -> _ExpInst:
+    ) -> _E:
         return self.call(exp_id=exp_id)
 
     def __repr__(self):

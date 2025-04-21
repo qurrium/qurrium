@@ -1,66 +1,44 @@
-"""
-================================================================
-Multiprocess component for multimanager
-(:mod:`qurry.qurry.qurrium.multimanager.process`)
-================================================================
-"""
+"""Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
 
-from typing import Union, Optional, Any
-from collections.abc import Hashable
+from typing import Optional, Any, Type
 from pathlib import Path
 import gc
 import tqdm
 
 from .arguments import MultiCommonparams
-from ..experiment import ExperimentPrototype
+from ..container import _E
 from ..experiment.export import Export
 from ..utils.iocontrol import IOComplex
 
 
-def exporter(
-    id_exec: Hashable,
-    exps: ExperimentPrototype,
-    save_location: Union[Path, str],
-) -> tuple[Hashable, Export]:
-    """Multiprocess exporter for experiment.
+def multiprocess_builder(
+    experiment_instance: Type[_E],
+    config: dict[str, Any],
+) -> tuple[_E, dict[str, Any]]:
+    """Multiprocess builder for experiment.
 
     Args:
-        id_exec (Hashable): ID of experiment.
-        exps (ExperimentPrototype): The experiment.
-        save_location (Union[Path, str]): Location of saving experiment.
+        experiment_instance (Type[_E]): The instance of experiment.
+        config (dict[str, Any]): The configuration of experiment.
 
     Returns:
-        tuple[Hashable, Export]: The ID of experiment and the export of experiment.
+        tuple[_E, dict[str, Any]]: The instance of experiment and the configuration.
     """
-
-    exps_export = exps.export(save_location=save_location)
-    return id_exec, exps_export
-
-
-def exporter_wrapper(
-    args: tuple[Hashable, ExperimentPrototype, Union[Path, str]],
-) -> tuple[Hashable, Export]:
-    """Multiprocess exporter for experiment.
-
-    Args:
-        args (tuple[Hashable, ExperimentPrototype]): The arguments of multiprocess exporter.
-
-    Returns:
-        tuple[Hashable, Export]: The ID of experiment and the export of experiment.
-    """
-    return exporter(*args)
+    exp_instance = experiment_instance.build(**config, multiprocess=False)
+    return exp_instance, config
 
 
-def writer(
-    id_exec: Hashable,
+def multiprocess_exporter(
+    id_exec: str,
     exps_export: Export,
     mode: str = "w+",
     indent: int = 2,
     encoding: str = "utf-8",
     jsonable: bool = False,
     mute: bool = True,
-) -> tuple[Hashable, dict[str, str]]:
-    """Multiprocess writer for experiment.
+    pbar: Optional[tqdm.tqdm] = None,
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess exporter and writer for experiment.
 
     Args:
         id_exec (Hashable): ID of experiment.
@@ -70,81 +48,61 @@ def writer(
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
         mute (bool, optional): The mute of writing. Defaults to True.
+        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
         tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
     """
-
     qurryinfo_exp_id, qurryinfo_files = exps_export.write(
         mode=mode,
         indent=indent,
         encoding=encoding,
         jsonable=jsonable,
         mute=mute,
+        multiprocess=False,
+        pbar=pbar,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
+    del exps_export
+    gc.collect()
     return qurryinfo_exp_id, qurryinfo_files
 
 
-def writer_wrapper(
-    args: tuple[Hashable, Export, str, int, str, bool, bool],
-) -> tuple[Hashable, dict[str, str]]:
-    """Multiprocess writer for experiment.
-
-    Args:
-        args (tuple[Hashable, Export, str, int, str, bool, bool]):
-            The arguments of multiprocess writer.
-
-    Returns:
-        tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
-    """
-    return writer(*args)
-
-
-def multiprocess_exporter_and_writer(
+def single_process_exporter(
     id_exec: str,
-    exps: ExperimentPrototype,
-    save_location: Union[Path, str],
+    exps_export: Export,
     mode: str = "w+",
     indent: int = 2,
     encoding: str = "utf-8",
     jsonable: bool = False,
     mute: bool = True,
-    export_transpiled_circuit: bool = False,
-    _pbar: Optional[tqdm.tqdm] = None,
+    pbar: Optional[tqdm.tqdm] = None,
 ) -> tuple[str, dict[str, str]]:
-    """Multiprocess exporter and writer for experiment.
+    """Single process exporter and writer for experiment.
 
     Args:
         id_exec (Hashable): ID of experiment.
-        exps (ExperimentPrototype): The experiment.
-        save_location (Union[Path, str]): Location of saving experiment.
+        exps_export (Export): The export of experiment.
         mode (str, optional): The mode of writing. Defaults to "w+".
         indent (int, optional): The indent of writing. Defaults to 2.
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
         mute (bool, optional): The mute of writing. Defaults to True.
-        export_transpiled_circuit (bool, optional):
-            Export the transpiled circuit. Defaults to False.
-        _pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
+        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
         tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
     """
-    exps_export = exps.export(
-        save_location=save_location,
-        export_transpiled_circuit=export_transpiled_circuit,
-    )
     qurryinfo_exp_id, qurryinfo_files = exps_export.write(
         mode=mode,
         indent=indent,
         encoding=encoding,
         jsonable=jsonable,
         mute=mute,
-        multiprocess=True,
-        pbar=_pbar,
+        multiprocess=False,
+        pbar=pbar,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."

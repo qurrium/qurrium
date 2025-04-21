@@ -1,7 +1,33 @@
-"""
-================================================================
-Paramagnet (:mod:`qurry.recipe.library.simple.paramagnet`)
-================================================================
+"""Paramagnet (:mod:`qurry.recipe.library.simple.paramagnet`)
+
+The circuits :cls:`TrivialParamagnet` and :cls:`TopologicalParamagnet`.
+
+Reference:
+    .. note::
+        - Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
+        Using the IBM Quantum Computer - Choo, Kenny and von Keyserlingk, Curt W. and
+        Regnault, Nicolas and Neupert, Titus
+        [doi:10.1103/PhysRevLett.121.086808](
+            https://doi.org/10.1103/PhysRevLett.121.086808)
+
+    .. code-block:: bibtex
+        @article{PhysRevLett.121.086808,
+            title = {
+                Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
+                Using the IBM Quantum Computer},
+            author = {
+                Choo, Kenny and von Keyserlingk, Curt W. and Regnault, Nicolas and Neupert, Titus},
+            journal = {Phys. Rev. Lett.},
+            volume = {121},
+            issue = {8},
+            pages = {086808},
+            numpages = {5},
+            year = {2018},
+            month = {Aug},
+            publisher = {American Physical Society},
+            doi = {10.1103/PhysRevLett.121.086808},
+            url = {https://link.aps.org/doi/10.1103/PhysRevLett.121.086808}
+}
 
 """
 

@@ -1,10 +1,4 @@
-"""
-================================================================
-Analysis Instance
-(:mod:`qurry.qurrium.analysis`)
-================================================================
-
-"""
+"""Analysis Instance (:mod:`qurry.qurrium.analysis`)"""
 
 from typing import Optional, NamedTuple, Iterable, Any
 from abc import abstractmethod
@@ -221,14 +215,19 @@ class AnalysisPrototype:
 
         return info
 
-    def export(self) -> tuple[dict[str, Any], dict[str, Any]]:
+    def export(
+        self,
+        jsonable: bool = True,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Export the analysis as main and side product dict.
 
-        ```python
-        main = { ...quantities, 'input': { ... }, 'header': { ... }, }
-        side = { 'dummyz1': ..., 'dummyz2': ..., ..., 'dummyzm': ... }
+        Args:
+            jsonable (bool, optional): If True, export as jsonable dict. Defaults to True.
+            If False, export as normal dict.
 
-        ```
+        .. code-block:: python
+            main = { ...quantities, 'input': { ... }, 'header': { ... }, }
+            side = { 'dummyz1': ..., 'dummyz2': ..., ..., 'dummyzm': ... }
 
         Returns:
             tuple[dict[str, Any], dict[str, Any]]: `main` and `side` product dict.
@@ -245,8 +244,8 @@ class AnalysisPrototype:
         main["input"] = self.input._asdict()
         main["header"] = self.header._asdict()
 
-        main = jsonablize(main)
-        tales = jsonablize(tales)
+        if jsonable:
+            return jsonablize(main), jsonablize(tales)
         return main, tales
 
     @classmethod
@@ -276,7 +275,7 @@ class AnalysisPrototype:
         file_index: dict[str, str],
         save_location: Path,
         encoding: str = "utf-8",
-    ) -> dict[str, "AnalysisPrototype"]:
+    ):
         """Read the analysis from file index.
 
         Args:
@@ -323,7 +322,7 @@ class AnalysisPrototype:
         del export_material_set
         gc.collect()
 
-        analysis_dict: dict[str, "AnalysisPrototype"] = {}
+        analysis_dict = {}
         for k, v in mains.items():
             analysis_dict[k] = cls.load(v, sides[k])
 

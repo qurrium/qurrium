@@ -1,8 +1,4 @@
-"""
-================================================================
-Command tools (:mod:`qurry.tools.command`)
-================================================================
-"""
+"""Command tools (:mod:`qurry.tools.command`)"""
 
 import os
 import warnings

@@ -1,8 +1,4 @@
-"""
-================================================================
-Backend Environment Check
-(:mod:`qurry.tools.backend.env_check`)
-================================================================
+"""Backend Environment Check (:mod:`qurry.tools.backend.env_check`)
 
 For qiskit-aer has been divided into two packages since qiskit some version,
 So it needs to be imported differently by trying to import qiskit-aer first.

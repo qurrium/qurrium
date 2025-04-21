@@ -1,10 +1,4 @@
-"""
-================================================================
-GitSync - A quick way to create .gitignore
-(:mod:`qurry.capsule.mori.gitsync`)
-================================================================
-
-"""
+"""GitSync - A quick way to create .gitignore (:mod:`qurry.capsule.mori.gitsync`)"""
 
 import os
 from pathlib import Path

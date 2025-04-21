@@ -1,8 +1,6 @@
-"""
-================================================================
+"""QuantityContainer (:mod:`qurry.qurrium.container.multiquantity`)
+
 The container for quantities of analysis for multimanager.
-(:mod:`qurry.qurrium.container.multiquantity`)
-================================================================
 """
 
 from typing import Union, Literal

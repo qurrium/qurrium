@@ -1,18 +1,20 @@
-"""
-================================================================
-Multimanagers Container
-(:mod:`qurry.qurrium.container.multimanagers`)
-================================================================
+"""Multimanagers Container (:mod:`qurry.qurrium.container.multimanagers`)"""
 
-"""
-
+from .experiments import _E
 from ..multimanager import MultiManager
 
 
-class MultiManagerContainer(dict[str, MultiManager]):
+class MultiManagerContainer(dict[str, MultiManager[_E]]):
     """A customized dictionary for storing `MultiManager` objects."""
 
     __name__ = "MultiManagerContainer"
+
+    # pylint: disable=useless-parent-delegation
+    def items(self):
+        """The items method with more accurate type hinting."""
+        return super().items()
+
+    # pylint: enable=useless-parent-delegation
 
     def __repr__(self):
         original_repr = repr({k: v._repr_oneline_no_id() for k, v in self.items()})

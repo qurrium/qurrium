@@ -1,8 +1,4 @@
-"""
-================================================================
-SamplingExecuter - Analysis
-(:mod:`qurry.qurrium.samplingqurry.analysis`)
-================================================================
+"""SamplingExecuter - Analysis (:mod:`qurry.qurrium.samplingqurry.analysis`)
 
 It is only for pendings and retrieve to remote backend.
 """

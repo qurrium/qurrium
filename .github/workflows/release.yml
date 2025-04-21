@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   create_tag:
-    runs-on: [ubuntu-latest, self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,18 +28,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
+      # - name: Import GPG key
+      #   uses: crazy-max/ghaction-import-gpg@v6
+      #   with:
+      #     gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.PASSPHRASE }}
+      #     git_user_signingkey: true
+      #     git_commit_gpgsign: true
 
       - name: Set up Git user
         run: |
-          git config --local user.name ${{ github.repository_owner }}_action_bot
-          git config --local user.email ${{ github.repository_owner }}@users.noreply.github.com
+          git config --local user.name harui2019_action_bot
+          git config --local user.email harui2019@users.noreply.github.com
 
       - name: Bump Version and Create Tag
         id: create_tag

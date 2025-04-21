@@ -1,8 +1,6 @@
-"""EntropyMeasureRandomizedV1 - Experiment
-(:mod:`qurry.qurrent.randomized_measure_v1.experiment`)
+"""EntropyMeasureRandomizedV1 - Experiment (:mod:`qurry.qurrent.randomized_measure_v1.experiment`)
 
 This is a deprecated version of the randomized measure module.
-
 """
 
 from typing import Union, Optional, Type, Any
@@ -28,11 +26,16 @@ from ...process.randomized_measure.entangled_entropy_v1 import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...tools import qurry_progressbar, ParallelManager
+from ...tools import qurry_progressbar, ParallelManager, set_pbar_description
 from ...exceptions import QurryArgumentsExpectedNotNone, QurryDeprecatedWarning
 
 
-class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
+class EntropyMeasureRandomizedV1Experiment(
+    ExperimentPrototype[
+        EntropyMeasureRandomizedV1Arguments,
+        EntropyMeasureRandomizedV1Analysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedV1Experiment"
@@ -41,8 +44,6 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EntropyMeasureRandomizedV1Arguments]:
         """The arguments instance for this experiment."""
         return EntropyMeasureRandomizedV1Arguments
-
-    args: EntropyMeasureRandomizedV1Arguments
 
     @property
     def analysis_instance(self) -> Type[EntropyMeasureRandomizedV1Analysis]:
@@ -155,6 +156,7 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EntropyMeasureRandomizedV1Arguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -166,6 +168,8 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -173,11 +177,7 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
         """
         side_product = {}
 
-        pool = ParallelManager(arguments.workers_num)
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(
-                f"Preparing {arguments.times} random unitary with {arguments.workers_num} workers."
-            )
+        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
 
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
@@ -204,14 +204,40 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
             for i in range(arguments.times)
         }
 
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(
-                f"Building {arguments.times} circuits with {arguments.workers_num} workers."
+        set_pbar_description(pbar, f"Building {arguments.times} circuits.")
+        assert arguments.unitary_loc is not None, "unitary_loc should be not None."
+        assert arguments.measure is not None, "measure should be not None."
+        if multiprocess:
+            pool = ParallelManager(arguments.workers_num)
+            circ_list = pool.starmap(
+                circuit_method_core_v1,
+                [
+                    (
+                        i,
+                        target_circuit,
+                        target_key,
+                        arguments.exp_name,
+                        arguments.unitary_loc,
+                        unitary_dict[i],
+                        arguments.measure,
+                    )
+                    for i in range(arguments.times)
+                ],
             )
-        circ_list = pool.starmap(
-            circuit_method_core_v1,
-            [
-                (
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = pool.starmap(
+                local_random_unitary_operators,
+                [(arguments.unitary_loc, unitary_dict[i]) for i in range(arguments.times)],
+            )
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = pool.starmap(
+                local_random_unitary_pauli_coeff,
+                [(arguments.unitary_loc, unitary_operator_list[i]) for i in range(arguments.times)],
+            )
+
+        else:
+            circ_list = [
+                circuit_method_core_v1(
                     i,
                     target_circuit,
                     target_key,
@@ -221,31 +247,19 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
                     arguments.measure,
                 )
                 for i in range(arguments.times)
-            ],
-        )
+            ]
+            set_pbar_description(pbar, "Writing 'unitaryOP'.")
+            unitary_operator_list = [
+                local_random_unitary_operators(arguments.unitary_loc, unitary_dict[i])
+                for i in range(arguments.times)
+            ]
+            set_pbar_description(pbar, "Writing 'randomized'.")
+            randomized_list = [
+                local_random_unitary_pauli_coeff(arguments.unitary_loc, unitary_operator_list[i])
+                for i in range(arguments.times)
+            ]
 
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Writing 'unitaryOP' with {arguments.workers_num} workers.")
-        # side_product["unitaryOP"] = {
-        #     k: {i: np.array(v[i]).tolist() for i in range(*arguments.unitary_loc)}
-        #     for k, v in unitary_dict.items()
-        # }
-        unitary_operator_list = pool.starmap(
-            local_random_unitary_operators,
-            [(arguments.unitary_loc, unitary_dict[i]) for i in range(arguments.times)],
-        )
         side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Writing 'randomized' with {arguments.workers_num} workers.")
-        # side_product["randomized"] = {
-        #     i: {j: qubitOpToPauliCoeff(unitary_dict[i][j]) for j in range(*arguments.unitary_loc)}
-        #     for i in range(arguments.times)
-        # }
-        randomized_list = pool.starmap(
-            local_random_unitary_pauli_coeff,
-            [(arguments.unitary_loc, unitary_operator_list[i]) for i in range(arguments.times)],
-        )
         side_product["randomized"] = dict(enumerate(randomized_list))
 
         return circ_list, side_product
@@ -280,11 +294,7 @@ class EntropyMeasureRandomizedV1Experiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
 
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy, a list of each overlap, puritySD,
-                purity of all system, entropy of all system,
-                a list of each overlap in all system, puritySD of all system,
-                degree, actual measure range, actual measure range in all system, bitstring range.
+            EntropyMeasureRandomizedV1Analysis: The analysis of the experiment.
         """
         if degree is None:
             raise ValueError("degree should be specified.")

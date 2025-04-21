@@ -16,7 +16,9 @@ from ...process.utils import qubit_selector
 from ...process.hadamard_test import hadamard_overlap_echo as overlap_echo
 
 
-class EchoListenHadamardExperiment(ExperimentPrototype):
+class EchoListenHadamardExperiment(
+    ExperimentPrototype[EchoListenHadamardArguments, EchoListenHadamardAnalysis]
+):
     """The experiment for calculating entangled entropy with more information combined."""
 
     __name__ = "EchoListenHadamardExperiment"
@@ -25,8 +27,6 @@ class EchoListenHadamardExperiment(ExperimentPrototype):
     def arguments_instance(self) -> Type[EchoListenHadamardArguments]:
         """The arguments instance for this experiment."""
         return EchoListenHadamardArguments
-
-    args: EchoListenHadamardArguments
 
     @property
     def analysis_instance(self) -> Type[EchoListenHadamardAnalysis]:
@@ -98,6 +98,7 @@ class EchoListenHadamardExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: EchoListenHadamardArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -109,6 +110,8 @@ class EchoListenHadamardExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:

@@ -1,9 +1,4 @@
-"""
-
-================================================================
-TagList (:mod:`qurry.capsule.mori.taglist`)
-================================================================
-"""
+"""TagList (:mod:`qurry.capsule.mori.taglist`)"""
 
 from typing import (
     Optional,
@@ -66,7 +61,7 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
 
 @overload
 def key_tuple_loads(
-    o: dict[Union[Hashable, _K], _T]
+    o: dict[Union[Hashable, _K], _T],
 ) -> dict[Union[Hashable, tuple[Hashable, ...], _K], _T]: ...
 @overload
 def key_tuple_loads(o: _T) -> _T: ...

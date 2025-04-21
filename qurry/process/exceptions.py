@@ -1,8 +1,4 @@
-"""
-================================================================
-Qurry Process Exceptions 
-(:mod:`qurry.process.exceptions`)
-================================================================
+"""Qurry Post Processing Exceptions (:mod:`qurry.process.exceptions`)
 
 """
 

@@ -1,9 +1,4 @@
-"""
-
-================================================================
-Quick CapSule (:mod:`qurry.capsule.quick`)
-================================================================
-"""
+"""Quick CapSule (:mod:`qurry.capsule.quick`)"""
 
 from typing import Union, Iterable, Literal, Optional, Any
 from pathlib import Path

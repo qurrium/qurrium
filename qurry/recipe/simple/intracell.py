@@ -1,9 +1,4 @@
-"""
-================================================================
-Intracell (:mod:`qurry.recipe.library.simple.intracell`)
-================================================================
-
-"""
+"""Intracell (:mod:`qurry.recipe.library.simple.intracell`)"""
 
 from typing import Literal
 

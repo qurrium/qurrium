@@ -8,7 +8,8 @@ pep440
 
 # Test tools
 matplotlib 
-pytest 
+pytest
+pytest-xdist
 
 # qiskit-aer
 qiskit-aer

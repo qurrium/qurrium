@@ -1,10 +1,4 @@
-"""
-================================================================
-Beforewards
-(:mod:`qurry.qurry.qurrium.multimanager.beforewards`)
-================================================================
-
-"""
+"""MultiManager - Beforewards (:mod:`qurry.qurry.qurrium.multimanager.beforewards`)"""
 
 from pathlib import Path
 from collections.abc import Hashable

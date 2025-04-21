@@ -1,8 +1,5 @@
-"""
-================================================================
-Utility functions for qurry.process
-(:mod:`qurry.process.utils`)
-================================================================
+"""Utility functions for qurry.process (:mod:`qurry.process.utils`)
+
 """
 
 from .construct import (

@@ -9,7 +9,7 @@ from itertools import combinations
 import tqdm
 import numpy as np
 
-from .rho_m_core import rho_m_core_py
+from .rho_m_core import rho_m_core
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -71,8 +71,7 @@ def expectation_rho_core(
         ),
         dtype=np.complex128,
     )
-    for rho_m in rho_m_dict.values():
-        expect_rho += rho_m
+    expect_rho += np.sum(list(rho_m_dict.values()), axis=0)
     expect_rho /= len(rho_m_dict)
 
     return expect_rho
@@ -201,11 +200,6 @@ def expectation_rho(
         ClassicalShadowExpectation: The expectation value of Rho.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -214,11 +208,12 @@ def expectation_rho(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -355,15 +350,18 @@ def trace_rho_square_core(
     rho_traced_sum: np.complex128 = np.complex128(0)
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
-    num_combinations = 0
 
-    for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations:
-        rho_traced_sum += np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
-        num_combinations += 2
+    trace_array = np.array(
+        [
+            np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+            for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
+        ]
+    )
+    rho_traced_sum += trace_array.sum(dtype=np.complex128)
     rho_traced_sum /= num_n_u * (num_n_u - 1)
 
-    assert num_combinations == num_n_u * (num_n_u - 1), (
-        f"The number of combinations: {num_combinations} "
+    assert len(trace_array) * 2 == num_n_u * (num_n_u - 1), (
+        f"The number of combinations: {len(trace_array)} "
         + f"and the number of num_n_u * (num_n_u - 1): {num_n_u * (num_n_u - 1)} are different."
     )
 
@@ -400,11 +398,6 @@ def trace_rho_square(
         float: The trace of Rho.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -413,11 +406,12 @@ def trace_rho_square(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -575,11 +569,6 @@ def classical_shadow_complex(
             The expectation value of Rho and the purity calculated by classical shadow.
     """
 
-    if backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using python to calculate classical shadow.",
-        )
-        backend = "Python"
     if isinstance(selected_classical_registers, Iterable):
         selected_classical_registers = list(selected_classical_registers)
     else:
@@ -588,11 +577,12 @@ def classical_shadow_complex(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core_py(
+    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
+        backend,
     )
     if pbar is not None:
         pbar.set_description(msg)

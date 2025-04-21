@@ -1,5 +1,4 @@
-"""
-# Hoshi - A process content printer ?
+"""Hoshi - A process content printer ?
 
 - Before:
 

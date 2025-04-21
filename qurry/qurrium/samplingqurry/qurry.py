@@ -1,8 +1,4 @@
-"""
-================================================================
-QurryV9
-(:mod:`qurry.qurrium.samplingqurry.qurry`)
-================================================================
+"""QurryV9 (:mod:`qurry.qurrium.samplingqurry.qurry`)
 
 It is only for pendings and retrieve to remote backend.
 """
@@ -19,11 +15,10 @@ from qiskit.transpiler.passmanager import PassManager
 from .arguments import SHORT_NAME, QurryOutputArgs
 from .experiment import QurryExperiment
 from ..qurrium import QurriumPrototype
-from ..container import ExperimentContainer
 from ...declare import BaseRunArgs, TranspileArgs
 
 
-class QurryV9(QurriumPrototype):
+class QurryV9(QurriumPrototype[QurryExperiment]):
     """Executing one quantum circuit in multiple times."""
 
     __name__ = "QurryV9"
@@ -33,8 +28,6 @@ class QurryV9(QurriumPrototype):
     def experiment_instance(self) -> Type[QurryExperiment]:
         """The container class responding to this QurryV9 class."""
         return QurryExperiment
-
-    exps: ExperimentContainer[QurryExperiment]
 
     def measure_to_output(
         self,

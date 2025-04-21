@@ -1,9 +1,4 @@
-"""
-================================================================
-N Body Library (:cls:`qurry.recipe.library.n_body`)
-================================================================
-
-"""
+"""N Body Library (:cls:`qurry.recipe.library.n_body`)"""
 
 from qiskit import QuantumRegister
 from qiskit.circuit.library import BlueprintCircuit

@@ -1,31 +1,9 @@
-"""
-================================================================
-Input Fixer
-(:mod:`qurry.qurrium.utils.inputfixer`)
-================================================================
-"""
+"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)"""
 
 import warnings
 from typing import Any, Sequence
 
 from ...exceptions import QurryWarning, QurryUnrecongnizedArguments
-
-try:
-    from ...boost.inputfixer import damerau_levenshtein_distance_cy  # type: ignore
-
-    CYTHON_AVAILABLE = True
-except ImportError:
-    CYTHON_AVAILABLE = False
-
-    def damerau_levenshtein_distance_cy(*args, **kwargs):
-        """Dummy function for Cython version of `damerau_levenshtein_distance`"""
-        raise NotImplementedError(
-            "Cython version of `damerau_levenshtein_distance` is not available, "
-            + "please re-install qurry with `pip install qurry[cython]`."
-        )
-
-
-# pylint: disable=line-too-long
 
 
 def damerau_levenshtein_distance_py(
@@ -142,9 +120,6 @@ def damerau_levenshtein_distance(
             + "which is hard to handle very long string. ",
             QurryWarning,
         )
-
-    if CYTHON_AVAILABLE:
-        return damerau_levenshtein_distance_cy(seq1, seq2)
 
     return damerau_levenshtein_distance_py(seq1, seq2)
 

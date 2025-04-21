@@ -1,9 +1,6 @@
-"""
-=========================================================================================
-Declaration - Arguments (:mod:`qurry.declare.qurrium`)
-Arguments for :meth:`output` from :cls:`QurriumPrototype` 
-=========================================================================================
+"""Declaration - Arguments (:mod:`qurry.declare.qurrium`)
 
+Arguments for :meth:`output` from :cls:`QurriumPrototype` 
 """
 
 from typing import Optional, Union, TypedDict, Any, Literal

@@ -1,20 +1,15 @@
-"""
-================================================================
-AnalysisContainer 
-(:mod:`qurry.qurry.qurrium.container.analyses`)
-================================================================
-
-"""
+"""AnalysisContainer (:mod:`qurry.qurry.qurrium.container.analyses`)"""
 
 from typing import Any, TypeVar
 from collections.abc import Hashable
 
 from ..analysis import AnalysisPrototype
 
-AP = TypeVar("AP", bound=AnalysisPrototype)
+_R = TypeVar("_R", bound=AnalysisPrototype)
+"""Type variable for :cls:`AnalysisPrototype`."""
 
 
-class AnalysesContainer(dict[Hashable, AP]):
+class AnalysesContainer(dict[Hashable, _R]):
     """A customized dictionary for storing `AnalysisPrototype` objects."""
 
     __name__ = "AnalysisContainer"

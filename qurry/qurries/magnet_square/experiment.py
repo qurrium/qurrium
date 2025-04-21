@@ -1,7 +1,4 @@
-"""MagnetSquare - Experiment
-(:mod:`qurry.qurries.magnet_square.experiment`)
-
-"""
+"""MagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square.experiment`)"""
 
 from collections.abc import Hashable
 from typing import Optional, Type, Any
@@ -14,7 +11,7 @@ from .analysis import MagnetSquareAnalysis
 from .arguments import MagnetSquareArguments, SHORT_NAME
 from .utils import circuit_method
 
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, AnalysesContainer
+from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.magnet_square.magnet_square import (
     magnet_square,
     MagnetSquare,
@@ -24,7 +21,12 @@ from ...process.magnet_square.magnet_square import (
 from ...tools import ParallelManager, set_pbar_description
 
 
-class MagnetSquareExperiment(ExperimentPrototype):
+class MagnetSquareExperiment(
+    ExperimentPrototype[
+        MagnetSquareArguments,
+        MagnetSquareAnalysis,
+    ]
+):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedExperiment"
@@ -34,14 +36,10 @@ class MagnetSquareExperiment(ExperimentPrototype):
         """The arguments instance for this experiment."""
         return MagnetSquareArguments
 
-    args: MagnetSquareArguments
-
     @property
     def analysis_instance(self) -> Type[MagnetSquareAnalysis]:
         """The analysis instance for this experiment."""
         return MagnetSquareAnalysis
-
-    reports: AnalysesContainer[MagnetSquareAnalysis]
 
     @classmethod
     def params_control(
@@ -90,6 +88,7 @@ class MagnetSquareExperiment(ExperimentPrototype):
         targets: list[tuple[Hashable, QuantumCircuit]],
         arguments: MagnetSquareArguments,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -101,12 +100,13 @@ class MagnetSquareExperiment(ExperimentPrototype):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
-        pool = ParallelManager()
 
         set_pbar_description(pbar, f"Prepare permutation for {arguments.num_qubits} qubits.")
         permut = permutations(range(arguments.num_qubits), 2)
@@ -114,13 +114,20 @@ class MagnetSquareExperiment(ExperimentPrototype):
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
         set_pbar_description(pbar, "Building circuits...")
-        circ_list = pool.starmap(
-            circuit_method,
-            [
-                (k, target_circuit, target_key, arguments.exp_name, i, j)
+        if multiprocess:
+            pool = ParallelManager()
+            circ_list = pool.starmap(
+                circuit_method,
+                [
+                    (k, target_circuit, target_key, arguments.exp_name, i, j)
+                    for k, (i, j) in enumerate(permut)
+                ],
+            )
+        else:
+            circ_list = [
+                circuit_method(k, target_circuit, target_key, arguments.exp_name, i, j)
                 for k, (i, j) in enumerate(permut)
-            ],
-        )
+            ]
 
         return circ_list, {}
 

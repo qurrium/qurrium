@@ -1,8 +1,5 @@
-"""
-================================================================
-Qurry 🍛 - The Quantum Experiment Manager for Qiskit
+"""Qurry 🍛 - The Quantum Experiment Manager for Qiskit
 and The Measuring Tool for Renyi Entropy, Loschmidt Echo, and More
-================================================================
 
 """
 
@@ -41,6 +38,7 @@ try:
     sys.modules["qurry.boorust.hadamard"] = qurry.boorust.hadamard  # type: ignore
     sys.modules["qurry.boorust.dummy"] = qurry.boorust.dummy  # type: ignore
     sys.modules["qurry.boorust.test"] = qurry.boorust.test  # type: ignore
+    # sys.modules["qurry.boorust.shadow"] = qurry.boorust.shadow  # type: ignore
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
 except ModuleNotFoundError as qurry_boorust_import_error:

@@ -1,9 +1,4 @@
-"""
-
-================================================================
-Single column csv file (:mod:`qurry.capsule.mori.csvlist`)
-================================================================
-"""
+"""Single column csv file (:mod:`qurry.capsule.mori.csvlist`)"""
 
 from typing import (
     Optional,
