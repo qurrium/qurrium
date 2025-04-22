@@ -1,4 +1,4 @@
-"""Qurrium Recipe - The Simple Case Library (:mod:`qurry.qurry.recipe`)"""
+"""Qurrium Recipe - The Simple Case Library (:mod:`qurry.recipe`)"""
 
 from .simple import (
     Intracell,

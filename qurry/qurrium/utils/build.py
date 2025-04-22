@@ -1,4 +1,4 @@
-"""Build Tools (:mod:`qurry.qurry.qurrium.utils.build`)"""
+"""Build Tools (:mod:`qurry.qurrium.utils.build`)"""
 
 from typing import Union, Optional
 from qiskit.transpiler.passmanager import PassManager

@@ -1,3 +1,3 @@
-"""MultiManager (:mod:`qurry.qurry.qurrium.multimanager`)"""
+"""MultiManager (:mod:`qurry.qurrium.multimanager`)"""
 
 from .multimanager import MultiManager
