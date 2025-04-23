@@ -1,4 +1,4 @@
-"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurry.qurrium.multimanager`)"""
+"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurrium.multimanager`)"""
 
 import os
 import gc
@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Union, Optional, Any, Type, Generic
 from collections.abc import Hashable
 from uuid import uuid4
+from multiprocessing import get_context
 
 from qiskit.providers import Backend
 
@@ -18,13 +19,14 @@ from .afterwards import After
 from .process import (
     datetimedict_process,
     multiprocess_exporter,
-    multiprocess_builder,
+    multiprocess_builder_wrapper,
     single_process_exporter,
     very_easy_chunk_distribution,
+    multiprocess_exporter_wrapper,
 )
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
-from ...tools import qurry_progressbar, ParallelManager, GeneralSimulator, DatetimeDict
+from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON
 from ...capsule.mori import TagList, GitSyncControl
 from ...declare import BaseRunArgs, AnalyzeArgs
@@ -279,6 +281,7 @@ class MultiManager(Generic[_E]):
         self.beforewards.index_taglist[exps_instance.commons.tags].append(
             exps_instance.commons.serial
         )
+        self.exps[current_id] = exps_instance
 
     @classmethod
     def build(
@@ -401,39 +404,47 @@ class MultiManager(Generic[_E]):
                 }
             )
 
-        # initial_config_list_progress = qurry_progressbar(initial_config_list)
-        # initial_config_list_progress.set_description_str("MultiManager building...")
-
         if multiprocess_build:
-            pool = ParallelManager()
-            exps_list: list[tuple[_E, dict[str, Any]]] = pool.process_map(
-                multiprocess_builder,
-                [
-                    (
-                        experiment_instance,
-                        config,
+            pool = get_context("spawn").Pool(
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
+            )
+            with pool as p:
+                exps_iterable = qurry_progressbar(
+                    p.imap_unordered(
+                        multiprocess_builder_wrapper,
+                        [
+                            (
+                                experiment_instance,
+                                config,
+                            )
+                            for config in initial_config_list
+                        ],
+                        chunksize=DEFAULT_POOL_SIZE * 2,
+                    ),
+                    total=len(initial_config_list),
+                    desc="MultiManager building...",
+                )
+                for new_exps, config in exps_iterable:
+                    current_multimanager.register(
+                        current_id=new_exps.commons.exp_id,
+                        config=config,
+                        exps_instance=new_exps,
                     )
-                    for config in initial_config_list
-                ],
-                desc="MultiManager building...",
-            )
         else:
-            initial_config_list_progress = qurry_progressbar(
-                initial_config_list,
+            exps_iterable = qurry_progressbar(
+                (
+                    (experiment_instance.build(multiprocess=True, **config), config)
+                    for config in initial_config_list
+                ),
+                total=len(initial_config_list),
                 desc="MultiManager building...",
             )
-            exps_list: list[tuple[_E, dict[str, Any]]] = [
-                (experiment_instance.build(multiprocess=True, **config), config)
-                for config in initial_config_list_progress
-            ]
-
-        for new_exps, config in exps_list:
-            current_multimanager.register(
-                current_id=new_exps.commons.exp_id,
-                config=config,
-                exps_instance=new_exps,
-            )
-            current_multimanager.exps[new_exps.commons.exp_id] = new_exps
+            for new_exps, config in exps_iterable:
+                current_multimanager.register(
+                    current_id=new_exps.commons.exp_id,
+                    config=config,
+                    exps_instance=new_exps,
+                )
 
         if not skip_writing:
             current_multimanager.write(multiprocess=multiprocess_write)
@@ -794,6 +805,9 @@ class MultiManager(Generic[_E]):
                     for id_exec in self.beforewards.exps_config.keys()
                 ]
                 respect_memory_array.sort(key=lambda x: x[1])
+                exps_serial = {
+                    id_exec: default for default, id_exec in enumerate(self.beforewards.exps_config)
+                }
                 first_export = multiprocess_exporter(
                     id_exec=respect_memory_array[0][0],
                     exps_export=self.exps[respect_memory_array[0][0]].export(
@@ -807,45 +821,42 @@ class MultiManager(Generic[_E]):
                     mute=True,
                     pbar=None,
                 )
-                chucks_multiprocess_check, multiprocess_chunks = very_easy_chunk_distribution(
-                    respect_memory_array[1:]
-                )
+                chunks_sorted_list = very_easy_chunk_distribution(respect_memory_array[1:])
 
-                exporting_pool = ParallelManager(
-                    workers_num=None if chucks_multiprocess_check else 1
+                exporting_pool = get_context("spawn").Pool(
+                    processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
                 )
-                export_chunks = {
-                    i: [
-                        (
-                            id_exec,
-                            self.exps[id_exec].export(
-                                save_location=self.multicommons.save_location,
-                                export_transpiled_circuit=export_transpiled_circuit,
-                            ),
-                            "w+",
-                            indent,
-                            encoding,
-                            True,
-                            True,
-                            None,
-                        )
-                        for id_exec, memory_usage in chunk
-                    ]
-                    for i, chunk in enumerate(multiprocess_chunks)
-                }
-
-                all_qurryinfo_items = [first_export]
-                for i in range(len(multiprocess_chunks)):
-                    all_qurryinfo_items += exporting_pool.process_map(
-                        multiprocess_exporter,
-                        export_chunks[i],
+                with exporting_pool as ep:
+                    export_imap_result = qurry_progressbar(
+                        ep.imap_unordered(
+                            multiprocess_exporter_wrapper,
+                            [
+                                (
+                                    id_exec,
+                                    self.exps[id_exec].export(
+                                        save_location=self.multicommons.save_location,
+                                        export_transpiled_circuit=export_transpiled_circuit,
+                                    ),
+                                    "w+",
+                                    indent,
+                                    encoding,
+                                    True,
+                                    True,
+                                    None,
+                                )
+                                for id_exec, memory_usage in chunks_sorted_list
+                            ],
+                            chunksize=DEFAULT_POOL_SIZE * 2,
+                        ),
+                        total=len(chunks_sorted_list),
+                        desc="Exporting experiments...",
                         bar_format="qurry-barless",
-                        desc=f"Exporting experiments... {i + 1}/{len(export_chunks)}",
                     )
-                    del export_chunks[i]
-                    gc.collect()
-
-                all_qurryinfo = dict(all_qurryinfo_items)
+                    all_qurryinfo = dict(export_imap_result)
+                    all_qurryinfo[first_export[0]] = first_export[1]
+                    all_qurryinfo = dict(
+                        sorted(all_qurryinfo.items(), key=lambda x: exps_serial[x[0]])
+                    )
 
             else:
                 all_qurryinfo = {}
