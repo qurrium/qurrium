@@ -7,6 +7,7 @@ from typing import Union, Optional, Any, Type, Literal, Iterable
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
+# from multiprocessing import get_context
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
@@ -25,7 +26,9 @@ from .experiment import (
 )
 from ...qurrium.qurrium import QurriumPrototype
 from ...tools.backend import GeneralSimulator
+# from ...tools.parallelmanager import DEFAULT_POOL_SIZE
 from ...declare import BaseRunArgs, TranspileArgs
+# from ...capsule.mori import TagList
 
 
 class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
@@ -474,6 +477,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
         ] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
+        multiprocess_analysis: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
@@ -501,6 +505,9 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             multiprocess_write (bool, optional):
                 Whether use multiprocess for writing. Defaults to False.
 
+            multiprocess_analysis (bool, optional):
+                Whether use multiprocess for analysis. Defaults to False.
+
             selected_qubits (Optional[list[int]], optional):
                 The selected qubits. Defaults to None.
             backend (PostProcessingBackendLabel, optional):
@@ -512,6 +519,32 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             str: The summoner_id of multimanager.
         """
 
+        # if multiprocess_analysis:
+        #     if specific_analysis_args is None:
+        #         specific_analysis_args = {}
+
+        #     if summoner_id in self.multimanagers:
+        #         current_multimanager = self.multimanagers[summoner_id]
+        #     else:
+        #         raise ValueError("No such summoner_id in multimanagers.")
+        #     if len(current_multimanager.afterwards.allCounts) == 0:
+        #         raise ValueError("No counts in multimanagers.")
+            
+        #     idx_tagmap_quantities = len(current_multimanager.quantity_container)
+        #     name = (
+        #         analysis_name
+        #         if no_serialize
+        #         else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
+        #     )
+        #     current_multimanager.quantity_container[name] = TagList()
+        #     pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+            
+            
+        #     if not skip_write:
+        #         self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
+
+        #     return current_multimanager.multicommons.summoner_id
+            
         return super().multiAnalysis(
             summoner_id=summoner_id,
             analysis_name=analysis_name,

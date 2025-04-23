@@ -1,7 +1,4 @@
-"""ShadowUnveil - Utils
-(:mod:`qurry.qurrent.classical_shadow.utils`)
-
-"""
+"""ShadowUnveil - Utils (:mod:`qurry.qurrent.classical_shadow.utils`)"""
 
 from collections.abc import Hashable
 
