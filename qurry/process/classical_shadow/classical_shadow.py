@@ -406,6 +406,12 @@ def trace_rho_square(
             + f"not {type(selected_classical_registers)}."
         )
 
+    if len(counts) < 2:
+        raise ValueError(
+            "The method of classical shadow require at least 2 counts for the calculation. "
+            + f"The number of counts is {len(counts)}."
+        )
+
     rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,

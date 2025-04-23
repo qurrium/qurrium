@@ -109,7 +109,12 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         if len(targets) > 1:
             raise ValueError("The number of target circuits should be only one.")
         if not isinstance(times, int):
-            raise TypeError(f"times should be an integer, but got {times}.")
+            raise TypeError(f"times should be an integer, but got {times} as type {type(times)}.")
+        if times < 2:
+            raise ValueError(
+                "times should be greater than 1 for classical shadow "
+                + f"on the calculation of entangled entropy, but got {times}."
+            )
 
         target_key, target_circuit = targets[0]
         actual_qubits = target_circuit.num_qubits
