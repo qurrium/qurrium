@@ -3,7 +3,8 @@
 
 """
 
-from typing import Literal, Union, Any
+import warnings
+from typing import Literal, Union, Any, Iterable
 import numpy as np
 
 from .unitary_set import U_M_MATRIX, OUTER_PRODUCT, IDENTITY
@@ -86,3 +87,97 @@ def rho_mk_cell_py(
         rho_m_k_dict[bitstring] = tmp
 
     return idx, rho_m_k_dict, rho_m_k_counts_num, selected_classical_registers_sorted
+
+
+def rho_mk_cell_py_wrapper(
+    arguments: tuple[
+        int,
+        dict[str, int],
+        dict[int, Union[Literal[0, 1, 2], int]],
+        list[int],
+    ],
+) -> tuple[
+    int,
+    dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    dict[str, int],
+    list[int],
+]:
+    """Wrapper for rho_mk_cell_py.
+
+    Args:
+        arguments (tuple):
+            The arguments for rho_mk_cell_py.
+
+    Returns:
+        tuple[
+            int,
+            dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+            dict[str, int],
+            list[int],
+        ]:
+            The result of rho_mk_cell_py.
+    """
+    return rho_mk_cell_py(*arguments)
+
+
+def handle_rho_mk_py_iterable(
+    rho_mk_py_result_iterable: Iterable[
+        tuple[
+            int,
+            dict[str, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+            dict[str, int],
+            list[int],
+        ]
+    ],
+    shots: int,
+    selected_classical_registers_sorted: list[int],
+) -> dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+    """Handle rho_mk_py_result_iterable.
+
+    Args:
+        rho_mk_py_result_iterable (Iterable):
+            The iterable of rho_mk_py_result.
+        shots (int):
+            The number of shots.
+        selected_classical_registers_sorted (list[int]):
+            The list of **the index of the selected_classical_registers**.
+
+    Returns:
+        dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+            The dictionary of rho_mk.
+    """
+    rho_m_dict = {}
+    selected_qubits_checked: dict[int, bool] = {}
+
+    for (
+        idx,
+        rho_mk_dict,
+        rho_mk_counts_num,
+        selected_classical_registers_sorted_result,
+    ) in rho_mk_py_result_iterable:
+
+        tmp_arr = np.array(
+            [rho_mk * rho_mk_counts_num[bitstring] for bitstring, rho_mk in rho_mk_dict.items()]
+        )
+        tmp = tmp_arr.sum(axis=0, dtype=np.complex128)
+        tmp /= shots
+        expected_shape = (
+            2 ** len(selected_classical_registers_sorted),
+            2 ** len(selected_classical_registers_sorted),
+        )
+        assert (
+            tmp.shape == expected_shape
+        ), f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
+        rho_m_dict[idx] = tmp
+        selected_qubits_checked[idx] = (
+            selected_classical_registers_sorted_result != selected_classical_registers_sorted
+        )
+
+    if any(selected_qubits_checked.values()):
+        problematic_cells = [idx for idx, checked in selected_qubits_checked.items() if checked]
+        warnings.warn(
+            f"Selected qubits are not sorted for {problematic_cells} cells.",
+            RuntimeWarning,
+        )
+
+    return rho_m_dict
