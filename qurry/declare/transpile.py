@@ -72,5 +72,4 @@ class TranspileArgs(TypedDict, total=False):
     init_method: Optional[str]
     optimization_method: Optional[str]
     ignore_backend_supplied_default_methods: bool
-    num_processes: Optional[int]
     qubits_initially_zero: bool

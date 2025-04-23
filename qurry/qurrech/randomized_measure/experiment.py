@@ -581,10 +581,13 @@ class EchoListenRandomizedExperiment(
                 )
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
+            transpile_args = current_exp.commons.transpile_args.copy()
+            transpile_args.pop("num_processes", None)
             transpiled_circs += transpile(
                 cirqs[: current_exp.args.times],
                 backend=current_exp.commons.backend,
-                **current_exp.commons.transpile_args,  # type: ignore
+                num_processes=None if multiprocess else 1,
+                **transpile_args,  # type: ignore
             )
 
         assert isinstance(current_exp.args.second_backend, (Backend, type(None))), (
@@ -608,7 +611,7 @@ class EchoListenRandomizedExperiment(
                 )
         elif current_exp.args.second_transpile_args is not None:
             second_transpile_args = current_exp.args.second_transpile_args.copy()
-            second_transpile_args["num_processes"] = None if multiprocess else 1
+            second_transpile_args.pop("num_processes", None)
             transpiled_circs += transpile(
                 cirqs[current_exp.args.times :],
                 backend=(
@@ -616,6 +619,7 @@ class EchoListenRandomizedExperiment(
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
+                num_processes=None if multiprocess else 1,
                 **second_transpile_args,
             )
         elif passmanager_pair is not None:
@@ -637,7 +641,7 @@ class EchoListenRandomizedExperiment(
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
             transpile_args = current_exp.commons.transpile_args.copy()
-            transpile_args["num_processes"] = None if multiprocess else 1
+            transpile_args.pop("num_processes", None)
             transpiled_circs += transpile(
                 cirqs[current_exp.args.times :],
                 backend=(
@@ -645,6 +649,7 @@ class EchoListenRandomizedExperiment(
                     if current_exp.args.second_backend is None
                     else current_exp.args.second_backend
                 ),
+                num_processes=None if multiprocess else 1,
                 **transpile_args,
             )
 
