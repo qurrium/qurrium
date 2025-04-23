@@ -1,14 +1,13 @@
-"""ProcessManager (:mod:`qurry.tools.processmanager`)"""
+"""The parallel tools for Qurry. (:mod:`qurry.tools.parallelmanager`)"""
 
 import warnings
-from typing import Optional, Iterable, Callable, TypeVar, Any
-from multiprocessing import Pool, cpu_count
+from typing import Optional, Iterable, Callable, TypeVar, Any, Literal
+from multiprocessing import Pool, cpu_count, get_context
 from tqdm.contrib.concurrent import process_map
 
 from .progressbar import default_setup
 from ..exceptions import QurryWarning
 
-# Ready for issue #75 https://github.com/harui2019/qurry/issues/75
 
 DEFAULT_POOL_SIZE = cpu_count()
 
@@ -69,6 +68,8 @@ class ParallelManager:
     def __init__(
         self,
         workers_num: Optional[int] = DEFAULT_POOL_SIZE,
+        bar_format: str = "qurry-full",
+        bar_ascii: str = "4squares",
         **pool_kwargs,
     ):
         """Initialize the process manager.
@@ -86,6 +87,7 @@ class ParallelManager:
             )
             pool_kwargs.pop("processes")
 
+        self.reslt_setup = default_setup(bar_format, bar_ascii)
         self.pool_kwargs = pool_kwargs
         self.workers_num = workers_distribution(workers_num)
 
@@ -93,33 +95,42 @@ class ParallelManager:
         self,
         func: Callable[..., T_map],
         args_list: Iterable,
+        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
     ) -> list[T_map]:
-        """Multiprocessing starmap.
+        """This function is a wrapper for starmap from multiprocessing.
 
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
+            start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
+                Start method for multiprocessing. Defaults to None.
+                If None, use the default start method of the system.
 
         Returns:
-            list[T_map]: Results.
+            tqdm.tqdm[T_map]: Results.
         """
 
         if self.workers_num == 1:
             return list(map(func, *zip(*args_list)))
+        pool_instance = get_context(start_method).Pool if start_method else Pool
 
-        with Pool(processes=self.workers_num, **self.pool_kwargs) as pool:
+        with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
             return pool.starmap(func, args_list)
 
     def map(
         self,
         func: Callable[[T_tgt], T_map],
         arg_list: Iterable[T_tgt],
+        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
     ) -> list[T_map]:
-        """Multiprocessing starmap.
+        """This function is a wrapper for map from multiprocessing.
 
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             arg_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
+            start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
+                Start method for multiprocessing. Defaults to None.
+                If None, use the default start method of the system.
 
         Returns:
             list[T_map]: Results.
@@ -128,7 +139,9 @@ class ParallelManager:
         if self.workers_num == 1:
             return list(map(func, arg_list))
 
-        with Pool(processes=self.workers_num, **self.pool_kwargs) as pool:
+        pool_instance = get_context(start_method).Pool if start_method else Pool
+
+        with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
             return pool.map(func, arg_list)
 
     def process_map(
@@ -139,7 +152,10 @@ class ParallelManager:
         bar_ascii: str = "4squares",
         **kwargs,
     ) -> list[T_map]:
-        """Multiprocessing process_map.
+        """Call process_map from tqdm.
+        This function is a wrapper for process_map from tqdm.
+        But, it won't use `pool_kwargs` for they are different implementations
+        with `multiprocessing.Pool` in this class.
 
         Args:
             func (Callable[[Any], T_map]): Function to be mapped.
