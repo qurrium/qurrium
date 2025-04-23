@@ -1,6 +1,5 @@
-"""Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
+"""Multi-process component for multimanager (:mod:`qurry.qurrium.multimanager.process`)"""
 
-import os
 from typing import Optional, Any, Type
 from pathlib import Path
 import gc
@@ -11,6 +10,7 @@ from .arguments import MultiCommonparams
 from ..container import _E
 from ..experiment.export import Export
 from ..utils.iocontrol import IOComplex
+from ...tools.parallelmanager import DEFAULT_POOL_SIZE
 
 
 def multiprocess_builder(
@@ -30,6 +30,21 @@ def multiprocess_builder(
     return exp_instance, config
 
 
+def multiprocess_builder_wrapper(
+    all_arguments: tuple[Type[_E], dict[str, Any]],
+) -> tuple[_E, dict[str, Any]]:
+    """Multiprocess builder for exporter.
+
+    Args:
+        all_arguments (tuple[Type[_E], dict[str, Any]]):
+            The arguments for builder.
+
+    Returns:
+        tuple[str, dict[str, Any]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_builder(*all_arguments)
+
+
 def multiprocess_exporter(
     id_exec: str,
     exps_export: Export,
@@ -39,7 +54,7 @@ def multiprocess_exporter(
     jsonable: bool = False,
     mute: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, Any]]:
     """Multiprocess exporter and writer for experiment.
 
     Args:
@@ -53,7 +68,7 @@ def multiprocess_exporter(
         pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
-        tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
+        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
     """
     qurryinfo_exp_id, qurryinfo_files = exps_export.write(
         mode=mode,
@@ -67,9 +82,23 @@ def multiprocess_exporter(
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
-    del exps_export
-    gc.collect()
+
     return qurryinfo_exp_id, qurryinfo_files
+
+
+def multiprocess_exporter_wrapper(
+    all_arguments: tuple[str, Export, str, int, str, bool, bool, Optional[tqdm.tqdm]],
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess wrapper for exporter.
+
+    Args:
+        all_arguments (tuple[str, Export, str, int, str, bool, bool, Optional[tqdm.tqdm]]):
+            The arguments for exporter.
+
+    Returns:
+        tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_exporter(*all_arguments)
 
 
 def single_process_exporter(
@@ -153,7 +182,8 @@ def datetimedict_process(
 
 def very_easy_chunk_distribution(
     respect_memory_array: list[tuple[str, int]],
-) -> tuple[bool, list[list[tuple[str, int]]]]:
+    chunk_size: int = DEFAULT_POOL_SIZE,
+) -> list[tuple[str, int]]:
     """Distribute the chunk for multiprocess.
     The chunk distribution is based on the number of CPU cores.
 
@@ -163,23 +193,21 @@ def very_easy_chunk_distribution(
             Each element is a tuple of (id, memory).
             The id is the ID of the experiment, and the memory is the memory usage.
             The array is sorted by the memory usage.
+        chunk_size (int, optional):
+            The chunk size. Defaults to DEFAULT_POOL_SIZE.
 
     Returns:
-        tuple[bool, list[list[tuple[str, int]]]]:
-            Whether use multiprocess or not, the chunk distribution for multiprocess.
+        list[tuple[str, int]]:
+            The chunk distribution is a list of tuples of (id, memory).
     """
 
-    cpu_count = os.cpu_count()
-    if cpu_count is None:
-        return False, [[v] for v in respect_memory_array]
-
-    ideal_chunks_num = int(np.ceil(len(respect_memory_array) / cpu_count))
-    chunks_list = []
+    ideal_chunks_num = int(np.ceil(len(respect_memory_array) / chunk_size))
+    chunks_sorted_list = []
     for i in range(ideal_chunks_num):
         tmp = [
             respect_memory_array[i + j * ideal_chunks_num]
-            for j in range(cpu_count)
+            for j in range(chunk_size)
             if i + j * ideal_chunks_num < len(respect_memory_array)
         ]
-        chunks_list.append(tmp)
-    return True, chunks_list
+        chunks_sorted_list += tmp
+    return chunks_sorted_list
