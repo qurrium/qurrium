@@ -167,6 +167,8 @@ def test_multi_output_all(
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
+        skip_build_write=True,
+        multiprocess_build=True,
     )
 
     read_summoner_id = exp_method.multiRead(

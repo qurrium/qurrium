@@ -85,7 +85,7 @@ def qurry_progressbar(
             The iterable object. Defaults to None.
         bar_format (str, optional):
             The format of the bar. Defaults to 'qurry-full'.
-        progressbar_ascii (str, optional):
+        bar_ascii (str, optional):
             The ascii of the bar. Defaults to '4squares'.
 
     Returns:

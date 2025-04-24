@@ -84,6 +84,7 @@ def expectation_rho(
     selected_classical_registers: Iterable[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
+    multiprocess: bool = True,
 ) -> ClassicalShadowExpectation:
     r"""Expectation value of Rho.
 
@@ -195,6 +196,8 @@ def expectation_rho(
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar.
             Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         ClassicalShadowExpectation: The expectation value of Rho.
@@ -214,6 +217,7 @@ def expectation_rho(
         random_unitary_um,
         selected_classical_registers,
         backend,
+        multiprocess,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -375,6 +379,7 @@ def trace_rho_square(
     selected_classical_registers: Iterable[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
+    multiprocess: bool = True,
 ) -> ClassicalShadowPurity:
     """Trace of Rho square.
 
@@ -393,6 +398,8 @@ def trace_rho_square(
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar.
             Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         float: The trace of Rho.
@@ -406,12 +413,19 @@ def trace_rho_square(
             + f"not {type(selected_classical_registers)}."
         )
 
+    if len(counts) < 2:
+        raise ValueError(
+            "The method of classical shadow require at least 2 counts for the calculation. "
+            + f"The number of counts is {len(counts)}."
+        )
+
     rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
         shots,
         counts,
         random_unitary_um,
         selected_classical_registers,
         backend,
+        multiprocess,
     )
     if pbar is not None:
         pbar.set_description(msg)
@@ -452,6 +466,7 @@ def classical_shadow_complex(
     selected_classical_registers: Iterable[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
+    multiprocess: bool = True,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
 
@@ -561,8 +576,9 @@ def classical_shadow_complex(
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar.
-            Defaults to None.
+            The progress bar. Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         ClassicalShadowComplex:
@@ -583,6 +599,7 @@ def classical_shadow_complex(
         random_unitary_um,
         selected_classical_registers,
         backend,
+        multiprocess,
     )
     if pbar is not None:
         pbar.set_description(msg)

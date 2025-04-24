@@ -1,4 +1,4 @@
-"""JSONablize (:mod:`qurry.qurry.capsule.jsonablize`)"""
+"""JSONablize (:mod:`qurry.capsule.jsonablize`)"""
 
 import os
 from typing import Union, Any, Optional

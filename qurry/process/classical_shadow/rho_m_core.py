@@ -6,9 +6,10 @@
 import time
 import warnings
 from typing import Literal, Union
+from multiprocessing import get_context
 import numpy as np
 
-from .rho_mk_cell import rho_mk_cell_py
+from .rho_mk_cell import rho_mk_cell_py, handle_rho_mk_py_iterable, rho_mk_cell_py_wrapper
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -18,7 +19,7 @@ from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools import ParallelManager
+from ...tools.parallelmanager import DEFAULT_POOL_SIZE
 
 
 # try:
@@ -57,6 +58,7 @@ def rho_m_core_py(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
+    multiprocess: bool = True,
 ) -> tuple[
     dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -74,6 +76,8 @@ def rho_m_core_py(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         tuple[
@@ -106,48 +110,38 @@ def rho_m_core_py(
 
     begin = time.time()
 
-    pool = ParallelManager()
-    rho_mk_py_result_list = pool.starmap(
-        rho_mk_cell_py,
-        [
-            (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
-            for idx, single_counts in enumerate(counts)
-        ],
-    )
-
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
-    rho_m_dict = {}
-    selected_qubits_checked: dict[int, bool] = {}
-    for (
-        idx,
-        rho_mk_dict,
-        rho_mk_counts_num,
-        selected_classical_registers_sorted_result,
-    ) in rho_mk_py_result_list:
-
-        tmp_arr = np.array(
-            [rho_mk * rho_mk_counts_num[bitstring] for bitstring, rho_mk in rho_mk_dict.items()]
-        )
-        tmp = tmp_arr.sum(axis=0, dtype=np.complex128)
-        tmp /= shots
-        expected_shape = (
-            2 ** len(selected_classical_registers_sorted),
-            2 ** len(selected_classical_registers_sorted),
-        )
-        assert tmp.shape == expected_shape, (
-            f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
-        )
-        rho_m_dict[idx] = tmp
-        selected_qubits_checked[idx] = (
-            selected_classical_registers_sorted_result != selected_classical_registers_sorted
-        )
-
-    if any(selected_qubits_checked.values()):
-        problematic_cells = [idx for idx, checked in selected_qubits_checked.items() if checked]
-        warnings.warn(
-            f"Selected qubits are not sorted for {problematic_cells} cells.",
-            RuntimeWarning,
+    if multiprocess:
+        pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+        with pool as p:
+            rho_mk_py_result_iterable = p.imap_unordered(
+                rho_mk_cell_py_wrapper,
+                [
+                    (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
+                    for idx, single_counts in enumerate(counts)
+                ],
+            )
+            rho_m_dict = handle_rho_mk_py_iterable(
+                rho_mk_py_result_iterable=rho_mk_py_result_iterable,
+                shots=shots,
+                selected_classical_registers_sorted=selected_classical_registers_sorted,
+            )
+    else:
+        rho_m_dict = {}
+        rho_mk_py_result_iterable = [
+            rho_mk_cell_py(
+                idx=idx,
+                single_counts=single_counts,
+                nu_shadow_direction=random_unitary_um[idx],
+                selected_classical_registers=selected_classical_registers,
+            )
+            for idx, single_counts in enumerate(counts)
+        ]
+        rho_m_dict = handle_rho_mk_py_iterable(
+            rho_mk_py_result_iterable=rho_mk_py_result_iterable,
+            shots=shots,
+            selected_classical_registers_sorted=selected_classical_registers_sorted,
         )
 
     taken = round(time.time() - begin, 3)
@@ -161,6 +155,7 @@ def rho_m_core(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    multiprocess: bool = True,
 ) -> tuple[
     dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -181,6 +176,8 @@ def rho_m_core(
         backend (PostProcessingBackendLabel, optional):
             The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
             It can be either "Python" or "Rust".
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         tuple[
@@ -213,5 +210,6 @@ def rho_m_core(
             counts=counts,
             random_unitary_um=random_unitary_um,
             selected_classical_registers=selected_classical_registers,
+            multiprocess=multiprocess,
         )
     raise ValueError(f"Invalid backend {backend}. It should be either 'Python' or 'Rust'.")

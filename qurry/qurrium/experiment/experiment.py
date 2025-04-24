@@ -603,10 +603,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
             transpile_args = current_exp.commons.transpile_args.copy()
-            transpile_args["num_processes"] = None if multiprocess else 1
+            transpile_args.pop("num_processes", None)
             transpiled_circs: list[QuantumCircuit] = transpile(
                 cirqs,
                 backend=current_exp.commons.backend,
+                num_processes=None if multiprocess else 1,
                 **current_exp.commons.transpile_args,
             )
 

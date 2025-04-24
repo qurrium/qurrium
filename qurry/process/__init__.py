@@ -1,4 +1,4 @@
-"""Post-processing module for Qurry (:mod:`qurry.qurry.process`)
+"""Post-processing module for Qurry (:mod:`qurry.process`)
 
 - All post-processing modules are here.
 - This module should be no dependency on qiskit.

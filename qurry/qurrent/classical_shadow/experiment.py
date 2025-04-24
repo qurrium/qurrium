@@ -1,6 +1,6 @@
 """ShadowUnveil - Experiment (:mod:`qurry.qurrent.classical_shadow.experiment`)"""
 
-from typing import Union, Optional, Type, Any, Literal
+from typing import Union, Optional, Type, Any, Literal, TypedDict
 from collections.abc import Iterable, Hashable
 import tqdm
 import numpy as np
@@ -109,7 +109,12 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         if len(targets) > 1:
             raise ValueError("The number of target circuits should be only one.")
         if not isinstance(times, int):
-            raise TypeError(f"times should be an integer, but got {times}.")
+            raise TypeError(f"times should be an integer, but got {times} as type {type(times)}.")
+        if times < 2:
+            raise ValueError(
+                "times should be greater than 1 for classical shadow "
+                + f"on the calculation of entangled entropy, but got {times}."
+            )
 
         target_key, target_circuit = targets[0]
         actual_qubits = target_circuit.num_qubits
@@ -301,6 +306,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
             backend=backend,
             pbar=pbar,
+            multiprocess=True,
         )
 
         serial = len(self.reports)
@@ -328,6 +334,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         selected_classical_registers: Optional[Iterable[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         pbar: Optional[tqdm.tqdm] = None,
+        multiprocess: bool = True,
     ) -> ClassicalShadowComplex:
         """Randomized entangled entropy with complex.
 
@@ -335,15 +342,18 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             shots (int):
                 The number of shots.
             counts (list[dict[str, int]]):
-                The counts of the experiment.
-            selected_classical_registers (Optional[Iterable[int]], optional):
-                The selected classical registers. Defaults to None.
-            all_system_source (Optional[EntropyRandomizedAnalysis], optional):
-                The source of all system. Defaults to None.
+                The list of the counts.
+            random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+                The shadow direction of the unitary operators.
+            selected_classical_registers (Iterable[int]):
+                The list of **the index of the selected_classical_registers**.
             backend (PostProcessingBackendLabel, optional):
-                The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
+                The backend for the postprocessing.
+                Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to True.
 
         Returns:
             ClassicalShadowComplex: The result of the classical shadow.
@@ -363,4 +373,241 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             selected_classical_registers=selected_classical_registers,
             backend=backend,
             pbar=pbar,
+            multiprocess=multiprocess,
         )
+
+    def outside_analysis_recover(
+        self,
+        analysis: ShadowUnveilAnalysis,
+    ) -> ShadowUnveilAnalysis:
+        """Recover the analysis from the outside.
+
+        Args:
+            analysis (ShadowUnveilAnalysis):
+                The analysis to recover.
+
+        Returns:
+            ShadowUnveilAnalysis: The recovered analysis.
+        """
+
+        if analysis.header.serial in self.reports:
+            new_serial = len(self.reports)
+            analysis.header = analysis.header._replace(serial=new_serial)
+
+        serial = analysis.header.serial
+        self.reports[serial] = analysis
+        return analysis
+
+
+class OutsideAnalyzeInput(TypedDict):
+    """The input for the outside analyze."""
+
+    exp_id: str
+    # for analze
+    shots: int
+    counts: list[dict[str, int]]
+    random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
+    selected_classical_registers: Iterable[int]
+    bitstring_mapping: dict[int, int]
+    # for analysis instance
+    serial: int
+    num_qubits: int
+    selected_qubits: list[int]
+    registers_mapping: dict[int, int]
+    unitary_located: list[int]
+    counts_used: Optional[Iterable[int]]
+    # setup for running
+    backend: PostProcessingBackendLabel
+    pbar: Optional[tqdm.tqdm]
+    multiprocess: bool
+
+
+def quantities_input_collecter(
+    current_exps: ShadowUnveilExperiment,
+    selected_qubits: Optional[Iterable[int]] = None,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    counts_used: Optional[Iterable[int]] = None,
+    pbar: Optional[tqdm.tqdm] = None,
+    multiprocess: bool = True,
+) -> OutsideAnalyzeInput:
+    """Collect the inputs for the quantities.
+
+    Args:
+        selected_qubits (Optional[Iterable[int]], optional):
+            The selected qubits. Defaults to None.
+        backend (PostProcessingBackendLabel, optional):
+            The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
+        counts_used (Optional[Iterable[int]], optional):
+            The index of the counts used. Defaults to None.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
+
+    Returns:
+        OutsideAnalyzeInput: The inputs for the quantities.
+    """
+
+    if selected_qubits is None:
+        raise ValueError("selected_qubits should be specified.")
+    assert current_exps.args.registers_mapping is not None, "registers_mapping should be not None."
+
+    assert (
+        "random_unitary_ids" in current_exps.beforewards.side_product
+    ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."
+    random_unitary_ids = current_exps.beforewards.side_product["random_unitary_ids"]
+    assert isinstance(
+        current_exps.args.registers_mapping, dict
+    ), f"registers_mapping {current_exps.args.registers_mapping} is not dict."
+
+    if isinstance(counts_used, Iterable):
+        if max(counts_used) >= len(current_exps.afterwards.counts):
+            raise ValueError(
+                "counts_used should be less than "
+                f"{len(current_exps.afterwards.counts)}, but get {max(counts_used)}."
+            )
+        counts = [current_exps.afterwards.counts[i] for i in counts_used]
+    elif counts_used is not None:
+        raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
+    else:
+        counts = current_exps.afterwards.counts
+
+    bitstring_mapping, final_mapping = bitstring_mapping_getter(
+        counts, current_exps.args.registers_mapping
+    )
+
+    selected_qubits = [qi % current_exps.args.actual_num_qubits for qi in selected_qubits]
+    if len(set(selected_qubits)) != len(selected_qubits):
+        raise ValueError(
+            f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
+        )
+
+    random_unitary_ids_classical_registers = {
+        n_u_i: {ci: random_unitary_id[n_u_qi] for n_u_qi, ci in final_mapping.items()}
+        for n_u_i, random_unitary_id in random_unitary_ids.items()
+    }
+
+    serial = len(current_exps.reports)
+    assert current_exps.args.unitary_located is not None, "unitary_located should be specified."
+
+    return {
+        "exp_id": current_exps.exp_id,
+        # for analyze
+        "shots": current_exps.commons.shots,
+        "counts": counts,
+        "random_unitary_ids": random_unitary_ids_classical_registers,
+        "selected_classical_registers": [final_mapping[qi] for qi in selected_qubits],
+        "bitstring_mapping": bitstring_mapping,
+        # for analysis instance
+        "serial": serial,
+        "num_qubits": current_exps.args.actual_num_qubits,
+        "selected_qubits": selected_qubits,
+        "registers_mapping": current_exps.args.registers_mapping,
+        "unitary_located": current_exps.args.unitary_located,
+        "counts_used": counts_used,
+        # setup for running
+        "backend": backend,
+        "pbar": pbar,
+        "multiprocess": multiprocess,
+    }
+
+
+def outside_analyze(
+    exp_id: str,
+    # for analyze
+    shots: int,
+    counts: list[dict[str, int]],
+    random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    selected_classical_registers: Iterable[int],
+    bitstring_mapping: dict[int, int],
+    # for analysis instance
+    serial: int,
+    num_qubits: int,
+    selected_qubits: list[int],
+    registers_mapping: dict[int, int],
+    unitary_located: list[int],
+    counts_used: Optional[Iterable[int]] = None,
+    # setup for running
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    pbar: Optional[tqdm.tqdm] = None,
+    multiprocess: bool = True,
+) -> tuple[str, ShadowUnveilAnalysis]:
+    """Randomized entangled entropy with complex.
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The shadow direction of the unitary operators.
+        selected_classical_registers (Iterable[int]):
+            The list of **the index of the selected_classical_registers**.
+        bitstring_mapping (dict[str, int]):
+            The mapping of the bitstring to the index of the classical register.
+
+        serial (int):
+            The serial number of the experiment.
+        num_qubits (int):
+            The number of qubits.
+        selected_qubits (list[int]):
+            The selected qubits.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+        unitary_located (list[int]):
+            The range of the unitary operator.
+        counts_used (Optional[Iterable[int]], optional):
+            The index of the counts used. Defaults to None.
+
+        backend (PostProcessingBackendLabel, optional):
+            The backend for the postprocessing.
+            Defaults to DEFAULT_PROCESS_BACKEND.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
+
+    Returns:
+        tuple[str, ShadowUnveilAnalysis]:
+            The ID of the experiment and the result of the classical shadow.
+    """
+
+    qs = classical_shadow_complex(
+        shots=shots,
+        counts=counts,
+        random_unitary_um=random_unitary_ids,
+        selected_classical_registers=selected_classical_registers,
+        backend=backend,
+        pbar=pbar,
+        multiprocess=multiprocess,
+    )
+
+    analysis = ShadowUnveilAnalysis(
+        serial=serial,
+        num_qubits=num_qubits,
+        selected_qubits=selected_qubits,
+        registers_mapping=registers_mapping,
+        bitstring_mapping=bitstring_mapping,
+        shots=shots,
+        unitary_located=unitary_located,
+        counts_used=counts_used,
+        **qs,
+    )
+
+    return exp_id, analysis
+
+
+def outside_analyze_wrapper(
+    all_arguments: OutsideAnalyzeInput,
+) -> tuple[str, ShadowUnveilAnalysis]:
+    """Wrapper for the outside analyze.
+
+    Args:
+        all_arguments (OutsideAnalyzeInput):
+            The arguments for the outside analyze.
+
+    Returns:
+        tuple[str, ShadowUnveilAnalysis]:
+            The ID of the experiment and the result of the classical shadow.
+    """
+    return outside_analyze(**all_arguments)
