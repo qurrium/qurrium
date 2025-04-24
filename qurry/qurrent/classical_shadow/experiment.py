@@ -1,6 +1,6 @@
 """ShadowUnveil - Experiment (:mod:`qurry.qurrent.classical_shadow.experiment`)"""
 
-from typing import Union, Optional, Type, Any, Literal
+from typing import Union, Optional, Type, Any, Literal, TypedDict
 from collections.abc import Iterable, Hashable
 import tqdm
 import numpy as np
@@ -399,13 +399,37 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         return analysis
 
 
+class OutsideAnalyzeInput(TypedDict):
+    """The input for the outside analyze."""
+
+    exp_id: str
+    # for analze
+    shots: int
+    counts: list[dict[str, int]]
+    random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
+    selected_classical_registers: Iterable[int]
+    bitstring_mapping: dict[int, int]
+    # for analysis instance
+    serial: int
+    num_qubits: int
+    selected_qubits: list[int]
+    registers_mapping: dict[int, int]
+    unitary_located: list[int]
+    counts_used: Optional[Iterable[int]]
+    # setup for running
+    backend: PostProcessingBackendLabel
+    pbar: Optional[tqdm.tqdm]
+    multiprocess: bool
+
+
 def quantities_input_collecter(
     current_exps: ShadowUnveilExperiment,
     selected_qubits: Optional[Iterable[int]] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     counts_used: Optional[Iterable[int]] = None,
     pbar: Optional[tqdm.tqdm] = None,
-) -> dict[str, Any]:
+    multiprocess: bool = True,
+) -> OutsideAnalyzeInput:
     """Collect the inputs for the quantities.
 
     Args:
@@ -417,9 +441,11 @@ def quantities_input_collecter(
             The index of the counts used. Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
 
     Returns:
-        dict[str, Any]: The inputs for the quantities.
+        OutsideAnalyzeInput: The inputs for the quantities.
     """
 
     if selected_qubits is None:
@@ -462,14 +488,17 @@ def quantities_input_collecter(
     }
 
     serial = len(current_exps.reports)
+    assert current_exps.args.unitary_located is not None, "unitary_located should be specified."
 
     return {
+        "exp_id": current_exps.exp_id,
+        # for analyze
         "shots": current_exps.commons.shots,
         "counts": counts,
         "random_unitary_ids": random_unitary_ids_classical_registers,
         "selected_classical_registers": [final_mapping[qi] for qi in selected_qubits],
         "bitstring_mapping": bitstring_mapping,
-        # for analysis
+        # for analysis instance
         "serial": serial,
         "num_qubits": current_exps.args.actual_num_qubits,
         "selected_qubits": selected_qubits,
@@ -479,16 +508,19 @@ def quantities_input_collecter(
         # setup for running
         "backend": backend,
         "pbar": pbar,
+        "multiprocess": multiprocess,
     }
 
 
 def outside_analyze(
+    exp_id: str,
+    # for analyze
     shots: int,
     counts: list[dict[str, int]],
     random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    bitstring_mapping: dict[str, int],
-    # for analysis
+    bitstring_mapping: dict[int, int],
+    # for analysis instance
     serial: int,
     num_qubits: int,
     selected_qubits: list[int],
@@ -499,7 +531,7 @@ def outside_analyze(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
     multiprocess: bool = True,
-) -> ShadowUnveilAnalysis:
+) -> tuple[str, ShadowUnveilAnalysis]:
     """Randomized entangled entropy with complex.
 
     Args:
@@ -536,7 +568,8 @@ def outside_analyze(
             Whether to use multiprocessing. Defaults to True.
 
     Returns:
-        ShadowUnveilAnalysis: The result of the classical shadow.
+        tuple[str, ShadowUnveilAnalysis]:
+            The ID of the experiment and the result of the classical shadow.
     """
 
     qs = classical_shadow_complex(
@@ -561,4 +594,20 @@ def outside_analyze(
         **qs,
     )
 
-    return analysis
+    return exp_id, analysis
+
+
+def outside_analyze_wrapper(
+    all_arguments: OutsideAnalyzeInput,
+) -> tuple[str, ShadowUnveilAnalysis]:
+    """Wrapper for the outside analyze.
+
+    Args:
+        all_arguments (OutsideAnalyzeInput):
+            The arguments for the outside analyze.
+
+    Returns:
+        tuple[str, ShadowUnveilAnalysis]:
+            The ID of the experiment and the result of the classical shadow.
+    """
+    return outside_analyze(**all_arguments)

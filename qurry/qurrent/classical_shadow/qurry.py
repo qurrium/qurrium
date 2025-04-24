@@ -6,9 +6,8 @@
 from typing import Union, Optional, Any, Type, Literal, Iterable
 from collections.abc import Hashable
 from pathlib import Path
+from multiprocessing import get_context
 import tqdm
-
-# from multiprocessing import get_context
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
@@ -24,14 +23,14 @@ from .experiment import (
     ShadowUnveilExperiment,
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
+    quantities_input_collecter,
+    outside_analyze_wrapper,
 )
 from ...qurrium.qurrium import QurriumPrototype
-from ...tools.backend import GeneralSimulator
-
-# from ...tools.parallelmanager import DEFAULT_POOL_SIZE
+from ...qurrium.utils.iocontrol import RJUST_LEN
+from ...tools import qurry_progressbar, GeneralSimulator, DEFAULT_POOL_SIZE
 from ...declare import BaseRunArgs, TranspileArgs
-
-# from ...capsule.mori import TagList
+from ...capsule.mori import TagList
 
 
 class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
@@ -522,30 +521,90 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             str: The summoner_id of multimanager.
         """
 
-        # if multiprocess_analysis:
-        #     if specific_analysis_args is None:
-        #         specific_analysis_args = {}
+        if multiprocess_analysis:
+            if specific_analysis_args is None:
+                specific_analysis_args = {}
 
-        #     if summoner_id in self.multimanagers:
-        #         current_multimanager = self.multimanagers[summoner_id]
-        #     else:
-        #         raise ValueError("No such summoner_id in multimanagers.")
-        #     if len(current_multimanager.afterwards.allCounts) == 0:
-        #         raise ValueError("No counts in multimanagers.")
+            if summoner_id in self.multimanagers:
+                current_multimanager = self.multimanagers[summoner_id]
+            else:
+                raise ValueError("No such summoner_id in multimanagers.")
+            if len(current_multimanager.afterwards.allCounts) == 0:
+                raise ValueError("No counts in multimanagers.")
 
-        #     idx_tagmap_quantities = len(current_multimanager.quantity_container)
-        #     name = (
-        #         analysis_name
-        #         if no_serialize
-        #         else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
-        #     )
-        #     current_multimanager.quantity_container[name] = TagList()
-        #     pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+            idx_tagmap_quantities = len(current_multimanager.quantity_container)
+            name = (
+                analysis_name
+                if no_serialize
+                else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
+            )
 
-        #     if not skip_write:
-        #         self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
+            all_counts_progress = qurry_progressbar(
+                list(current_multimanager.afterwards.allCounts.keys()),
+                desc="Preparing analyzing for multiprocessing...",
+            )
 
-        #     return current_multimanager.multicommons.summoner_id
+            quantities_input_list = []
+            for k in all_counts_progress:
+                if k in specific_analysis_args:
+                    v_args = specific_analysis_args[k]
+                    if isinstance(v_args, bool):
+                        if v_args is False:
+                            all_counts_progress.set_description_str(
+                                f"Skipped {k} in {current_multimanager.summoner_id}."
+                            )
+                            continue
+                        quantities_input_list.append(
+                            quantities_input_collecter(
+                                current_exps=current_multimanager.exps[k],
+                                selected_qubits=selected_qubits,
+                                backend=backend,
+                                counts_used=counts_used,
+                                multiprocess=False,
+                            )
+                        )
+                    else:
+                        quantities_input_list.append(
+                            quantities_input_collecter(
+                                current_exps=current_multimanager.exps[k],
+                                selected_qubits=v_args.get("selected_qubits", selected_qubits),
+                                backend=v_args.get("backend", backend),
+                                counts_used=v_args.get("counts_used", counts_used),
+                                multiprocess=False,
+                            )
+                        )
+                else:
+                    quantities_input_list.append(
+                        quantities_input_collecter(
+                            current_exps=current_multimanager.exps[k],
+                            selected_qubits=selected_qubits,
+                            backend=backend,
+                            counts_used=counts_used,
+                            multiprocess=False,
+                        )
+                    )
+
+            current_multimanager.quantity_container[name] = TagList()
+            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+            with pool as p:
+                outside_analyses_iterable = qurry_progressbar(
+                    p.imap_unordered(outside_analyze_wrapper, quantities_input_list),
+                    desc="Executing analysis...",
+                    total=len(quantities_input_list),
+                )
+                for exp_id, report in outside_analyses_iterable:
+                    current_multimanager.exps[exp_id].outside_analysis_recover(report)
+                    main, _tales = report.export(jsonable=False)
+                    current_multimanager.quantity_container[name][
+                        current_multimanager.exps[exp_id].commons.tags
+                    ].append(main)
+
+            current_multimanager.multicommons.datetimes.add_only(name)
+
+            if not skip_write:
+                self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
+
+            return current_multimanager.multicommons.summoner_id
 
         return super().multiAnalysis(
             summoner_id=summoner_id,
