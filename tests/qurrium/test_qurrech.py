@@ -352,6 +352,9 @@ def test_multi_output_all(
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
+        skip_build_write=True,
+        skip_output_write=True,
+        multiprocess_build=True,
     )
 
     specific_analysis_args = dict(
@@ -361,7 +364,9 @@ def test_multi_output_all(
         )
     )
     summoner_id = exp_method.multiAnalysis(
-        summoner_id, specific_analysis_args=specific_analysis_args  # type: ignore
+        summoner_id,
+        specific_analysis_args=specific_analysis_args,  # type: ignore
+        multiprocess_analysis=True,
     )
 
     quantity_container = exp_method.multimanagers[summoner_id].quantity_container
