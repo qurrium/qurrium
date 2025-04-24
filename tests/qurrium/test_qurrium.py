@@ -168,7 +168,6 @@ def test_multi_output_all(
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
         skip_build_write=True,
-        skip_output_write=True,
         multiprocess_build=True,
     )
 
