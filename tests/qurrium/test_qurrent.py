@@ -215,6 +215,7 @@ def other_quantities_names(test_item_division: str) -> list[str]:
     return ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"]
 
 
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "test_item_name", "test_item"],
     test_quantity_unit_targets,
@@ -290,7 +291,7 @@ def test_quantity_unit(
     )
 
 
-@pytest.mark.dependency(depends=["test_quantity_unit"])
+@pytest.mark.order(2)
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "summoner_name"],
     [
@@ -375,7 +376,7 @@ def test_multi_output_all(
     ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
 
 
-@pytest.mark.dependency(depends=["test_multi_output_all"])
+@pytest.mark.order(3)
 def test_export():
     """Export the results."""
 
