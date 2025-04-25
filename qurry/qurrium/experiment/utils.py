@@ -2,8 +2,7 @@
 
 import warnings
 from uuid import uuid4, UUID
-from typing import Optional, Any, Union, Iterable
-from pathlib import Path
+from typing import Optional, Any, Union
 from collections.abc import Hashable
 import numpy as np
 
@@ -13,7 +12,6 @@ from .arguments import Commonparams
 from ..analysis import AnalysisPrototype
 from ...tools.datetime import current_time, DatetimeDict
 from ...exceptions import QurryHashIDInvalid
-from ...capsule import quickJSON
 
 
 EXPERIMENT_UNEXPORTS = ["side_product", "result", "circuits"]
@@ -127,40 +125,3 @@ def memory_usage_factor_expect(
     factor += sum(len(circuit.data) for _, circuit in target if isinstance(circuit, QuantumCircuit))
 
     return int(np.round(factor))
-
-
-def quick_json_wrapper(
-    export_contents: tuple[
-        Iterable,
-        Union[str, Path],
-        str,
-        int,
-        str,
-        bool,
-        Union[Path, str],
-        bool,
-    ],
-) -> Optional[str]:
-    """Quickly export a list to json file.
-
-    Args:
-        export_contents (tuple[
-            Iterable, Union[str, Path], str, int, str, bool, Union[Path, str], bool
-        ]): The contents to be exported.
-            - content (Iterable): Content of the csv file.
-            - filename (str): Filename of the csv file.
-            - mode (str): Mode for :func:`open` function.
-            - indent (int, optional): Indent length for json. Defaults to 2.
-            - encoding (str, optional): Encoding method. Defaults to 'utf-8'.
-            - jsonable (bool, optional):
-                Whether to transpile all object to jsonable via :func:`mori.jsonablize`.
-                Defaults to False.
-            - save_location (Union[Path, str], optional):
-                Location of files. Defaults to Path('./').
-            - mute (bool, optional): Mute the exportation. Defaults to True.
-
-    Returns:
-        Optional[str]: The filename of the csv file.
-    """
-
-    return quickJSON(*export_contents)

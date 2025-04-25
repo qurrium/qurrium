@@ -6,12 +6,10 @@ from collections.abc import Hashable
 from pathlib import Path
 import warnings
 import gc
-from multiprocessing import get_context
 import tqdm
 
 from .arguments import CommonparamsDict, REQUIRED_FOLDER
-from .utils import quick_json_wrapper
-from ...tools import DEFAULT_POOL_SIZE
+from ...tools import ParallelManager
 from ...capsule import quickJSON
 
 
@@ -267,24 +265,23 @@ class Export(NamedTuple):
                 os.mkdir(folder / k)
 
         if multiprocess:
-            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
-            with pool as p:
-                p.imap_unordered(
-                    quick_json_wrapper,
+            pool = ParallelManager()
+            pool.starmap(
+                quickJSON,
+                [
                     (
-                        (
-                            content,
-                            str(Path(self.commons["save_location"]) / self.files[filekey]),
-                            mode,
-                            indent,
-                            encoding,
-                            jsonable,
-                            Path("./"),
-                            mute,
-                        )
-                        for filekey, content in export_set.items()
-                    ),
-                )
+                        content,
+                        str(Path(self.commons["save_location"]) / self.files[filekey]),
+                        mode,
+                        indent,
+                        encoding,
+                        jsonable,
+                        Path("./"),
+                        mute,
+                    )
+                    for filekey, content in export_set.items()
+                ],
+            )
         else:
             for filekey, content in export_set.items():
                 quickJSON(
