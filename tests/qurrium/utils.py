@@ -1,11 +1,8 @@
 """Utility functions for testing qurry package."""
 
 from typing import TypedDict, Any, Optional
-
 import numpy as np
-from qiskit import QuantumCircuit
 
-from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.datetime import current_time
 
 
@@ -16,32 +13,6 @@ def current_time_filename():
         str: The current time as a filename.
     """
     return current_time().replace(":", "").replace("-", "").replace(" ", "_")
-
-
-def wave_loader(
-    qurry: QurriumPrototype,
-    wave_list: list[tuple[str, QuantumCircuit]],
-) -> list[str]:
-    """Load the QuantunmCircuit list into the QurriumPrototype.
-
-    Args:
-        qurry (QurriumPrototype):
-            The QurriumPrototype instance.
-        wave_list (list[tuple[str, QuantumCircuit]]):
-            The list of QuantumCircuit to load with their name.
-
-    Returns:
-        list[str]: The list of loaded QuantumCircuit names.
-    """
-
-    result = []
-    for name, qc in wave_list:
-        if name not in qurry.waves:
-            result.append(qurry.add(qc, name))
-        else:
-            print(f"Wave {name} already exists in QurriumPrototype.")
-
-    return result
 
 
 class InputUnit(TypedDict):

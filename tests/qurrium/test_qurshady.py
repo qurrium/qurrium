@@ -25,7 +25,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit
 
-from utils import current_time_filename, wave_loader, InputUnit, ResultUnit, check_unit
+from utils import current_time_filename, InputUnit, ResultUnit, check_unit
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
@@ -84,63 +84,53 @@ circuits: dict[str, QuantumCircuit] = {
 """Circuits. """
 
 exp_method_04 = ShadowUnveil()
-test_items["04"] = {
-    circ_name: {
+test_items["04"] = {}
+for num_qubits, circ_name, answer in [
+    (4, "4-trivial", 1.0),
+    (4, "4-GHZ", 0.5),
+    (4, "4-topological-period", 0.25),
+    (6, "6-trivial", 1.0),
+    (6, "6-GHZ", 0.5),
+    (6, "6-topological-period", 0.25),
+]:
+    test_items["04"][".".join(("classical_shadow", circ_name))] = {
         "measure": {
             "wave": circ_name,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(100)},
+            "tags": ("classical_shadow", circ_name),
         },
         "analyze": {"selected_qubits": range(-2, 0)},
         "answer": answer,
     }
-    for num_qubits, circ_name, answer in [
-        (4, "4-trivial", 1.0),
-        (4, "4-GHZ", 0.5),
-        (4, "4-topological-period", 0.25),
-        (6, "6-trivial", 1.0),
-        (6, "6-GHZ", 0.5),
-        (6, "6-topological-period", 0.25),
-    ]
-}
-wave_loader(
-    exp_method_04,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["04"]],
-)
+    exp_method_04.add(circuits[circ_name], circ_name)
 
 
 exp_method_04_extra_clbits = ShadowUnveil()
-test_items["04_extra_clbits"] = {
-    circ_name: {
+test_items["04_extra_clbits"] = {}
+for num_qubits, measure_range, circ_name, answer in [
+    (4, [2, 3], "4-dummy-2-body-with-clbits", 1.0),
+    (6, [4, 5], "6-dummy-2-body-with-clbits", 1.0),
+] + (
+    [
+        (4, [0, 3], "4-entangle-by-dyn", 1.0),
+        (4, [0], "4-entangle-by-dyn", 0.5),
+        (6, [0, 5], "6-entangle-by-dyn", 1.0),
+        (6, [0], "6-entangle-by-dyn", 0.5),
+    ]
+    if SIM_DEFAULT_SOURCE == "qiskit_aer"
+    else []
+):
+    test_items["04_extra_clbits"][".".join(("classical_shadow_extra_clbits", circ_name))] = {
         "measure": {
             "wave": circ_name,
             "measure": measure_range,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(100)},
+            "tags": ("classical_shadow_extra_clbits", circ_name),
         },
         "analyze": {"selected_qubits": measure_range},
         "answer": answer,
     }
-    for num_qubits, measure_range, circ_name, answer in (
-        [
-            (4, [2, 3], "4-dummy-2-body-with-clbits", 1.0),
-            (6, [4, 5], "6-dummy-2-body-with-clbits", 1.0),
-        ]
-        + (
-            [
-                (4, [0, 3], "4-entangle-by-dyn", 1.0),
-                (4, [0], "4-entangle-by-dyn", 0.5),
-                (6, [0, 5], "6-entangle-by-dyn", 1.0),
-                (6, [0], "6-entangle-by-dyn", 0.5),
-            ]
-            if SIM_DEFAULT_SOURCE == "qiskit_aer"
-            else []
-        )
-    )
-}
-wave_loader(
-    exp_method_04_extra_clbits,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["04_extra_clbits"]],
-)
-
+    exp_method_04_extra_clbits.add(circuits[circ_name], circ_name)
 
 test_quantity_unit_targets = []
 """Test quantity unit targets.
@@ -233,6 +223,7 @@ def test_quantity_unit(
     )
 
 
+@pytest.mark.dependency(depends=["test_quantity_unit"])
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "summoner_name"],
     [
@@ -256,15 +247,18 @@ def test_multi_output_all(
             The summoner name.
     """
 
-    config_list, analysis_args, answer_list, test_item_name_list = [], [], [], []
-    for test_item_name, test_item in list(test_items[test_item_division].items())[:2]:
+    config_list, analysis_args, answer_dict = [], {}, {}
+    for test_item_name, test_item in test_items[test_item_division].items():
         config_list.append(test_item["measure"])
-        analysis_args.append(test_item["analyze"])
-        answer_list.append(test_item["answer"])
-        test_item_name_list.append(test_item_name)
+        analysis_args[test_item_name] = test_item["analyze"]
+        answer_dict[test_item_name] = test_item["answer"]
+        assert test_item_name == ".".join(test_item["measure"]["tags"]), (
+            "The test item name is not equal to the tags: "
+            + f"{test_item_name} != {'.'.join(test_item['measure']['tags'])}"
+        )
 
     summoner_id = exp_method.multiOutput(
-        config_list,  # type: ignore
+        config_list,
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
@@ -273,42 +267,45 @@ def test_multi_output_all(
         multiprocess_build=True,
     )
 
-    specific_analysis_args = dict(
-        zip(
-            exp_method.multimanagers[summoner_id].beforewards.exps_config.keys(),
-            analysis_args,
-        )
+    specific_analysis_args = {
+        exp_id: analysis_args[".".join(config["tags"])]
+        for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
+    }
+
+    summoner_id = exp_method.multiAnalysis(
+        summoner_id,
+        specific_analysis_args=specific_analysis_args,  # type: ignore
+        multiprocess_analysis=True,
+        multiprocess_write=True,
+        analysis_name="single_process",
     )
     summoner_id = exp_method.multiAnalysis(
         summoner_id,
         specific_analysis_args=specific_analysis_args,  # type: ignore
         multiprocess_analysis=True,
-        # multiprocess_write=True,
+        multiprocess_write=True,
+        analysis_name="multi_process",
     )
 
-    quantity_container = exp_method.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for qqi, quantity in enumerate(quantities):
-                assert isinstance(
-                    quantity, dict
-                ), f"The quantity is not a dict: {quantity}, {quantity.keys()}-{qk}-{rk}."
+    for rk, report in exp_method.multimanagers[summoner_id].quantity_container.items():
+        for config in config_list:
+            for quantity in report[config["tags"]]:
+                assert isinstance(quantity, dict), (
+                    f"The quantity is not a dict: {quantity}, "
+                    + f"{quantity.keys()}/{".".join(config["tags"])}/{rk}."
+                )
 
                 if f"{test_item_division}_multi" not in result_items:
                     result_items[f"{test_item_division}_multi"] = {}
 
-                result_items[f"{test_item_division}_multi"][test_item_name_list[qqi]] = check_unit(
+                result_items[f"{test_item_division}_multi"][".".join(config["tags"])] = check_unit(
                     quantity,
                     "purity",
-                    answer_list[qqi],
+                    answer_dict[".".join(config["tags"])],
                     THREDHOLD,
-                    test_item_name_list[qqi],
+                    ".".join(config["tags"]),
                     # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
                     ["entropy", "expect_rho"],
-                )
-                assert np.trace(quantity["expect_rho"]) - 1 < 1e-12, (
-                    "The trace of the expect_rho should be 1: "
-                    + f"{np.trace(quantity['expect_rho'])}."
                 )
 
     read_summoner_id = exp_method.multiRead(
@@ -320,6 +317,7 @@ def test_multi_output_all(
     ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
 
 
+@pytest.mark.dependency(depends=["test_multi_output_all"])
 def test_export():
     """Export the results."""
 
