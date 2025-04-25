@@ -1,6 +1,4 @@
-"""Tests qurry.process.utils.randomized module.
-
-"""
+"""Tests qurry.process.utils.construct module."""
 
 import os
 import pytest

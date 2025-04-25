@@ -1,6 +1,4 @@
-"""Tests qurry.process.utils.randomized module.
-
-"""
+"""Tests qurry.process.utils.randomized module."""
 
 from typing import TypedDict, Union
 import pytest

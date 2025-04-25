@@ -1,4 +1,4 @@
-"""Test the qurry.boorust module."""
+"""Test qurry.process.classical_shadow module."""
 
 from typing import TypedDict
 import os
@@ -101,6 +101,16 @@ def test_shadow(shadow_case: ShadowCase):
         ],
         backend="Python",
     )
+    result_py_single_process = classical_shadow_complex(
+        shots=shadow_case["arguments"]["shots"],
+        counts=shadow_case["counts"],
+        random_unitary_um=shadow_case["random_unitary_ids"],
+        selected_classical_registers=[
+            final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
+        ],
+        backend="Python",
+        multiprocess=False,
+    )
     # result_rust = classical_shadow_complex(
     #     shots=shadow_case["arguments"]["shots"],
     #     counts=shadow_case["counts"],
@@ -116,15 +126,34 @@ def test_shadow(shadow_case: ShadowCase):
         "The result of classical_shadow_complex is not correct,"
         + f"result_py: {result_py} != shadow_case['answer']: {shadow_case['answer']}"
     )
+    assert result_py_single_process["purity"] - shadow_case["answer"]["purity"] < 1e-12, (
+        "The result of classical_shadow_complex is not correct,"
+        + f"result_py_single_process: {result_py} != shadow_case['answer']: {shadow_case['answer']}"
+    )
     # assert result_rust["purity"] - shadow_case["answer"]["purity"] < 1e-12, (
     #     "The result of classical_shadow_complex is not correct,"
     #     + f"result_rust: {result_rust} != shadow_case['answer']: {shadow_case['answer']}"
     # )
+
+    assert result_py_single_process["purity"] - result_py["purity"] < 1e-12, (
+        "The result of classical_shadow_complex is not correct,"
+        + f"result_py_single_process: {result_py_single_process['purity']} "
+        + f"!= result_py: {result_py['purity']}"
+    )
     # assert result_rust["purity"] - result_py["purity"] < 1e-12, (
     #     "The result of classical_shadow_complex is not correct,"
     #     + f"result_rust: {result_rust} != result_py: {result_py['purity']}"
     # )
+    # assert result_py_single_process["purity"] - result_rust["purity"] < 1e-12, (
+    #     "The result of classical_shadow_complex is not correct,"
+    #     + f"result_py_single_process: {result_py_single_process['purity']} "
+    #     + f"!= result_rust: {result_rust['purity']}"
+    # )
+
     assert np.trace(result_py["expect_rho"]) - 1 < 1e-12, (
+        "The trace of the expect_rho should be 1: " + f"{np.trace(result_py['expect_rho'])}."
+    )
+    assert np.trace(result_py_single_process["expect_rho"]) - 1 < 1e-12, (
         "The trace of the expect_rho should be 1: " + f"{np.trace(result_py['expect_rho'])}."
     )
     # assert np.trace(result_rust["expect_rho"]) - 1 < 1e-12, (
