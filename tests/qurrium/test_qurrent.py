@@ -352,7 +352,7 @@ def test_multi_output_all(
             for quantity in report[config["tags"]]:
                 assert isinstance(quantity, dict), (
                     f"The quantity is not a dict: {quantity}, "
-                    + f"{quantity.keys()}/{".".join(config["tags"])}/{rk}."
+                    + f"{quantity.keys()}/{'.'.join(config['tags'])}/{rk}."
                 )
 
                 if f"{test_item_division}_multi" not in result_items:
