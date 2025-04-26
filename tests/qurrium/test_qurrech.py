@@ -36,7 +36,7 @@ import pytest
 
 from qiskit import QuantumCircuit
 
-from utils import current_time_filename, wave_loader, InputUnit, ResultUnit, check_unit
+from utils import current_time_filename, InputUnit, ResultUnit, check_unit
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits, ghz_overlap_case
 
 from qurry.qurrech import EchoListen
@@ -105,80 +105,91 @@ circuits: dict[str, QuantumCircuit] = {
 
 # hadamard test
 exp_method_01 = EchoListen(method="hadamard")
-test_items["01"] = {
-    circ_name: {
-        "measure": {"wave1": circ_name, "wave2": circ_name, "degree": (0, 2)},
+test_items["01"] = {}
+for circ_name, answer in [
+    ("4-trivial", 1.0),
+    ("4-GHZ", 0.5),
+    ("4-topological-period", 0.25),
+    ("6-trivial", 1.0),
+    ("6-GHZ", 0.5),
+    ("6-topological-period", 0.25),
+]:
+    test_items["01"][".".join(("hadamard", circ_name, circ_name))] = {
+        "measure": {
+            "wave1": circ_name,
+            "wave2": circ_name,
+            "degree": (0, 2),
+            "tags": ("hadamard", circ_name, circ_name),
+        },
         "analyze": {},
         "answer": answer,
     }
-    for circ_name, answer in [
-        ("4-trivial", 1.0),
-        ("4-GHZ", 0.5),
-        ("4-topological-period", 0.25),
-        ("6-trivial", 1.0),
-        ("6-GHZ", 0.5),
-        ("6-topological-period", 0.25),
-    ]
-}
-wave_loader(exp_method_01, [(circ_name, circuits[circ_name]) for circ_name in test_items["01"]])
+    exp_method_01.add(circuits[circ_name], circ_name)
 
 # randomized measurement
 exp_method_02 = EchoListen(method="randomized")
-test_items["02"] = {
-    circ_name: {
+test_items["02"] = {}
+for num_qubits, circ_name, answer in [
+    (4, "4-trivial", 1.0),
+    (4, "4-GHZ", 0.5),
+    (4, "4-topological-period", 0.25),
+    (6, "6-trivial", 1.0),
+    (6, "6-GHZ", 0.5),
+    (6, "6-topological-period", 0.25),
+]:
+    test_items["02"][".".join(("randomized", circ_name, circ_name))] = {
         "measure": {
             "wave1": circ_name,
             "wave2": circ_name,
             "times": 20,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(20)},
+            "tags": ("randomized", circ_name, circ_name),
         },
         "analyze": {"selected_classical_registers": range(-2, 0)},
         "answer": answer,
     }
-    for num_qubits, circ_name, answer in [
-        (4, "4-trivial", 1.0),
-        (4, "4-GHZ", 0.5),
-        (4, "4-topological-period", 0.25),
-        (6, "6-trivial", 1.0),
-        (6, "6-GHZ", 0.5),
-        (6, "6-topological-period", 0.25),
-    ]
-}
-wave_loader(
-    exp_method_02,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["02"]],
-)
+    exp_method_02.add(circuits[circ_name], circ_name)
 
 # randomized measurement v1
 exp_method_03 = EchoListen(method="randomized_v1")
-test_items["03"] = {
-    circ_name: {
+test_items["03"] = {}
+for num_qubits, circ_name, answer in [
+    (4, "4-trivial", 1.0),
+    (4, "4-GHZ", 0.5),
+    (4, "4-topological-period", 0.25),
+    (6, "6-trivial", 1.0),
+    (6, "6-GHZ", 0.5),
+    (6, "6-topological-period", 0.25),
+]:
+    test_items["03"][".".join(("randomized_v1", circ_name, circ_name))] = {
         "measure": {
             "wave1": circ_name,
             "wave2": circ_name,
             "times": 20,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(20)},
+            "tags": ("randomized_v1", circ_name, circ_name),
         },
         "analyze": {"degree": (0, 2)},
         "answer": answer,
     }
-    for num_qubits, circ_name, answer in [
-        (4, "4-trivial", 1.0),
-        (4, "4-GHZ", 0.5),
-        (4, "4-topological-period", 0.25),
-        (6, "6-trivial", 1.0),
-        (6, "6-GHZ", 0.5),
-        (6, "6-topological-period", 0.25),
-    ]
-}
-wave_loader(
-    exp_method_03,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["03"]],
-)
+    exp_method_03.add(circuits[circ_name], circ_name)
 
 exp_method_02_extra_clbits = EchoListen(method="randomized")
-test_items["02_extra_clbits"] = {
-    circ_name: {
+test_items["02_extra_clbits"] = {}
+for num_qubits, measure_range, circ_name, answer in [
+    (4, [2, 3], "4-dummy-2-body-with-clbits", 1.0),
+    (6, [4, 5], "6-dummy-2-body-with-clbits", 1.0),
+] + (
+    [
+        (4, [0, 3], "4-entangle-by-dyn", 1.0),
+        (4, [0], "4-entangle-by-dyn", 0.5),
+        (6, [0, 5], "6-entangle-by-dyn", 1.0),
+        (6, [0], "6-entangle-by-dyn", 0.5),
+    ]
+    if SIM_DEFAULT_SOURCE == "qiskit_aer"
+    else []
+):
+    test_items["02_extra_clbits"][".".join(("randomized_extra_clbits", circ_name, circ_name))] = {
         "measure": {
             "wave1": circ_name,
             "wave2": circ_name,
@@ -186,36 +197,34 @@ test_items["02_extra_clbits"] = {
             "measure_1": measure_range,
             "measure_2": measure_range,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(50)},
+            "tags": ("randomized_extra_clbits", circ_name, circ_name),
         },
         "analyze": {"selected_classical_registers": measure_range},
         "answer": answer,
     }
-    for num_qubits, measure_range, circ_name, answer in (
-        [
-            (4, [2, 3], "4-dummy-2-body-with-clbits", 1.0),
-            (6, [4, 5], "6-dummy-2-body-with-clbits", 1.0),
-        ]
-        + (
-            [
-                (4, [0, 3], "4-entangle-by-dyn", 1.0),
-                (4, [0], "4-entangle-by-dyn", 0.5),
-                (6, [0, 5], "6-entangle-by-dyn", 1.0),
-                (6, [0], "6-entangle-by-dyn", 0.5),
-            ]
-            if SIM_DEFAULT_SOURCE == "qiskit_aer"
-            else []
-        )
-    )
-}
-wave_loader(
-    exp_method_02_extra_clbits,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["02_extra_clbits"]],
-)
-
+    exp_method_02_extra_clbits.add(circuits[circ_name], circ_name)
 
 exp_method_02_true_overlap = EchoListen(method="randomized")
-test_items["02_true_overlap"] = {
-    f"{circ_name_1}.{circ_name_2}": {
+test_items["02_true_overlap"] = {}
+for num_qubits, measure_range, circ_name_1, circ_name_2, selected_cregs, answer in [
+    (4, None, "4-GHZ", "4-GHZ-00", range(4), 0.5),
+    (4, None, "4-GHZ", "4-GHZ-01", range(4), 0),
+    (4, None, "4-GHZ", "4-GHZ-10", range(4), 0),
+    (4, None, "4-GHZ", "4-GHZ-11", range(4), 0.5),
+    (4, None, "4-GHZ", "4-GHZ-x-init-GHZ", range(4), 0),
+    (4, None, "4-GHZ", "4-GHZ-singlet", range(4), 0),
+    (4, None, "4-GHZ", "4-GHZ-intracell-plus", range(4), 0),
+] + (
+    [
+        (4, [0, 3], "4-entangle-by-dyn", "4-entangle-by-dyn-comparison", range(-2, 0), 1.0),
+        (6, [0, 5], "6-entangle-by-dyn", "6-entangle-by-dyn-comparison", range(-2, 0), 1.0),
+    ]
+    if SIM_DEFAULT_SOURCE == "qiskit_aer"
+    else []
+):
+    test_items["02_true_overlap"][
+        ".".join(("randomized_true_overlap", circ_name_1, circ_name_2))
+    ] = {
         "measure": {
             "wave1": circ_name_1,
             "wave2": circ_name_2,
@@ -223,41 +232,14 @@ test_items["02_true_overlap"] = {
             "measure_1": measure_range,
             "measure_2": measure_range,
             "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(50)},
+            "tags": ("randomized_true_overlap", circ_name_1, circ_name_2),
         },
         "analyze": {"selected_classical_registers": selected_cregs},
         "answer": answer,
     }
-    for num_qubits, measure_range, circ_name_1, circ_name_2, selected_cregs, answer in (
-        [
-            (4, None, "4-GHZ", "4-GHZ-00", range(4), 0.5),
-            (4, None, "4-GHZ", "4-GHZ-01", range(4), 0),
-            (4, None, "4-GHZ", "4-GHZ-10", range(4), 0),
-            (4, None, "4-GHZ", "4-GHZ-11", range(4), 0.5),
-            (4, None, "4-GHZ", "4-GHZ-x-init-GHZ", range(4), 0),
-            (4, None, "4-GHZ", "4-GHZ-singlet", range(4), 0),
-            (4, None, "4-GHZ", "4-GHZ-intracell-plus", range(4), 0),
-        ]
-        + (
-            [
-                (4, [0, 3], "4-entangle-by-dyn", "4-entangle-by-dyn-comparison", range(-2, 0), 1.0),
-                (6, [0, 5], "6-entangle-by-dyn", "6-entangle-by-dyn-comparison", range(-2, 0), 1.0),
-            ]
-            if SIM_DEFAULT_SOURCE == "qiskit_aer"
-            else []
-        )
-    )
-}
-wave_needs_to_be_loaded = []
-for circ_name_combined in test_items["02_true_overlap"]:
-    circ_name_1, circ_name_2 = circ_name_combined.split(".")
-    if circ_name_1 not in wave_needs_to_be_loaded:
-        wave_needs_to_be_loaded.append(circ_name_1)
-    if circ_name_2 not in wave_needs_to_be_loaded:
-        wave_needs_to_be_loaded.append(circ_name_2)
-wave_loader(
-    exp_method_02_true_overlap,
-    [(circ_name, circuits[circ_name]) for circ_name in wave_needs_to_be_loaded],
-)
+    exp_method_02_true_overlap.add(circuits[circ_name_1], circ_name_1)
+    exp_method_02_true_overlap.add(circuits[circ_name_2], circ_name_2)
+
 
 test_quantity_unit_targets = []
 """Test quantity unit targets.
@@ -275,6 +257,7 @@ for exp_method_tmp, test_item_division_tmp in [
         )
 
 
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "test_item_name", "test_item"],
     test_quantity_unit_targets,
@@ -314,6 +297,7 @@ def test_quantity_unit(
     )
 
 
+@pytest.mark.order(2)
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "summoner_name"],
     [
@@ -340,15 +324,18 @@ def test_multi_output_all(
             The summoner name.
     """
 
-    config_list, analysis_args, answer_list, test_item_name_list = [], [], [], []
-    for test_item_name, test_item in list(test_items[test_item_division].items())[:2]:
+    config_list, analysis_args, answer_dict = [], {}, {}
+    for test_item_name, test_item in test_items[test_item_division].items():
         config_list.append(test_item["measure"])
-        analysis_args.append(test_item["analyze"])
-        answer_list.append(test_item["answer"])
-        test_item_name_list.append(test_item_name)
+        analysis_args[test_item_name] = test_item["analyze"]
+        answer_dict[test_item_name] = test_item["answer"]
+        assert test_item_name == ".".join(test_item["measure"]["tags"]), (
+            "The test item name is not equal to the tags: "
+            + f"{test_item_name} != {'.'.join(test_item['measure']['tags'])}"
+        )
 
     summoner_id = exp_method.multiOutput(
-        config_list,  # type: ignore
+        config_list,
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
@@ -357,35 +344,33 @@ def test_multi_output_all(
         multiprocess_build=True,
     )
 
-    specific_analysis_args = dict(
-        zip(
-            exp_method.multimanagers[summoner_id].beforewards.exps_config.keys(),
-            analysis_args,
-        )
-    )
+    specific_analysis_args = {
+        exp_id: analysis_args[".".join(config["tags"])]
+        for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
+    }
+
     summoner_id = exp_method.multiAnalysis(
         summoner_id,
         specific_analysis_args=specific_analysis_args,  # type: ignore
-        multiprocess_analysis=True,
     )
 
-    quantity_container = exp_method.multimanagers[summoner_id].quantity_container
-    for rk, report in quantity_container.items():
-        for qk, quantities in report.items():
-            for qqi, quantity in enumerate(quantities):
-                assert isinstance(
-                    quantity, dict
-                ), f"The quantity is not a dict: {quantity}, {quantity.keys()}-{qk}-{rk}."
+    for rk, report in exp_method.multimanagers[summoner_id].quantity_container.items():
+        for config in config_list:
+            for quantity in report[config["tags"]]:
+                assert isinstance(quantity, dict), (
+                    f"The quantity is not a dict: {quantity}, "
+                    + f"{quantity.keys()}/{'.'.join(config['tags'])}/{rk}."
+                )
 
                 if f"{test_item_division}_multi" not in result_items:
                     result_items[f"{test_item_division}_multi"] = {}
 
-                result_items[f"{test_item_division}_multi"][test_item_name_list[qqi]] = check_unit(
+                result_items[f"{test_item_division}_multi"][".".join(config["tags"])] = check_unit(
                     quantity,
                     "echo",
-                    answer_list[qqi],
+                    answer_dict[".".join(config["tags"])],
                     THREDHOLD,
-                    test_item_name_list[qqi],
+                    ".".join(config["tags"]),
                 )
 
     read_summoner_id = exp_method.multiRead(
@@ -397,6 +382,7 @@ def test_multi_output_all(
     ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
 
 
+@pytest.mark.order(3)
 def test_export():
     """Export the results."""
 

@@ -1,6 +1,4 @@
-"""Test qurry.process.hadamard_test module.
-
-"""
+"""Test qurry.process.hadamard_test module."""
 
 from typing import TypedDict, Union
 import pytest

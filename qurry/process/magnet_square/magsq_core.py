@@ -6,9 +6,10 @@
 import time
 import warnings
 from typing import Union
+from multiprocessing import get_context
 import numpy as np
 
-from .magsq_cell import magsq_cell_py  # , magsq_cell_rust
+from .magsq_cell import magsq_cell_wrapper
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -18,7 +19,7 @@ from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools import ParallelManager, workers_distribution
+from ...tools import DEFAULT_POOL_SIZE
 
 
 # try:
@@ -90,10 +91,6 @@ def magnetic_square_core_pyrust(
             Magnitudes square, Magnitudes square cell,
             Length of counts, Time taken, Message.
     """
-
-    # Determine worker number
-    launch_worker = workers_distribution()
-
     length = len(counts)
     begin = time.time()
 
@@ -103,19 +100,19 @@ def magnetic_square_core_pyrust(
                 "Rust is not ready, using Python to calculate magnetic square."
             )
         )
-    cell_calculations = magsq_cell_py  # if backend == "Python" else magsq_cell_rust
 
-    msg = f", {launch_worker} workers, {length} counts."
-    pool = ParallelManager(launch_worker)
-    magnetsq_cell_items = pool.starmap(
-        cell_calculations, [(i, c, shots) for i, c in enumerate(counts)]
-    )
+    pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)
+    with pool as p:
+        magnetsq_cell_items = p.imap_unordered(
+            magsq_cell_wrapper, [(i, c, shots, backend) for i, c in enumerate(counts)]
+        )
+        magnetsq_cell_dict = dict(magnetsq_cell_items)
 
-    taken = round(time.time() - begin, 3)
-    magnetsq_cell_dict = dict(magnetsq_cell_items)
     magnetsq = (sum(magnetsq_cell_dict.values()) + num_qubits) / (num_qubits**2)
 
-    return magnetsq, magnetsq_cell_dict, length, taken, msg
+    taken = round(time.time() - begin, 3)
+
+    return magnetsq, magnetsq_cell_dict, length, taken, ""
 
 
 def magnetic_square_core(
