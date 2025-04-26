@@ -2,6 +2,7 @@
 
 from typing import TypedDict
 import os
+from itertools import combinations
 import pytest
 import numpy as np
 
@@ -111,6 +112,27 @@ def test_shadow(shadow_case: ShadowCase):
         backend="Python",
         multiprocess=False,
     )
+    result_py_einsum_ij_ij = classical_shadow_complex(
+        shots=shadow_case["arguments"]["shots"],
+        counts=shadow_case["counts"],
+        random_unitary_um=shadow_case["random_unitary_ids"],
+        selected_classical_registers=[
+            final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
+        ],
+        backend="Python",
+        method="einsum_ij_ij",
+    )
+    result_py_single_process_einsum_ij_ij = classical_shadow_complex(
+        shots=shadow_case["arguments"]["shots"],
+        counts=shadow_case["counts"],
+        random_unitary_um=shadow_case["random_unitary_ids"],
+        selected_classical_registers=[
+            final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
+        ],
+        backend="Python",
+        multiprocess=False,
+        method="einsum_ij_ij",
+    )
     # result_rust = classical_shadow_complex(
     #     shots=shadow_case["arguments"]["shots"],
     #     counts=shadow_case["counts"],
@@ -120,42 +142,46 @@ def test_shadow(shadow_case: ShadowCase):
     #     ],
     #     backend="Rust",
     # )
+    # result_rust_einsum_ij_ij = classical_shadow_complex(
+    #     shots=shadow_case["arguments"]["shots"],
+    #     counts=shadow_case["counts"],
+    #     random_unitary_um=shadow_case["random_unitary_ids"],
+    #     selected_classical_registers=[
+    #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
+    #     ],
+    #     backend="Rust",
+    #     method="einsum_ij_ij",
+    # )
+
+    compare_list = [
+        (result_py, "result_py"),
+        (result_py_single_process, "result_py_single_process"),
+        (result_py_einsum_ij_ij, "result_py_einsum_ij_ij"),
+        (result_py_single_process_einsum_ij_ij, "result_py_single_process_einsum_ij_ij"),
+        # (result_rust, "result_rust"),
+        # (result_rust_einsum_ij_ij, "result_rust_einsum_ij_ij"),
+    ]
 
     # Compare the result with the expected answer
-    assert result_py["purity"] - shadow_case["answer"]["purity"] < 1e-12, (
-        "The result of classical_shadow_complex is not correct,"
-        + f"result_py: {result_py} != shadow_case['answer']: {shadow_case['answer']}"
-    )
-    assert result_py_single_process["purity"] - shadow_case["answer"]["purity"] < 1e-12, (
-        "The result of classical_shadow_complex is not correct,"
-        + f"result_py_single_process: {result_py} != shadow_case['answer']: {shadow_case['answer']}"
-    )
-    # assert result_rust["purity"] - shadow_case["answer"]["purity"] < 1e-12, (
-    #     "The result of classical_shadow_complex is not correct,"
-    #     + f"result_rust: {result_rust} != shadow_case['answer']: {shadow_case['answer']}"
-    # )
+    for result_tmp, name in compare_list:
+        assert np.abs(result_tmp["purity"] - shadow_case["answer"]["purity"]) < 1e-12, (
+            "The result is not correct,"
+            + f"{name}: {result_tmp["purity"]} != "
+            + f"shadow_case['answer']: {shadow_case['answer']['purity']}"
+        )
+        assert np.abs(np.trace(result_tmp["expect_rho"]) - 1) < 1e-12, (
+            "The trace of the expect_rho should be 1: " + f"{np.trace(result_tmp['expect_rho'])}."
+        )
 
-    assert result_py_single_process["purity"] - result_py["purity"] < 1e-12, (
-        "The result of classical_shadow_complex is not correct,"
-        + f"result_py_single_process: {result_py_single_process['purity']} "
-        + f"!= result_py: {result_py['purity']}"
-    )
-    # assert result_rust["purity"] - result_py["purity"] < 1e-12, (
-    #     "The result of classical_shadow_complex is not correct,"
-    #     + f"result_rust: {result_rust} != result_py: {result_py['purity']}"
-    # )
-    # assert result_py_single_process["purity"] - result_rust["purity"] < 1e-12, (
-    #     "The result of classical_shadow_complex is not correct,"
-    #     + f"result_py_single_process: {result_py_single_process['purity']} "
-    #     + f"!= result_rust: {result_rust['purity']}"
-    # )
-
-    assert np.trace(result_py["expect_rho"]) - 1 < 1e-12, (
-        "The trace of the expect_rho should be 1: " + f"{np.trace(result_py['expect_rho'])}."
-    )
-    assert np.trace(result_py_single_process["expect_rho"]) - 1 < 1e-12, (
-        "The trace of the expect_rho should be 1: " + f"{np.trace(result_py['expect_rho'])}."
-    )
-    # assert np.trace(result_rust["expect_rho"]) - 1 < 1e-12, (
-    #     "The trace of the expect_rho should be 1: " + f"{np.trace(result_rust['expect_rho'])}."
-    # )
+    for (result_tmp_1, name_1), (result_tmp_2, name_2) in combinations(compare_list, 2):
+        assert np.abs(result_tmp_1["purity"] - result_tmp_2["purity"]) < 1e-12, (
+            "The result is not correct,"
+            + f"{name_1}: {result_tmp_1["purity"]} != {name_2}: {result_tmp_2["purity"]}"
+        )
+        assert (
+            np.abs(np.trace(result_tmp_1["expect_rho"]) - np.trace(result_tmp_2["expect_rho"]))
+            < 1e-12
+        ), (
+            "The trace of the expect_rho should be equal: "
+            + f"{np.trace(result_tmp_1['expect_rho'])} != {np.trace(result_tmp_2['expect_rho'])}."
+        )

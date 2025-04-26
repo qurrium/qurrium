@@ -173,6 +173,9 @@ def test_quantity_unit(
     analysis_01 = exp_method.exps[exp_id].analyze(**test_item["analyze"])
     quantity_01 = analysis_01.content._asdict()
 
+    analysis_02 = exp_method.exps[exp_id].analyze(**test_item["analyze"], method="einsum_ij_ij")
+    quantity_02 = analysis_02.content._asdict()
+
     # analysis_02 = exp_method.exps[exp_id].analyze(
     #     **test_item["analyze"], counts_used=range(5)  # type: ignore
     # )
@@ -219,8 +222,25 @@ def test_quantity_unit(
         # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
         ["entropy", "expect_rho"],
     )
-    assert np.trace(quantity_01["expect_rho"]) - 1 < 1e-12, (
+    result_items[test_item_division][test_item_name + "_einsum_ij_ij"] = check_unit(
+        quantity_02,
+        "purity",
+        test_item["answer"],
+        THREDHOLD,
+        test_item_name,
+        # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
+        ["entropy", "expect_rho"],
+    )
+    assert np.abs(quantity_01["purity"] - quantity_02["purity"]) < 1e-12, (
+        "The purity should be the same for same data: "
+        + f"trace_of_matmul: {quantity_01['purity']} == einsum_ij_ij: {quantity_02['purity']}."
+    )
+
+    assert np.abs(np.trace(quantity_01["expect_rho"]) - 1) < 1e-12, (
         "The trace of the expect_rho should be 1: " + f"{np.trace(quantity_01['expect_rho'])}."
+    )
+    assert np.abs(np.trace(quantity_02["expect_rho"]) - 1) < 1e-12, (
+        "The trace of the expect_rho should be 1: " + f"{np.trace(quantity_02['expect_rho'])}."
     )
 
 
@@ -287,6 +307,22 @@ def test_multi_output_all(
         multiprocess_write=True,
         analysis_name="multi_process",
     )
+    summoner_id = exp_method.multiAnalysis(
+        summoner_id,
+        method="einsum_ij_ij",
+        specific_analysis_args=specific_analysis_args,  # type: ignore
+        multiprocess_analysis=True,
+        multiprocess_write=True,
+        analysis_name="single_process.einsum_ij_ij",
+    )
+    summoner_id = exp_method.multiAnalysis(
+        summoner_id,
+        method="einsum_ij_ij",
+        specific_analysis_args=specific_analysis_args,  # type: ignore
+        multiprocess_analysis=True,
+        multiprocess_write=True,
+        analysis_name="multi_process.einsum_ij_ij",
+    )
 
     for rk, report in exp_method.multimanagers[summoner_id].quantity_container.items():
         for config in config_list:
@@ -297,16 +333,18 @@ def test_multi_output_all(
                 )
 
                 if f"{test_item_division}_multi" not in result_items:
-                    result_items[f"{test_item_division}_multi"] = {}
+                    result_items[f"{test_item_division}_multi.{rk}"] = {}
 
-                result_items[f"{test_item_division}_multi"][".".join(config["tags"])] = check_unit(
-                    quantity,
-                    "purity",
-                    answer_dict[".".join(config["tags"])],
-                    THREDHOLD,
-                    ".".join(config["tags"]),
-                    # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-                    ["entropy", "expect_rho"],
+                result_items[f"{test_item_division}_multi.{rk}"][".".join(config["tags"])] = (
+                    check_unit(
+                        quantity,
+                        "purity",
+                        answer_dict[".".join(config["tags"])],
+                        THREDHOLD,
+                        ".".join(config["tags"]),
+                        # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
+                        ["entropy", "expect_rho"],
+                    )
                 )
 
     read_summoner_id = exp_method.multiRead(
