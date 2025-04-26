@@ -352,10 +352,10 @@ def trace_rho_square_core(
             - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
             Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert–Schmidt operator
+            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert–Schmidt operator on Google Cirq,
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
             the quantum computing package by Google, just uses the following line:
 
             .. code-block:: python
@@ -364,9 +364,14 @@ def trace_rho_square_core(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1, rho_m2)
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
-            to calculate the trace.
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
             Also, the einsum method is much faster than the matmul method for
             it decreases the complexity from O(n^3) to O(n^2)
             on the unused matrix elements of matrix product.
@@ -380,11 +385,11 @@ def trace_rho_square_core(
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
 
-    # np.einsum('ij,ij', m1.conj(), m2)
     if method == "einsum_ij_ij":
         trace_array = np.array(
             [
-                np.einsum("ij,ij", rho_m1, rho_m2) + np.einsum("ij,ij", rho_m2, rho_m1)
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
                 for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
             ]
         )
@@ -437,10 +442,10 @@ def trace_rho_square(
             - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
             Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert–Schmidt operator
+            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert–Schmidt operator on Google Cirq,
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
             the quantum computing package by Google, just uses the following line:
 
             .. code-block:: python
@@ -449,9 +454,14 @@ def trace_rho_square(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1, rho_m2)
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
-            to calculate the trace.
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
             Also, the einsum method is much faster than the matmul method for
             it decreases the complexity from O(n^3) to O(n^2)
             on the unused matrix elements of matrix product.
@@ -641,10 +651,10 @@ def classical_shadow_complex(
             - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
             Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert–Schmidt operator
+            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert–Schmidt operator on Google Cirq,
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
             the quantum computing package by Google, just uses the following line:
 
             .. code-block:: python
@@ -653,9 +663,14 @@ def classical_shadow_complex(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1, rho_m2)
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
-            to calculate the trace.
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
             Also, the einsum method is much faster than the matmul method for
             it decreases the complexity from O(n^3) to O(n^2)
             on the unused matrix elements of matrix product.
