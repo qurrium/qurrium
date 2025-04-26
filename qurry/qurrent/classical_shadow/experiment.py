@@ -241,6 +241,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         self,
         selected_qubits: Optional[Iterable[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+        method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
@@ -253,6 +254,35 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
+            method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+                The method to calculate the trace of Rho square.
+                - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
+
+                "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+                Although it considers $Tr(A^*B)$ where A, B are matrices,
+                $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
+                But the implementation of Hilbert-Schmidt operator on Google Cirq,
+                the quantum computing package by Google, just uses the following line:
+
+                .. code-block:: python
+                    np.einsum('ij,ij', m1.conj(), m2)
+
+                This inspired us to use
+
+                .. code-block:: python
+                    np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                    + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
+
+                to calculate the trace. And somehow, it is the same as
+
+                .. code-block:: python
+                    np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
+                Also, the einsum method is much faster than the matmul method for
+                it decreases the complexity from O(n^3) to O(n^2)
+                on the unused matrix elements of matrix product.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
 
@@ -305,6 +335,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             random_unitary_ids=random_unitary_ids_classical_registers,
             selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
             backend=backend,
+            method=method,
             pbar=pbar,
             multiprocess=True,
         )
@@ -333,8 +364,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         random_unitary_ids: Optional[dict[int, dict[int, Union[Literal[0, 1, 2], int]]]] = None,
         selected_classical_registers: Optional[Iterable[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        pbar: Optional[tqdm.tqdm] = None,
+        method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
         multiprocess: bool = True,
+        pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
         """Randomized entangled entropy with complex.
 
@@ -350,10 +382,39 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             backend (PostProcessingBackendLabel, optional):
                 The backend for the postprocessing.
                 Defaults to DEFAULT_PROCESS_BACKEND.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
+            method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+                The method to calculate the trace of Rho square.
+                - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
+
+                "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+                Although it considers $Tr(A^*B)$ where A, B are matrices,
+                $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
+                But the implementation of Hilbert-Schmidt operator on Google Cirq,
+                the quantum computing package by Google, just uses the following line:
+
+                .. code-block:: python
+                    np.einsum('ij,ij', m1.conj(), m2)
+
+                This inspired us to use
+
+                .. code-block:: python
+                    np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                    + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
+
+                to calculate the trace. And somehow, it is the same as
+
+                .. code-block:: python
+                    np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
+                Also, the einsum method is much faster than the matmul method for
+                it decreases the complexity from O(n^3) to O(n^2)
+                on the unused matrix elements of matrix product.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to True.
+            pbar (Optional[tqdm.tqdm], optional):
+                The progress bar. Defaults to None.
 
         Returns:
             ClassicalShadowComplex: The result of the classical shadow.
@@ -372,8 +433,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             random_unitary_um=random_unitary_ids,
             selected_classical_registers=selected_classical_registers,
             backend=backend,
-            pbar=pbar,
+            method=method,
             multiprocess=multiprocess,
+            pbar=pbar,
         )
 
     def outside_analysis_recover(
@@ -418,16 +480,16 @@ class OutsideAnalyzeInput(TypedDict):
     counts_used: Optional[Iterable[int]]
     # setup for running
     backend: PostProcessingBackendLabel
-    pbar: Optional[tqdm.tqdm]
     multiprocess: bool
+    method: Literal["trace_of_matmul", "einsum_ij_ij"]
 
 
 def quantities_input_collecter(
     current_exps: ShadowUnveilExperiment,
     selected_qubits: Optional[Iterable[int]] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
     counts_used: Optional[Iterable[int]] = None,
-    pbar: Optional[tqdm.tqdm] = None,
     multiprocess: bool = True,
 ) -> OutsideAnalyzeInput:
     """Collect the inputs for the quantities.
@@ -437,12 +499,41 @@ def quantities_input_collecter(
             The selected qubits. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+            The method to calculate the trace of Rho square.
+            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+            - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+            Defaults to "trace_of_matmul".
+
+            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+            Although it considers $Tr(A^*B)$ where A, B are matrices,
+            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
+            the quantum computing package by Google, just uses the following line:
+
+            .. code-block:: python
+                np.einsum('ij,ij', m1.conj(), m2)
+
+            This inspired us to use
+
+            .. code-block:: python
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
+
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
+            Also, the einsum method is much faster than the matmul method for
+            it decreases the complexity from O(n^3) to O(n^2)
+            on the unused matrix elements of matrix product.
         counts_used (Optional[Iterable[int]], optional):
             The index of the counts used. Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional):
-            The progress bar. Defaults to None.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to True.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
 
     Returns:
         OutsideAnalyzeInput: The inputs for the quantities.
@@ -507,7 +598,7 @@ def quantities_input_collecter(
         "counts_used": counts_used,
         # setup for running
         "backend": backend,
-        "pbar": pbar,
+        "method": method,
         "multiprocess": multiprocess,
     }
 
@@ -529,7 +620,7 @@ def outside_analyze(
     counts_used: Optional[Iterable[int]] = None,
     # setup for running
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
     multiprocess: bool = True,
 ) -> tuple[str, ShadowUnveilAnalysis]:
     """Randomized entangled entropy with complex.
@@ -562,8 +653,35 @@ def outside_analyze(
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
-            The progress bar. Defaults to None.
+        method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+            The method to calculate the trace of Rho square.
+            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+            - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+            Defaults to "trace_of_matmul".
+
+            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+            Although it considers $Tr(A^*B)$ where A, B are matrices,
+            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
+            the quantum computing package by Google, just uses the following line:
+
+            .. code-block:: python
+                np.einsum('ij,ij', m1.conj(), m2)
+
+            This inspired us to use
+
+            .. code-block:: python
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
+
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
+            Also, the einsum method is much faster than the matmul method for
+            it decreases the complexity from O(n^3) to O(n^2)
+            on the unused matrix elements of matrix product.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to True.
 
@@ -578,7 +696,7 @@ def outside_analyze(
         random_unitary_um=random_unitary_ids,
         selected_classical_registers=selected_classical_registers,
         backend=backend,
-        pbar=pbar,
+        method=method,
         multiprocess=multiprocess,
     )
 
