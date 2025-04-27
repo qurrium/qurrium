@@ -358,11 +358,11 @@ class MultiManager(Generic[_E]):
             chunks_num = very_easy_chunk_size(
                 tasks_num=len(initial_config_list),
                 num_process=DEFAULT_POOL_SIZE,
-                max_chunk_size=DEFAULT_POOL_SIZE * 4,
+                max_chunk_size=DEFAULT_POOL_SIZE * 2,
             )
 
             pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE * 4
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 4
             )
             with pool as p:
 
