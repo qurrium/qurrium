@@ -120,7 +120,7 @@ def test_shadow(shadow_case: ShadowCase):
             final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
         ],
         backend="Python",
-        method="einsum_ij_ij",
+        method="hilbert_schmidt_inner_product",
     )
     result_py_single_process_einsum_ij_ij = classical_shadow_complex(
         shots=shadow_case["arguments"]["shots"],
@@ -131,7 +131,7 @@ def test_shadow(shadow_case: ShadowCase):
         ],
         backend="Python",
         multiprocess=False,
-        method="einsum_ij_ij",
+        method="hilbert_schmidt_inner_product",
     )
     # result_rust = classical_shadow_complex(
     #     shots=shadow_case["arguments"]["shots"],
@@ -150,7 +150,7 @@ def test_shadow(shadow_case: ShadowCase):
     #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
     #     ],
     #     backend="Rust",
-    #     method="einsum_ij_ij",
+    #     method="hilbert_schmidt_inner_product",
     # )
 
     compare_list = [

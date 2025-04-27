@@ -173,7 +173,9 @@ def test_quantity_unit(
     analysis_01 = exp_method.exps[exp_id].analyze(**test_item["analyze"])
     quantity_01 = analysis_01.content._asdict()
 
-    analysis_02 = exp_method.exps[exp_id].analyze(**test_item["analyze"], method="einsum_ij_ij")
+    analysis_02 = exp_method.exps[exp_id].analyze(
+        **test_item["analyze"], method="hilbert_schmidt_inner_product"
+    )
     quantity_02 = analysis_02.content._asdict()
 
     # analysis_02 = exp_method.exps[exp_id].analyze(
@@ -309,7 +311,7 @@ def test_multi_output_all(
     )
     summoner_id = exp_method.multiAnalysis(
         summoner_id,
-        method="einsum_ij_ij",
+        method="hilbert_schmidt_inner_product",
         specific_analysis_args=specific_analysis_args,  # type: ignore
         multiprocess_analysis=True,
         multiprocess_write=True,
@@ -317,7 +319,7 @@ def test_multi_output_all(
     )
     summoner_id = exp_method.multiAnalysis(
         summoner_id,
-        method="einsum_ij_ij",
+        method="hilbert_schmidt_inner_product",
         specific_analysis_args=specific_analysis_args,  # type: ignore
         multiprocess_analysis=True,
         multiprocess_write=True,

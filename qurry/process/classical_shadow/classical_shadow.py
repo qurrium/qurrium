@@ -246,7 +246,7 @@ class ClassicalShadowPurity(ClassicalShadowBasic):
 
 def trace_rho_square_core(
     rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
+    method: Literal["trace_of_matmul", "hilbert_schmidt_inner_product"] = "trace_of_matmul",
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 
@@ -346,13 +346,15 @@ def trace_rho_square_core(
     Args:
         rho_m_dict (dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
             The dictionary of Rho M.
-        method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-            Defaults to "trace_of_matmul".
+            - "hilbert_schmidt_inner_product":
+                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
+            or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
             But the implementation of Hilbert-Schmidt operator on Google Cirq,
@@ -364,7 +366,7 @@ def trace_rho_square_core(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
                 + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
             to calculate the trace. And somehow, it is the same as
@@ -385,7 +387,7 @@ def trace_rho_square_core(
 
     rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
 
-    if method == "einsum_ij_ij":
+    if method == "hilbert_schmidt_inner_product":
         trace_array = np.array(
             [
                 np.einsum("ij,ij", rho_m1.conj(), rho_m2)
@@ -418,7 +420,7 @@ def trace_rho_square(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
+    method: Literal["trace_of_matmul", "hilbert_schmidt_inner_product"] = "trace_of_matmul",
     multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
@@ -436,13 +438,15 @@ def trace_rho_square(
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-            Defaults to "trace_of_matmul".
+            - "hilbert_schmidt_inner_product":
+                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
+            or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
             But the implementation of Hilbert-Schmidt operator on Google Cirq,
@@ -454,7 +458,7 @@ def trace_rho_square(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
                 + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
             to calculate the trace. And somehow, it is the same as
@@ -534,7 +538,7 @@ def classical_shadow_complex(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    method: Literal["trace_of_matmul", "einsum_ij_ij"] = "trace_of_matmul",
+    method: Literal["trace_of_matmul", "hilbert_schmidt_inner_product"] = "trace_of_matmul",
     multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
@@ -645,13 +649,15 @@ def classical_shadow_complex(
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        method (Literal["trace_of_matmul", "einsum_ij_ij"], optional):
+        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "einsum_ij_ij": Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-            Defaults to "trace_of_matmul".
+            - "hilbert_schmidt_inner_product":
+                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
 
-            "einsum_ij_ij" is inspired by Frobenius inner product or Hilbert-Schmidt operator
+            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
+            or Hilbert-Schmidt operator
             Although it considers $Tr(A^*B)$ where A, B are matrices,
             $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
             But the implementation of Hilbert-Schmidt operator on Google Cirq,
@@ -663,7 +669,7 @@ def classical_shadow_complex(
             This inspired us to use
 
             .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2) 
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
                 + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
 
             to calculate the trace. And somehow, it is the same as
