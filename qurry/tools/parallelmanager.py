@@ -9,7 +9,9 @@ from .progressbar import default_setup
 from ..exceptions import QurryWarning
 
 
-DEFAULT_POOL_SIZE = cpu_count()
+CPU_COUNT_UNSAFE = cpu_count()
+CPU_COUNT = CPU_COUNT_UNSAFE if CPU_COUNT_UNSAFE else 1
+DEFAULT_POOL_SIZE = CPU_COUNT
 
 
 def workers_distribution(
@@ -28,19 +30,19 @@ def workers_distribution(
 
     if default < 1:
         warnings.warn(
-            f"| Available worker number {cpu_count()} is equal orsmaller than 2."
+            f"| Available worker number {CPU_COUNT} is equal orsmaller than 2."
             + "This computer may not be able to run this program for "
             + "the program will allocate all available threads.",
             category=QurryWarning,
         )
-        default = cpu_count()
+        default = DEFAULT_POOL_SIZE
 
     if workers_num is None:
         launch_worker = default
     else:
-        if workers_num > cpu_count():
+        if workers_num > CPU_COUNT:
             warnings.warn(
-                f"| Worker number {workers_num} is larger than cpu count {cpu_count()}.",
+                f"| Worker number {workers_num} is larger than cpu count {CPU_COUNT}.",
                 category=QurryWarning,
             )
             launch_worker = default
