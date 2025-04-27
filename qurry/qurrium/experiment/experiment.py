@@ -1166,8 +1166,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         encoding: str = "utf-8",
         jsonable: bool = False,
         export_transpiled_circuit: bool = False,
-        _pbar: Optional[tqdm.tqdm] = None,
-        _qurryinfo_hold_access: Optional[str] = None,
+        qurryinfo_hold_access: Optional[str] = None,
+        multiprocess: bool = True,
+        pbar: Optional[tqdm.tqdm] = None,
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
@@ -1186,24 +1187,24 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             jsonable (bool, optional):
                 Whether to transpile all object to jsonable via :func:`mori.jsonablize`,
                 for :func:`mori.quickJSON`. Defaults to False.
-            mute (bool, optional):
-                Whether to mute the output, for :func:`mori.quickJSON`. Defaults to False.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
                 When set to True, the transpiled circuit will be exported as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
-            _pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            _qurryinfo_hold_access (str, optional):
+            qurryinfo_hold_access (str, optional):
                 Whether to hold the I/O of `qurryinfo`, then export by :cls:`MultiManager`,
                 it should be control by :cls:`MultiManager`.
+                Defaults to None.
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
+            pbar (Optional[tqdm.tqdm], optional):
+                The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
         Returns:
             tuple[str, dict[str, str]]: The id of the experiment and the files location.
         """
-        set_pbar_description(_pbar, "Preparing to export...")
+        set_pbar_description(pbar, "Preparing to export...")
 
         # experiment write
         export_material = self.export(
@@ -1215,13 +1216,15 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             indent=indent,
             encoding=encoding,
             jsonable=jsonable,
-            pbar=_pbar,
+            mute=True,
+            multiprocess=multiprocess,
+            pbar=pbar,
         )
         assert "qurryinfo" in files, "qurryinfo location is not in files."
         # qurryinfo write
         real_save_location = Path(self.commons.save_location)
         if (
-            _qurryinfo_hold_access == self.commons.summoner_id
+            qurryinfo_hold_access == self.commons.summoner_id
             and self.commons.summoner_id is not None
         ):
             ...

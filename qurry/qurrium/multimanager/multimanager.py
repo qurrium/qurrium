@@ -85,8 +85,9 @@ class MultiManager(Generic[_E]):
             return getattr(self.beforewards, key)
         if key in self.afterwards._fields:
             return getattr(self.afterwards, key)
-        raise ValueError(
+        raise KeyError(
             f"{key} is not a valid field of '{Before.__name__}' and '{After.__name__}'."
+            + f" Valid fields are {list(self.beforewards._fields) + list(self.afterwards._fields)}."
         )
 
     @property
@@ -678,8 +679,8 @@ class MultiManager(Generic[_E]):
         # pylint: enable=protected-access
 
         export_progress = qurry_progressbar(
-            [fname for fname in self.afterwards._fields if fname != "files_taglist"]
-            + list(self.beforewards._fields),
+            [fname for fname in self.beforewards._fields if fname != "files_taglist"]
+            + list(self.afterwards._fields),
             desc="Exporting MultiManager content...",
             bar_format="qurry-barless",
         )
