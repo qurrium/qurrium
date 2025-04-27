@@ -9,7 +9,7 @@ from .process import (
     multiprocess_exporter,
     single_process_exporter,
     very_easy_chunk_distribution,
-    multiprocess_exporter_wrapper,
+    multiprocess_writer_wrapper,
 )
 from ..container import ExperimentContainer, _E
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
@@ -67,36 +67,33 @@ def experiment_writer(
             encoding=encoding,
             jsonable=True,
             mute=True,
-            pbar=None,
         )
-        chunks_sorted_list = very_easy_chunk_distribution(
-            respect_memory_array[1:], DEFAULT_POOL_SIZE * 2
+        chunks_num, chunks_sorted_list, _distributions = very_easy_chunk_distribution(
+            respect_memory_array[1:], DEFAULT_POOL_SIZE, DEFAULT_POOL_SIZE * 4
         )
 
         exporting_pool = get_context("spawn").Pool(
-            processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
+            processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE * 4
         )
         with exporting_pool as ep:
             export_imap_result = qurry_progressbar(
                 ep.imap_unordered(
-                    multiprocess_exporter_wrapper,
+                    multiprocess_writer_wrapper,
                     [
                         (
                             id_exec,
-                            experiment_container[id_exec].export(
-                                save_location=multicommons.save_location,
-                                export_transpiled_circuit=export_transpiled_circuit,
-                            ),
+                            experiment_container[id_exec],
+                            multicommons.save_location,
+                            export_transpiled_circuit,
                             "w+",
                             indent,
                             encoding,
                             True,
                             True,
-                            None,
                         )
                         for id_exec, memory_usage in chunks_sorted_list
                     ],
-                    chunksize=DEFAULT_POOL_SIZE * 2,
+                    chunksize=chunks_num,
                 ),
                 total=len(chunks_sorted_list),
                 desc="Exporting experiments...",

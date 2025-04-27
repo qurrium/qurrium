@@ -1,48 +1,15 @@
 """Multi-process component for multimanager (:mod:`qurry.qurrium.multimanager.process`)"""
 
-from typing import Optional, Any, Type
+from typing import Optional, Any
 from pathlib import Path
 import gc
 import tqdm
-import numpy as np
 
 from .arguments import MultiCommonparams
 from ..container import _E
 from ..experiment.export import Export
 from ..utils.iocontrol import IOComplex
-from ...tools.parallelmanager import DEFAULT_POOL_SIZE
-
-
-def multiprocess_builder(
-    experiment_instance: Type[_E],
-    config: dict[str, Any],
-) -> tuple[_E, dict[str, Any]]:
-    """Multiprocess builder for experiment.
-
-    Args:
-        experiment_instance (Type[_E]): The instance of experiment.
-        config (dict[str, Any]): The configuration of experiment.
-
-    Returns:
-        tuple[_E, dict[str, Any]]: The instance of experiment and the configuration.
-    """
-    exp_instance = experiment_instance.build(**config, multiprocess=False)
-    return exp_instance, config
-
-
-def multiprocess_builder_wrapper(
-    all_arguments: tuple[Type[_E], dict[str, Any]],
-) -> tuple[_E, dict[str, Any]]:
-    """Multiprocess builder for exporter.
-
-    Args:
-        all_arguments (tuple[Type[_E], dict[str, Any]]):
-            The arguments for builder.
-
-    Returns:
-        tuple[str, dict[str, Any]]: The ID of experiment and the files of experiment.
-    """
-    return multiprocess_builder(*all_arguments)
+from ...tools.parallelmanager import DEFAULT_POOL_SIZE, CPU_COUNT
 
 
 def multiprocess_exporter(
@@ -53,7 +20,6 @@ def multiprocess_exporter(
     encoding: str = "utf-8",
     jsonable: bool = False,
     mute: bool = True,
-    pbar: Optional[tqdm.tqdm] = None,
 ) -> tuple[str, dict[str, Any]]:
     """Multiprocess exporter and writer for experiment.
 
@@ -65,7 +31,6 @@ def multiprocess_exporter(
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
         mute (bool, optional): The mute of writing. Defaults to True.
-        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
         tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
@@ -77,7 +42,7 @@ def multiprocess_exporter(
         jsonable=jsonable,
         mute=mute,
         multiprocess=False,
-        pbar=pbar,
+        pbar=None,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
@@ -87,18 +52,82 @@ def multiprocess_exporter(
 
 
 def multiprocess_exporter_wrapper(
-    all_arguments: tuple[str, Export, str, int, str, bool, bool, Optional[tqdm.tqdm]],
+    all_arguments: tuple[str, Export, str, int, str, bool, bool],
 ) -> tuple[str, dict[str, str]]:
     """Multiprocess wrapper for exporter.
 
     Args:
-        all_arguments (tuple[str, Export, str, int, str, bool, bool, Optional[tqdm.tqdm]]):
+        all_arguments (tuple[str, Export, str, int, str, bool, bool]):
             The arguments for exporter.
 
     Returns:
         tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
     """
     return multiprocess_exporter(*all_arguments)
+
+
+def multiprocess_writer(
+    id_exec: str,
+    exps: _E,
+    save_location: Path,
+    export_transpiled_circuit: bool = False,
+    mode: str = "w+",
+    indent: int = 2,
+    encoding: str = "utf-8",
+    jsonable: bool = False,
+    mute: bool = True,
+) -> tuple[str, dict[str, Any]]:
+    """Multiprocess exporter and writer for experiment.
+
+    Args:
+        id_exec (Hashable): ID of experiment.
+        exps_export (Export): The export of experiment.
+        mode (str, optional): The mode of writing. Defaults to "w+".
+        save_location (Path): The location of saving.
+        export_transpiled_circuit (bool, optional):
+            Whether to export transpiled circuit. Defaults to False.
+        indent (int, optional): The indent of writing. Defaults to 2.
+        encoding (str, optional): The encoding of writing. Defaults to "utf-8".
+        jsonable (bool, optional): The jsonable of writing. Defaults to False.
+        mute (bool, optional): The mute of writing. Defaults to True.
+        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
+
+    Returns:
+        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
+    """
+    export_instance = exps.export(
+        save_location=save_location,
+        export_transpiled_circuit=export_transpiled_circuit,
+    )
+    qurryinfo_exp_id, qurryinfo_files = export_instance.write(
+        mode=mode,
+        indent=indent,
+        encoding=encoding,
+        jsonable=jsonable,
+        mute=mute,
+        multiprocess=False,
+        pbar=None,
+    )
+    assert id_exec == qurryinfo_exp_id, (
+        f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
+    )
+
+    return qurryinfo_exp_id, qurryinfo_files
+
+
+def multiprocess_writer_wrapper(
+    all_arguments: tuple[str, _E, Path, bool, str, int, str, bool, bool],
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess wrapper for exporter.
+
+    Args:
+        all_arguments (tuple[str, ExperimentPrototype, Path, bool, str, int, str, bool, bool]):
+            The arguments for exporter.
+
+    Returns:
+        tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_writer(*all_arguments)
 
 
 def single_process_exporter(
@@ -180,10 +209,35 @@ def datetimedict_process(
             multicommons.files.pop(k, None)
 
 
+def very_easy_chunk_size(
+    tasks_num: int,
+    num_process: int = DEFAULT_POOL_SIZE,
+    max_chunk_size: int = CPU_COUNT * 4,
+) -> int:
+    """Calculate the chunk size for multiprocess.
+
+    Args:
+        tasks_num (int): The number of tasks.
+        num_process (int, optional):
+            The chunk size. Defaults to CPU_COUNT * 4.
+        max_chunk_size (int, optional):
+            The maximum chunk size. Defaults to CPU_COUNT * 4.
+
+    Returns:
+        int: The chunk size.
+    """
+    chunks_num = int(tasks_num / num_process) + 1
+    while chunks_num > max_chunk_size:
+        num_process *= 2
+        chunks_num = int(tasks_num / num_process) + 1
+    return chunks_num
+
+
 def very_easy_chunk_distribution(
     respect_memory_array: list[tuple[str, int]],
-    chunk_size: int = DEFAULT_POOL_SIZE,
-) -> list[tuple[str, int]]:
+    num_process: int = DEFAULT_POOL_SIZE,
+    max_chunk_size: int = CPU_COUNT * 4,
+) -> tuple[int, list[tuple[str, int]], list[list[str]]]:
     """Distribute the chunk for multiprocess.
     The chunk distribution is based on the number of CPU cores.
 
@@ -193,21 +247,27 @@ def very_easy_chunk_distribution(
             Each element is a tuple of (id, memory).
             The id is the ID of the experiment, and the memory is the memory usage.
             The array is sorted by the memory usage.
-        chunk_size (int, optional):
-            The chunk size. Defaults to DEFAULT_POOL_SIZE.
+        num_process (int, optional):
+            The chunk size. Defaults to CPU_COUNT * 4.
 
     Returns:
-        list[tuple[str, int]]:
+        tuple[int, list[tuple[str, int]], list[list[str]]]:
             The chunk distribution is a list of tuples of (id, memory).
     """
 
-    ideal_chunks_num = int(np.ceil(len(respect_memory_array) / chunk_size))
+    chunks_num = int(len(respect_memory_array) / num_process) + 1
+    while chunks_num > max_chunk_size:
+        num_process *= 2
+        chunks_num = int(len(respect_memory_array) / num_process) + 1
     chunks_sorted_list = []
-    for i in range(ideal_chunks_num):
-        tmp = [
-            respect_memory_array[i + j * ideal_chunks_num]
-            for j in range(chunk_size)
-            if i + j * ideal_chunks_num < len(respect_memory_array)
-        ]
-        chunks_sorted_list += tmp
-    return chunks_sorted_list
+    distributions = [[] for _ in range(num_process)]
+
+    for i in range(num_process):
+        for j in range(chunks_num):
+            # Distribute the chunks in a round-robin fashion
+            idx = j * num_process + i if j % 2 == 0 else (j + 1) * num_process - i - 1
+            if idx < len(respect_memory_array):
+                chunks_sorted_list.append(respect_memory_array[idx])
+                distributions[i].append(idx)
+
+    return chunks_num, chunks_sorted_list, distributions

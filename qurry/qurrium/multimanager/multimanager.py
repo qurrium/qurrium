@@ -16,7 +16,7 @@ from qiskit.providers import Backend
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import datetimedict_process, multiprocess_builder_wrapper
+from .process import datetimedict_process, very_easy_chunk_size
 from .utils import experiment_writer
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
@@ -355,21 +355,22 @@ class MultiManager(Generic[_E]):
             )
 
         if multiprocess_build:
+            chunks_num = very_easy_chunk_size(
+                tasks_num=len(initial_config_list),
+                num_process=DEFAULT_POOL_SIZE,
+                max_chunk_size=DEFAULT_POOL_SIZE * 4,
+            )
+
             pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE * 4
             )
             with pool as p:
+
                 exps_iterable = qurry_progressbar(
                     p.imap_unordered(
-                        multiprocess_builder_wrapper,
-                        [
-                            (
-                                experiment_instance,
-                                config,
-                            )
-                            for config in initial_config_list
-                        ],
-                        chunksize=DEFAULT_POOL_SIZE * 2,
+                        experiment_instance.build_for_multiprocess,
+                        initial_config_list,
+                        chunksize=chunks_num,
                     ),
                     total=len(initial_config_list),
                     desc="MultiManager building...",

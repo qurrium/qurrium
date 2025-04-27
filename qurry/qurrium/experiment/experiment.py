@@ -640,6 +640,25 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         return current_exp
 
+    @classmethod
+    def build_for_multiprocess(
+        cls,
+        config: dict[str, Any],
+    ):
+        """Build wrapper for multiprocess.
+
+        Args:
+            config (dict[str, Any]): The arguments of the experiment.
+
+        Returns:
+            ExperimentPrototype: The experiment.
+        """
+
+        config.pop("multiprocess", None)
+        config.pop("pbar", None)
+        config["multiprocess"] = False
+        return cls.build(**config), config
+
     # local execution
     def run(
         self,
