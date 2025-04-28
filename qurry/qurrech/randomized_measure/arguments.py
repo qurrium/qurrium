@@ -129,6 +129,34 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
+    def __post_init__(self):
+        if self.registers_mapping_1 is not None:
+            super().__setattr__(
+                "registers_mapping_1", {int(k): int(v) for k, v in self.registers_mapping_1.items()}
+            )
+
+        if self.registers_mapping_2 is not None:
+            super().__setattr__(
+                "registers_mapping_2", {int(k): int(v) for k, v in self.registers_mapping_2.items()}
+            )
+
+        if self.unitary_located_mapping_1 is not None:
+            super().__setattr__(
+                "unitary_located_mapping_1",
+                {int(k): int(v) for k, v in self.unitary_located_mapping_1.items()},
+            )
+
+        if self.unitary_located_mapping_2 is not None:
+            super().__setattr__(
+                "unitary_located_mapping_2",
+                {int(k): int(v) for k, v in self.unitary_located_mapping_2.items()},
+            )
+
+        if self.random_unitary_seeds is not None:
+            super().__setattr__(
+                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
+            )
+
     def _asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
         tmp = self.__dict__.copy()

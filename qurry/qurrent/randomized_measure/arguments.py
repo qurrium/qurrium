@@ -71,6 +71,17 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
+    def __post_init__(self):
+        if self.registers_mapping is not None:
+            super().__setattr__(
+                "registers_mapping", {int(k): int(v) for k, v in self.registers_mapping.items()}
+            )
+
+        if self.random_unitary_seeds is not None:
+            super().__setattr__(
+                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
+            )
+
 
 class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
     """Output arguments for :meth:`output`."""
