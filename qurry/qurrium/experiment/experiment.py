@@ -8,6 +8,7 @@ import warnings
 from abc import abstractmethod, ABC
 from typing import Union, Optional, Any, Type, Literal, Generic
 from collections.abc import Hashable
+from multiprocessing import get_context
 from pathlib import Path
 import tqdm
 
@@ -31,8 +32,16 @@ from ..utils import get_counts_and_exceptions
 from ..utils.qasm import qasm_dumps
 from ..utils.iocontrol import RJUST_LEN
 from ..utils.inputfixer import outfields_check, outfields_hint
-from ...tools import ParallelManager, DatetimeDict, set_pbar_description, backend_name_getter
-from ...tools.backend import GeneralSimulator
+from ..multimanager.process import very_easy_chunk_size
+from ...tools import (
+    ParallelManager,
+    DatetimeDict,
+    set_pbar_description,
+    backend_name_getter,
+    DEFAULT_POOL_SIZE,
+    qurry_progressbar,
+    GeneralSimulator,
+)
 from ...capsule import jsonablize, quickJSON
 from ...capsule.hoshi import Hoshi
 from ...declare import BaseRunArgs, TranspileArgs
@@ -1330,12 +1339,32 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return exp_instance
 
     @classmethod
+    def _read_core_multiprocess(
+        cls,
+        all_arugments: tuple[str, dict[str, str], Union[Path, str], str],
+    ) -> "ExperimentPrototype":
+        """Core of read function for multiprocess.
+
+        Args:
+            all_arugments (tuple[str, dict[str, str], Union[Path, str], str]):
+                The arguments of the experiment to be read.
+                - exp_id (str): The id of the experiment to be read.
+                - file_index (dict[str, str]): The index of the experiment to be read.
+                - save_location (Union[Path, str]): The location of the experiment to be read.
+                - encoding (str): Encoding method, for :func:`mori.quickJSON`.
+
+        Returns:
+            QurryExperiment: The experiment to be read.
+        """
+        exp_id, file_index, save_location, encoding = all_arugments
+        return cls._read_core(exp_id, file_index, save_location, encoding)
+
+    @classmethod
     def read(
         cls,
         name_or_id: Union[Path, str],
         save_location: Union[Path, str] = Path("./"),
         encoding: str = "utf-8",
-        workers_num: Optional[int] = None,
     ) -> list["ExperimentPrototype"]:
         """Read the experiment from file.
 
@@ -1381,15 +1410,32 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
             qurryinfo = {**qurryinfo_found, **qurryinfo}
 
-        pool = ParallelManager(workers_num)
-
-        quene = pool.process_map(
-            cls._read_core,
-            [
-                (exp_id, file_index, save_location, encoding)
-                for exp_id, file_index in qurryinfo.items()
-            ],
-            desc=f"{len(qurryinfo)} experiments found, loading by {workers_num} workers.",
+        num_exps = len(qurryinfo)
+        chunks_num = very_easy_chunk_size(
+            tasks_num=num_exps,
+            num_process=DEFAULT_POOL_SIZE,
+            max_chunk_size=DEFAULT_POOL_SIZE * 2,
         )
+        reading_pool = get_context("spawn").Pool(
+            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
+        )
+        with reading_pool as pool:
+            exps_iterable = qurry_progressbar(
+                pool.imap_unordered(
+                    cls._read_core_multiprocess,
+                    (
+                        (
+                            exp_id,
+                            file_index,
+                            save_location,
+                            encoding,
+                        )
+                        for exp_id, file_index in qurryinfo.items()
+                    ),
+                ),
+                total=num_exps,
+                desc=f"Loading {num_exps} experiments ...",
+            )
+            exps = list(exps_iterable)
 
-        return quene
+        return exps
