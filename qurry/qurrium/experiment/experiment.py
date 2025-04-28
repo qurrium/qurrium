@@ -1267,7 +1267,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             )
 
         del export_material
-        gc.collect()
 
         return exp_id, files
 

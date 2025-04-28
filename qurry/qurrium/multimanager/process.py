@@ -45,7 +45,6 @@ def multiprocess_exporter(
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
     del exps_export
-    gc.collect()
 
     return qurryinfo_exp_id, qurryinfo_files
 
@@ -114,7 +113,6 @@ def multiprocess_writer(
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
     del export_instance
-    gc.collect()
 
     return qurryinfo_exp_id, qurryinfo_files
 

@@ -104,7 +104,6 @@ class MultiManager(Generic[_E]):
                     "All experiments' results are cleared.",
                     QurryResetAccomplished,
                 )
-            gc.collect()
         else:
             warnings.warn(
                 "Reset does not execute to prevent executing accidentally, "
@@ -792,7 +791,6 @@ class MultiManager(Generic[_E]):
                 multiprocess=multiprocess,
             )
 
-        gc.collect()
         return multiconfig
 
     def compress(
