@@ -81,6 +81,37 @@ class MultiManager(Generic[_E]):
                 QurryResetSecurityActivated,
             )
 
+    def clear_all_exps_result(
+        self,
+        *args,
+        security: bool = False,
+        mute_warning: bool = False,
+    ) -> None:
+        """Clear the result of all experiments.
+
+        Args:
+            security (bool, optional): Security for clearing. Defaults to `False`.
+            mute_warning (bool, optional): Mute the warning when clearing. Defaults to `False`.
+        """
+        if len(args) > 0:
+            raise ValueError("Use '.clear_all_exps_result(security=True)' to clear all results.")
+
+        if security and isinstance(security, bool):
+            for exp in self.exps.values():
+                exp.afterwards.clear_result(security=security, mute_warning=True)
+            if not mute_warning:
+                warnings.warn(
+                    "All experiments' results are cleared.",
+                    QurryResetAccomplished,
+                )
+            gc.collect()
+        else:
+            warnings.warn(
+                "Reset does not execute to prevent executing accidentally, "
+                + "if you are sure to do this, then use '.reset(security=True)'.",
+                QurryResetSecurityActivated,
+            )
+
     def __getitem__(self, key) -> Any:
         if key in self.beforewards._fields:
             return getattr(self.beforewards, key)
