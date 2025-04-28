@@ -6,9 +6,69 @@ import gc
 
 from .arguments import MultiCommonparams
 from ..container import _E
-from ..experiment import ExperimentPrototype
+from ..experiment import ExperimentPrototype, Export
 from ..utils.iocontrol import IOComplex
 from ...tools.parallelmanager import DEFAULT_POOL_SIZE, CPU_COUNT
+
+
+def multiprocess_exporter(
+    id_exec: str,
+    exps_export: Export,
+    mode: str = "w+",
+    indent: int = 2,
+    encoding: str = "utf-8",
+    jsonable: bool = False,
+) -> tuple[str, dict[str, Any]]:
+    """Multiprocess exporter and writer for experiment.
+
+    Args:
+        id_exec (Hashable): ID of experiment.
+        exps_export (Export): The export of experiment.
+        mode (str, optional): The mode of writing. Defaults to "w+".
+        indent (int, optional): The indent of writing. Defaults to 2.
+        encoding (str, optional): The encoding of writing. Defaults to "utf-8".
+        jsonable (bool, optional): The jsonable of writing. Defaults to False.
+
+    Returns:
+        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
+    """
+    qurryinfo_exp_id, qurryinfo_files = exps_export.write(
+        mode=mode,
+        indent=indent,
+        encoding=encoding,
+        jsonable=jsonable,
+        mute=True,
+        multiprocess=False,
+        pbar=None,
+    )
+    assert id_exec == qurryinfo_exp_id, (
+        f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
+    )
+    del exps_export
+    gc.collect()
+
+    return qurryinfo_exp_id, qurryinfo_files
+
+
+def multiprocess_exporter_wrapper(
+    all_arguments: tuple[str, Export, str, int, str, bool],
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess wrapper for exporter.
+
+    Args:
+        all_arguments (tuple[str, Export, str, int, str, bool]):
+            The arguments for exporter.
+            - id_exec (str): ID of experiment.
+            - exps_export (Export): The export of experiment.
+            - mode (str): The mode of writing.
+            - indent (int): The indent of writing.
+            - encoding (str): The encoding of writing.
+            - jsonable (bool): The jsonable of writing.
+
+    Returns:
+        tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_exporter(*all_arguments)
 
 
 def multiprocess_writer(
@@ -20,7 +80,6 @@ def multiprocess_writer(
     indent: int = 2,
     encoding: str = "utf-8",
     jsonable: bool = False,
-    mute: bool = True,
 ) -> tuple[str, dict[str, Any]]:
     """Multiprocess exporter and writer for experiment.
 
@@ -34,8 +93,6 @@ def multiprocess_writer(
         indent (int, optional): The indent of writing. Defaults to 2.
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
-        mute (bool, optional): The mute of writing. Defaults to True.
-        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
         tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
@@ -49,7 +106,7 @@ def multiprocess_writer(
         indent=indent,
         encoding=encoding,
         jsonable=jsonable,
-        mute=mute,
+        mute=True,
         multiprocess=False,
         pbar=None,
     )
@@ -63,7 +120,7 @@ def multiprocess_writer(
 
 
 def multiprocess_writer_wrapper(
-    all_arguments: tuple[str, _E, Path, bool, str, int, str, bool, bool],
+    all_arguments: tuple[str, _E, Path, bool, str, int, str, bool],
 ) -> tuple[str, dict[str, str]]:
     """Multiprocess wrapper for exporter.
 
@@ -78,7 +135,6 @@ def multiprocess_writer_wrapper(
             - indent (int): The indent of writing.
             - encoding (str): The encoding of writing.
             - jsonable (bool): The jsonable of writing.
-            - mute (bool): The mute of writing.
 
     Returns:
         tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.

@@ -363,7 +363,7 @@ class MultiManager(Generic[_E]):
             )
 
             pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 4
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
             )
             with pool as p:
 

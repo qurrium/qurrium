@@ -1,11 +1,10 @@
 """MultiManager Utilities (:mod:`qurry.qurrium.multimanager.utils`)"""
 
-import gc
 from multiprocessing import get_context
 
 from .arguments import MultiCommonparams
 from .beforewards import Before
-from .process import very_easy_chunk_distribution, multiprocess_writer_wrapper
+from .process import very_easy_chunk_distribution, multiprocess_exporter_wrapper
 from ..container import ExperimentContainer, _E
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON
@@ -70,22 +69,22 @@ def experiment_writer(
         )
 
         exporting_pool = get_context("spawn").Pool(
-            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 4
+            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
         )
         with exporting_pool as ep:
             export_imap_result = qurry_progressbar(
                 ep.imap_unordered(
-                    multiprocess_writer_wrapper,
+                    multiprocess_exporter_wrapper,
                     (
                         (
                             id_exec,
-                            experiment_container[id_exec],
-                            multicommons.save_location,
-                            export_transpiled_circuit,
+                            experiment_container[id_exec].export(
+                                save_location=multicommons.save_location,
+                                export_transpiled_circuit=export_transpiled_circuit,
+                            ),
                             "w+",
                             indent,
                             encoding,
-                            True,
                             True,
                         )
                         for id_exec, memory_usage in chunks_sorted_list
@@ -156,5 +155,4 @@ def experiment_writer(
         mute=True,
     )
     del all_qurryinfo
-    gc.collect()
     print(f"| Exporting {all_qurryinfo_loc} done.")
