@@ -16,8 +16,9 @@ from qiskit.providers import Backend
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import datetimedict_process, very_easy_chunk_size
+from .process import datetimedict_process
 from .utils import experiment_writer
+from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
 from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE

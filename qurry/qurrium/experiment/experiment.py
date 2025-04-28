@@ -32,7 +32,7 @@ from ..utils import get_counts_and_exceptions
 from ..utils.qasm import qasm_dumps
 from ..utils.iocontrol import RJUST_LEN
 from ..utils.inputfixer import outfields_check, outfields_hint
-from ..multimanager.process import very_easy_chunk_size
+from ..utils.chunk import very_easy_chunk_size
 from ...tools import (
     ParallelManager,
     DatetimeDict,
