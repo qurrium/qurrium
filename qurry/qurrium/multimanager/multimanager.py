@@ -97,7 +97,11 @@ class MultiManager(Generic[_E]):
             raise ValueError("Use '.clear_all_exps_result(security=True)' to clear all results.")
 
         if security and isinstance(security, bool):
-            for exp in self.exps.values():
+            for exp in qurry_progressbar(
+                self.exps.values(),
+                desc="Clear jobs result...",
+                bar_format="qurry-barless",
+            ):
                 exp.afterwards.clear_result(security=security, mute_warning=True)
             if not mute_warning:
                 warnings.warn(
@@ -390,12 +394,10 @@ class MultiManager(Generic[_E]):
             chunks_num = very_easy_chunk_size(
                 tasks_num=len(initial_config_list),
                 num_process=DEFAULT_POOL_SIZE,
-                max_chunk_size=DEFAULT_POOL_SIZE * 2,
+                max_chunk_size=DEFAULT_POOL_SIZE,
             )
 
-            pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-            )
+            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
             with pool as p:
 
                 exps_iterable = qurry_progressbar(
@@ -407,12 +409,18 @@ class MultiManager(Generic[_E]):
                     total=len(initial_config_list),
                     desc="MultiManager building...",
                 )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments..."
+                )
                 for new_exps, config in exps_iterable:
                     current_multimanager.register(
                         current_id=new_exps.commons.exp_id,
                         config=config,
                         exps_instance=new_exps,
                     )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments done"
+                )
         else:
             exps_iterable = qurry_progressbar(
                 (
