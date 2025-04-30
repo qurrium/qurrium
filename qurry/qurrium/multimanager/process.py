@@ -2,13 +2,11 @@
 
 from typing import Any
 from pathlib import Path
-import gc
 
 from .arguments import MultiCommonparams
 from ..container import _E
 from ..experiment import ExperimentPrototype, Export
 from ..utils.iocontrol import IOComplex
-from ...tools.parallelmanager import DEFAULT_POOL_SIZE, CPU_COUNT
 
 
 def multiprocess_exporter(

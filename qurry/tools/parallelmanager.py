@@ -10,8 +10,19 @@ from ..exceptions import QurryWarning
 
 
 CPU_COUNT_UNSAFE = cpu_count()
+"""The number of CPUs available for multiprocessing.
+But this number may be None in some cases.
+"""
+
 CPU_COUNT = CPU_COUNT_UNSAFE if CPU_COUNT_UNSAFE else 1
+"""The number of CPUs available for multiprocessing.
+This number is guaranteed to be at least 1.
+"""
+
 DEFAULT_POOL_SIZE = CPU_COUNT
+"""The default number of workers for multiprocessing.
+This number is guaranteed to be at least 1.
+"""
 
 
 def workers_distribution(
