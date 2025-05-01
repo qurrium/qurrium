@@ -551,19 +551,25 @@ class EchoListenRandomizedExperiment(
 
         if multiprocess:
             pool = ParallelManager()
-            tmp_qasm = pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
-            tmp_target_qasm_items = zip(
-                str(targets_keys),
-                pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
+            current_exp.beforewards.circuit_qasm.extend(
+                pool.starmap(qasm_dumps, ((q, qasm_version) for q in cirqs))
+            )
+            current_exp.beforewards.target_qasm.extend(
+                zip(
+                    (str(k) for k in targets_keys),
+                    pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
+                )
             )
         else:
-            tmp_qasm = [qasm_dumps(q, qasm_version) for q in cirqs]
-            tmp_target_qasm_items = zip(
-                str(targets_keys), [qasm_dumps(q, qasm_version) for q in targets_values]
+            current_exp.beforewards.circuit_qasm.extend(
+                (qasm_dumps(q, qasm_version) for q in cirqs)
             )
-
-        current_exp.beforewards.circuit_qasm.extend(tmp_qasm)
-        current_exp.beforewards.target_qasm.extend(tmp_target_qasm_items)
+            current_exp.beforewards.target_qasm.extend(
+                zip(
+                    (str(k) for k in targets_keys),
+                    (qasm_dumps(q, qasm_version) for q in targets_values),
+                )
+            )
 
         transpiled_circs: list[QuantumCircuit] = []
         # transpile

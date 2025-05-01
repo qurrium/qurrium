@@ -355,16 +355,18 @@ def test_multi_output_all(
                     + f"{quantity.keys()}/{'.'.join(config['tags'])}/{rk}."
                 )
 
-                if f"{test_item_division}_multi" not in result_items:
-                    result_items[f"{test_item_division}_multi"] = {}
+                if f"{test_item_division}_multi.{rk}" not in result_items:
+                    result_items[f"{test_item_division}_multi.{rk}"] = {}
 
-                result_items[f"{test_item_division}_multi"][".".join(config["tags"])] = check_unit(
-                    quantity,
-                    "purity",
-                    answer_dict[".".join(config["tags"])],
-                    THREDHOLD,
-                    ".".join(config["tags"]),
-                    other_quantities_names(test_item_division),
+                result_items[f"{test_item_division}_multi.{rk}"][".".join(config["tags"])] = (
+                    check_unit(
+                        quantity,
+                        "purity",
+                        answer_dict[".".join(config["tags"])],
+                        THREDHOLD,
+                        ".".join(config["tags"]),
+                        other_quantities_names(test_item_division),
+                    )
                 )
 
     read_summoner_id = exp_method.multiRead(

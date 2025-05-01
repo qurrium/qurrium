@@ -16,8 +16,9 @@ from qiskit.providers import Backend
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import datetimedict_process, multiprocess_builder_wrapper
+from .process import datetimedict_process
 from .utils import experiment_writer
+from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
 from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
@@ -80,13 +81,48 @@ class MultiManager(Generic[_E]):
                 QurryResetSecurityActivated,
             )
 
+    def clear_all_exps_result(
+        self,
+        *args,
+        security: bool = False,
+        mute_warning: bool = False,
+    ) -> None:
+        """Clear the result of all experiments.
+
+        Args:
+            security (bool, optional): Security for clearing. Defaults to `False`.
+            mute_warning (bool, optional): Mute the warning when clearing. Defaults to `False`.
+        """
+        if len(args) > 0:
+            raise ValueError("Use '.clear_all_exps_result(security=True)' to clear all results.")
+
+        if security and isinstance(security, bool):
+            for exp in qurry_progressbar(
+                self.exps.values(),
+                desc="Clear jobs result...",
+                bar_format="qurry-barless",
+            ):
+                exp.afterwards.clear_result(security=security, mute_warning=True)
+            if not mute_warning:
+                warnings.warn(
+                    "All experiments' results are cleared.",
+                    QurryResetAccomplished,
+                )
+        else:
+            warnings.warn(
+                "Reset does not execute to prevent executing accidentally, "
+                + "if you are sure to do this, then use '.reset(security=True)'.",
+                QurryResetSecurityActivated,
+            )
+
     def __getitem__(self, key) -> Any:
         if key in self.beforewards._fields:
             return getattr(self.beforewards, key)
         if key in self.afterwards._fields:
             return getattr(self.afterwards, key)
-        raise ValueError(
+        raise KeyError(
             f"{key} is not a valid field of '{Before.__name__}' and '{After.__name__}'."
+            + f" Valid fields are {list(self.beforewards._fields) + list(self.afterwards._fields)}."
         )
 
     @property
@@ -355,24 +391,28 @@ class MultiManager(Generic[_E]):
             )
 
         if multiprocess_build:
+            chunks_num = very_easy_chunk_size(
+                tasks_num=len(initial_config_list),
+                num_process=DEFAULT_POOL_SIZE,
+                max_chunk_size=DEFAULT_POOL_SIZE * 2,
+            )
+
             pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
             )
             with pool as p:
+
                 exps_iterable = qurry_progressbar(
                     p.imap_unordered(
-                        multiprocess_builder_wrapper,
-                        [
-                            (
-                                experiment_instance,
-                                config,
-                            )
-                            for config in initial_config_list
-                        ],
-                        chunksize=DEFAULT_POOL_SIZE * 2,
+                        experiment_instance.build_for_multiprocess,
+                        initial_config_list,
+                        chunksize=chunks_num,
                     ),
                     total=len(initial_config_list),
                     desc="MultiManager building...",
+                )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments..."
                 )
                 for new_exps, config in exps_iterable:
                     current_multimanager.register(
@@ -380,6 +420,10 @@ class MultiManager(Generic[_E]):
                         config=config,
                         exps_instance=new_exps,
                     )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments done"
+                )
+
         else:
             exps_iterable = qurry_progressbar(
                 (
@@ -677,8 +721,8 @@ class MultiManager(Generic[_E]):
         # pylint: enable=protected-access
 
         export_progress = qurry_progressbar(
-            [fname for fname in self.afterwards._fields if fname != "files_taglist"]
-            + list(self.beforewards._fields),
+            [fname for fname in self.beforewards._fields if fname != "files_taglist"]
+            + list(self.afterwards._fields),
             desc="Exporting MultiManager content...",
             bar_format="qurry-barless",
         )
@@ -758,7 +802,6 @@ class MultiManager(Generic[_E]):
                 multiprocess=multiprocess,
             )
 
-        gc.collect()
         return multiconfig
 
     def compress(

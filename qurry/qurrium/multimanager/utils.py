@@ -1,16 +1,11 @@
 """MultiManager Utilities (:mod:`qurry.qurrium.multimanager.utils`)"""
 
-import gc
 from multiprocessing import get_context
 
 from .arguments import MultiCommonparams
 from .beforewards import Before
-from .process import (
-    multiprocess_exporter,
-    single_process_exporter,
-    very_easy_chunk_distribution,
-    multiprocess_exporter_wrapper,
-)
+from .process import multiprocess_exporter_wrapper
+from ..utils.chunk import very_easy_chunk_distribution
 from ..container import ExperimentContainer, _E
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON
@@ -55,32 +50,33 @@ def experiment_writer(
             for id_exec in beforewards.exps_config.keys()
         ]
         respect_memory_array.sort(key=lambda x: x[1])
-        exps_serial = {id_exec: default for default, id_exec in enumerate(beforewards.exps_config)}
-        first_export = multiprocess_exporter(
-            id_exec=respect_memory_array[0][0],
-            exps_export=experiment_container[respect_memory_array[0][0]].export(
-                save_location=multicommons.save_location,
-                export_transpiled_circuit=export_transpiled_circuit,
-            ),
+        exps_serial = {
+            id_exec: default_order for default_order, id_exec in enumerate(beforewards.exps_config)
+        }
+
+        first_export = experiment_container[respect_memory_array[0][0]].write(
+            save_location=multicommons.save_location,
             mode="w+",
             indent=indent,
             encoding=encoding,
             jsonable=True,
-            mute=True,
+            export_transpiled_circuit=export_transpiled_circuit,
+            qurryinfo_hold_access=multicommons.summoner_id,
             pbar=None,
         )
-        chunks_sorted_list = very_easy_chunk_distribution(
-            respect_memory_array[1:], DEFAULT_POOL_SIZE * 2
+
+        chunks_num, chunks_sorted_list, _distributions = very_easy_chunk_distribution(
+            respect_memory_array[1:], DEFAULT_POOL_SIZE, DEFAULT_POOL_SIZE * 2
         )
 
         exporting_pool = get_context("spawn").Pool(
-            processes=DEFAULT_POOL_SIZE, maxtasksperchild=DEFAULT_POOL_SIZE
+            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
         )
         with exporting_pool as ep:
             export_imap_result = qurry_progressbar(
                 ep.imap_unordered(
                     multiprocess_exporter_wrapper,
-                    [
+                    (
                         (
                             id_exec,
                             experiment_container[id_exec].export(
@@ -91,50 +87,51 @@ def experiment_writer(
                             indent,
                             encoding,
                             True,
-                            True,
-                            None,
                         )
                         for id_exec, memory_usage in chunks_sorted_list
-                    ],
-                    chunksize=DEFAULT_POOL_SIZE * 2,
+                    ),
+                    chunksize=chunks_num,
                 ),
                 total=len(chunks_sorted_list),
                 desc="Exporting experiments...",
                 bar_format="qurry-barless",
             )
             all_qurryinfo = dict(export_imap_result)
-            all_qurryinfo[first_export[0]] = first_export[1]
-            all_qurryinfo = dict(sorted(all_qurryinfo.items(), key=lambda x: exps_serial[x[0]]))
+
+        all_qurryinfo[first_export[0]] = first_export[1]
+        all_qurryinfo = dict(sorted(all_qurryinfo.items(), key=lambda x: exps_serial[x[0]]))
 
     else:
         all_qurryinfo = {}
-        exps_export_progress = qurry_progressbar(
+        single_exporting_progress = qurry_progressbar(
             beforewards.exps_config,
             desc="Exporting experiments...",
             bar_format="qurry-barless",
         )
-        for id_exec in exps_export_progress:
-            tmp_id, tmp_qurryinfo_content = single_process_exporter(
-                id_exec=id_exec,
-                exps_export=experiment_container[id_exec].export(
-                    save_location=multicommons.save_location,
-                    export_transpiled_circuit=export_transpiled_circuit,
-                ),
+        for id_exec in single_exporting_progress:
+            tmp_id, tmp_qurryinfo_content = experiment_container[id_exec].write(
+                save_location=multicommons.save_location,
                 mode="w+",
                 indent=indent,
                 encoding=encoding,
                 jsonable=True,
-                mute=True,
-                pbar=None,
+                qurryinfo_hold_access=multicommons.summoner_id,
+                export_transpiled_circuit=export_transpiled_circuit,
+                multiprocess=True,
+                pbar=single_exporting_progress,
             )
             assert id_exec == tmp_id, "ID is not consistent."
             all_qurryinfo[id_exec] = tmp_qurryinfo_content
 
-    gc.collect()
-
     # for id_exec, files in all_qurryinfo_items:
-    for id_exec, files in all_qurryinfo.items():
+    for id_exec, files in qurry_progressbar(
+        all_qurryinfo.items(),
+        desc="Loading file infomation...",
+        bar_format="qurry-barless",
+    ):
         beforewards.files_taglist[experiment_container[id_exec].commons.tags].append(files)
+
+    print("| Exporting file taglist...")
     beforewards.files_taglist.export(
         name=None,
         save_location=multicommons.export_location,
@@ -148,7 +145,7 @@ def experiment_writer(
             "indent": indent,
         },
     )
-
+    print(f"| Exporting {all_qurryinfo_loc}...")
     quickJSON(
         content=all_qurryinfo,
         filename=all_qurryinfo_loc,
@@ -158,5 +155,5 @@ def experiment_writer(
         encoding=encoding,
         mute=True,
     )
-
-    gc.collect()
+    del all_qurryinfo
+    print(f"| Exporting {all_qurryinfo_loc} done.")
