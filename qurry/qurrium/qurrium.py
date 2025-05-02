@@ -366,16 +366,15 @@ class QurriumPrototype(ABC, Generic[_E]):
 
         Args:
             config_list (list[dict[str, Any]]):
-                The list of default configurations of multiple experiment. Defaults to [].
+                The list of default configurations of multiple experiment.
             summoner_name (str, optional):
-                Name for multimanager. Defaults to 'exps'.
+                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
-                The quantum backend.
-                Defaults to AerSimulator().
+                The backend to run. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional):
                 Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
@@ -466,16 +465,15 @@ class QurriumPrototype(ABC, Generic[_E]):
 
         Args:
             config_list (list[dict[str, Any]]):
-                The list of default configurations of multiple experiment. Defaults to [].
+                The list of default configurations of multiple experiment.
             summoner_name (str, optional):
-                Name for multimanager. Defaults to 'exps'.
+                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
-                The quantum backend.
-                Defaults to AerSimulator().
+                The backend to run. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional):
                 Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
@@ -574,11 +572,11 @@ class QurriumPrototype(ABC, Generic[_E]):
 
         Args:
             config_list (list[dict[str, Any]]):
-                The list of default configurations of multiple experiment. Defaults to [].
+                The list of default configurations of multiple experiment.
             summoner_name (str, optional):
-                Name for multimanager. Defaults to 'exps'.
+                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
@@ -847,7 +845,7 @@ class QurriumPrototype(ABC, Generic[_E]):
             summoner_name (Optional[str], optional):
                 Name for multimanager. Defaults to None.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Id for multimanager. Defaults to None.
             backend (Optional[Backend], optional):
                 The quantum backend. Defaults to None.
             provider (Optional[Any], optional):
