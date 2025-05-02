@@ -458,13 +458,16 @@ class MultiManager(Generic[_E]):
         """Read the multi-experiment.
 
         Args:
-            experiment_instance (ExperimentPrototype): The instance of experiment.
-            summoner_name (Optional[str], optional): Name of experiment of the MultiManager.
-                Defaults to None.
+            experiment_instance (ExperimentPrototype):
+                The instance of experiment.
+            summoner_name (Optional[str], optional):
+                Name of experiment of the MultiManager. Defaults to None.
             save_location (Union[Path, str], optional):
                 Location of saving experiment. Defaults to Path("./").
-            is_read_or_retrieve (bool, optional): Whether read or retrieve. Defaults to False.
-            read_from_tarfile (bool, optional): Whether read from tarfile. Defaults to False.
+            is_read_or_retrieve (bool, optional):
+                Whether read or retrieve. Defaults to False.
+            read_from_tarfile (bool, optional):
+                Whether read from tarfile. Defaults to False.
 
         Returns:
             MultiManager: The container of experiments and multi-experiment.
@@ -619,13 +622,13 @@ class MultiManager(Generic[_E]):
     def update_save_location(
         self,
         save_location: Union[Path, str],
-        # short_name: str = "",  # TODO: short_name
         without_serial: bool = True,
     ) -> dict[str, Any]:
         """Update the save location of the multi-experiment.
 
         Args:
             save_location (Union[Path, str]): Location of saving experiment.
+            short_name (str): The short name of Qurry Instance.
             without_serial (bool, optional): Whether without serial number. Defaults to True.
 
         Returns:
@@ -635,7 +638,6 @@ class MultiManager(Generic[_E]):
         self.naming_complex = naming(
             without_serial=without_serial,
             exps_name=self.multicommons.summoner_name,
-            # short_name=short_name,
             save_location=save_location,
         )
         self.multicommons = self.multicommons._replace(
@@ -706,7 +708,7 @@ class MultiManager(Generic[_E]):
         if save_location is None:
             save_location = self.multicommons.save_location
         else:
-            self.update_save_location(save_location=save_location, without_serial=True)
+            self.update_save_location(save_location=save_location)
 
         self.gitignore.ignore("*.json")
         self.gitignore.sync("qurryinfo.json")

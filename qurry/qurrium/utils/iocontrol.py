@@ -24,7 +24,6 @@ def naming(
     is_read: bool = False,
     exps_name: str = "exps",
     save_location: Union[Path, str] = Path("./"),
-    short_name: str = "qurry",
     without_serial: bool = False,
     rjust_len: int = RJUST_LEN,
     index_rename: int = 1,
@@ -35,24 +34,16 @@ def naming(
         is_read (bool, optional):
             Whether to read the experiment data.
             Defaults to False.
-
         exps_name (str, optional):
             Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
             This name is also used for creating a folder to store the exports.
             Defaults to `'exps'`.
-
         save_location (Union[Path, str], optional):
             Where to save the export data. Defaults to Path('./')
-
-        short_name (str, optional):
-            The short name of Qurry Instance. Defaults to `'qurry'`.
-
         without_serial (bool, optional):
             Whether to use the serial number. Defaults to False.
-
         rjust_len (int, optional):
             The length of the serial number. Defaults to 3.
-
         index_rename (int, optional):
             The serial number. Defaults to 1.
 
@@ -90,23 +81,10 @@ def naming(
         export_location = save_location / immutable_name
 
     else:
-        exps_name = f"{exps_name}.{short_name}"
         _index_rename = index_rename
 
         immutable_name = f"{exps_name}.{str(_index_rename).rjust(rjust_len, '0')}"
         export_location = save_location / immutable_name
-
-        # findIndexProgress = qurryProgressBar(
-        #     range(1), bar_format='| {desc}')
-        # with findIndexProgress as pb:
-        #     while os.path.exists(export_location):
-        #         pb.set_description_str(f"{export_location} is repeat location.")
-        #         indexRename += 1
-        #         immutableName = f"{expsName}.{str(indexRename).rjust(_rjustLen, '0')}"
-        #         export_location = save_location / immutableName
-        #     pb.set_description_str(
-        #         f'Write "{immutableName}", at location "{export_location}"')
-        #     os.makedirs(export_location)
 
         while os.path.exists(export_location):
             print(f"| {export_location} is repeat location.")
