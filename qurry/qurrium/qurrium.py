@@ -548,8 +548,6 @@ class QurriumPrototype(ABC, Generic[_E]):
             current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
             current_multimanager.beforewards.job_id.append((exp_id, "local"))
 
-            current_multimanager.afterwards.allCounts[exp_id] = exp_instance.afterwards.counts
-
         current_multimanager.multicommons.datetimes.add_serial("output")
 
         if not skip_output_write:

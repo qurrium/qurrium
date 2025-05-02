@@ -558,8 +558,16 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 current_multimanager = self.multimanagers[summoner_id]
             else:
                 raise ValueError("No such summoner_id in multimanagers.")
-            if len(current_multimanager.afterwards.allCounts) == 0:
-                raise ValueError("No counts in multimanagers.")
+            counts_check = [
+                k
+                for k in current_multimanager.beforewards.circuits_map.keys()
+                if len(self.exps[k].afterwards.counts) == 0
+            ]
+            if len(counts_check) > 0:
+                raise ValueError(
+                    f"Counts of {len(counts_check)} experiments are empty, "
+                    + f"please check them before analysis: {counts_check}."
+                )
 
             idx_tagmap_quantities = len(current_multimanager.quantity_container)
             name = (
@@ -569,7 +577,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             )
 
             all_counts_progress = qurry_progressbar(
-                list(current_multimanager.afterwards.allCounts.keys()),
+                current_multimanager.beforewards.circuits_map.keys(),
                 desc="Preparing analyzing for multiprocessing...",
             )
 

@@ -42,7 +42,7 @@ class MultiManager(Generic[_E]):
     exps: ExperimentContainer[_E]
     """The experiments container."""
 
-    _unexports: list[str] = ["retrievedResult"]
+    _unexports: list[str] = ["allCounts", "retrievedResult"]
     """The content would not be exported."""
     _not_sync = ["allCounts", "retrievedResult"]
     """The content would not be synchronized."""
@@ -515,10 +515,9 @@ class MultiManager(Generic[_E]):
                 file_location=files,
                 version="v5",
             )
-            afterwards = After.read(
-                export_location=naming_complex.export_location,
-                file_location=files,
-                version="v5",
+            afterwards = After(
+                retrievedResult=TagList(),
+                allCounts={},
             )
             quantity_container = QuantityContainer()
             assert isinstance(files["tagMapQuantity"], dict), "Quantity must be dict."
@@ -540,7 +539,10 @@ class MultiManager(Generic[_E]):
             files = raw_multiconfig["files"]
             old_files = {}
             beforewards = Before.read(export_location=naming_complex.export_location, version="v7")
-            afterwards = After.read(export_location=naming_complex.export_location, version="v7")
+            afterwards = After(
+                retrievedResult=TagList(),
+                allCounts={},
+            )
             quantity_container = QuantityContainer()
             assert isinstance(files["quantity"], dict), "Quantity must be dict."
             for qk in files["quantity"].keys():
@@ -867,8 +869,16 @@ class MultiManager(Generic[_E]):
         if specific_analysis_args is None:
             specific_analysis_args = {}
 
-        if len(self.afterwards.allCounts) == 0:
-            raise ValueError("No counts in multimanagers.")
+        counts_check = [
+            k
+            for k in self.beforewards.circuits_map.keys()
+            if len(self.exps[k].afterwards.counts) == 0
+        ]
+        if len(counts_check) > 0:
+            raise ValueError(
+                f"Counts of {len(counts_check)} experiments are empty, "
+                + f"please check them before analysis: {counts_check}."
+            )
 
         idx_tagmap_quantities = len(self.quantity_container)
         name = (
@@ -879,7 +889,7 @@ class MultiManager(Generic[_E]):
         self.quantity_container[name] = TagList()
 
         all_counts_progress = qurry_progressbar(
-            self.afterwards.allCounts.keys(),
+            self.beforewards.circuits_map.keys(),
             bar_format=("| {n_fmt}/{total_fmt} - Analysis: {desc} - {elapsed} < {remaining}"),
         )
         for k in all_counts_progress:
