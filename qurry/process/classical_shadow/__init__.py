@@ -97,11 +97,15 @@ Reference:
 
 from .classical_shadow import (
     BACKEND_AVAILABLE as classical_shadow_availability,
+    expectation_rho,
+    trace_rho_square,
+    classical_shadow_complex,
+)
+
+
+from .rho_dict_process import (
     ClassicalShadowBasic,
     ClassicalShadowExpectation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
-    expectation_rho,
-    trace_rho_square,
-    classical_shadow_complex,
 )

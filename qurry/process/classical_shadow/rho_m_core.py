@@ -6,10 +6,9 @@
 import time
 import warnings
 from typing import Literal, Union
-from multiprocessing import get_context
 import numpy as np
 
-from .rho_mk_cell import rho_mk_cell_py, handle_rho_mk_py_iterable, rho_mk_cell_py_wrapper
+from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
 from ..availability import (
     availablility,
     default_postprocessing_backend,
@@ -19,7 +18,7 @@ from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools.parallelmanager import DEFAULT_POOL_SIZE
+from ...tools import ParallelManager
 
 
 # try:
@@ -58,6 +57,7 @@ def rho_m_core_py(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
+    method: RhoMKCellMethod = "Python_precomputed",
     multiprocess: bool = True,
 ) -> tuple[
     dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
@@ -76,6 +76,9 @@ def rho_m_core_py(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
+        method (RhoMKCellMethod, optional):
+            The method to use for the calculation. Defaults to "Python_precomputed".
+            It can be either "Python" or "Python_precomputed".
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to True.
 
@@ -106,47 +109,63 @@ def rho_m_core_py(
     assert all(
         0 <= q_i < measured_system_size for q_i in selected_classical_registers
     ), f"Invalid selected classical registers: {selected_classical_registers}"
-    msg = f"| Selected classical registers: {selected_classical_registers}"
 
     begin = time.time()
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
+    rho_m_dict = {}
+    selected_qubits_checked: dict[int, bool] = {}
+
+    cell_calculation_method = (
+        rho_mk_cell_py_precomputed if method == "Python_precomputed" else rho_mk_cell_py
+    )
+    expected_shape = (
+        2 ** len(selected_classical_registers_sorted),
+        2 ** len(selected_classical_registers_sorted),
+    )
+
     if multiprocess:
-        pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
-        with pool as p:
-            rho_mk_py_result_iterable = p.imap_unordered(
-                rho_mk_cell_py_wrapper,
-                [
-                    (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
-                    for idx, single_counts in enumerate(counts)
-                ],
-            )
-            rho_m_dict = handle_rho_mk_py_iterable(
-                rho_mk_py_result_iterable=rho_mk_py_result_iterable,
-                shots=shots,
-                selected_classical_registers_sorted=selected_classical_registers_sorted,
-            )
+        pool = ParallelManager()
+        cell_calculation_results = pool.starmap(
+            cell_calculation_method,
+            [
+                (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
+                for idx, single_counts in enumerate(counts)
+            ],
+        )
     else:
-        rho_m_dict = {}
-        rho_mk_py_result_iterable = [
-            rho_mk_cell_py(
-                idx=idx,
-                single_counts=single_counts,
-                nu_shadow_direction=random_unitary_um[idx],
-                selected_classical_registers=selected_classical_registers,
+        cell_calculation_results = [
+            cell_calculation_method(
+                idx, single_counts, random_unitary_um[idx], selected_classical_registers
             )
             for idx, single_counts in enumerate(counts)
         ]
-        rho_m_dict = handle_rho_mk_py_iterable(
-            rho_mk_py_result_iterable=rho_mk_py_result_iterable,
-            shots=shots,
-            selected_classical_registers_sorted=selected_classical_registers_sorted,
+
+    for idx, rho_m_k_data, selected_classical_registers_sorted_result in cell_calculation_results:
+        selected_qubits_checked[idx] = (
+            selected_classical_registers_sorted_result != selected_classical_registers_sorted
+        )
+
+        tmp_arr = [rho_mk * num_bitstring for bitstring, num_bitstring, rho_mk in rho_m_k_data]
+        tmp = sum(tmp_arr) / shots
+        assert isinstance(tmp, np.ndarray), f"Invalid rho_m type {type(tmp)} for {idx} cell."
+
+        assert (
+            tmp.shape == expected_shape
+        ), f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
+        rho_m_dict[idx] = tmp
+
+    if any(selected_qubits_checked.values()):
+        problematic_cells = [idx for idx, checked in selected_qubits_checked.items() if checked]
+        warnings.warn(
+            f"Selected qubits are not sorted for {problematic_cells} cells.",
+            RuntimeWarning,
         )
 
     taken = round(time.time() - begin, 3)
 
-    return rho_m_dict, selected_classical_registers_sorted, msg, taken
+    return rho_m_dict, selected_classical_registers_sorted, "", taken
 
 
 def rho_m_core(
@@ -154,7 +173,7 @@ def rho_m_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    backend: Union[PostProcessingBackendLabel, RhoMKCellMethod] = DEFAULT_PROCESS_BACKEND,
     multiprocess: bool = True,
 ) -> tuple[
     dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
@@ -204,12 +223,15 @@ def rho_m_core(
             PostProcessingRustUnavailableWarning,
         )
         backend = "Python"
-    if backend == "Python":
+
+    if backend in ["Python", "Python_precomputed"]:
         return rho_m_core_py(
             shots=shots,
             counts=counts,
             random_unitary_um=random_unitary_um,
             selected_classical_registers=selected_classical_registers,
+            method=backend,  # type: ignore
             multiprocess=multiprocess,
         )
+
     raise ValueError(f"Invalid backend {backend}. It should be either 'Python' or 'Rust'.")
