@@ -349,7 +349,7 @@ class QurriumPrototype(ABC, Generic[_E]):
     def multiBuild(
         self,
         config_list: list[Union[dict[str, Any], BasicArgs, Any]],
-        summoner_name: str = "exps",
+        summoner_name: str = short_name,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -450,7 +450,7 @@ class QurriumPrototype(ABC, Generic[_E]):
     def multiOutput(
         self,
         config_list: list[Union[dict[str, Any], BasicArgs, Any]],
-        summoner_name: str = "exps",
+        summoner_name: str = short_name,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -559,7 +559,7 @@ class QurriumPrototype(ABC, Generic[_E]):
     def multiPending(
         self,
         config_list: list[dict[str, Any]],
-        summoner_name: str = "exps",
+        summoner_name: str = short_name,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),

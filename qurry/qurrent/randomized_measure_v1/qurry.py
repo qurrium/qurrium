@@ -365,7 +365,7 @@ class EntropyMeasureRandomizedV1(QurriumPrototype[EntropyMeasureRandomizedV1Expe
     def multiOutput(
         self,
         config_list: list[Union[dict[str, Any], EntropyMeasureRandomizedV1MeasureArgs]],
-        summoner_name: str = "exps",
+        summoner_name: str = short_name,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
