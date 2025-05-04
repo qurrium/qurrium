@@ -4,8 +4,8 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::randomized::randomized::ensemble_cell_rust;
 use crate::construct::counts_under_degree_prototype;
+use crate::randomized::randomized::ensemble_cell_rust;
 
 #[pyfunction]
 #[pyo3(signature = (idx, first_counts, second_counts, selected_classical_registers))]
@@ -13,7 +13,7 @@ pub fn echo_cell_2_rust(
     idx: i32,
     first_counts: HashMap<String, i32>,
     second_counts: HashMap<String, i32>,
-    selected_classical_registers: Vec<i32>
+    selected_classical_registers: Vec<i32>,
 ) -> (i32, f64, Vec<i32>) {
     let sample_shots_01: i32 = first_counts.values().sum();
     let sample_shots_02: i32 = second_counts.values().sum();
@@ -47,13 +47,13 @@ pub fn echo_cell_2_rust(
     let first_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
         first_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone()
+        selected_classical_registers_sorted.clone(),
     );
 
     let second_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
         second_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone()
+        selected_classical_registers_sorted.clone(),
     );
 
     let echo_cell: f64 = first_counts_under_degree
@@ -76,7 +76,7 @@ pub fn overlap_echo_core_2_rust(
     shots: i32,
     first_counts: Vec<HashMap<String, i32>>,
     second_counts: Vec<HashMap<String, i32>>,
-    selected_classical_registers: Option<Vec<i32>>
+    selected_classical_registers: Option<Vec<i32>>,
 ) -> (HashMap<i32, f64>, Vec<i32>, &'static str, f64) {
     assert_eq!(
         first_counts.len(),
@@ -91,16 +91,17 @@ pub fn overlap_echo_core_2_rust(
     for (tmp01, tmp02, tmp01_name, tmp02_name) in vec![
         (shots, sample_shots_01, "shots", "first counts"),
         (shots, sample_shots_02, "shots", "second counts"),
-        (sample_shots_01, sample_shots_02, "first counts", "second counts")
+        (
+            sample_shots_01,
+            sample_shots_02,
+            "first counts",
+            "second counts",
+        ),
     ] {
         assert_eq!(
-            tmp01,
-            tmp02,
+            tmp01, tmp02,
             "The number of shots must be equal, but the {} is {}, and the {} is {}",
-            tmp01_name,
-            tmp01,
-            tmp02_name,
-            tmp02
+            tmp01_name, tmp01, tmp02_name, tmp02
         );
     }
 
@@ -119,6 +120,13 @@ pub fn overlap_echo_core_2_rust(
         Some(selected_classical_registers) => selected_classical_registers,
         None => (0..measured_system_size).collect(),
     };
+    for q_i in selected_classical_registers_actual.iter() {
+        assert!(
+            *q_i >= 0 && *q_i < measured_system_size,
+            "Invalid selected classical registers: {}",
+            selected_classical_registers_actual
+        );
+    }
 
     let begin: Instant = Instant::now();
 
@@ -134,7 +142,7 @@ pub fn overlap_echo_core_2_rust(
                 identifier as i32,
                 data.clone(),
                 data2.clone(),
-                selected_classical_registers_actual.clone()
+                selected_classical_registers_actual.clone(),
             );
             // println!("| purity_cell: {:?} {}", result, subsystems_size);
             result
@@ -150,20 +158,20 @@ pub fn overlap_echo_core_2_rust(
     result_vec
         .collect::<Vec<(i32, f64, Vec<i32>)>>()
         .iter()
-        .for_each(|(idx, purity_cell, selected_classical_registers_sorted_result)| {
-            echo_loader_2.insert(*idx, *purity_cell);
+        .for_each(
+            |(idx, purity_cell, selected_classical_registers_sorted_result)| {
+                echo_loader_2.insert(*idx, *purity_cell);
 
-            let compare = selected_classical_registers_actual_sorted
-                .iter()
-                .zip(selected_classical_registers_sorted_result.iter())
-                .all(|(a, b)| a == b);
-            if !compare {
-                selected_classical_registers_checked.insert(
-                    *idx,
-                    selected_classical_registers_sorted_result.clone()
-                );
-            }
-        });
+                let compare = selected_classical_registers_actual_sorted
+                    .iter()
+                    .zip(selected_classical_registers_sorted_result.iter())
+                    .all(|(a, b)| a == b);
+                if !compare {
+                    selected_classical_registers_checked
+                        .insert(*idx, selected_classical_registers_sorted_result.clone());
+                }
+            },
+        );
     if selected_classical_registers_checked.len() > 0 {
         println!(
             "Selected classical registers are not the same: {:?}",
@@ -173,5 +181,10 @@ pub fn overlap_echo_core_2_rust(
 
     let duration_2: f64 = begin.elapsed().as_secs_f64() as f64;
 
-    (echo_loader_2, selected_classical_registers_actual_sorted, "", duration_2)
+    (
+        echo_loader_2,
+        selected_classical_registers_actual_sorted,
+        "",
+        duration_2,
+    )
 }
