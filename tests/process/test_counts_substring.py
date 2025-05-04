@@ -7,7 +7,9 @@ from qurry.capsule import quickRead
 from qurry.process.utils import construct_availability
 from qurry.process.utils.construct import (
     counts_under_degree as counts_under_degree_py,
-    counts_under_degree_rust,
+    counts_under_degree_rust_source,
+    counts_list_under_degree as counts_list_under_degree_py,
+    counts_list_under_degree_rust_source,
 )
 
 
@@ -31,7 +33,9 @@ def test_counts_substring(test_items: list[int]):
     )
 
     counts_under_degree_py_result = counts_under_degree_py(easy_dummy["0"], 8, test_items)
-    counts_under_degree_rust_result = counts_under_degree_rust(easy_dummy["0"], 8, test_items)
+    counts_under_degree_rust_result = counts_under_degree_rust_source(
+        easy_dummy["0"], 8, test_items
+    )
 
     assert all(
         counts_under_degree_rust_result[s] == v for s, v in counts_under_degree_py_result.items()
@@ -40,4 +44,21 @@ def test_counts_substring(test_items: list[int]):
         + f"test_items: {test_items}, "
         + f"counts_under_degree_rust_result: {counts_under_degree_rust_result}, "
         + f"counts_under_degree_py_result: {counts_under_degree_py_result}."
+    )
+
+    counts_list_under_degree_py_result = counts_list_under_degree_py(
+        [easy_dummy["0"]], 8, test_items
+    )
+    counts_list_under_degree_rust_result = counts_list_under_degree_rust_source(
+        [easy_dummy["0"]], 8, test_items
+    )
+
+    assert all(
+        counts_list_under_degree_rust_result[0][s] == v
+        for s, v in counts_list_under_degree_py_result[0].items()
+    ), (
+        "Rust and Python results are not equal in counts_list_under_degree. "
+        + f"test_items: {test_items}, "
+        + f"counts_list_under_degree_rust_result: {counts_list_under_degree_rust_result}."
+        + f"counts_list_under_degree_py_result: {counts_list_under_degree_py_result}, "
     )
