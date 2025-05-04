@@ -1,6 +1,4 @@
-"""Utility functions for qurry.process (:mod:`qurry.process.utils`)
-
-"""
+"""Utility functions for qurry.process (:mod:`qurry.process.utils`)"""
 
 from .construct import (
     qubit_selector,
@@ -8,9 +6,12 @@ from .construct import (
     degree_handler,
     counts_under_degree,
     counts_under_degree_pyrust,
+    counts_list_under_degree,
+    counts_list_under_degree_pyrust,
     qubit_mapper,
     is_cycling_slice_active,
     BACKEND_AVAILABLE as construct_availability,
+    shot_counts_selected_clreg_checker_pyrust,
 )
 from .randomized import (
     hamming_distance,
