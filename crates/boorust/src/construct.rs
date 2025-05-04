@@ -12,7 +12,7 @@ pub enum QubitDegree {
 pub fn counts_under_degree_prototype(
     single_counts: HashMap<String, i32>,
     num_classical_registers: i32,
-    selected_classical_registers: Vec<i32>
+    selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
     let mut single_counts_under_degree: HashMap<String, i32> = HashMap::new();
     for (bit_string_all, count) in single_counts {
@@ -33,7 +33,9 @@ pub fn counts_under_degree_prototype(
                     })
             })
             .collect::<String>();
-        let entry = single_counts_under_degree.entry(substring.to_string()).or_insert(0);
+        let entry = single_counts_under_degree
+            .entry(substring.to_string())
+            .or_insert(0);
         *entry += count;
     }
     single_counts_under_degree
@@ -41,16 +43,35 @@ pub fn counts_under_degree_prototype(
 
 #[pyfunction]
 #[pyo3(signature = (single_counts, num_classical_registers, selected_classical_registers))]
-pub fn counts_under_degree_rust(
+pub fn single_counts_under_degree_rust(
     single_counts: HashMap<String, i32>,
     num_classical_registers: i32,
-    selected_classical_registers: Vec<i32>
+    selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
     counts_under_degree_prototype(
         single_counts,
         num_classical_registers,
-        selected_classical_registers
+        selected_classical_registers,
     )
+}
+
+#[pyfunction]
+#[pyo3(signature = (counts, num_classical_registers, selected_classical_registers))]
+pub fn counts_list_under_degree_rust(
+    counts: Vec<HashMap<String, i32>>,
+    num_classical_registers: i32,
+    selected_classical_registers: Vec<i32>,
+) -> Vec<HashMap<String, i32>> {
+    let mut counts_list_under_degree: Vec<HashMap<String, i32>> = Vec::new();
+    for single_counts in counts {
+        let counts = counts_under_degree_prototype(
+            single_counts,
+            num_classical_registers,
+            selected_classical_registers.clone(),
+        );
+        counts_list_under_degree.push(counts);
+    }
+    counts_list_under_degree
 }
 
 #[pyfunction]
@@ -58,8 +79,11 @@ pub fn counts_under_degree_rust(
 pub fn cycling_slice_rust(target: &str, start: i32, end: i32, step: i32) -> PyResult<String> {
     let length = target.len() as i32;
     let slice_check = vec![
-        (format!("start: {} < -length: {}", start, -length), start < -length),
-        (format!("length: {} < end: {}", length, end), length < end)
+        (
+            format!("start: {} < -length: {}", start, -length),
+            start < -length,
+        ),
+        (format!("length: {} < end: {}", length, end), length < end),
     ];
 
     if slice_check.iter().any(|&(_, v)| v) {
@@ -68,9 +92,10 @@ pub fn cycling_slice_rust(target: &str, start: i32, end: i32, step: i32) -> PyRe
             .filter(|&&(_, v)| !v)
             .map(|(k, _)| format!(" {}", k))
             .collect();
-        return Err(
-            PyValueError::new_err(format!("Slice out of range: {}", invalid_ranges.join(";")))
-        );
+        return Err(PyValueError::new_err(format!(
+            "Slice out of range: {}",
+            invalid_ranges.join(";")
+        )));
     }
 
     if length <= 0 {
@@ -102,6 +127,39 @@ pub fn cycling_slice_rust(target: &str, start: i32, end: i32, step: i32) -> PyRe
 }
 
 #[pyfunction]
+#[pyo3(signature = (shots, counts, selected_classical_registers = None))]
+pub fn shot_counts_selected_clreg_checker(
+    shots: i32,
+    counts: Vec<HashMap<String, i32>>,
+    selected_classical_registers: Option<Vec<i32>>,
+) -> (i32, Vec<i32>) {
+    // check if the sum of shots is equal to the sum of all counts
+    let sample_shots: i32 = counts[0].values().sum();
+    assert_eq!(
+        shots, sample_shots,
+        "shots {} does not match sample_shots {}",
+        shots, sample_shots
+    );
+
+    // Determine the size of the allsystems
+    let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
+
+    let selected_classical_registers_actual = match selected_classical_registers {
+        Some(selected_classical_registers) => selected_classical_registers,
+        None => (0..measured_system_size).collect(),
+    };
+    for q_i in selected_classical_registers_actual.iter() {
+        assert!(
+            *q_i >= 0 && *q_i < measured_system_size,
+            "Invalid selected classical registers: {}",
+            selected_classical_registers_actual
+        );
+    }
+
+    (measured_system_size, selected_classical_registers_actual)
+}
+
+#[pyfunction]
 #[pyo3(signature = (num_qubits, degree = None))]
 pub fn qubit_selector_rust(num_qubits: i32, degree: Option<QubitDegree>) -> PyResult<(i32, i32)> {
     let full_subsystem: Vec<i32> = (0..num_qubits).collect();
@@ -109,21 +167,14 @@ pub fn qubit_selector_rust(num_qubits: i32, degree: Option<QubitDegree>) -> PyRe
     let item_range: (i32, i32) = match degree {
         Some(QubitDegree::Single(d)) => {
             if d > num_qubits {
-                return Err(
-                    PyValueError::new_err(
-                        format!(
-                            "The subsystem A includes {} qubits beyond {} which the wave function has.",
-                            d,
-                            num_qubits
-                        )
-                    )
-                );
+                return Err(PyValueError::new_err(format!(
+                    "The subsystem A includes {} qubits beyond {} which the wave function has.",
+                    d, num_qubits
+                )));
             } else if d < 0 {
-                return Err(
-                    PyValueError::new_err(
-                        "The number of qubits of subsystem A has to be a natural number."
-                    )
-                );
+                return Err(PyValueError::new_err(
+                    "The number of qubits of subsystem A has to be a natural number.",
+                ));
             }
 
             let _subsystem: Vec<i32> = full_subsystem
@@ -143,7 +194,11 @@ pub fn qubit_selector_rust(num_qubits: i32, degree: Option<QubitDegree>) -> PyRe
                 raw_values
                     .iter()
                     .map(|&d| {
-                        if d != num_qubits { (d + num_qubits) % num_qubits } else { num_qubits }
+                        if d != num_qubits {
+                            (d + num_qubits) % num_qubits
+                        } else {
+                            num_qubits
+                        }
                     })
                     .collect()
             };
@@ -172,7 +227,7 @@ pub fn qubit_selector_rust(num_qubits: i32, degree: Option<QubitDegree>) -> PyRe
 pub fn degree_handler_rust(
     allsystems_size: i32,
     degree: Option<QubitDegree>,
-    measure: Option<(i32, i32)>
+    measure: Option<(i32, i32)>,
 ) -> ((i32, i32), (i32, i32), i32) {
     // Determine degree
     let actual_deg: (i32, i32) = qubit_selector_rust(allsystems_size, degree).unwrap();
@@ -187,7 +242,7 @@ pub fn degree_handler_rust(
     bitstring_check.insert("b <= allsystemSize", bitstring_range.1 <= allsystems_size);
     bitstring_check.insert(
         "b-a <= allsystemSize",
-        bitstring_range.1 - bitstring_range.0 <= allsystems_size
+        bitstring_range.1 - bitstring_range.0 <= allsystems_size,
     );
 
     let mut error_message: String = format!(
@@ -213,7 +268,7 @@ pub fn degree_handler_rust(
         None => {
             let tmp: PyResult<(i32, i32)> = qubit_selector_rust(
                 allsystems_size,
-                Some(QubitDegree::Pair(actual_deg.0, actual_deg.1))
+                Some(QubitDegree::Pair(actual_deg.0, actual_deg.1)),
             );
             match tmp {
                 Ok(val) => val,
@@ -237,7 +292,7 @@ pub fn test_construct() {
         Some(QubitDegree::Pair(4, 6)),
         Some(QubitDegree::Single(6)),
         Some(QubitDegree::Pair(7, 3)),
-        Some(QubitDegree::Single(8))
+        Some(QubitDegree::Single(8)),
     ];
     let num_qubits = 8;
 

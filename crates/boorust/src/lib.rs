@@ -6,8 +6,8 @@ mod tool;
 use pyo3::prelude::*;
 
 use crate::construct::{
-    counts_under_degree_rust, cycling_slice_rust, degree_handler_rust, qubit_selector_rust,
-    test_construct,
+    counts_list_under_degree_rust, cycling_slice_rust, degree_handler_rust, qubit_selector_rust,
+    shot_counts_selected_clreg_checker, single_counts_under_degree_rust, test_construct,
 };
 use crate::hadamard::purity_echo_core_rust;
 use crate::randomized::echo::v1::{echo_cell_rust, overlap_echo_core_rust};
@@ -46,7 +46,15 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     construct.add_function(wrap_pyfunction!(qubit_selector_rust, &construct)?)?;
     construct.add_function(wrap_pyfunction!(cycling_slice_rust, &construct)?)?;
     construct.add_function(wrap_pyfunction!(degree_handler_rust, &construct)?)?;
-    construct.add_function(wrap_pyfunction!(counts_under_degree_rust, &construct)?)?;
+    construct.add_function(wrap_pyfunction!(
+        single_counts_under_degree_rust,
+        &construct
+    )?)?;
+    construct.add_function(wrap_pyfunction!(counts_list_under_degree_rust, &construct)?)?;
+    construct.add_function(wrap_pyfunction!(
+        shot_counts_selected_clreg_checker,
+        &construct
+    )?)?;
 
     let hadamard = PyModule::new(parent_module.py(), "hadamard")?;
     hadamard.add_function(wrap_pyfunction!(purity_echo_core_rust, &hadamard)?)?;
