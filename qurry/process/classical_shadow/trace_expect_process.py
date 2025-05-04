@@ -1,40 +1,33 @@
-"""Rho Dictionary Processing - Classical Shadow - Classical Shadow
-(:mod:`qurry.process.classical_shadow.rho_dict_process`)
+"""Post Processing - Classical Shadow - Trace-Expectation Process
+(:mod:`qurry.process.classical_shadow.trace_expect_process`)
 
 This module is used to process the rho dictionary for classical shadow.
 """
 
-from typing import Literal, Union, TypedDict
+from typing import Union
+from multiprocessing import get_context
 from itertools import combinations
 import numpy as np
 
-
-class ClassicalShadowBasic(TypedDict):
-    """The basic information of the classical shadow."""
-
-    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-    """The dictionary of Rho M."""
-    classical_registers_actually: list[int]
-    """The list of the selected_classical_registers."""
-    taking_time: float
-    """The time taken for the calculation."""
-
-
-class ClassicalShadowExpectation(ClassicalShadowBasic):
-    """The expectation value of Rho."""
-
-    expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]]
-    """The expectation value of Rho."""
+from .matrix_calcution import (
+    select_single_trace_rho_method,
+    SingleTraceRhoMethod,
+    select_all_trace_rho_by_einsum_aij_bji_to_ab,
+    AllTraceRhoMethod,
+    PostProcessingBackendClassicalShadow,
+    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+)
+from ...tools import DEFAULT_POOL_SIZE
 
 
 def expectation_rho_core(
-    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     selected_classical_registers_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     """Calculate the expectation value of Rho.
 
     Args:
-        rho_m_dict (dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
             The dictionary of Rho M.
             The dictionary of Rho M I.
         selected_classical_registers_sorted (list[int]):
@@ -44,39 +37,24 @@ def expectation_rho_core(
         np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The expectation value of Rho.
     """
 
-    expect_rho = np.zeros(
-        (
-            2 ** len(selected_classical_registers_sorted),
-            2 ** len(selected_classical_registers_sorted),
-        ),
-        dtype=np.complex128,
+    expect_rho = np.sum(rho_m_list, axis=0, dtype=np.complex128)
+    assert expect_rho.shape == (2 ** len(selected_classical_registers_sorted),) * 2, (
+        f"The shape of expect_rho: {expect_rho.shape} "
+        + f"and the shape of rho_m_list: {rho_m_list[0].shape} are different."
     )
-    expect_rho += np.sum(list(rho_m_dict.values()), axis=0, dtype=np.complex128)
-    expect_rho /= len(rho_m_dict)
+    expect_rho /= len(rho_m_list)
 
     return expect_rho
 
 
-class ClassicalShadowPurity(ClassicalShadowBasic):
-    """The expectation value of Rho."""
-
-    purity: Union[float, np.float64]
-    """The purity calculated by classical shadow."""
-    entropy: Union[float, np.float64]
-    """The entropy calculated by classical shadow."""
-
-
-TraceRhoMethod = Literal[
-    "trace_of_matmul",
-    "quick_trace_of_matmul",
-    "einsum_ij_ji",
-]
-"""The method to calculate the trace of Rho square."""
+TraceMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
 
 
 def trace_rho_square_core(
-    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    method: TraceRhoMethod = "quick_trace_of_matmul",
+    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
+    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    multiprocess: bool = True,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 
@@ -174,57 +152,54 @@ def trace_rho_square_core(
             }
 
     Args:
-        rho_m_dict (dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
             The dictionary of Rho M.
-        method (TraceRhoMethod, optional):
+        trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
+                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
                 Which is the fastest method to calculate the trace.
+                Due to handle all computation in einsum.
+            - "einsum_aij_bji_to_ab":
+                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                by the usage of einsum.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
+            If False, the method will be calculated by single process.
 
     Returns:
         np.complex128: The trace of Rho square.
     """
 
-    num_n_u = len(rho_m_dict)
-    rho_traced_sum: np.complex128 = np.complex128(0)
+    if trace_method == "einsum_aij_bji_to_ab":
+        rho_m_array = np.array(rho_m_list)
+        trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(backend)
+        return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
 
-    rho_m_dict_combinations = combinations(rho_m_dict.items(), 2)
+    num_n_u = len(rho_m_list)
+    rho_m_list_combinations = combinations(rho_m_list, 2)
 
-    if method == "trace_of_matmul":
-        trace_array = np.array(
-            [
-                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
-                for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
-            ]
-        )
+    addition_method = select_single_trace_rho_method(trace_method, backend)
+
+    if multiprocess:
+        pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+        with pool as p:
+            trace_result_iterator = p.imap_unordered(
+                addition_method,
+                rho_m_list_combinations,
+                chunksize=int((num_n_u * (num_n_u - 1) / 2) / DEFAULT_POOL_SIZE) + 1,
+            )
+
+            trace_array = np.fromiter(trace_result_iterator, dtype=np.complex128)
     else:
         trace_array = np.array(
-            [
-                np.einsum("ij,ji", rho_m1, rho_m2) + np.einsum("ij,ji", rho_m2, rho_m1)
-                for (_idx1, rho_m1), (_idx2, rho_m2) in rho_m_dict_combinations
-            ]
+            [addition_method(rho_m1_and_rho_m2) for rho_m1_and_rho_m2 in rho_m_list_combinations]
         )
+    rho_traced_sum = trace_array.sum(dtype=np.complex128)
 
-    rho_traced_sum += trace_array.sum(dtype=np.complex128)
     rho_traced_sum /= num_n_u * (num_n_u - 1)
 
-    assert len(trace_array) * 2 == num_n_u * (num_n_u - 1), (
-        f"The number of combinations: {len(trace_array)} "
-        + f"and the number of num_n_u * (num_n_u - 1): {num_n_u * (num_n_u - 1)} are different."
-    )
-
     return rho_traced_sum
-
-
-class ClassicalShadowComplex(ClassicalShadowBasic):
-    """The expectation value of Rho and the purity calculated by classical shadow."""
-
-    expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]]
-    """The expectation value of Rho."""
-    purity: Union[float, np.float64]
-    """The purity calculated by classical shadow."""
-    entropy: Union[float, np.float64]
-    """The entropy calculated by classical shadow."""
