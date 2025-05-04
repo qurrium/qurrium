@@ -66,7 +66,7 @@ pub fn entangled_entropy_core_2_rust(
     for q_i in selected_classical_registers_actual.iter() {
         assert!(
             *q_i >= 0 && *q_i < measured_system_size,
-            "Invalid selected classical registers: {}",
+            "Invalid selected classical registers: {:?}",
             selected_classical_registers_actual
         );
     }
