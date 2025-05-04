@@ -3,17 +3,11 @@
 
 """
 
-from typing import Literal, Union, Any, Iterable
-import functools as ft
+from typing import Literal, Union, Any
 import numpy as np
 
-from .unitary_set import (
-    PRECOMPUTED_RHO_M_K_I,
-    U_M_MATRIX,
-    IDENTITY,
-    OUTER_PRODUCT,
-    PRECOMPUTED_RHO_M_K_I_2,
-)
+from .unitary_set import U_M_MATRIX, IDENTITY, OUTER_PRODUCT
+from .matrix_calcution import rho_mki_kronecker_product_numpy
 from ..utils import counts_under_degree_pyrust
 
 
@@ -93,22 +87,6 @@ def rho_mk_cell_py(
     return idx, rho_m_k_data, selected_classical_registers_sorted
 
 
-def rho_mki_kronecker_product_maker(
-    key_list_of_precomputed: list[tuple[int, str]],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    r"""Kronecker product maker for :math:`\rho_{mki}`.
-
-    Args:
-        key_list_of_precomputed (list[tuple[int, str]]):
-            The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-    Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-            The Kronecker product of the :math:`\rho_{mki}`.
-    """
-    return ft.reduce(np.kron, [PRECOMPUTED_RHO_M_K_I[key] for key in key_list_of_precomputed])
-
-
 def rho_mk_cell_py_precomputed(
     idx: int,
     single_counts: dict[str, int],
@@ -162,7 +140,7 @@ def rho_mk_cell_py_precomputed(
     # core calculation
     rho_m_k_data: list[tuple[str, int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = []
     for bitstring, num_bitstring in single_counts_under_degree.items():
-        tmp = rho_mki_kronecker_product_maker(
+        tmp = rho_mki_kronecker_product_numpy(
             [
                 (nu_shadow_direction[q_di], s_q)
                 for q_di, s_q in zip(selected_classical_registers_sorted, bitstring)
@@ -171,19 +149,3 @@ def rho_mk_cell_py_precomputed(
         rho_m_k_data.append((bitstring, num_bitstring, tmp))
 
     return idx, rho_m_k_data, selected_classical_registers_sorted
-
-
-def rho_mki_kronecker_product_maker_2(
-    key_list_of_precomputed: Iterable[int],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    r"""Kronecker product maker for :math:`\rho_{mki}`.
-
-    Args:
-        key_list_of_precomputed (Iterable[int]):
-            The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-    Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-            The Kronecker product of the :math:`\rho_{mki}`.
-    """
-    return ft.reduce(np.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed])
