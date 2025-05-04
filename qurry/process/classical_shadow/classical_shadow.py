@@ -8,32 +8,18 @@ import warnings
 import tqdm
 import numpy as np
 
-from .rho_dict_process import (
-    expectation_rho_core,
-    trace_rho_square_core,
+from .rho_m_core import (
+    rho_m_core,
+    PostProcessingBackendClassicalShadow,
+    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    RhoMCoreMethod,
+)
+from .trace_expect_process import expectation_rho_core, trace_rho_square_core, TraceMethod
+from .container import (
     ClassicalShadowExpectation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
-    TraceRhoMethod,
 )
-from .rho_m_core import rho_m_core
-from ..availability import (
-    availablility,
-    default_postprocessing_backend,
-    PostProcessingBackendLabel,
-)
-
-
-RUST_AVAILABLE = False
-FAILED_RUST_IMPORT = None
-
-BACKEND_AVAILABLE = availablility(
-    "classical_shadow.classical_shadow",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
-)
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
 
 
 def expectation_rho(
@@ -41,9 +27,10 @@ def expectation_rho(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    rho_method: RhoMCoreMethod = "Python_flatten",
+    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
+    pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowExpectation:
     r"""Expectation value of Rho.
 
@@ -147,16 +134,24 @@ def expectation_rho(
             The list of the counts.
         random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The shadow direction of the unitary operators.
-        selected_classical_registers (Iterable[int]):
+        selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
+        rho_method (RhoMKCellMethod, optional):
+            The method to use for the calculation. Defaults to "Python_precomputed".
+            It can be either "Python" or "Python_precomputed".
+        backend (PostProcessingBackendClassicalShadow, optional):
+            It can be either "jax" or "numpy".
+            - "jax": Use JAX to calculate the Kronecker product.
+            - "numpy": Use Numpy to calculate the Kronecker product.
+            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to True.
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar.
             Defaults to None.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         ClassicalShadowExpectation: The expectation value of Rho.
@@ -170,25 +165,26 @@ def expectation_rho(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
-        shots,
-        counts,
-        random_unitary_um,
-        selected_classical_registers,
-        backend,
-        multiprocess,
+    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+        shots=shots,
+        counts=counts,
+        random_unitary_um=random_unitary_um,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        backend=backend,
+        multiprocess=multiprocess,
     )
     if pbar is not None:
-        pbar.set_description(msg)
+        pbar.set_description(f"| taking time: {taken:.4f} sec |")
 
     expect_rho = expectation_rho_core(
-        rho_m_dict=rho_m_dict,
+        rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
     return ClassicalShadowExpectation(
         expect_rho=expect_rho,
-        rho_m_dict=rho_m_dict,
+        rho_m_list=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
@@ -199,8 +195,9 @@ def trace_rho_square(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    method: TraceRhoMethod = "quick_trace_of_matmul",
+    rho_method: RhoMCoreMethod = "Python_flatten",
+    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
+    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
@@ -215,40 +212,26 @@ def trace_rho_square(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the postprocessing.
-            Defaults to DEFAULT_PROCESS_BACKEND.
-        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
+        rho_method (RhoMKCellMethod, optional):
+            The method to use for the calculation. Defaults to "Python_precomputed".
+            It can be either "Python" or "Python_precomputed".
+        trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
-            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "hilbert_schmidt_inner_product":
-                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-                Defaults to "trace_of_matmul".
-
-            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
-            or Hilbert-Schmidt operator
-            Although it considers $Tr(A^*B)$ where A, B are matrices,
-            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert-Schmidt operator on Google Cirq,
-            the quantum computing package by Google, just uses the following line:
-
-            .. code-block:: python
-                np.einsum('ij,ij', m1.conj(), m2)
-
-            This inspired us to use
-
-            .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
-                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
-
-            to calculate the trace. And somehow, it is the same as
-
-            .. code-block:: python
-                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
-
-            Also, the einsum method is much faster than the matmul method for
-            it decreases the complexity from O(n^3) to O(n^2)
-            on the unused matrix elements of matrix product.
+            - "trace_of_matmul":
+                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+            - "quick_trace_of_matmul" or "einsum_ij_ji":
+                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
+                Which is the fastest method to calculate the trace.
+                Due to handle all computation in einsum.
+            - "einsum_aij_bji_to_ab":
+                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                by the usage of einsum.
+        backend (PostProcessingBackendClassicalShadow, optional):
+            It can be either "jax" or "numpy".
+            - "jax": Use JAX to calculate the Kronecker product.
+            - "numpy": Use Numpy to calculate the Kronecker product.
+            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to True.
         pbar (Optional[tqdm.tqdm], optional):
@@ -272,18 +255,23 @@ def trace_rho_square(
             + f"The number of counts is {len(counts)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
-        shots,
-        counts,
-        random_unitary_um,
-        selected_classical_registers,
-        backend,
-        multiprocess,
+    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+        shots=shots,
+        counts=counts,
+        random_unitary_um=random_unitary_um,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        backend=backend,
+        multiprocess=multiprocess,
     )
     if pbar is not None:
-        pbar.set_description(msg)
+        pbar.set_description(f"| taking time: {taken:.4f} sec |")
 
-    trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict, method=method)
+    trace_rho_sum = trace_rho_square_core(
+        rho_m_list=rho_m_list,
+        trace_method=trace_method,
+        backend=backend,
+    )
     trace_rho_sum_real = trace_rho_sum.real
     if trace_rho_sum.imag != 0:
         warnings.warn(
@@ -295,7 +283,7 @@ def trace_rho_square(
     return ClassicalShadowPurity(
         purity=trace_rho_sum_real,
         entropy=entropy,
-        rho_m_dict=rho_m_dict,
+        rho_m_list=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
@@ -306,8 +294,9 @@ def classical_shadow_complex(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    method: TraceRhoMethod = "quick_trace_of_matmul",
+    rho_method: RhoMCoreMethod = "Python_flatten",
+    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
+    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
@@ -415,40 +404,26 @@ def classical_shadow_complex(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the postprocessing.
-            Defaults to DEFAULT_PROCESS_BACKEND.
-        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
+        rho_method (RhoMKCellMethod, optional):
+            The method to use for the calculation. Defaults to "Python_precomputed".
+            It can be either "Python" or "Python_precomputed".
+        trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
-            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "hilbert_schmidt_inner_product":
-                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-                Defaults to "trace_of_matmul".
-
-            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
-            or Hilbert-Schmidt operator
-            Although it considers $Tr(A^*B)$ where A, B are matrices,
-            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert-Schmidt operator on Google Cirq,
-            the quantum computing package by Google, just uses the following line:
-
-            .. code-block:: python
-                np.einsum('ij,ij', m1.conj(), m2)
-
-            This inspired us to use
-
-            .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
-                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
-
-            to calculate the trace. And somehow, it is the same as
-
-            .. code-block:: python
-                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
-
-            Also, the einsum method is much faster than the matmul method for
-            it decreases the complexity from O(n^3) to O(n^2)
-            on the unused matrix elements of matrix product.
+            - "trace_of_matmul":
+                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+            - "quick_trace_of_matmul" or "einsum_ij_ji":
+                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
+                Which is the fastest method to calculate the trace.
+                Due to handle all computation in einsum.
+            - "einsum_aij_bji_to_ab":
+                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                by the usage of einsum.
+        backend (PostProcessingBackendClassicalShadow, optional):
+            It can be either "jax" or "numpy".
+            - "jax": Use JAX to calculate the Kronecker product.
+            - "numpy": Use Numpy to calculate the Kronecker product.
+            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to True.
         pbar (Optional[tqdm.tqdm], optional):
@@ -467,23 +442,28 @@ def classical_shadow_complex(
             + f"not {type(selected_classical_registers)}."
         )
 
-    rho_m_dict, selected_classical_registers_sorted, msg, taken = rho_m_core(
-        shots,
-        counts,
-        random_unitary_um,
-        selected_classical_registers,
-        backend,
-        multiprocess,
+    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+        shots=shots,
+        counts=counts,
+        random_unitary_um=random_unitary_um,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        backend=backend,
+        multiprocess=multiprocess,
     )
     if pbar is not None:
-        pbar.set_description(msg)
+        pbar.set_description(f"| taking time: {taken:.4f} sec |")
 
     expect_rho = expectation_rho_core(
-        rho_m_dict=rho_m_dict,
+        rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
-    trace_rho_sum = trace_rho_square_core(rho_m_dict=rho_m_dict, method=method)
+    trace_rho_sum = trace_rho_square_core(
+        rho_m_list=rho_m_list,
+        trace_method=trace_method,
+        backend=backend,
+    )
     if trace_rho_sum.imag != 0:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
@@ -496,7 +476,7 @@ def classical_shadow_complex(
         expect_rho=expect_rho,
         purity=trace_rho_sum_real,
         entropy=entropy,
-        rho_m_dict=rho_m_dict,
+        rho_m_list=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
