@@ -8,17 +8,23 @@ import warnings
 import tqdm
 import numpy as np
 
-from .matrix_calcution import DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW
-from .rho_m_core import rho_m_core, PostProcessingBackendClassicalShadow, RhoMCoreMethod
-from .trace_expect_process import expectation_rho_core, trace_rho_square_core, TraceMethod
+from .matrix_calcution import SingleTraceRhoMethod, AllTraceRhoMethod
+from .rho_m_core import (
+    rho_m_core,
+    PostProcessingBackendLabel,
+    DEFAULT_PROCESS_BACKEND,
+    RhoMCoreMethod,
+)
+from .trace_expect_process import (
+    expectation_rho_core,
+    trace_rho_square_core,
+    DEFAULT_ALL_TRACE_RHO_METHOD,
+)
 from .container import (
     ClassicalShadowExpectation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
-
-DEFAULT_PROCESS_BACKEND = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW
-PostProcessingBackendLabel = PostProcessingBackendClassicalShadow
 
 
 def expectation_rho(
@@ -26,8 +32,8 @@ def expectation_rho(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_precomputed",
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowExpectation:
     r"""Expectation value of Rho.
@@ -136,12 +142,7 @@ def expectation_rho(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
-        backend (PostProcessingBackendClassicalShadow, optional):
-            It can be either "jax" or "numpy".
-            - "jax": Use JAX to calculate the Kronecker product.
-            - "numpy": Use Numpy to calculate the Kronecker product.
-            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
+            It can be either "numpy" or "numpy_precomputed".
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
@@ -190,9 +191,9 @@ def trace_rho_square(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_precomputed",
-    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
     """Trace of Rho square.
@@ -208,8 +209,8 @@ def trace_rho_square(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
-        trace_method (TraceMethod , optional):
+            It can be either "numpy" or "numpy_precomputed".
+        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
@@ -217,15 +218,12 @@ def trace_rho_square(
                 Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
-            - "einsum_aij_bji_to_ab":
+            - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho
-                by the usage of einsum.
-        backend (PostProcessingBackendClassicalShadow, optional):
-            It can be either "jax" or "numpy".
-            - "jax": Use JAX to calculate the Kronecker product.
-            - "numpy": Use Numpy to calculate the Kronecker product.
-            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -258,11 +256,7 @@ def trace_rho_square(
     if pbar is not None:
         pbar.set_description(f"| taking time: {taken:.4f} sec |")
 
-    trace_rho_sum = trace_rho_square_core(
-        rho_m_list=rho_m_list,
-        trace_method=trace_method,
-        backend=backend,
-    )
+    trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
     trace_rho_sum_real = trace_rho_sum.real
     if trace_rho_sum.imag != 0:
         warnings.warn(
@@ -285,9 +279,9 @@ def classical_shadow_complex(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_precomputed",
-    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
@@ -396,8 +390,8 @@ def classical_shadow_complex(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
-        trace_method (TraceMethod , optional):
+            It can be either "numpy" or "numpy_precomputed".
+        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
@@ -405,15 +399,12 @@ def classical_shadow_complex(
                 Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
-            - "einsum_aij_bji_to_ab":
+            - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho
-                by the usage of einsum.
-        backend (PostProcessingBackendClassicalShadow, optional):
-            It can be either "jax" or "numpy".
-            - "jax": Use JAX to calculate the Kronecker product.
-            - "numpy": Use Numpy to calculate the Kronecker product.
-            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        backend (PostProcessingBackend, optional):
+            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -446,11 +437,7 @@ def classical_shadow_complex(
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
-    trace_rho_sum = trace_rho_square_core(
-        rho_m_list=rho_m_list,
-        trace_method=trace_method,
-        backend=backend,
-    )
+    trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
     if trace_rho_sum.imag != 0:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "

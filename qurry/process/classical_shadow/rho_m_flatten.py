@@ -11,8 +11,8 @@ import numpy as np
 from .matrix_calcution import (
     select_random_unitary_um_to_nu_dir_array_under_degree,
     select_process_single_count,
-    PostProcessingBackendClassicalShadow,
-    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    ClassicalShadowPythonMethod,
+    DEFAULT_PYTHON_METHOD,
 )
 from ..utils import counts_list_under_degree_pyrust, shot_counts_selected_clreg_checker_pyrust
 
@@ -22,7 +22,7 @@ def rho_m_flatten_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> tuple[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]], list[int], float]:
     """Rho M Cell Core calculation and directly return :cls:`ClassicalShadowComplex`.
 
@@ -35,10 +35,7 @@ def rho_m_flatten_core(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
-        method (RhoMKCellMethod, optional):
-            The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
-        backend (PostProcessingBackendClassicalShadow, optional):
+        method (ClassicalShadowPythonMethod, optional):
             It can be either "jax" or "numpy".
             - "jax": Use JAX to calculate the Kronecker product.
             - "numpy": Use Numpy to calculate the Kronecker product.
@@ -68,14 +65,14 @@ def rho_m_flatten_core(
     )
 
     random_unitary_um_to_nu_dir_array_under_degree = (
-        select_random_unitary_um_to_nu_dir_array_under_degree(backend=backend)
+        select_random_unitary_um_to_nu_dir_array_under_degree(method=method)
     )
     random_unitary_ids_array_under_degree = random_unitary_um_to_nu_dir_array_under_degree(
         random_unitary_um,
         selected_classical_registers_sorted,
     )
 
-    process_single_count = select_process_single_count(backend=backend)
+    process_single_count = select_process_single_count(method=method)
     rho_m_list = [
         process_single_count(nu_dir_array, single_counts)
         for nu_dir_array, single_counts in zip(

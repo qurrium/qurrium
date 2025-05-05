@@ -9,9 +9,13 @@ from typing import Literal, Union
 import numpy as np
 
 from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
-from .matrix_calcution import JAX_AVAILABLE, FAILED_JAX_IMPORT, PostProcessingBackendClassicalShadow
-from ..availability import availablility
+from .matrix_calcution import JAX_AVAILABLE, FAILED_JAX_IMPORT
 from ..utils import shot_counts_selected_clreg_checker_pyrust
+from ..availability import (
+    availablility,
+    PostProcessingBackendLabel,
+    default_postprocessing_backend,
+)
 from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
@@ -48,6 +52,7 @@ BACKEND_AVAILABLE = availablility(
         ("JAX", JAX_AVAILABLE, FAILED_JAX_IMPORT),
     ],
 )
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
 
 
 # pylint: disable=invalid-name
@@ -62,7 +67,7 @@ def rho_m_core_py(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    rho_method: RhoMKCellMethod = "Python_precomputed",
+    rho_method: RhoMKCellMethod = "numpy_precomputed",
 ) -> tuple[
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -81,7 +86,7 @@ def rho_m_core_py(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
+            It can be either "numpy" or "numpy_precomputed".
 
     Returns:
         tuple[
@@ -105,7 +110,7 @@ def rho_m_core_py(
     selected_qubits_checked: dict[int, bool] = {}
 
     cell_calculation_method = (
-        rho_mk_cell_py_precomputed if rho_method == "Python_precomputed" else rho_mk_cell_py
+        rho_mk_cell_py_precomputed if rho_method == "numpy_precomputed" else rho_mk_cell_py
     )
 
     cell_calculation_results = [
@@ -143,8 +148,8 @@ def rho_m_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    rho_method: RhoMCoreMethod = "Python_precomputed",
-    backend: PostProcessingBackendClassicalShadow = "numpy",
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -163,12 +168,9 @@ def rho_m_core(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "Python" or "Python_precomputed".
-        backend (PostProcessingBackendClassicalShadow, optional):
-            It can be either "jax" or "numpy".
-            - "jax": Use JAX to calculate the Kronecker product.
-            - "numpy": Use Numpy to calculate the Kronecker product.
-            Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
+            It can be either "numpy" or "numpy_precomputed".
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[
@@ -193,7 +195,7 @@ def rho_m_core(
         )
         backend = "Python"
 
-    if rho_method in ["Python", "Python_precomputed"]:
+    if rho_method in ["numpy", "numpy_precomputed"]:
         return rho_m_core_py(
             shots=shots,
             counts=counts,

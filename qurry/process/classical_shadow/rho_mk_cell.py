@@ -11,7 +11,7 @@ from .matrix_calcution import rho_mki_kronecker_product_numpy
 from ..utils import counts_under_degree_pyrust
 
 
-RhoMKCellMethod = Literal["Python", "Python_precomputed"]
+RhoMKCellMethod = Literal["numpy", "numpy_precomputed"]
 
 
 def rho_mk_cell_py(

@@ -258,15 +258,13 @@ BACKEND_AVAILABLE = availablility(
         ("jax", JAX_AVAILABLE, FAILED_JAX_IMPORT),
     ],
 )
-PostProcessingBackendClassicalShadow = Literal["jax", "numpy"]
-"""The backend to use for the calculation of classical shadow.
+ClassicalShadowPythonMethod = Literal["jax", "numpy"]
+"""The method to use for the calculation of classical shadow.
 It can be either "jax" or "numpy".
 - "jax": Use JAX to calculate the Kronecker product.
 - "numpy": Use Numpy to calculate the Kronecker product.
 """
-DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW: PostProcessingBackendClassicalShadow = (
-    "jax" if JAX_AVAILABLE else "numpy"
-)
+DEFAULT_PYTHON_METHOD: ClassicalShadowPythonMethod = "jax" if JAX_AVAILABLE else "numpy"
 """The default backend to use for the calculation of classical shadow.
 
 It can be either "jax" or "numpy".
@@ -309,54 +307,54 @@ def rho_mki_kronecker_product_numpy_2(
 
 
 def select_rho_mki_kronecker_product(
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-    r"""Select the backend for Kronecker product for :math:`\rho_{mki}`.
+    r"""Select the method for Kronecker product for :math:`\rho_{mki}`.
 
     Args:
-        backend (PostProcessingBackendClassicalShadow, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (ClassicalShadowPythonMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
 
     Returns:
         Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
             The function to calculate the Kronecker product of the :math:`\rho_{mki}`.
     """
-    if backend == "jax":
+    if method == "jax":
         if JAX_AVAILABLE:
             return rho_mki_kronecker_product_jax
         warnings.warn(
             "JAX is not available, using numpy to calculate Kronecker product.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-        backend = "numpy"
-    if backend != "numpy":
-        raise ValueError(f"Invalid backend: {backend}")
+        method = "numpy"
+    if method != "numpy":
+        raise ValueError(f"Invalid backend: {method}")
     return rho_mki_kronecker_product_numpy
 
 
 def select_rho_mki_kronecker_product_2(
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> Callable[[Iterable[int]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-    r"""Select the backend for Kronecker product for :math:`\rho_{mki}`.
+    r"""Select the method for Kronecker product for :math:`\rho_{mki}`.
 
     Args:
-        backend (PostProcessingBackendClassicalShadow, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (ClassicalShadowPythonMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
 
     Returns:
         Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
             The function to calculate the Kronecker product of the :math:`\rho_{mki}`.
     """
-    if backend == "jax":
+    if method == "jax":
         if JAX_AVAILABLE:
             return rho_mki_kronecker_product_jax_2
         warnings.warn(
             "JAX is not available, using numpy to calculate Kronecker product.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-        backend = "numpy"
-    if backend != "numpy":
-        raise ValueError(f"Invalid backend: {backend}")
+        method = "numpy"
+    if method != "numpy":
+        raise ValueError(f"Invalid backend: {method}")
     return rho_mki_kronecker_product_numpy_2
 
 
@@ -386,16 +384,16 @@ def random_unitary_um_to_nu_dir_array_under_degree_numpy(
 
 
 def select_random_unitary_um_to_nu_dir_array_under_degree(
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> Callable[
     [dict[int, dict[int, Union[Literal[0, 1, 2], int]]], list[int]],
     Union[np.ndarray[tuple[int, int], np.dtype[np.int32]], jnp.ndarray],
 ]:
-    """Select the backend for converting random unitary um to nu_dir_array.
+    """Select the method for converting random unitary um to nu_dir_array.
 
     Args:
-        backend (PostProcessingBackendClassicalShadow, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (ClassicalShadowPythonMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
 
     Returns:
         Callable[
@@ -403,16 +401,16 @@ def select_random_unitary_um_to_nu_dir_array_under_degree(
             Union[np.ndarray[tuple[int, int], np.dtype[np.int32]], jnp.ndarray]
         ]: The function to convert random unitary um to nu_dir_array.
     """
-    if backend == "jax":
+    if method == "jax":
         if JAX_AVAILABLE:
             return random_unitary_um_to_nu_dir_array_under_degree_jax
         warnings.warn(
             "JAX is not available, using numpy to calculate Kronecker product.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-        backend = "numpy"
-    if backend != "numpy":
-        raise ValueError(f"Invalid backend: {backend}")
+        method = "numpy"
+    if method != "numpy":
+        raise ValueError(f"Invalid backend: {method}")
     return random_unitary_um_to_nu_dir_array_under_degree_numpy
 
 
@@ -449,16 +447,16 @@ def process_single_count_numpy(
 
 
 def select_process_single_count(
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> Callable[
     [np.ndarray[tuple[int], np.dtype[np.int32]], dict[str, int]],
     np.ndarray[tuple[int, int], np.dtype[np.complex128]],
 ]:
-    """Select the backend for processing a single count.
+    """Select the method for processing a single count.
 
     Args:
-        backend (PostProcessingBackendClassicalShadow, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (ClassicalShadowPythonMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
 
     Returns:
         Callable[
@@ -467,16 +465,16 @@ def select_process_single_count(
         ]:
             The function to process a single count.
     """
-    if backend == "jax":
+    if method == "jax":
         if JAX_AVAILABLE:
             return process_single_count_jax
         warnings.warn(
             "JAX is not available, using numpy to calculate Kronecker product.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-        backend = "numpy"
-    if backend != "numpy":
-        raise ValueError(f"Invalid backend: {backend}")
+        method = "numpy"
+    if method != "numpy":
+        raise ValueError(f"Invalid backend: {method}")
     return process_single_count_numpy
 
 
@@ -528,7 +526,6 @@ SingleTraceRhoMethod = Literal[
     np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
 - "quick_trace_of_matmul" or "einsum_ij_ji": 
     Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-
 """
 
 
@@ -584,17 +581,24 @@ def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
     return sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1))
 
 
-AllTraceRhoMethod = Literal["einsum_aij_bji_to_ab"]
+AllTraceRhoMethod = Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]
 """The method to calculate the all trace of Rho square.
 
-- "einsum_aij_bji_to_ab":
+- "einsum_aij_bji_to_ab_numpy":
     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+    This is the fastest implementation to calculate the trace of Rho 
+    if JAX is not available.
+- "einsum_aij_bji_to_ab_jax":
+    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
     This is the fastest implementation to calculate the trace of Rho.
 """
+DEFAULT_ALL_TRACE_RHO_METHOD: AllTraceRhoMethod = (
+    "einsum_aij_bji_to_ab_jax" if JAX_AVAILABLE else "einsum_aij_bji_to_ab_numpy"
+)
 
 
 def select_all_trace_rho_by_einsum_aij_bji_to_ab(
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> Callable[
     [np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]],
     np.complex128,
@@ -602,21 +606,26 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
     """Select the method to calculate the trace of Rho square.
 
     Args:
-        backend (PostProcessingBackendClassicalShadow, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (AllTraceRhoMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
+            It can be either "einsum_aij_bji_to_ab_numpy" or "einsum_aij_bji_to_ab_jax".
+            - "einsum_aij_bji_to_ab_numpy":
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            This is the fastest implementation to calculate the trace of Rho.
 
     Returns:
         Callable[[np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]], np.complex128]:
             The function to calculate the trace of Rho.
     """
-    if backend == "jax":
+    if method == "einsum_aij_bji_to_ab_jax":
         if JAX_AVAILABLE:
             return all_trace_rho_by_einsum_aij_bji_to_ab_jax
         warnings.warn(
             "JAX is not available, using numpy to calculate all trace.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-        backend = "numpy"
-    if backend != "numpy":
-        raise ValueError(f"Invalid backend: {backend}")
+    if method != "einsum_aij_bji_to_ab_numpy":
+        raise ValueError(f"Invalid backend: {method}")
     return all_trace_rho_by_einsum_aij_bji_to_ab_numpy

@@ -5,7 +5,6 @@ This module is used to process the rho dictionary for classical shadow.
 """
 
 from typing import Union
-import warnings
 from itertools import combinations
 import numpy as np
 
@@ -14,8 +13,7 @@ from .matrix_calcution import (
     SingleTraceRhoMethod,
     select_all_trace_rho_by_einsum_aij_bji_to_ab,
     AllTraceRhoMethod,
-    PostProcessingBackendClassicalShadow,
-    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    DEFAULT_ALL_TRACE_RHO_METHOD,
 )
 
 
@@ -46,13 +44,9 @@ def expectation_rho_core(
     return expect_rho
 
 
-TraceMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
-
-
 def trace_rho_square_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    trace_method: TraceMethod = "einsum_aij_bji_to_ab",
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 
@@ -160,30 +154,26 @@ def trace_rho_square_core(
                 Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
-            - "einsum_aij_bji_to_ab":
+            - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho
-                by the usage of einsum.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
     Returns:
         np.complex128: The trace of Rho square.
     """
 
-    if trace_method == "einsum_aij_bji_to_ab":
+    if trace_method in ["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]:
         rho_m_array = np.array(rho_m_list)
-        trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(backend)
-        return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
-    if backend == "jax":
-        warnings.warn(
-            "'trace_of_matmul', 'quick_trace_of_matmul', 'einsum_ij_ji' "
-            + "methods are not implemented in jax.",
-            RuntimeWarning,
+        trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(
+            trace_method  # type: ignore[assignment]
         )
+        return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
 
     num_n_u = len(rho_m_list)
     rho_m_list_combinations = combinations(rho_m_list, 2)
 
-    addition_method = select_single_trace_rho_method(trace_method)
+    addition_method = select_single_trace_rho_method(trace_method)  # type: ignore[assignment]
     trace_array = np.array(
         [addition_method(rho_m1_and_rho_m2) for rho_m1_and_rho_m2 in rho_m_list_combinations]
     )
