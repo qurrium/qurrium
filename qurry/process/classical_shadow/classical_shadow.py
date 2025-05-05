@@ -152,8 +152,7 @@ def expectation_rho(
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar.
-            Defaults to None.
+            The progress bar. Defaults to None.
 
     Returns:
         ClassicalShadowExpectation: The expectation value of Rho.
@@ -185,7 +184,7 @@ def expectation_rho(
 
     return ClassicalShadowExpectation(
         expect_rho=expect_rho,
-        rho_m_list=dict(enumerate(rho_m_list)),
+        rho_m_dict=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
@@ -271,14 +270,16 @@ def trace_rho_square(
     if trace_rho_sum.imag != 0:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
-            + f"The imaginary part is {trace_rho_sum.imag}.",
+            + f"The imaginary part is {trace_rho_sum.imag}."
+            + f"method: {trace_method}, {rho_method}, {backend}",
+            RuntimeWarning,
         )
     entropy = -np.log2(trace_rho_sum_real)
 
     return ClassicalShadowPurity(
         purity=trace_rho_sum_real,
         entropy=entropy,
-        rho_m_list=dict(enumerate(rho_m_list)),
+        rho_m_dict=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )
@@ -456,7 +457,9 @@ def classical_shadow_complex(
     if trace_rho_sum.imag != 0:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
-            + f"The imaginary part is {trace_rho_sum.imag}.",
+            + f"The imaginary part is {trace_rho_sum.imag}."
+            + f"method: {trace_method}, {rho_method}, {backend}",
+            RuntimeWarning,
         )
     trace_rho_sum_real = trace_rho_sum.real
     entropy = -np.log2(trace_rho_sum_real)
@@ -465,7 +468,7 @@ def classical_shadow_complex(
         expect_rho=expect_rho,
         purity=trace_rho_sum_real,
         entropy=entropy,
-        rho_m_list=dict(enumerate(rho_m_list)),
+        rho_m_dict=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
     )

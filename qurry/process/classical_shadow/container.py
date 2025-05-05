@@ -10,7 +10,7 @@ import numpy as np
 class ClassicalShadowBasic(TypedDict):
     """The basic information of the classical shadow."""
 
-    rho_m_list: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+    rho_m_dict: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     """The dictionary of Rho M."""
     classical_registers_actually: list[int]
     """The list of the selected_classical_registers."""
