@@ -5,7 +5,9 @@
 
 import time
 from typing import Literal, Union
+from multiprocessing import get_context
 import numpy as np
+
 
 from .matrix_calcution import (
     select_process_single_count,
@@ -13,7 +15,7 @@ from .matrix_calcution import (
     DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
 )
 from ..utils import counts_list_under_degree_pyrust, shot_counts_selected_clreg_checker_pyrust
-from ...tools import ParallelManager
+from ...tools import DEFAULT_POOL_SIZE
 
 
 def rho_m_flatten_core(
@@ -76,14 +78,15 @@ def rho_m_flatten_core(
         :, selected_classical_registers_sorted
     ]
 
-    process_single_count = select_process_single_count(backend)
+    process_single_count = select_process_single_count(backend=backend)
 
     if multiprocess:
-        pool = ParallelManager()
-        rho_m_list = pool.starmap(
-            process_single_count,
-            list(zip(random_unitary_ids_array_under_degree, counts_under_degree_list)),
-        )
+        pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)
+        with pool as p:
+            rho_m_list = p.starmap(
+                process_single_count,
+                list(zip(random_unitary_ids_array_under_degree, counts_under_degree_list)),
+            )
     else:
         rho_m_list = [
             process_single_count(nu_dir_array, single_counts)

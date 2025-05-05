@@ -9,13 +9,7 @@ from typing import Literal, Union
 import numpy as np
 
 from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
-from .rho_m_flatten import rho_m_flatten_core
-from .matrix_calcution import (
-    JAX_AVAILABLE,
-    FAILED_JAX_IMPORT,
-    PostProcessingBackendClassicalShadow,
-    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-)
+from .matrix_calcution import JAX_AVAILABLE, FAILED_JAX_IMPORT, PostProcessingBackendClassicalShadow
 from ..availability import availablility
 from ..utils import shot_counts_selected_clreg_checker_pyrust
 from ..exceptions import (
@@ -58,7 +52,8 @@ BACKEND_AVAILABLE = availablility(
 
 
 # pylint: disable=invalid-name
-RhoMCoreMethod = Union[RhoMKCellMethod, Literal["Python_flatten"]]
+# RhoMCoreMethod = Union[RhoMKCellMethod, Literal["Python_flatten"]]
+RhoMCoreMethod = RhoMKCellMethod
 
 # pylint: enable=invalid-name
 
@@ -116,10 +111,6 @@ def rho_m_core_py(
     cell_calculation_method = (
         rho_mk_cell_py_precomputed if rho_method == "Python_precomputed" else rho_mk_cell_py
     )
-    expected_shape = (
-        2 ** len(selected_classical_registers_sorted),
-        2 ** len(selected_classical_registers_sorted),
-    )
 
     if multiprocess:
         pool = ParallelManager()
@@ -143,13 +134,10 @@ def rho_m_core_py(
             selected_classical_registers_sorted_result != selected_classical_registers_sorted
         )
 
-        tmp_arr = [rho_mk * num_bitstring for bitstring, num_bitstring, rho_mk in rho_m_k_data]
+        tmp_arr: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = [
+            rho_mk * num_bitstring for bitstring, num_bitstring, rho_mk in rho_m_k_data
+        ]
         tmp = sum(tmp_arr) / shots
-        assert isinstance(tmp, np.ndarray), f"Invalid rho_m type {type(tmp)} for {idx} cell."
-
-        assert (
-            tmp.shape == expected_shape
-        ), f"Invalid rho_m shape {tmp.shape}, expected {expected_shape} for {idx} cell."
         rho_m_list.append(tmp)
 
     if any(selected_qubits_checked.values()):
@@ -159,7 +147,7 @@ def rho_m_core_py(
             RuntimeWarning,
         )
 
-    taken = round(time.time() - begin, 3)
+    taken = time.time() - begin
 
     return rho_m_list, selected_classical_registers_sorted, taken
 
@@ -169,8 +157,8 @@ def rho_m_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    rho_method: RhoMCoreMethod = "Python_flatten",
-    backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
+    rho_method: RhoMCoreMethod = "Python_precomputed",
+    backend: PostProcessingBackendClassicalShadow = "numpy",
     multiprocess: bool = True,
 ) -> tuple[
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
@@ -221,16 +209,6 @@ def rho_m_core(
             PostProcessingRustUnavailableWarning,
         )
         backend = "Python"
-
-    if rho_method == "Python_flatten":
-        return rho_m_flatten_core(
-            shots=shots,
-            counts=counts,
-            random_unitary_um=random_unitary_um,
-            selected_classical_registers=selected_classical_registers,
-            backend=backend,
-            multiprocess=multiprocess,
-        )
 
     if rho_method in ["Python", "Python_precomputed"]:
         return rho_m_core_py(

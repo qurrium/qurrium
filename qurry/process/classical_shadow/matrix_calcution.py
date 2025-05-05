@@ -70,20 +70,21 @@ try:
         """
 
         keys = list(single_counts.keys())
-        values = list(single_counts.values())
+        values = jnp.array(list(single_counts.values()))
         total_count = sum(values)
 
         keys_int_array = jnp.array([list(map(int, k)) for k in keys], dtype=np.int32)
         nu_expanded = jnp.broadcast_to(nu_dir_array, (len(keys), len(nu_dir_array)))
         lookup_keys = nu_expanded * 10 + keys_int_array
 
-        rho_m_k_unweighted = [rho_mki_kronecker_product_jax_2(kl) for kl in lookup_keys]
+        rho_m_k_unweighted = jnp.array(
+            [rho_mki_kronecker_product_jax_2(kl) for kl in np.array(lookup_keys)]
+        )
 
-        # rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
-        rho_m_k_weighted = jnp.einsum("ijk,i->jk", rho_m_k_unweighted, values)
-        rho_m = rho_m_k_weighted.sum(axis=0, dtype=np.complex128)
+        rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
+        rho_m = rho_m_k_weighted.sum(axis=0)
 
-        return np.array(rho_m / total_count)
+        return np.array(rho_m / total_count, dtype=np.complex128)
 
     # single trace calculation
     def single_trace_rho_by_einsum_ij_ji_jax(
@@ -350,10 +351,7 @@ def process_single_count_numpy(
 
     rho_m_k_unweighted = [rho_mki_kronecker_product_numpy_2(kl) for kl in lookup_keys]
 
-    # rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
-    rho_m_k_weighted: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]] = np.einsum(
-        "ijk,i->jk", rho_m_k_unweighted, values
-    )
+    rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
     rho_m = rho_m_k_weighted.sum(axis=0, dtype=np.complex128)
 
     return rho_m / total_count

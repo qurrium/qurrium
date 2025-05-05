@@ -8,12 +8,8 @@ import warnings
 import tqdm
 import numpy as np
 
-from .rho_m_core import (
-    rho_m_core,
-    PostProcessingBackendClassicalShadow,
-    DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-    RhoMCoreMethod,
-)
+from .matrix_calcution import DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW
+from .rho_m_core import rho_m_core, PostProcessingBackendClassicalShadow, RhoMCoreMethod
 from .trace_expect_process import expectation_rho_core, trace_rho_square_core, TraceMethod
 from .container import (
     ClassicalShadowExpectation,
@@ -21,13 +17,16 @@ from .container import (
     ClassicalShadowComplex,
 )
 
+DEFAULT_PROCESS_BACKEND = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW
+PostProcessingBackendLabel = PostProcessingBackendClassicalShadow
+
 
 def expectation_rho(
     shots: int,
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_flatten",
+    rho_method: RhoMCoreMethod = "Python_precomputed",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
@@ -195,7 +194,7 @@ def trace_rho_square(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_flatten",
+    rho_method: RhoMCoreMethod = "Python_precomputed",
     trace_method: TraceMethod = "einsum_aij_bji_to_ab",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
@@ -294,7 +293,7 @@ def classical_shadow_complex(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    rho_method: RhoMCoreMethod = "Python_flatten",
+    rho_method: RhoMCoreMethod = "Python_precomputed",
     trace_method: TraceMethod = "einsum_aij_bji_to_ab",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
     multiprocess: bool = True,
