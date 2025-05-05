@@ -166,14 +166,14 @@ def trace_rho_square_core(
     if trace_method in ["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]:
         rho_m_array = np.array(rho_m_list)
         trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(
-            trace_method  # type: ignore[assignment]
+            trace_method
         )
         return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
 
     num_n_u = len(rho_m_list)
     rho_m_list_combinations = combinations(rho_m_list, 2)
 
-    addition_method = select_single_trace_rho_method(trace_method)  # type: ignore[assignment]
+    addition_method = select_single_trace_rho_method(trace_method)
     trace_array = np.array(
         [addition_method(rho_m1_and_rho_m2) for rho_m1_and_rho_m2 in rho_m_list_combinations]
     )

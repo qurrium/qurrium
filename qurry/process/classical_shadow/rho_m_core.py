@@ -138,7 +138,7 @@ def rho_m_core_py(
 
 
 # pylint: disable=invalid-name
-RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"]]
+RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"], str]
 """Type for rho_m_core method.
 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
 - "numpy": Use Numpy to calculate the rho_m.

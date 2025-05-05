@@ -10,8 +10,15 @@ from .unitary_set import U_M_MATRIX, IDENTITY, OUTER_PRODUCT
 from .matrix_calcution import rho_mki_kronecker_product_numpy
 from ..utils import counts_under_degree_pyrust
 
-
-RhoMKCellMethod = Literal["numpy", "numpy_precomputed"]
+# pylint: disable=invalid-name
+RhoMKCellMethod = Union[Literal["numpy", "numpy_precomputed"], str]
+"""Type for rho_mk_cell method.
+It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+- "numpy": Use Numpy to calculate the rho_m.
+- "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+Currently, "numpy_precomputed" is the best option for performance.
+"""
+# pylint: enable=invalid-name
 
 
 def rho_mk_cell_py(

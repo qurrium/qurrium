@@ -515,10 +515,13 @@ def single_trace_rho_by_einsum_ij_ji(
     return np.einsum("ij,ji", rho_m1, rho_m2) + np.einsum("ij,ji", rho_m2, rho_m1)
 
 
-SingleTraceRhoMethod = Literal[
-    "trace_of_matmul",
-    "quick_trace_of_matmul",
-    "einsum_ij_ji",
+SingleTraceRhoMethod = Union[
+    Literal[
+        "trace_of_matmul",
+        "quick_trace_of_matmul",
+        "einsum_ij_ji",
+    ],
+    str,
 ]
 """The method to calculate the trace of single Rho square.
 
@@ -581,7 +584,7 @@ def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
     return sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1))
 
 
-AllTraceRhoMethod = Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]
+AllTraceRhoMethod = Union[Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"], str]
 """The method to calculate the all trace of Rho square.
 
 - "einsum_aij_bji_to_ab_numpy":
