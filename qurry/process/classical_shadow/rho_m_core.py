@@ -16,7 +16,6 @@ from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools import ParallelManager
 
 
 # try:
@@ -64,7 +63,6 @@ def rho_m_core_py(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
     rho_method: RhoMKCellMethod = "Python_precomputed",
-    multiprocess: bool = True,
 ) -> tuple[
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -84,8 +82,6 @@ def rho_m_core_py(
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
             It can be either "Python" or "Python_precomputed".
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         tuple[
@@ -112,22 +108,12 @@ def rho_m_core_py(
         rho_mk_cell_py_precomputed if rho_method == "Python_precomputed" else rho_mk_cell_py
     )
 
-    if multiprocess:
-        pool = ParallelManager()
-        cell_calculation_results = pool.starmap(
-            cell_calculation_method,
-            [
-                (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
-                for idx, single_counts in enumerate(counts)
-            ],
+    cell_calculation_results = [
+        cell_calculation_method(
+            idx, single_counts, random_unitary_um[idx], selected_classical_registers
         )
-    else:
-        cell_calculation_results = [
-            cell_calculation_method(
-                idx, single_counts, random_unitary_um[idx], selected_classical_registers
-            )
-            for idx, single_counts in enumerate(counts)
-        ]
+        for idx, single_counts in enumerate(counts)
+    ]
 
     for idx, rho_m_k_data, selected_classical_registers_sorted_result in cell_calculation_results:
         selected_qubits_checked[idx] = (
@@ -159,7 +145,6 @@ def rho_m_core(
     selected_classical_registers: list[int],
     rho_method: RhoMCoreMethod = "Python_precomputed",
     backend: PostProcessingBackendClassicalShadow = "numpy",
-    multiprocess: bool = True,
 ) -> tuple[
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
@@ -184,8 +169,6 @@ def rho_m_core(
             - "jax": Use JAX to calculate the Kronecker product.
             - "numpy": Use Numpy to calculate the Kronecker product.
             Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
 
     Returns:
         tuple[
@@ -217,7 +200,6 @@ def rho_m_core(
             random_unitary_um=random_unitary_um,
             selected_classical_registers=selected_classical_registers,
             rho_method=rho_method,
-            multiprocess=multiprocess,
         )
 
     raise ValueError(f"Invalid backend {backend}. It should be either 'Python' or 'Rust'.")

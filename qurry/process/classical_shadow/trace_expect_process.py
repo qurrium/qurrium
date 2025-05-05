@@ -5,7 +5,7 @@ This module is used to process the rho dictionary for classical shadow.
 """
 
 from typing import Union
-from multiprocessing import get_context
+import warnings
 from itertools import combinations
 import numpy as np
 
@@ -17,7 +17,6 @@ from .matrix_calcution import (
     PostProcessingBackendClassicalShadow,
     DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
 )
-from ...tools import DEFAULT_POOL_SIZE
 
 
 def expectation_rho_core(
@@ -54,7 +53,6 @@ def trace_rho_square_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     trace_method: TraceMethod = "einsum_aij_bji_to_ab",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-    multiprocess: bool = True,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 
@@ -159,16 +157,13 @@ def trace_rho_square_core(
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
             - "einsum_aij_bji_to_ab":
-                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
                 by the usage of einsum.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
-            If False, the method will be calculated by single process.
 
     Returns:
         np.complex128: The trace of Rho square.
@@ -178,28 +173,21 @@ def trace_rho_square_core(
         rho_m_array = np.array(rho_m_list)
         trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(backend)
         return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
+    if backend == "jax":
+        warnings.warn(
+            "'trace_of_matmul', 'quick_trace_of_matmul', 'einsum_ij_ji' "
+            + "methods are not implemented in jax.",
+            RuntimeWarning,
+        )
 
     num_n_u = len(rho_m_list)
     rho_m_list_combinations = combinations(rho_m_list, 2)
 
-    addition_method = select_single_trace_rho_method(trace_method, backend)
-
-    if multiprocess:
-        pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
-        with pool as p:
-            trace_result_iterator = p.imap_unordered(
-                addition_method,
-                rho_m_list_combinations,
-                chunksize=int((num_n_u * (num_n_u - 1) / 2) / DEFAULT_POOL_SIZE) + 1,
-            )
-
-            trace_array = np.fromiter(trace_result_iterator, dtype=np.complex128)
-    else:
-        trace_array = np.array(
-            [addition_method(rho_m1_and_rho_m2) for rho_m1_and_rho_m2 in rho_m_list_combinations]
-        )
+    addition_method = select_single_trace_rho_method(trace_method)
+    trace_array = np.array(
+        [addition_method(rho_m1_and_rho_m2) for rho_m1_and_rho_m2 in rho_m_list_combinations]
+    )
     rho_traced_sum = trace_array.sum(dtype=np.complex128)
-
     rho_traced_sum /= num_n_u * (num_n_u - 1)
 
     return rho_traced_sum

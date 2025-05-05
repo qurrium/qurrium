@@ -28,7 +28,6 @@ def expectation_rho(
     selected_classical_registers: Iterable[int],
     rho_method: RhoMCoreMethod = "Python_precomputed",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-    multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowExpectation:
     r"""Expectation value of Rho.
@@ -143,8 +142,6 @@ def expectation_rho(
             - "jax": Use JAX to calculate the Kronecker product.
             - "numpy": Use Numpy to calculate the Kronecker product.
             Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
@@ -171,7 +168,6 @@ def expectation_rho(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         backend=backend,
-        multiprocess=multiprocess,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time: {taken:.4f} sec |")
@@ -197,7 +193,6 @@ def trace_rho_square(
     rho_method: RhoMCoreMethod = "Python_precomputed",
     trace_method: TraceMethod = "einsum_aij_bji_to_ab",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-    multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
     """Trace of Rho square.
@@ -219,11 +214,11 @@ def trace_rho_square(
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
             - "einsum_aij_bji_to_ab":
-                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
                 by the usage of einsum.
         backend (PostProcessingBackendClassicalShadow, optional):
@@ -231,8 +226,6 @@ def trace_rho_square(
             - "jax": Use JAX to calculate the Kronecker product.
             - "numpy": Use Numpy to calculate the Kronecker product.
             Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -261,7 +254,6 @@ def trace_rho_square(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         backend=backend,
-        multiprocess=multiprocess,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time: {taken:.4f} sec |")
@@ -296,7 +288,6 @@ def classical_shadow_complex(
     rho_method: RhoMCoreMethod = "Python_precomputed",
     trace_method: TraceMethod = "einsum_aij_bji_to_ab",
     backend: PostProcessingBackendClassicalShadow = DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW,
-    multiprocess: bool = True,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
@@ -411,11 +402,11 @@ def classical_shadow_complex(
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m_list, rho_m_list) to calculate the trace.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
                 Which is the fastest method to calculate the trace.
                 Due to handle all computation in einsum.
             - "einsum_aij_bji_to_ab":
-                Use np.einsum("aij,bji->ab", rho_m1, rho_m2) to calculate the trace.
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
                 by the usage of einsum.
         backend (PostProcessingBackendClassicalShadow, optional):
@@ -423,8 +414,6 @@ def classical_shadow_complex(
             - "jax": Use JAX to calculate the Kronecker product.
             - "numpy": Use Numpy to calculate the Kronecker product.
             Defaults to DEFAULT_PROCESS_BACKEND_CLASSICAL_SHADOW.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -448,7 +437,6 @@ def classical_shadow_complex(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         backend=backend,
-        multiprocess=multiprocess,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time: {taken:.4f} sec |")
