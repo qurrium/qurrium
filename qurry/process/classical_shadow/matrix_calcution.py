@@ -140,6 +140,10 @@ try:
         sum_off_diagonal = trace_matrix[mask].sum()
         return np.complex128(sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1)))
 
+    def set_cpu_only():
+        """Set JAX to use CPU only."""
+        jax.config.update("jax_platform_name", "cpu")
+
     JAX_AVAILABLE = True
     FAILED_JAX_IMPORT = None
 except ImportError as err:
@@ -204,7 +208,7 @@ except ImportError as err:
         """
 
         raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to calculate Kronecker product."
+            "JAX is not available, using numpy to convert the random unitary."
             + "error: "
             + str(FAILED_JAX_IMPORT)
         ) from FAILED_JAX_IMPORT
@@ -226,7 +230,7 @@ except ImportError as err:
         """
 
         raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to calculate Kronecker product."
+            "JAX is not available, using numpy to process a single count."
             + "error: "
             + str(FAILED_JAX_IMPORT)
         ) from FAILED_JAX_IMPORT
@@ -246,10 +250,17 @@ except ImportError as err:
             np.complex128: The trace of Rho.
         """
         raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to calculate Kronecker product."
+            "JAX is not available, using numpy to calculate einsum_aij_bji_to_ab."
             + "error: "
             + str(FAILED_JAX_IMPORT)
         ) from FAILED_JAX_IMPORT
+
+    def set_cpu_only():
+        """Set JAX to use CPU only."""
+        warnings.warn(
+            "JAX is not available, nothing to set." + "error: " + str(FAILED_JAX_IMPORT),
+            PostProcessingThirdPartyUnavailableWarning,
+        )
 
 
 BACKEND_AVAILABLE = availablility(
