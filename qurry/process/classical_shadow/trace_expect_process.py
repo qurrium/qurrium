@@ -44,9 +44,24 @@ def expectation_rho_core(
     return expect_rho
 
 
+TraceRhoMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
+"""The method to calculate the trace of Rho square.
+- "trace_of_matmul":
+    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+- "quick_trace_of_matmul" or "einsum_ij_ji":
+    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
+    Which is the fastest method to calculate the trace.
+    Due to handle all computation in einsum.
+- "einsum_aij_bji_to_ab_numpy":
+    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+- "einsum_aij_bji_to_ab_jax":
+    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+"""
+
+
 def trace_rho_square_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 

@@ -8,7 +8,6 @@ import warnings
 import tqdm
 import numpy as np
 
-from .matrix_calcution import SingleTraceRhoMethod, AllTraceRhoMethod
 from .rho_m_core import (
     rho_m_core,
     PostProcessingBackendLabel,
@@ -19,6 +18,7 @@ from .trace_expect_process import (
     expectation_rho_core,
     trace_rho_square_core,
     DEFAULT_ALL_TRACE_RHO_METHOD,
+    TraceRhoMethod,
 )
 from .container import (
     ClassicalShadowExpectation,
@@ -197,7 +197,7 @@ def trace_rho_square(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     rho_method: RhoMCoreMethod = "numpy_precomputed",
-    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
@@ -220,7 +220,7 @@ def trace_rho_square(
             - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
-        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
+        trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
@@ -290,7 +290,7 @@ def classical_shadow_complex(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     rho_method: RhoMCoreMethod = "numpy_precomputed",
-    trace_method: Union[SingleTraceRhoMethod, AllTraceRhoMethod] = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
@@ -406,7 +406,7 @@ def classical_shadow_complex(
             - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
-        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
+        trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.

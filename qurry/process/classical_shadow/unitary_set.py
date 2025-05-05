@@ -17,8 +17,6 @@ And the set of unitary operators :math:`U_M` will represent by following diction
 from typing import Literal, Union
 import numpy as np
 
-# import numpy.typing as npt
-
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import RXGate, RYGate, RZGate
 
