@@ -8,7 +8,13 @@ from typing import Union, Literal, Optional, Callable
 PostProcessingBackendLabel = Union[Literal["Cython", "Rust", "Python"], str]
 """The backend label for post-processing."""
 
-BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust"]
+BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "JAX"]
+"""The backend types for post-processing.
+- Python: The default backend for post-processing.
+- Cython: The Cython backend for post-processing.
+- Rust: The Rust backend for post-processing.
+- JAX: The Python backend for post-processing with JAX.
+"""
 
 
 def availablility(
