@@ -140,9 +140,14 @@ def expectation_rho(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
-        rho_method (RhoMKCellMethod, optional):
-            The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "numpy" or "numpy_precomputed".
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
         backend (PostProcessingBackendLabel, optional):
             The backend for the postprocessing.
             Defaults to DEFAULT_PROCESS_BACKEND.
@@ -207,9 +212,14 @@ def trace_rho_square(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
-        rho_method (RhoMKCellMethod, optional):
-            The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "numpy" or "numpy_precomputed".
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
         trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
@@ -388,9 +398,14 @@ def classical_shadow_complex(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
-        rho_method (RhoMKCellMethod, optional):
-            The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "numpy" or "numpy_precomputed".
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
         trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":

@@ -8,8 +8,9 @@ import warnings
 from typing import Literal, Union
 import numpy as np
 
-from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
 from .matrix_calcution import JAX_AVAILABLE, FAILED_JAX_IMPORT
+from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
+from .rho_m_flatten import rho_m_flatten_core
 from ..utils import shot_counts_selected_clreg_checker_pyrust
 from ..availability import (
     availablility,
@@ -53,13 +54,6 @@ BACKEND_AVAILABLE = availablility(
     ],
 )
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
-
-
-# pylint: disable=invalid-name
-# RhoMCoreMethod = Union[RhoMKCellMethod, Literal["Python_flatten"]]
-RhoMCoreMethod = RhoMKCellMethod
-
-# pylint: enable=invalid-name
 
 
 def rho_m_core_py(
@@ -143,6 +137,19 @@ def rho_m_core_py(
     return rho_m_list, selected_classical_registers_sorted, taken
 
 
+# pylint: disable=invalid-name
+RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"]]
+"""Type for rho_m_core method.
+It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+- "numpy": Use Numpy to calculate the rho_m.
+- "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+- "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+- "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+Currently, "numpy_precomputed" is the best option for performance.
+"""
+# pylint: enable=invalid-name
+
+
 def rho_m_core(
     shots: int,
     counts: list[dict[str, int]],
@@ -166,9 +173,14 @@ def rho_m_core(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
-        rho_method (RhoMKCellMethod, optional):
-            The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "numpy" or "numpy_precomputed".
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
 
@@ -194,6 +206,28 @@ def rho_m_core(
             PostProcessingRustUnavailableWarning,
         )
         backend = "Python"
+    if rho_method == "jax_flatten":
+        if JAX_AVAILABLE:
+            return rho_m_flatten_core(
+                shots=shots,
+                counts=counts,
+                random_unitary_um=random_unitary_um,
+                selected_classical_registers=selected_classical_registers,
+                method="jax",
+            )
+        warnings.warn(
+            "JAX is not available, using Python to calculate rho_m_flatten.",
+            PostProcessingRustUnavailableWarning,
+        )
+        rho_method = "numpy_flatten"
+    if rho_method == "numpy_flatten":
+        return rho_m_flatten_core(
+            shots=shots,
+            counts=counts,
+            random_unitary_um=random_unitary_um,
+            selected_classical_registers=selected_classical_registers,
+            method="numpy",
+        )
 
     if rho_method in ["numpy", "numpy_precomputed"]:
         return rho_m_core_py(
