@@ -7,10 +7,10 @@ from qurry.capsule import quickRead, quickJSON
 from qurry.tools.datetime import current_time
 from qurry.process.utils import counts_process_availability
 from qurry.process.utils.counts_process import (
-    single_counts_under_degree as single_counts_under_degree_py,
-    single_counts_under_degree_rust_source,
-    counts_list_under_degree as counts_list_under_degree_py,
-    counts_list_under_degree_rust_source,
+    single_counts_recount as single_counts_recount_py,
+    single_counts_recount_rust_source,
+    counts_list_recount as counts_list_recount_py,
+    counts_list_recount_rust_source,
     counts_list_vectorize_pyrust,
     counts_list_vectorize_rust_source,
 )
@@ -35,35 +35,35 @@ def test_counts_substring(test_items: list[int]):
         "Rust is not available." + f" Check the error: {counts_process_availability[2]}"
     )
 
-    counts_under_degree_py_result = single_counts_under_degree_py(easy_dummy["0"], 8, test_items)
-    counts_under_degree_rust_result = single_counts_under_degree_rust_source(
+    counts_recounted_py_result = single_counts_recount_py(easy_dummy["0"], 8, test_items)
+    counts_recounted_rust_result = single_counts_recount_rust_source(
         easy_dummy["0"], 8, test_items
     )
 
     assert all(
-        counts_under_degree_rust_result[s] == v for s, v in counts_under_degree_py_result.items()
+        counts_recounted_rust_result[s] == v for s, v in counts_recounted_py_result.items()
     ), (
-        "Rust and Python results are not equal in counts_under_degree. "
+        "Rust and Python results are not equal in counts_recount. "
         + f"test_items: {test_items}, "
-        + f"counts_under_degree_rust_result: {counts_under_degree_rust_result}, "
-        + f"counts_under_degree_py_result: {counts_under_degree_py_result}."
+        + f"counts_recount_rust_result: {counts_recounted_rust_result}, "
+        + f"counts_recount_py_result: {counts_recounted_py_result}."
     )
 
-    counts_list_under_degree_py_result = counts_list_under_degree_py(
+    counts_list_recounted_py_result = counts_list_recount_py(
         [easy_dummy["0"]], 8, test_items
     )
-    counts_list_under_degree_rust_result = counts_list_under_degree_rust_source(
+    counts_list_recounted_rust_result = counts_list_recount_rust_source(
         [easy_dummy["0"]], 8, test_items
     )
 
     assert all(
-        counts_list_under_degree_rust_result[0][s] == v
-        for s, v in counts_list_under_degree_py_result[0].items()
+        counts_list_recounted_rust_result[0][s] == v
+        for s, v in counts_list_recounted_py_result[0].items()
     ), (
-        "Rust and Python results are not equal in counts_list_under_degree. "
+        "Rust and Python results are not equal in counts_list_recount. "
         + f"test_items: {test_items}, "
-        + f"counts_list_under_degree_rust_result: {counts_list_under_degree_rust_result}."
-        + f"counts_list_under_degree_py_result: {counts_list_under_degree_py_result}, "
+        + f"counts_list_recount_rust_result: {counts_list_recounted_rust_result}."
+        + f"counts_list_recount_py_result: {counts_list_recounted_py_result}, "
     )
 
 
