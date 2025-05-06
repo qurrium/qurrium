@@ -7,6 +7,7 @@ from .counts_process import (
     counts_list_under_degree_pyrust,
     BACKEND_AVAILABLE as counts_process_availability,
     shot_counts_selected_clreg_checker_pyrust,
+    counts_list_vectorize_pyrust,
 )
 from .bit_slice import (
     qubit_selector,

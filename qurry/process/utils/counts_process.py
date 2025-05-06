@@ -12,6 +12,7 @@ try:
     counts_under_degree_rust_source = counts_process.single_counts_under_degree_rust
     counts_list_under_degree_rust_source = counts_process.counts_list_under_degree_rust
     shot_counts_selected_clreg_checker_source = counts_process.shot_counts_selected_clreg_checker
+    counts_list_vectorize_rust_source = counts_process.counts_list_vectorize_rust
 
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
@@ -37,6 +38,12 @@ except ImportError as err:
             "Rust is not available, using python to calculate shot counts selected clreg checker."
         ) from FAILED_RUST_IMPORT
 
+    def counts_list_vectorize_rust_source(*args, **kwargs):
+        """Dummy function for counts_list_vectorized_rust."""
+        raise PostProcessingRustImportError(
+            "Rust is not available, using python to calculate counts list vectorized."
+        ) from FAILED_RUST_IMPORT
+
 
 BACKEND_AVAILABLE = availablility(
     "utils.counts_process",
@@ -44,6 +51,7 @@ BACKEND_AVAILABLE = availablility(
         ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
     ],
 )
+DEFAULT_PROCESS_BACKEND = "Rust" if RUST_AVAILABLE else "Python"
 
 
 def single_counts_under_degree(
@@ -109,7 +117,7 @@ def single_counts_under_degree_pyrust(
     single_counts: dict[str, int],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
-    backend: PostProcessingBackendLabel = "Rust",
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> dict[str, int]:
     """Calculate the counts under the degree.
 
@@ -153,7 +161,7 @@ def counts_list_under_degree_pyrust(
     counts_list: list[dict[str, int]],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
-    backend: PostProcessingBackendLabel = "Rust",
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> list[dict[str, int]]:
     """Calculate the counts under the degree.
 
@@ -196,7 +204,7 @@ def shot_counts_selected_clreg_checker_pyrust(
     shots: int,
     counts: list[dict[str, int]],
     selected_classical_registers: Optional[Union[int, list[int]]] = None,
-    backend: PostProcessingBackendLabel = "Rust",
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[int, list[int]]:
     """Check whether the selected classical registers are valid.
 
@@ -243,3 +251,35 @@ def shot_counts_selected_clreg_checker_pyrust(
     ), f"Invalid selected classical registers: {selected_classical_registers}"
 
     return measured_system_size, selected_classical_registers
+
+
+def counts_list_vectorize_pyrust(
+    counts_list: list[dict[str, int]],
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+) -> list[tuple[list[list[int]], list[int]]]:
+    """Vectorized counts.
+
+    Args:
+        counts_list (list[dict[str, int]]):
+            The list of counts measured from the single quantum circuit.
+
+    Returns:
+        list[tuple[list[list[int]], list[int]]]: The counts under the degree.
+    """
+    if backend == "Rust":
+        if RUST_AVAILABLE:
+            return counts_list_vectorize_rust_source(counts_list)
+        warnings.warn(
+            "Rust is not available, using python to calculate counts list vectorized."
+            + f" Check: {FAILED_RUST_IMPORT}",
+            PostProcessingRustUnavailableWarning,
+        )
+        backend = "Python"
+
+    vectorized_counts = []
+    for single_counts in counts_list:
+        keys_int_array: list[list[int]] = [list(map(int, k)) for k in single_counts.keys()]
+        values_int_array: list[int] = list(single_counts.values())
+
+        vectorized_counts.append((keys_int_array, values_int_array))
+    return vectorized_counts
