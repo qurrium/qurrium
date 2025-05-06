@@ -70,7 +70,9 @@ pub fn counts_list_under_degree_rust(
 
 #[pyfunction]
 #[pyo3(signature = (counts))]
-pub fn counts_list_vectorized(counts: Vec<HashMap<String, i32>>) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
+pub fn counts_list_vectorize_rust(
+    counts: Vec<HashMap<String, i32>>,
+) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
     let mut counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
     for single_counts in counts {
         let mut bitstrings: Vec<Vec<i32>> = Vec::new();
