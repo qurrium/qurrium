@@ -73,18 +73,18 @@ def single_counts_under_degree(
         dict[str, int]: The counts under the degree.
     """
 
-    single_counts = {}
+    single_counts_ud = {}
     for bitstring_all, num_counts_all in single_counts.items():
         bitstring = "".join(
             bitstring_all[num_classical_register - q_i - 1]
             for q_i in selected_classical_registers_sorted
         )
-        if bitstring in single_counts:
-            single_counts[bitstring] += num_counts_all
+        if bitstring in single_counts_ud:
+            single_counts_ud[bitstring] += num_counts_all
         else:
-            single_counts[bitstring] = num_counts_all
+            single_counts_ud[bitstring] = num_counts_all
 
-    return single_counts
+    return single_counts_ud
 
 
 def counts_list_under_degree(
