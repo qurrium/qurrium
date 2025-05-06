@@ -29,6 +29,7 @@ from utils import current_time_filename, InputUnit, ResultUnit, check_unit
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
+from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend.import_simulator import (
     SIM_DEFAULT_SOURCE,
@@ -168,81 +169,96 @@ def test_quantity_unit(
         test_item (TestUnit):
             The test item.
     """
+    analysis, quantity = {}, {}
+    # rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"] + (
+    #     ["jax_flatten"] if JAX_AVAILABLE else []
+    # )
+    rho_methods = ["numpy_flatten"]
+    trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
+        ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
+    )
 
     exp_id = exp_method.measure(**test_item["measure"], backend=backend)  # type: ignore
-    analysis_01 = exp_method.exps[exp_id].analyze(**test_item["analyze"])
-    quantity_01 = analysis_01.content._asdict()
+    for rho_method in rho_methods:
+        for trace_method in trace_methods:
+            analysis[rho_method + "." + trace_method] = exp_method.exps[exp_id].analyze(
+                **test_item["analyze"],  # type: ignore
+                rho_method=rho_method,
+                trace_method=trace_method,
+            )
+            quantity[rho_method + "." + trace_method] = analysis[
+                rho_method + "." + trace_method
+            ].content._asdict()
 
-    analysis_02 = exp_method.exps[exp_id].analyze(
-        **test_item["analyze"], method="hilbert_schmidt_inner_product"
-    )
-    quantity_02 = analysis_02.content._asdict()
+            # analysis_02_tmp = exp_method.exps[exp_id].analyze(
+            #     **test_item["analyze"], counts_used=range(5)  # type: ignore
+            # )
+            # quantity_02_tmp = analysis_02_tmp.content._asdict()
 
-    # analysis_02 = exp_method.exps[exp_id].analyze(
-    #     **test_item["analyze"], counts_used=range(5)  # type: ignore
-    # )
-    # quantity_02 = analysis_02.content._asdict()
+            # analysis_03_tmp = exp_method.exps[exp_id].analyze(
+            #     **test_item["analyze"], counts_used=range(5)  # type: ignore
+            # )
+            # quantity_03_tmp = analysis_03_tmp.content._asdict()
 
-    # analysis_03 = exp_method.exps[exp_id].analyze(
-    #     **test_item["analyze"], counts_used=range(5)  # type: ignore
-    # )
-    # quantity_03 = analysis_03.content._asdict()
+            # all_system_source_keyname = (
+            #     "allSystemSource" if test_item_division == "03" else "all_system_source"
+            # )
 
-    # all_system_source_keyname = (
-    #     "allSystemSource" if test_item_division == "03" else "all_system_source"
-    # )
-
-    # assert quantity_02["entropyAllSys"] != quantity_01["entropyAllSys"], (
-    #     "The all system entropy should be different for counts_used is not same: "
-    #     + f"counts_used: {quantity_01['counts_used']} and {quantity_02['counts_used']}."
-    #     + f"{quantity_01['entropyAllSys']} != {quantity_02['entropyAllSys']}, "
-    #     + f"from {quantity_01[all_system_source_keyname]} "
-    #     + f"and {quantity_02[all_system_source_keyname]}."
-    # )
-    # assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
-    #     "The all system entropy should be the same for same all system source: "
-    #     + f"{quantity_03['entropyAllSys']} == {quantity_02['entropyAllSys']}."
-    #     + f"from {quantity_03[all_system_source_keyname]} "
-    #     + f"and {quantity_02[all_system_source_keyname]}."
-    # )
-    # assert (
-    #     quantity_02[all_system_source_keyname] == "independent"
-    # ), f"The source of all system is not independent: {quantity_02[all_system_source_keyname]}."
-    # assert "AnalysisHeader" in quantity_03[all_system_source_keyname], (
-    #     "The source of all system is not from existed analysis: "
-    #     + f"{quantity_03[all_system_source_keyname]}."
-    # )
+            # assert (
+            #     quantity_02_tmp["entropyAllSys"]
+            #     != quantity[rho_method + "." + trace_method]["entropyAllSys"]
+            # ), (
+            #     "The all system entropy should be different for counts_used is not same: "
+            #     + f"counts_used: {quantity[rho_method + "." + trace_method]['counts_used']} "
+            #     + f"and {quantity_02_tmp['counts_used']}."
+            #     + f"{quantity[rho_method + "." + trace_method]['entropyAllSys']} != "
+            #     + f"{quantity_02_tmp['entropyAllSys']}, "
+            #     + f"from {quantity[rho_method + "." + trace_method][all_system_source_keyname]} "
+            #     + f"and {quantity_02_tmp[all_system_source_keyname]}."
+            # )
+            # assert (
+            #     np.abs(quantity_03_tmp["entropyAllSys"]
+            #            - quantity_02_tmp["entropyAllSys"]) < 1e-12
+            # ), (
+            #     "The all system entropy should be the same for same all system source: "
+            #     + f"{quantity_03_tmp['entropyAllSys']} == {quantity_02_tmp['entropyAllSys']}."
+            #     + f"from {quantity_03_tmp[all_system_source_keyname]} "
+            #     + f"and {quantity_02_tmp[all_system_source_keyname]}."
+            # )
+            # assert quantity_02_tmp[all_system_source_keyname] == "independent", (
+            #     "The source of all system is not independent: "
+            #     + f"{quantity_02_tmp[all_system_source_keyname]}."
+            # )
+            # assert "AnalysisHeader" in quantity_03_tmp[all_system_source_keyname], (
+            #     "The source of all system is not from existed analysis: "
+            #     + f"{quantity_03_tmp[all_system_source_keyname]}."
+            # )
 
     if test_item_division not in result_items:
         result_items[test_item_division] = {}
-    result_items[test_item_division][test_item_name] = check_unit(
-        quantity_01,
-        "purity",
-        test_item["answer"],
-        THREDHOLD,
-        test_item_name,
-        # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-        ["entropy", "expect_rho"],
-    )
-    result_items[test_item_division][test_item_name + "_einsum_ij_ij"] = check_unit(
-        quantity_02,
-        "purity",
-        test_item["answer"],
-        THREDHOLD,
-        test_item_name,
-        # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-        ["entropy", "expect_rho"],
-    )
-    assert np.abs(quantity_01["purity"] - quantity_02["purity"]) < 1e-12, (
-        "The purity should be the same for same data: "
-        + f"trace_of_matmul: {quantity_01['purity']} == einsum_ij_ij: {quantity_02['purity']}."
-    )
 
-    assert np.abs(np.trace(quantity_01["expect_rho"]) - 1) < 1e-12, (
-        "The trace of the expect_rho should be 1: " + f"{np.trace(quantity_01['expect_rho'])}."
-    )
-    assert np.abs(np.trace(quantity_02["expect_rho"]) - 1) < 1e-12, (
-        "The trace of the expect_rho should be 1: " + f"{np.trace(quantity_02['expect_rho'])}."
+    for rho_trace_method, quantity_item in quantity.items():
+        result_items[test_item_division][test_item_name + f".{rho_trace_method}"] = check_unit(
+            quantity_item,
+            "purity",
+            test_item["answer"],
+            THREDHOLD,
+            test_item_name,
+            # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
+            ["entropy", "expect_rho"],
+        )
+        assert np.abs(quantity_item["purity"] - quantity_item["purity"]) < 1e-12, (
+            "The purity should be the same for same data: "
+            + f"trace_of_matmul: {quantity_item['purity']} == "
+            + f"einsum_ij_ij: {quantity_item['purity']}."
+        )
+        assert np.abs(np.trace(quantity_item["expect_rho"]) - 1) < 1e-12, (
+            "The trace of the expect_rho should be 1: "
+            + f"{np.trace(quantity_item['expect_rho'])}."
+        )
+
+    exp_method.exps[exp_id].write(
+        save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
 
 
