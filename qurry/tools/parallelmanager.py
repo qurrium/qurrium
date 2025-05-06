@@ -108,7 +108,7 @@ class ParallelManager:
         self,
         func: Callable[..., T_map],
         args_list: Iterable,
-        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
+        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = "spawn",
     ) -> list[T_map]:
         """This function is a wrapper for starmap from multiprocessing.
 
@@ -116,8 +116,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to None.
-                If None, use the default start method of the system.
+                Start method for multiprocessing. Defaults to "spawn".
 
         Returns:
             tqdm.tqdm[T_map]: Results.
@@ -134,7 +133,7 @@ class ParallelManager:
         self,
         func: Callable[[T_tgt], T_map],
         arg_list: Iterable[T_tgt],
-        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
+        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = "spawn",
     ) -> list[T_map]:
         """This function is a wrapper for map from multiprocessing.
 
@@ -142,8 +141,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             arg_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to None.
-                If None, use the default start method of the system.
+                Start method for multiprocessing. Defaults to "spawn".
 
         Returns:
             list[T_map]: Results.
