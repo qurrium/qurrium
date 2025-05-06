@@ -46,7 +46,7 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     randomized.add_function(wrap_pyfunction!(overlap_echo_core_rust, &randomized)?)?;
     randomized.add_function(wrap_pyfunction!(overlap_echo_core_2_rust, &randomized)?)?;
 
-    let counts_process = PyModule::new(parent_module.py(), "construct")?;
+    let counts_process = PyModule::new(parent_module.py(), "counts_process")?;
     counts_process.add_function(wrap_pyfunction!(
         single_counts_under_degree_rust,
         &counts_process
@@ -82,6 +82,7 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
 
     parent_module.add_submodule(&randomized)?;
     parent_module.add_submodule(&counts_process)?;
+    parent_module.add_submodule(&bit_slice)?;
     parent_module.add_submodule(&hadamard)?;
     parent_module.add_submodule(&dummy)?;
     parent_module.add_submodule(&test)?;
