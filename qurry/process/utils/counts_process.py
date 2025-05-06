@@ -9,7 +9,7 @@ from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavai
 try:
     from ...boorust import counts_process  # type: ignore
 
-    counts_under_degree_rust_source = counts_process.single_counts_under_degree_rust
+    single_counts_under_degree_rust_source = counts_process.single_counts_under_degree_rust
     counts_list_under_degree_rust_source = counts_process.counts_list_under_degree_rust
     shot_counts_selected_clreg_checker_source = counts_process.shot_counts_selected_clreg_checker
     counts_list_vectorize_rust_source = counts_process.counts_list_vectorize_rust
@@ -20,7 +20,7 @@ except ImportError as err:
     RUST_AVAILABLE = False
     FAILED_RUST_IMPORT = err
 
-    def counts_under_degree_rust_source(*args, **kwargs):
+    def single_counts_under_degree_rust_source(*args, **kwargs):
         """Dummy function for counts_under_degree_rust."""
         raise PostProcessingRustImportError(
             "Rust is not available, using python to calculate counts under degree."
@@ -137,7 +137,7 @@ def single_counts_under_degree_pyrust(
 
     if backend == "Rust":
         if RUST_AVAILABLE:
-            return counts_under_degree_rust_source(
+            return single_counts_under_degree_rust_source(
                 single_counts, num_classical_register, selected_classical_registers_sorted
             )
         warnings.warn(
