@@ -9,12 +9,15 @@ import numpy as np
 
 
 from .matrix_calcution import (
-    select_random_unitary_um_to_nu_dir_array_under_degree,
-    select_process_single_count,
+    select_rho_mki_kronecker_product_2,
     ClassicalShadowPythonMethod,
     DEFAULT_PYTHON_METHOD,
 )
-from ..utils import counts_list_under_degree_pyrust, shot_counts_selected_clreg_checker_pyrust
+from ..utils import (
+    counts_list_under_degree_pyrust,
+    shot_counts_selected_clreg_checker_pyrust,
+    counts_list_vectorize_pyrust,
+)
 
 
 def rho_m_flatten_core(
@@ -54,31 +57,42 @@ def rho_m_flatten_core(
         counts=counts,
         selected_classical_registers=selected_classical_registers,
     )
+    rho_mki_kronecker_product_2 = select_rho_mki_kronecker_product_2(method=method)
 
     begin = time.time()
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
+    num_classical_register = len(selected_classical_registers_sorted)
     counts_under_degree_list = counts_list_under_degree_pyrust(
         counts,
         num_classical_register=measured_system_size,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
+    counts_under_degree_list_vectorized = counts_list_vectorize_pyrust(counts_under_degree_list)
 
-    random_unitary_um_to_nu_dir_array_under_degree = (
-        select_random_unitary_um_to_nu_dir_array_under_degree(method=method)
-    )
-    random_unitary_ids_array_under_degree = random_unitary_um_to_nu_dir_array_under_degree(
-        random_unitary_um,
-        selected_classical_registers_sorted,
-    )
+    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = []
+    for per_um, (bit_array_as_list, value_array_as_list) in zip(
+        random_unitary_um.values(), counts_under_degree_list_vectorized
+    ):
 
-    process_single_count = select_process_single_count(method=method)
-    rho_m_list = [
-        process_single_count(nu_dir_array, single_counts)
-        for nu_dir_array, single_counts in zip(
-            random_unitary_ids_array_under_degree, counts_under_degree_list
+        keys_int_array: np.ndarray[tuple[int, int], np.dtype[np.int32]] = np.array(
+            bit_array_as_list, dtype=np.int32
         )
-    ]
+        nu_expanded: np.ndarray[tuple[int, int], np.dtype[np.int32]] = np.broadcast_to(
+            [per_um[ci] for ci in selected_classical_registers_sorted],
+            (len(bit_array_as_list), num_classical_register),
+        )
+        lookup_keys: np.ndarray[tuple[int, int], np.dtype[np.int32]] = (
+            nu_expanded * 10 + keys_int_array
+        )
+
+        rho_m_k_weighted = np.array(
+            [v * rho_mki_kronecker_product_2(kl) for kl, v in zip(lookup_keys, value_array_as_list)]
+        )
+
+        rho_m = rho_m_k_weighted.sum(axis=0)
+
+        rho_m_list.append(rho_m / sum(value_array_as_list))
 
     taken = time.time() - begin
 

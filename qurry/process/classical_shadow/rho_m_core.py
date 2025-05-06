@@ -80,7 +80,8 @@ def rho_m_core_py(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
-            It can be either "numpy" or "numpy_precomputed".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
 
     Returns:
         tuple[
@@ -176,10 +177,15 @@ def rho_m_core(
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            - "numpy":
+                Use Numpy to calculate the rho_m.
+            - "numpy_precomputed":
+                Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten":
+                Use JAX to calculate the rho_m with a flattening workflow.
+                Also, this method prefers CPU backend for Kronecker product calculation.
+            - "numpy_flatten":
+                Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.

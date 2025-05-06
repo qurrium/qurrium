@@ -60,63 +60,6 @@ try:
             ft.reduce(jnp.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed])
         )
 
-    # rho_m calculation
-    def random_unitary_um_to_nu_dir_array_under_degree_jax(
-        random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-        selected_classical_registers_sorted: list[int],
-    ) -> jnp.ndarray:
-        """Convert the random unitary um to nu_dir_array
-        with selected_classical_registers.
-
-        Args:
-            random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-                The shadow direction of the unitary operators.
-            selected_classical_registers_sorted (list[int]):
-                The list of the selected_classical_registers.
-
-        Returns:
-            np.ndarray[tuple[int], np.dtype[np.int32]]: The nu_dir_array.
-        """
-
-        random_unitary_ids_array = jnp.array([list(v.values()) for v in random_unitary_um.values()])
-        random_unitary_ids_array_under_degree = random_unitary_ids_array[
-            :, selected_classical_registers_sorted
-        ]
-        return random_unitary_ids_array_under_degree
-
-    def process_single_count_jax(
-        nu_dir_array: np.ndarray[tuple[int], np.dtype[np.int32]],
-        single_counts: dict[str, int],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        """Process a single count by JAX.
-
-        Args:
-            nu_dir_array (np.ndarray[tuple[int], np.dtype[np.int32]]):
-                The shadow direction of the unitary operators.
-            single_counts (dict[str, int]):
-                The single count.
-
-        Returns:
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The rho_m.
-        """
-
-        keys = list(single_counts.keys())
-        values = jnp.array(list(single_counts.values()))
-        total_count = sum(values)
-
-        keys_int_array = jnp.array([list(map(int, k)) for k in keys], dtype=np.int32)
-        nu_expanded = jnp.broadcast_to(nu_dir_array, (len(keys), len(nu_dir_array)))
-        lookup_keys = nu_expanded * 10 + keys_int_array
-
-        rho_m_k_unweighted = jnp.array(
-            [rho_mki_kronecker_product_jax_2(kl) for kl in np.array(lookup_keys)]
-        )
-
-        rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
-        rho_m = rho_m_k_weighted.sum(axis=0)
-
-        return np.array(rho_m / total_count, dtype=np.complex128)
-
     # trace summation calculation
     def all_trace_rho_by_einsum_aij_bji_to_ab_jax(
         rho_m_array: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
@@ -142,7 +85,8 @@ try:
 
     def set_cpu_only():
         """Set JAX to use CPU only."""
-        jax.config.update("jax_platform_name", "cpu")
+        if not jax.config.values["jax_platforms"]:
+            jax.config.update("jax_platforms", "cpu")
 
     JAX_AVAILABLE = True
     FAILED_JAX_IMPORT = None
@@ -185,52 +129,6 @@ except ImportError as err:
         """
         raise PostProcessingThirdPartyImportError(
             "JAX is not available, using numpy to calculate Kronecker product."
-            + "error: "
-            + str(FAILED_JAX_IMPORT)
-        ) from FAILED_JAX_IMPORT
-
-    # rho_m calculation
-    def random_unitary_um_to_nu_dir_array_under_degree_jax(
-        random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-        selected_classical_registers_sorted: list[int],
-    ) -> jnp.ndarray:
-        """Convert the random unitary um to nu_dir_array
-        with selected_classical_registers.
-
-        Args:
-            random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-                The shadow direction of the unitary operators.
-            selected_classical_registers_sorted (list[int]):
-                The list of the selected_classical_registers.
-
-        Returns:
-            jnp.ndarray: The nu_dir_array.
-        """
-
-        raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to convert the random unitary."
-            + "error: "
-            + str(FAILED_JAX_IMPORT)
-        ) from FAILED_JAX_IMPORT
-
-    def process_single_count_jax(
-        nu_dir_array: np.ndarray[tuple[int], np.dtype[np.int32]],
-        single_counts: dict[str, int],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        """Process a single count by JAX.
-
-        Args:
-            nu_dir_array (np.ndarray[tuple[int], np.dtype[np.int32]]):
-                The shadow direction of the unitary operators.
-            single_counts (dict[str, int]):
-                The single count.
-
-        Returns:
-            jnp.ndarray: The rho_m.
-        """
-
-        raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to process a single count."
             + "error: "
             + str(FAILED_JAX_IMPORT)
         ) from FAILED_JAX_IMPORT
@@ -358,6 +256,8 @@ def select_rho_mki_kronecker_product_2(
     """
     if method == "jax":
         if JAX_AVAILABLE:
+            set_cpu_only()
+            # This method only get speedup when using JAX with CPU
             return rho_mki_kronecker_product_jax_2
         warnings.warn(
             "JAX is not available, using numpy to calculate Kronecker product.",
@@ -367,126 +267,6 @@ def select_rho_mki_kronecker_product_2(
     if method != "numpy":
         raise ValueError(f"Invalid backend: {method}")
     return rho_mki_kronecker_product_numpy_2
-
-
-# rho_m calculation
-def random_unitary_um_to_nu_dir_array_under_degree_numpy(
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers_sorted: list[int],
-) -> np.ndarray[tuple[int, int], np.dtype[np.int32]]:
-    """Convert the random unitary um to nu_dir_array
-    with selected_classical_registers.
-
-    Args:
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
-        selected_classical_registers_sorted (list[int]):
-            The list of the selected_classical_registers.
-
-    Returns:
-        np.ndarray[tuple[int], np.dtype[np.int32]]: The nu_dir_array.
-    """
-
-    random_unitary_ids_array = np.array([list(v.values()) for v in random_unitary_um.values()])
-    random_unitary_ids_array_under_degree = random_unitary_ids_array[
-        :, selected_classical_registers_sorted
-    ]
-    return random_unitary_ids_array_under_degree
-
-
-def select_random_unitary_um_to_nu_dir_array_under_degree(
-    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
-) -> Callable[
-    [dict[int, dict[int, Union[Literal[0, 1, 2], int]]], list[int]],
-    Union[np.ndarray[tuple[int, int], np.dtype[np.int32]], jnp.ndarray],
-]:
-    """Select the method for converting random unitary um to nu_dir_array.
-
-    Args:
-        method (ClassicalShadowPythonMethod, optional):
-            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
-
-    Returns:
-        Callable[
-            [dict[int, dict[int, Union[Literal[0, 1, 2], int]]], list[int]],
-            Union[np.ndarray[tuple[int, int], np.dtype[np.int32]], jnp.ndarray]
-        ]: The function to convert random unitary um to nu_dir_array.
-    """
-    if method == "jax":
-        if JAX_AVAILABLE:
-            return random_unitary_um_to_nu_dir_array_under_degree_jax
-        warnings.warn(
-            "JAX is not available, using numpy to calculate Kronecker product.",
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        method = "numpy"
-    if method != "numpy":
-        raise ValueError(f"Invalid backend: {method}")
-    return random_unitary_um_to_nu_dir_array_under_degree_numpy
-
-
-def process_single_count_numpy(
-    nu_dir_array: np.ndarray[tuple[int], np.dtype[np.int32]],
-    single_counts: dict[str, int],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    """Process a single count by Numpy.
-
-    Args:
-        nu_dir_array (np.ndarray[tuple[int], np.dtype[np.int32]]):
-            The shadow direction of the unitary operators.
-        single_counts (dict[str, int]):
-            The single count.
-
-    Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The rho_m.
-    """
-
-    keys = list(single_counts.keys())
-    values = list(single_counts.values())
-    total_count = sum(values)
-
-    keys_int_array = np.array([list(map(int, k)) for k in keys], dtype=np.int32)
-    nu_expanded = np.broadcast_to(nu_dir_array, (len(keys), len(nu_dir_array)))
-    lookup_keys = nu_expanded * 10 + keys_int_array
-
-    rho_m_k_unweighted = [rho_mki_kronecker_product_numpy_2(kl) for kl in lookup_keys]
-
-    rho_m_k_weighted = np.array([m * v for m, v in zip(rho_m_k_unweighted, values)])
-    rho_m = rho_m_k_weighted.sum(axis=0, dtype=np.complex128)
-
-    return rho_m / total_count
-
-
-def select_process_single_count(
-    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
-) -> Callable[
-    [np.ndarray[tuple[int], np.dtype[np.int32]], dict[str, int]],
-    np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-]:
-    """Select the method for processing a single count.
-
-    Args:
-        method (ClassicalShadowPythonMethod, optional):
-            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
-
-    Returns:
-        Callable[
-            [np.ndarray[tuple[int], np.dtype[np.int32]], dict[str, int]],
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]
-        ]:
-            The function to process a single count.
-    """
-    if method == "jax":
-        if JAX_AVAILABLE:
-            return process_single_count_jax
-        warnings.warn(
-            "JAX is not available, using numpy to calculate Kronecker product.",
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        method = "numpy"
-    if method != "numpy":
-        raise ValueError(f"Invalid backend: {method}")
-    return process_single_count_numpy
 
 
 # single trace calculation
