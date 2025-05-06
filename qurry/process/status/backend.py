@@ -17,7 +17,8 @@ from ..magnet_square import magnet_square_availability
 from ..classical_shadow import classical_shadow_core_availability
 
 from ..utils import (
-    construct_availability,
+    counts_process_availability,
+    bit_slice_availability,
     randomized_availability,
     dummy_availability,
     test_availability,
@@ -61,7 +62,8 @@ def availability_status_print() -> tuple[
         classical_shadow_core_availability,
         # utils
         randomized_availability,
-        construct_availability,
+        counts_process_availability,
+        bit_slice_availability,
         dummy_availability,
         test_availability,
     ]
