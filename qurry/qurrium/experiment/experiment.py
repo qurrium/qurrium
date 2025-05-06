@@ -1179,7 +1179,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         mode: str = "w+",
         indent: int = 2,
         encoding: str = "utf-8",
-        jsonable: bool = False,
+        jsonable: bool = True,
         export_transpiled_circuit: bool = False,
         qurryinfo_hold_access: Optional[str] = None,
         multiprocess: bool = True,
