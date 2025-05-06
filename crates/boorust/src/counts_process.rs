@@ -2,12 +2,12 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::panic;
 
-pub fn single_counts_under_degree_prototype(
+pub fn single_counts_recount_prototype(
     single_counts: HashMap<String, i32>,
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
-    let mut single_counts_under_degree: HashMap<String, i32> = HashMap::new();
+    let mut single_counts_recounted: HashMap<String, i32> = HashMap::new();
     for (bit_string_all, count) in single_counts {
         let substring = selected_classical_registers
             .iter()
@@ -26,22 +26,22 @@ pub fn single_counts_under_degree_prototype(
                     })
             })
             .collect::<String>();
-        let entry = single_counts_under_degree
+        let entry = single_counts_recounted
             .entry(substring.to_string())
             .or_insert(0);
         *entry += count;
     }
-    single_counts_under_degree
+    single_counts_recounted
 }
 
 #[pyfunction]
 #[pyo3(signature = (single_counts, num_classical_registers, selected_classical_registers))]
-pub fn single_counts_under_degree_rust(
+pub fn single_counts_recount_rust(
     single_counts: HashMap<String, i32>,
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
-    single_counts_under_degree_prototype(
+    single_counts_recount_prototype(
         single_counts,
         num_classical_registers,
         selected_classical_registers,
@@ -50,21 +50,21 @@ pub fn single_counts_under_degree_rust(
 
 #[pyfunction]
 #[pyo3(signature = (counts, num_classical_registers, selected_classical_registers))]
-pub fn counts_list_under_degree_rust(
+pub fn counts_list_recount_rust(
     counts: Vec<HashMap<String, i32>>,
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> Vec<HashMap<String, i32>> {
-    let mut counts_list_under_degree: Vec<HashMap<String, i32>> = Vec::new();
+    let mut counts_list_recounted: Vec<HashMap<String, i32>> = Vec::new();
     for single_counts in counts {
-        let counts = single_counts_under_degree_prototype(
+        let counts = single_counts_recount_prototype(
             single_counts,
             num_classical_registers,
             selected_classical_registers.clone(),
         );
-        counts_list_under_degree.push(counts);
+        counts_list_recounted.push(counts);
     }
-    counts_list_under_degree
+    counts_list_recounted
 }
 
 #[pyfunction]

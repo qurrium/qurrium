@@ -10,8 +10,8 @@ use crate::bit_slice::{
     cycling_slice_rust, degree_handler_rust, qubit_selector_rust, test_bit_slice,
 };
 use crate::counts_process::{
-    counts_list_under_degree_rust, counts_list_vectorize_rust, shot_counts_selected_clreg_checker,
-    single_counts_under_degree_rust,
+    counts_list_recount_rust, counts_list_vectorize_rust, shot_counts_selected_clreg_checker,
+    single_counts_recount_rust,
 };
 use crate::hadamard::purity_echo_core_rust;
 use crate::randomized::echo::v1::{echo_cell_rust, overlap_echo_core_rust};
@@ -48,11 +48,11 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
 
     let counts_process = PyModule::new(parent_module.py(), "counts_process")?;
     counts_process.add_function(wrap_pyfunction!(
-        single_counts_under_degree_rust,
+        single_counts_recount_rust,
         &counts_process
     )?)?;
     counts_process.add_function(wrap_pyfunction!(
-        counts_list_under_degree_rust,
+        counts_list_recount_rust,
         &counts_process
     )?)?;
     counts_process.add_function(wrap_pyfunction!(
