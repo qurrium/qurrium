@@ -413,7 +413,7 @@ def degree_handler_rust(
     return degree_handler(allsystem_size, degree, measure)
 
 
-def counts_under_degree(
+def single_counts_under_degree(
     single_counts: dict[str, int],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -465,14 +465,14 @@ def counts_list_under_degree(
         list[dict[str, int]]: The counts under the degree.
     """
     return [
-        counts_under_degree(
+        single_counts_under_degree(
             single_counts, num_classical_register, selected_classical_registers_sorted
         )
         for single_counts in counts_list
     ]
 
 
-def counts_under_degree_pyrust(
+def single_counts_under_degree_pyrust(
     single_counts: dict[str, int],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -511,7 +511,7 @@ def counts_under_degree_pyrust(
             + "The backend should be 'Python' or 'Rust'.",
             PostProcessingRustUnavailableWarning,
         )
-    return counts_under_degree(
+    return single_counts_under_degree(
         single_counts, num_classical_register, selected_classical_registers_sorted
     )
 

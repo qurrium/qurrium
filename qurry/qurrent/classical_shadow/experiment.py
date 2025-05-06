@@ -192,14 +192,16 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
         assert arguments.unitary_located is not None, "unitary_located should be specified."
         random_unitary_ids_array = np.random.randint(
-            0, 3, size=(arguments.times, len(arguments.unitary_located)), dtype=int
-        )
+            0, 3, size=(arguments.times, len(arguments.unitary_located))
+        ).tolist()
         random_unitary_ids = {
             n_u_i: {
                 n_u_qi: (
                     random_unitary_ids_array[n_u_i][seed_i]
                     if arguments.random_unitary_seeds is None
-                    else default_rng(arguments.random_unitary_seeds[n_u_i][seed_i]).integers(0, 3)
+                    else int(
+                        default_rng(arguments.random_unitary_seeds[n_u_i][seed_i]).integers(0, 3)
+                    )
                 )
                 for seed_i, n_u_qi in enumerate(arguments.unitary_located)
             }

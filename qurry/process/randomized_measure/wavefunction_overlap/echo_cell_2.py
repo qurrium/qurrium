@@ -8,7 +8,7 @@ import numpy as np
 
 from ...utils import (
     ensemble_cell as ensemble_cell_py,
-    counts_under_degree as counts_under_degree_py,
+    single_counts_under_degree as single_counts_under_degree_py,
 )
 from ...availability import (
     availablility,
@@ -92,10 +92,10 @@ def echo_cell_2_py(
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
     subsystem_size = len(selected_classical_registers_sorted)
 
-    first_counts_under_degree = counts_under_degree_py(
+    first_counts_under_degree = single_counts_under_degree_py(
         first_counts, num_classical_register, selected_classical_registers_sorted
     )
-    second_counts_under_degree = counts_under_degree_py(
+    second_counts_under_degree = single_counts_under_degree_py(
         second_counts, num_classical_register, selected_classical_registers_sorted
     )
 
