@@ -9,7 +9,7 @@ pub enum QubitDegree {
     Single(i32),
 }
 
-pub fn counts_under_degree_prototype(
+pub fn single_counts_under_degree_prototype(
     single_counts: HashMap<String, i32>,
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
@@ -48,7 +48,7 @@ pub fn single_counts_under_degree_rust(
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
-    counts_under_degree_prototype(
+    single_counts_under_degree_prototype(
         single_counts,
         num_classical_registers,
         selected_classical_registers,
@@ -64,7 +64,7 @@ pub fn counts_list_under_degree_rust(
 ) -> Vec<HashMap<String, i32>> {
     let mut counts_list_under_degree: Vec<HashMap<String, i32>> = Vec::new();
     for single_counts in counts {
-        let counts = counts_under_degree_prototype(
+        let counts = single_counts_under_degree_prototype(
             single_counts,
             num_classical_registers,
             selected_classical_registers.clone(),
@@ -73,6 +73,30 @@ pub fn counts_list_under_degree_rust(
     }
     counts_list_under_degree
 }
+
+
+#[pyfunction]
+#[pyo3(signature = (counts))]
+pub fn counts_list_vectorized(
+    counts: Vec<HashMap<String, i32>>,
+) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
+    let mut counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
+    for single_counts in counts {
+        let mut bitstrings: Vec<Vec<i32>> = Vec::new();
+        let mut counts_vec: Vec<i32> = Vec::new();
+        for (bit_string, count) in single_counts {
+            let bitstring_vec: Vec<i32> = bit_string
+                .chars()
+                .map(|c| c.to_digit(2).unwrap() as i32)
+                .collect();
+            bitstrings.push(bitstring_vec);
+            counts_vec.push(count);
+        }
+        counts_list_vectorized.push((bitstrings, counts_vec));
+    }
+    counts_list_vectorized
+}
+
 
 #[pyfunction]
 #[pyo3(signature = (target, start, end, step))]

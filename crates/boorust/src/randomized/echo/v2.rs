@@ -4,7 +4,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::construct::counts_under_degree_prototype;
+use crate::construct::single_counts_under_degree_prototype;
 use crate::randomized::randomized::ensemble_cell_rust;
 
 #[pyfunction]
@@ -44,13 +44,13 @@ pub fn echo_cell_2_rust(
     selected_classical_registers_sorted.sort();
     let subsystem_size = selected_classical_registers_sorted.len() as i32;
 
-    let first_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
+    let first_counts_under_degree: HashMap<String, i32> = single_counts_under_degree_prototype(
         first_counts,
         num_classical_registers,
         selected_classical_registers_sorted.clone(),
     );
 
-    let second_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
+    let second_counts_under_degree: HashMap<String, i32> = single_counts_under_degree_prototype(
         second_counts,
         num_classical_registers,
         selected_classical_registers_sorted.clone(),
