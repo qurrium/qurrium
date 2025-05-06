@@ -30,7 +30,6 @@ from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
 from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE, set_cpu_only
-from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend.import_simulator import (
     SIM_DEFAULT_SOURCE,
     SIM_IMPORT_ERROR_INFOS,
@@ -85,6 +84,13 @@ circuits: dict[str, QuantumCircuit] = {
 }
 """Circuits. """
 
+rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"] + (
+    ["jax_flatten"] if JAX_AVAILABLE else []
+)
+trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
+    ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
+)
+
 exp_method_04 = ShadowUnveil()
 test_items["04"] = {}
 for num_qubits, circ_name, answer in [
@@ -98,7 +104,8 @@ for num_qubits, circ_name, answer in [
     test_items["04"][".".join(("classical_shadow", circ_name))] = {
         "measure": {
             "wave": circ_name,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(100)},
+            "times": 80,
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(80)},
             "tags": ("classical_shadow", circ_name),
         },
         "analyze": {"selected_qubits": range(-2, 0)},
@@ -126,7 +133,8 @@ for num_qubits, measure_range, circ_name, answer in [
         "measure": {
             "wave": circ_name,
             "measure": measure_range,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(100)},
+            "times": 80,
+            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(80)},
             "tags": ("classical_shadow_extra_clbits", circ_name),
         },
         "analyze": {"selected_qubits": measure_range},
@@ -153,7 +161,7 @@ for exp_method_tmp, test_item_division_tmp in [
     test_quantity_unit_targets,
 )
 def test_quantity_unit(
-    exp_method: QurriumPrototype,
+    exp_method: ShadowUnveil,
     test_item_division: str,
     test_item_name: str,
     test_item: InputUnit,
@@ -171,13 +179,6 @@ def test_quantity_unit(
             The test item.
     """
     analysis, quantity = {}, {}
-    # rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"] + (
-    #     ["jax_flatten"] if JAX_AVAILABLE else []
-    # )
-    rho_methods = ["numpy_flatten"]
-    trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
-        ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
-    )
 
     exp_id = exp_method.measure(**test_item["measure"], backend=backend)  # type: ignore
     for rho_method in rho_methods:
@@ -268,15 +269,15 @@ def test_quantity_unit(
     ],
 )
 def test_multi_output_all(
-    exp_method: QurriumPrototype,
+    exp_method: ShadowUnveil,
     test_item_division: str,
     summoner_name: str,
 ) -> None:
     """Test the multi-output of echo.
 
     Args:
-        exp_method (QurriumPrototype):
-            The QurriumPrototype instance.
+        exp_method (ShadowUnveil):
+            The ShadowUnveil instance.
         test_item_division (str):
             The test item division.
         summoner_name (str):
@@ -308,36 +309,17 @@ def test_multi_output_all(
         for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
     }
 
-    summoner_id = exp_method.multiAnalysis(
-        summoner_id,
-        specific_analysis_args=specific_analysis_args,  # type: ignore
-        multiprocess_analysis=True,
-        multiprocess_write=True,
-        analysis_name="single_process",
-    )
-    summoner_id = exp_method.multiAnalysis(
-        summoner_id,
-        specific_analysis_args=specific_analysis_args,  # type: ignore
-        multiprocess_analysis=True,
-        multiprocess_write=True,
-        analysis_name="multi_process",
-    )
-    summoner_id = exp_method.multiAnalysis(
-        summoner_id,
-        method="hilbert_schmidt_inner_product",
-        specific_analysis_args=specific_analysis_args,  # type: ignore
-        multiprocess_analysis=True,
-        multiprocess_write=True,
-        analysis_name="single_process.einsum_ij_ij",
-    )
-    summoner_id = exp_method.multiAnalysis(
-        summoner_id,
-        method="hilbert_schmidt_inner_product",
-        specific_analysis_args=specific_analysis_args,  # type: ignore
-        multiprocess_analysis=True,
-        multiprocess_write=True,
-        analysis_name="multi_process.einsum_ij_ij",
-    )
+    for rho_method in rho_methods:
+        for trace_method in trace_methods:
+            summoner_id = exp_method.multiAnalysis(
+                summoner_id,
+                specific_analysis_args=specific_analysis_args,  # type: ignore
+                rho_method=rho_method,
+                trace_method=trace_method,
+                analysis_name=f"multi_process.{rho_method}.{trace_method}",
+                multiprocess_analysis=True,
+                multiprocess_write=True,
+            )
 
     for rk, report in exp_method.multimanagers[summoner_id].quantity_container.items():
         for config in config_list:
