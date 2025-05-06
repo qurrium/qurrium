@@ -4,7 +4,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::construct::single_counts_under_degree_prototype;
+use crate::counts_process::single_counts_under_degree_prototype;
 use crate::randomized::randomized::ensemble_cell_rust;
 
 #[pyfunction]

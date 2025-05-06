@@ -1,13 +1,17 @@
-mod construct;
+mod bit_slice;
+mod counts_process;
 mod hadamard;
 mod randomized;
 mod tool;
 
 use pyo3::prelude::*;
 
-use crate::construct::{
-    counts_list_under_degree_rust, cycling_slice_rust, degree_handler_rust, qubit_selector_rust,
-    shot_counts_selected_clreg_checker, single_counts_under_degree_rust, test_construct,
+use crate::bit_slice::{
+    cycling_slice_rust, degree_handler_rust, qubit_selector_rust, test_bit_slice,
+};
+use crate::counts_process::{
+    counts_list_under_degree_rust, shot_counts_selected_clreg_checker,
+    single_counts_under_degree_rust,
 };
 use crate::hadamard::purity_echo_core_rust;
 use crate::randomized::echo::v1::{echo_cell_rust, overlap_echo_core_rust};
@@ -42,19 +46,24 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     randomized.add_function(wrap_pyfunction!(overlap_echo_core_rust, &randomized)?)?;
     randomized.add_function(wrap_pyfunction!(overlap_echo_core_2_rust, &randomized)?)?;
 
-    let construct = PyModule::new(parent_module.py(), "construct")?;
-    construct.add_function(wrap_pyfunction!(qubit_selector_rust, &construct)?)?;
-    construct.add_function(wrap_pyfunction!(cycling_slice_rust, &construct)?)?;
-    construct.add_function(wrap_pyfunction!(degree_handler_rust, &construct)?)?;
-    construct.add_function(wrap_pyfunction!(
+    let counts_process = PyModule::new(parent_module.py(), "construct")?;
+    counts_process.add_function(wrap_pyfunction!(
         single_counts_under_degree_rust,
-        &construct
+        &counts_process
     )?)?;
-    construct.add_function(wrap_pyfunction!(counts_list_under_degree_rust, &construct)?)?;
-    construct.add_function(wrap_pyfunction!(
+    counts_process.add_function(wrap_pyfunction!(
+        counts_list_under_degree_rust,
+        &counts_process
+    )?)?;
+    counts_process.add_function(wrap_pyfunction!(
         shot_counts_selected_clreg_checker,
-        &construct
+        &counts_process
     )?)?;
+
+    let bit_slice = PyModule::new(parent_module.py(), "bit_slice")?;
+    bit_slice.add_function(wrap_pyfunction!(qubit_selector_rust, &bit_slice)?)?;
+    bit_slice.add_function(wrap_pyfunction!(cycling_slice_rust, &bit_slice)?)?;
+    bit_slice.add_function(wrap_pyfunction!(degree_handler_rust, &bit_slice)?)?;
 
     let hadamard = PyModule::new(parent_module.py(), "hadamard")?;
     hadamard.add_function(wrap_pyfunction!(purity_echo_core_rust, &hadamard)?)?;
@@ -65,10 +74,10 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     dummy.add_function(wrap_pyfunction!(make_two_bit_str_unlimit, &dummy)?)?;
 
     let test = PyModule::new(parent_module.py(), "test")?;
-    test.add_function(wrap_pyfunction!(test_construct, &test)?)?;
+    test.add_function(wrap_pyfunction!(test_bit_slice, &test)?)?;
 
     parent_module.add_submodule(&randomized)?;
-    parent_module.add_submodule(&construct)?;
+    parent_module.add_submodule(&counts_process)?;
     parent_module.add_submodule(&hadamard)?;
     parent_module.add_submodule(&dummy)?;
     parent_module.add_submodule(&test)?;
