@@ -10,6 +10,7 @@ pep440
 matplotlib 
 pytest
 pytest-xdist
+pytest-order
 
 # qiskit-aer
 qiskit-aer

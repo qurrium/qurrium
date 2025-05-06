@@ -59,6 +59,12 @@ class EntropyMeasureRandomizedV1Arguments(ArgumentsPrototype):
     workers_num: int = DEFAULT_POOL_SIZE
     """The number of workers for multiprocessing."""
 
+    def __post_init__(self):
+        if self.random_unitary_seeds is not None:
+            super().__setattr__(
+                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
+            )
+
 
 class EntropyMeasureRandomizedV1MeasureArgs(BasicArgs, total=False):
     """Output arguments for :meth:`output`."""

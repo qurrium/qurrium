@@ -34,7 +34,7 @@ runs:
           python -m pip install -r requirements-dev.txt
         else
           echo "| No requirements-dev.txt found, installing default dependencies"
-          python -m pip install pytest pytest-xdist
+          python -m pip install pytest pytest-xdist pytest-order
           python -m pip install matplotlib pep440 flake8
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi

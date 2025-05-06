@@ -1,11 +1,9 @@
-"""ShadowUnveil - Qurry
-(:mod:`qurry.qurrent.classical_shadow.qurry`)
-
-"""
+"""ShadowUnveil - Qurry (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
 from typing import Union, Optional, Any, Type, Literal, Iterable
 from collections.abc import Hashable
 from pathlib import Path
+from multiprocessing import get_context
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -22,10 +20,14 @@ from .experiment import (
     ShadowUnveilExperiment,
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
+    quantities_input_collecter,
+    outside_analyze_wrapper,
 )
 from ...qurrium.qurrium import QurriumPrototype
-from ...tools.backend import GeneralSimulator
+from ...qurrium.utils.iocontrol import RJUST_LEN
+from ...tools import qurry_progressbar, GeneralSimulator, DEFAULT_POOL_SIZE
 from ...declare import BaseRunArgs, TranspileArgs
+from ...capsule.mori import TagList
 
 
 class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
@@ -474,9 +476,11 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
         ] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
+        multiprocess_analysis: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+        method: Literal["trace_of_matmul", "hilbert_schmidt_inner_product"] = "trace_of_matmul",
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
@@ -501,16 +505,138 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             multiprocess_write (bool, optional):
                 Whether use multiprocess for writing. Defaults to False.
 
+            multiprocess_analysis (bool, optional):
+                Whether use multiprocess for analysis. Defaults to False.
+
             selected_qubits (Optional[list[int]], optional):
                 The selected qubits. Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the postprocessing. Defaults to DEFAULT_PROCESS_BACKEND.
+        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
+            The method to calculate the trace of Rho square.
+            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+            - "hilbert_schmidt_inner_product":
+                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
+                Defaults to "trace_of_matmul".
+
+            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
+            or Hilbert-Schmidt operator
+            Although it considers $Tr(A^*B)$ where A, B are matrices,
+            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
+            But the implementation of Hilbert-Schmidt operator on Google Cirq,
+            the quantum computing package by Google, just uses the following line:
+
+            .. code-block:: python
+                np.einsum('ij,ij', m1.conj(), m2)
+
+            This inspired us to use
+
+            .. code-block:: python
+                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
+                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
+
+            to calculate the trace. And somehow, it is the same as
+
+            .. code-block:: python
+                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
+
+            Also, the einsum method is much faster than the matmul method for
+            it decreases the complexity from O(n^3) to O(n^2)
+            on the unused matrix elements of matrix product.
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 
         Returns:
             str: The summoner_id of multimanager.
         """
+
+        if multiprocess_analysis:
+            if specific_analysis_args is None:
+                specific_analysis_args = {}
+
+            if summoner_id in self.multimanagers:
+                current_multimanager = self.multimanagers[summoner_id]
+            else:
+                raise ValueError("No such summoner_id in multimanagers.")
+            if len(current_multimanager.afterwards.allCounts) == 0:
+                raise ValueError("No counts in multimanagers.")
+
+            idx_tagmap_quantities = len(current_multimanager.quantity_container)
+            name = (
+                analysis_name
+                if no_serialize
+                else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
+            )
+
+            all_counts_progress = qurry_progressbar(
+                list(current_multimanager.afterwards.allCounts.keys()),
+                desc="Preparing analyzing for multiprocessing...",
+            )
+
+            quantities_input_list = []
+            for k in all_counts_progress:
+                if k in specific_analysis_args:
+                    v_args = specific_analysis_args[k]
+                    if isinstance(v_args, bool):
+                        if v_args is False:
+                            all_counts_progress.set_description_str(
+                                f"Skipped {k} in {current_multimanager.summoner_id}."
+                            )
+                            continue
+                        quantities_input_list.append(
+                            quantities_input_collecter(
+                                current_exps=current_multimanager.exps[k],
+                                selected_qubits=selected_qubits,
+                                backend=backend,
+                                method=method,
+                                counts_used=counts_used,
+                                multiprocess=False,
+                            )
+                        )
+                    else:
+                        quantities_input_list.append(
+                            quantities_input_collecter(
+                                current_exps=current_multimanager.exps[k],
+                                selected_qubits=v_args.get("selected_qubits", selected_qubits),
+                                backend=v_args.get("backend", backend),
+                                method=v_args.get("method", method),
+                                counts_used=v_args.get("counts_used", counts_used),
+                                multiprocess=False,
+                            )
+                        )
+                else:
+                    quantities_input_list.append(
+                        quantities_input_collecter(
+                            current_exps=current_multimanager.exps[k],
+                            selected_qubits=selected_qubits,
+                            backend=backend,
+                            method=method,
+                            counts_used=counts_used,
+                            multiprocess=False,
+                        )
+                    )
+
+            current_multimanager.quantity_container[name] = TagList()
+            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+            with pool as p:
+                outside_analyses_iterable = qurry_progressbar(
+                    p.imap_unordered(outside_analyze_wrapper, quantities_input_list),
+                    desc="Executing analysis...",
+                    total=len(quantities_input_list),
+                )
+                for exp_id, report in outside_analyses_iterable:
+                    current_multimanager.exps[exp_id].outside_analysis_recover(report)
+                    main, _tales = report.export(jsonable=False)
+                    current_multimanager.quantity_container[name][
+                        current_multimanager.exps[exp_id].commons.tags
+                    ].append(main)
+
+            current_multimanager.multicommons.datetimes.add_only(name)
+
+            if not skip_write:
+                self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
+
+            return current_multimanager.multicommons.summoner_id
 
         return super().multiAnalysis(
             summoner_id=summoner_id,
@@ -521,6 +647,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             multiprocess_write=multiprocess_write,
             selected_qubits=selected_qubits,
             backend=backend,
+            method=method,
             counts_used=counts_used,
             **analysis_args,
         )

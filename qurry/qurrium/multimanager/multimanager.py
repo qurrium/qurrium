@@ -1,4 +1,4 @@
-"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurry.qurrium.multimanager`)"""
+"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurrium.multimanager`)"""
 
 import os
 import gc
@@ -9,29 +9,23 @@ from pathlib import Path
 from typing import Union, Optional, Any, Type, Generic
 from collections.abc import Hashable
 from uuid import uuid4
+from multiprocessing import get_context
 
 from qiskit.providers import Backend
 
 from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetProviderLiteral
 from .beforewards import Before
 from .afterwards import After
-from .process import (
-    datetimedict_process,
-    multiprocess_exporter,
-    multiprocess_builder,
-    single_process_exporter,
-)
+from .process import datetimedict_process
+from .utils import experiment_writer
+from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
-from ...tools import qurry_progressbar, ParallelManager, GeneralSimulator, DatetimeDict
+from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON
 from ...capsule.mori import TagList, GitSyncControl
 from ...declare import BaseRunArgs, AnalyzeArgs
-from ...exceptions import (
-    QurryProtectContent,
-    QurryResetAccomplished,
-    QurryResetSecurityActivated,
-)
+from ...exceptions import QurryResetAccomplished, QurryResetSecurityActivated
 
 
 class MultiManager(Generic[_E]):
@@ -87,53 +81,48 @@ class MultiManager(Generic[_E]):
                 QurryResetSecurityActivated,
             )
 
-    def unlock_afterward(self, mute_auto_lock: bool = False):
-        """Unlock the :cls:`afterward` content to be overwritten.
+    def clear_all_exps_result(
+        self,
+        *args,
+        security: bool = False,
+        mute_warning: bool = False,
+    ) -> None:
+        """Clear the result of all experiments.
 
         Args:
-            mute_auto_lock (bool, optional):
-                Mute anto-locked message for the unlock of this time. Defaults to False.
+            security (bool, optional): Security for clearing. Defaults to `False`.
+            mute_warning (bool, optional): Mute the warning when clearing. Defaults to `False`.
         """
-        self.after_lock = True
-        self.mute_auto_lock = mute_auto_lock
+        if len(args) > 0:
+            raise ValueError("Use '.clear_all_exps_result(security=True)' to clear all results.")
 
-    def __setitem__(self, key, value) -> None:
-        if key in self.beforewards._fields:
-            self.beforewards = self.beforewards._replace(**{key: value})
-
-        elif key in self.afterwards._fields:
-            if self.after_lock and isinstance(self.after_lock, bool):
-                self.afterwards = self.afterwards._replace(**{key: value})
-            else:
-                raise QurryProtectContent(
-                    f"Can't set value to :cls:`afterward` field {key} "
-                    + "because it's locked, use `.unlock_afterward()` "
-                    + "to unlock before setting item ."
+        if security and isinstance(security, bool):
+            for exp in qurry_progressbar(
+                self.exps.values(),
+                desc="Clear jobs result...",
+                bar_format="qurry-barless",
+            ):
+                exp.afterwards.clear_result(security=security, mute_warning=True)
+            if not mute_warning:
+                warnings.warn(
+                    "All experiments' results are cleared.",
+                    QurryResetAccomplished,
                 )
-
         else:
-            raise ValueError(
-                f"{key} is not a valid field of '{Before.__name__}' and '{After.__name__}'."
+            warnings.warn(
+                "Reset does not execute to prevent executing accidentally, "
+                + "if you are sure to do this, then use '.reset(security=True)'.",
+                QurryResetSecurityActivated,
             )
-
-        gc.collect()
-        if self.after_lock is not False:
-            self.after_lock = False
-            if not self.mute_auto_lock:
-                print(
-                    "after_lock is locked automatically now, "
-                    + "you can unlock by using `.unlock_afterward()` "
-                    + "to set value to :cls:`afterward`."
-                )
-            self.mute_auto_lock = False
 
     def __getitem__(self, key) -> Any:
         if key in self.beforewards._fields:
             return getattr(self.beforewards, key)
         if key in self.afterwards._fields:
             return getattr(self.afterwards, key)
-        raise ValueError(
+        raise KeyError(
             f"{key} is not a valid field of '{Before.__name__}' and '{After.__name__}'."
+            + f" Valid fields are {list(self.beforewards._fields) + list(self.afterwards._fields)}."
         )
 
     @property
@@ -278,6 +267,7 @@ class MultiManager(Generic[_E]):
         self.beforewards.index_taglist[exps_instance.commons.tags].append(
             exps_instance.commons.serial
         )
+        self.exps[current_id] = exps_instance
 
     @classmethod
     def build(
@@ -400,39 +390,55 @@ class MultiManager(Generic[_E]):
                 }
             )
 
-        # initial_config_list_progress = qurry_progressbar(initial_config_list)
-        # initial_config_list_progress.set_description_str("MultiManager building...")
-
         if multiprocess_build:
-            pool = ParallelManager()
-            exps_list: list[tuple[_E, dict[str, Any]]] = pool.process_map(
-                multiprocess_builder,
-                [
-                    (
-                        experiment_instance,
-                        config,
-                    )
-                    for config in initial_config_list
-                ],
-                desc="MultiManager building...",
+            chunks_num = very_easy_chunk_size(
+                tasks_num=len(initial_config_list),
+                num_process=DEFAULT_POOL_SIZE,
+                max_chunk_size=DEFAULT_POOL_SIZE * 2,
             )
-        else:
-            initial_config_list_progress = qurry_progressbar(
-                initial_config_list,
-                desc="MultiManager building...",
-            )
-            exps_list: list[tuple[_E, dict[str, Any]]] = [
-                (experiment_instance.build(multiprocess=True, **config), config)
-                for config in initial_config_list_progress
-            ]
 
-        for new_exps, config in exps_list:
-            current_multimanager.register(
-                current_id=new_exps.commons.exp_id,
-                config=config,
-                exps_instance=new_exps,
+            pool = get_context("spawn").Pool(
+                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
             )
-            current_multimanager.exps[new_exps.commons.exp_id] = new_exps
+            with pool as p:
+
+                exps_iterable = qurry_progressbar(
+                    p.imap_unordered(
+                        experiment_instance.build_for_multiprocess,
+                        initial_config_list,
+                        chunksize=chunks_num,
+                    ),
+                    total=len(initial_config_list),
+                    desc="MultiManager building...",
+                )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments..."
+                )
+                for new_exps, config in exps_iterable:
+                    current_multimanager.register(
+                        current_id=new_exps.commons.exp_id,
+                        config=config,
+                        exps_instance=new_exps,
+                    )
+                exps_iterable.set_description_str(
+                    f"Loading {len(initial_config_list)} experiments done"
+                )
+
+        else:
+            exps_iterable = qurry_progressbar(
+                (
+                    (experiment_instance.build(multiprocess=True, **config), config)
+                    for config in initial_config_list
+                ),
+                total=len(initial_config_list),
+                desc="MultiManager building...",
+            )
+            for new_exps, config in exps_iterable:
+                current_multimanager.register(
+                    current_id=new_exps.commons.exp_id,
+                    config=config,
+                    exps_instance=new_exps,
+                )
 
         if not skip_writing:
             current_multimanager.write(multiprocess=multiprocess_write)
@@ -709,16 +715,15 @@ class MultiManager(Generic[_E]):
         self.gitignore.export(self.multicommons.export_location)
 
         # pylint: disable=protected-access
-        exporting_name = {
-            **self.afterwards._exporting_name(),
-            **self.beforewards._exporting_name(),
-        }
+        exporting_name = self.afterwards._exporting_name()
+        exporting_name.update(self.beforewards._exporting_name())
+
         # pylint: enable=protected-access
 
         export_progress = qurry_progressbar(
-            [fname for fname in self.afterwards._fields if fname != "files_taglist"]
-            + list(self.beforewards._fields),
-            desc="exporting",
+            [fname for fname in self.beforewards._fields if fname != "files_taglist"]
+            + list(self.afterwards._fields),
+            desc="Exporting MultiManager content...",
             bar_format="qurry-barless",
         )
 
@@ -765,7 +770,7 @@ class MultiManager(Generic[_E]):
                 warnings.warn(f"'{k}' is type '{type(self[k])}' which is not supported to export.")
 
             if i == len(export_progress) - 1:
-                export_progress.set_description_str("exporting done")
+                export_progress.set_description_str("Exporting done")
 
         # tagMapQuantity or quantity
         if not skip_quantities:
@@ -781,108 +786,22 @@ class MultiManager(Generic[_E]):
         multiconfig = self._write_multiconfig(encoding=encoding, mute=True)
         print(f"| Export multi.config.json for {self.summoner_id}")
 
+        # gitignore
         self.gitignore.export(self.multicommons.export_location)
 
         # experiments
         if not skip_exps:
-            all_qurryinfo_loc = self.multicommons.export_location / "qurryinfo.json"
-            if multiprocess:
-                all_export_ids = list(self.beforewards.exps_config.keys())
-                first_export = multiprocess_exporter(
-                    id_exec=all_export_ids[0],
-                    exps_export=self.exps[all_export_ids[0]].export(
-                        save_location=self.multicommons.save_location,
-                        export_transpiled_circuit=export_transpiled_circuit,
-                    ),
-                    mode="w+",
-                    indent=indent,
-                    encoding=encoding,
-                    jsonable=True,
-                    mute=True,
-                    pbar=None,
-                )
-
-                exporting_pool = ParallelManager()
-                export_list = [
-                    (
-                        id_exec,
-                        self.exps[id_exec].export(
-                            save_location=self.multicommons.save_location,
-                            export_transpiled_circuit=export_transpiled_circuit,
-                        ),
-                        "w+",
-                        indent,
-                        encoding,
-                        True,
-                        True,
-                        None,
-                    )
-                    for id_exec in all_export_ids[1:]
-                ]
-
-                all_qurryinfo_items_since_1 = exporting_pool.process_map(
-                    multiprocess_exporter,
-                    export_list,
-                    bar_format="qurry-barless",
-                    desc="Exporting experiments...",
-                )
-                del export_list
-                all_qurryinfo = dict([first_export] + all_qurryinfo_items_since_1)
-
-            else:
-                all_qurryinfo = {}
-                exps_export_progress = qurry_progressbar(
-                    self.beforewards.exps_config,
-                    desc="Exporting experiments...",
-                    bar_format="qurry-barless",
-                )
-                for id_exec in exps_export_progress:
-                    tmp_id, tmp_qurryinfo_content = single_process_exporter(
-                        id_exec=id_exec,
-                        exps_export=self.exps[id_exec].export(
-                            save_location=self.multicommons.save_location,
-                            export_transpiled_circuit=export_transpiled_circuit,
-                        ),
-                        mode="w+",
-                        indent=indent,
-                        encoding=encoding,
-                        jsonable=True,
-                        mute=True,
-                        pbar=None,
-                    )
-                    assert id_exec == tmp_id, "ID is not consistent."
-                    all_qurryinfo[id_exec] = tmp_qurryinfo_content
-
-            gc.collect()
-
-            # for id_exec, files in all_qurryinfo_items:
-            for id_exec, files in all_qurryinfo.items():
-                self.beforewards.files_taglist[self.exps[id_exec].commons.tags].append(files)
-            self.beforewards.files_taglist.export(
-                name=None,
-                save_location=self.multicommons.export_location,
-                taglist_name=f"{exporting_name['files_taglist']}",
-                filetype=self.multicommons.filetype,
-                open_args={
-                    "mode": "w+",
-                    "encoding": encoding,
-                },
-                json_dump_args={
-                    "indent": indent,
-                },
-            )
-
-            quickJSON(
-                content=all_qurryinfo,
-                filename=all_qurryinfo_loc,
-                mode="w+",
-                jsonable=True,
+            experiment_writer(
+                experiment_container=self.exps,
+                beforewards=self.beforewards,
+                multicommons=self.multicommons,
+                taglist_name=exporting_name["files_taglist"],
                 indent=indent,
                 encoding=encoding,
-                mute=True,
+                export_transpiled_circuit=export_transpiled_circuit,
+                multiprocess=multiprocess,
             )
 
-        gc.collect()
         return multiconfig
 
     def compress(
@@ -964,7 +883,6 @@ class MultiManager(Generic[_E]):
             bar_format=("| {n_fmt}/{total_fmt} - Analysis: {desc} - {elapsed} < {remaining}"),
         )
         for k in all_counts_progress:
-
             if k in specific_analysis_args:
                 v_args = specific_analysis_args[k]
                 if isinstance(v_args, bool):

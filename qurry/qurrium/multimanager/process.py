@@ -1,31 +1,12 @@
-"""Multi-process component for multimanager (:mod:`qurry.qurry.qurrium.multimanager.process`)"""
+"""Multi-process component for multimanager (:mod:`qurry.qurrium.multimanager.process`)"""
 
-from typing import Optional, Any, Type
+from typing import Any
 from pathlib import Path
-import gc
-import tqdm
 
 from .arguments import MultiCommonparams
 from ..container import _E
-from ..experiment.export import Export
+from ..experiment import ExperimentPrototype, Export
 from ..utils.iocontrol import IOComplex
-
-
-def multiprocess_builder(
-    experiment_instance: Type[_E],
-    config: dict[str, Any],
-) -> tuple[_E, dict[str, Any]]:
-    """Multiprocess builder for experiment.
-
-    Args:
-        experiment_instance (Type[_E]): The instance of experiment.
-        config (dict[str, Any]): The configuration of experiment.
-
-    Returns:
-        tuple[_E, dict[str, Any]]: The instance of experiment and the configuration.
-    """
-    exp_instance = experiment_instance.build(**config, multiprocess=False)
-    return exp_instance, config
 
 
 def multiprocess_exporter(
@@ -35,9 +16,7 @@ def multiprocess_exporter(
     indent: int = 2,
     encoding: str = "utf-8",
     jsonable: bool = False,
-    mute: bool = True,
-    pbar: Optional[tqdm.tqdm] = None,
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, Any]]:
     """Multiprocess exporter and writer for experiment.
 
     Args:
@@ -47,69 +26,116 @@ def multiprocess_exporter(
         indent (int, optional): The indent of writing. Defaults to 2.
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
-        mute (bool, optional): The mute of writing. Defaults to True.
-        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
-        tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
+        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
     """
     qurryinfo_exp_id, qurryinfo_files = exps_export.write(
         mode=mode,
         indent=indent,
         encoding=encoding,
         jsonable=jsonable,
-        mute=mute,
+        mute=True,
         multiprocess=False,
-        pbar=pbar,
+        pbar=None,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
     del exps_export
-    gc.collect()
+
     return qurryinfo_exp_id, qurryinfo_files
 
 
-def single_process_exporter(
+def multiprocess_exporter_wrapper(
+    all_arguments: tuple[str, Export, str, int, str, bool],
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess wrapper for exporter.
+
+    Args:
+        all_arguments (tuple[str, Export, str, int, str, bool]):
+            The arguments for exporter.
+            - id_exec (str): ID of experiment.
+            - exps_export (Export): The export of experiment.
+            - mode (str): The mode of writing.
+            - indent (int): The indent of writing.
+            - encoding (str): The encoding of writing.
+            - jsonable (bool): The jsonable of writing.
+
+    Returns:
+        tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_exporter(*all_arguments)
+
+
+def multiprocess_writer(
     id_exec: str,
-    exps_export: Export,
+    exps: ExperimentPrototype,
+    save_location: Path,
+    export_transpiled_circuit: bool = False,
     mode: str = "w+",
     indent: int = 2,
     encoding: str = "utf-8",
     jsonable: bool = False,
-    mute: bool = True,
-    pbar: Optional[tqdm.tqdm] = None,
-) -> tuple[str, dict[str, str]]:
-    """Single process exporter and writer for experiment.
+) -> tuple[str, dict[str, Any]]:
+    """Multiprocess exporter and writer for experiment.
 
     Args:
         id_exec (Hashable): ID of experiment.
-        exps_export (Export): The export of experiment.
+        exps (ExperimentPrototype): The export of experiment.
         mode (str, optional): The mode of writing. Defaults to "w+".
+        save_location (Path): The location of saving.
+        export_transpiled_circuit (bool, optional):
+            Whether to export transpiled circuit. Defaults to False.
         indent (int, optional): The indent of writing. Defaults to 2.
         encoding (str, optional): The encoding of writing. Defaults to "utf-8".
         jsonable (bool, optional): The jsonable of writing. Defaults to False.
-        mute (bool, optional): The mute of writing. Defaults to True.
-        pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
 
     Returns:
-        tuple[Hashable, dict[str, str]]: The ID of experiment and the files of experiment.
+        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
     """
-    qurryinfo_exp_id, qurryinfo_files = exps_export.write(
+    export_instance = exps.export(
+        save_location=save_location,
+        export_transpiled_circuit=export_transpiled_circuit,
+    )
+    qurryinfo_exp_id, qurryinfo_files = export_instance.write(
         mode=mode,
         indent=indent,
         encoding=encoding,
         jsonable=jsonable,
-        mute=mute,
+        mute=True,
         multiprocess=False,
-        pbar=pbar,
+        pbar=None,
     )
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
-    del exps_export
-    gc.collect()
+    del export_instance
+
     return qurryinfo_exp_id, qurryinfo_files
+
+
+def multiprocess_writer_wrapper(
+    all_arguments: tuple[str, _E, Path, bool, str, int, str, bool],
+) -> tuple[str, dict[str, str]]:
+    """Multiprocess wrapper for exporter.
+
+    Args:
+        all_arguments (tuple[str, ExperimentPrototype, Path, bool, str, int, str, bool, bool]):
+            The arguments for exporter.
+            - id_exec (str): ID of experiment.
+            - exps (ExperimentPrototype): The export of experiment.
+            - save_location (Path): The location of saving.
+            - export_transpiled_circuit (bool): Whether to export transpiled circuit.
+            - mode (str): The mode of writing.
+            - indent (int): The indent of writing.
+            - encoding (str): The encoding of writing.
+            - jsonable (bool): The jsonable of writing.
+
+    Returns:
+        tuple[str, dict[str, str]]: The ID of experiment and the files of experiment.
+    """
+    return multiprocess_writer(*all_arguments)
 
 
 def datetimedict_process(

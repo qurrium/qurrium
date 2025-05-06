@@ -1,6 +1,4 @@
-"""Test the qurry.boorust module.
-
-"""
+"""Test qurry.process.randomized_measure module."""
 
 from typing import Union
 import os

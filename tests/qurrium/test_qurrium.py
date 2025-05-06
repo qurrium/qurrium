@@ -5,7 +5,7 @@ import pytest
 
 from qiskit import QuantumCircuit
 
-from utils import wave_loader, InputUnit, ResultUnit
+from utils import InputUnit, ResultUnit
 
 from qurry.qurrium import SamplingExecuter, WavesExecuter
 from qurry.qurrium.qurrium import QurriumPrototype
@@ -34,46 +34,36 @@ circuits: dict[str, QuantumCircuit] = {
 
 
 exp_demo_01 = SamplingExecuter()
-test_items["01"] = {
-    circ_name: {
-        "measure": {
-            "wave": circ_name,
-            "sampling": 5,
-        },
+test_items["01"] = {}
+for num_qubits, circ_name, answer in [
+    (4, "4-trivial", 1.0),
+    (4, "4-GHZ", 0.5),
+    (4, "4-topological-period", 0.25),
+]:
+    test_items["01"][".".join(("sampling_excuter", circ_name))] = {
+        "measure": {"wave": circ_name, "sampling": 5, "tags": ("sampling_excuter", circ_name)},
         "analyze": {},
         "answer": 0,
     }
-    for num_qubits, circ_name, answer in [
-        (4, "4-trivial", 1.0),
-        (4, "4-GHZ", 0.5),
-        (4, "4-topological-period", 0.25),
-    ]
-}
-wave_loader(
-    exp_demo_01,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["01"]],
-)
+    exp_demo_01.add(circuits[circ_name], circ_name)
 
 
 exp_demo_02 = WavesExecuter()
-test_items["02"] = {
-    circ_name: {
+test_items["02"] = {}
+for num_qubits, circ_name, answer in [
+    (4, "4-trivial", 1.0),
+    (4, "4-GHZ", 0.5),
+    (4, "4-topological-period", 0.25),
+]:
+    test_items["02"][".".join(("waves_excuter", circ_name))] = {
         "measure": {
             "waves": [circ_name for _ in range(5)],
+            "tags": ("waves_excuter", circ_name),
         },
         "analyze": {},
         "answer": answer,
     }
-    for num_qubits, circ_name, answer in [
-        (4, "4-trivial", 1.0),
-        (4, "4-GHZ", 0.5),
-        (4, "4-topological-period", 0.25),
-    ]
-}
-wave_loader(
-    exp_demo_02,
-    [(circ_name, circuits[circ_name]) for circ_name in test_items["02"]],
-)
+    exp_demo_02.add(circuits[circ_name], circ_name)
 
 
 test_quantity_unit_targets = []
@@ -155,18 +145,23 @@ def test_multi_output_all(
             The summoner name.
     """
 
-    config_list, analysis_args, answer_list, test_item_name_list = [], [], [], []
-    for test_item_name, test_item in list(test_items[test_item_division].items())[:2]:
+    config_list, analysis_args, answer_dict = [], {}, {}
+    for test_item_name, test_item in test_items[test_item_division].items():
         config_list.append(test_item["measure"])
-        analysis_args.append(test_item["analyze"])
-        answer_list.append(test_item["answer"])
-        test_item_name_list.append(test_item_name)
+        analysis_args[test_item_name] = test_item["analyze"]
+        answer_dict[test_item_name] = test_item["answer"]
+        assert test_item_name == ".".join(test_item["measure"]["tags"]), (
+            "The test item name is not equal to the tags: "
+            + f"{test_item_name} != {'.'.join(test_item['measure']['tags'])}"
+        )
 
     summoner_id = exp_method.multiOutput(
         config_list,  # type: ignore
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
+        skip_build_write=True,
+        multiprocess_build=True,
     )
 
     read_summoner_id = exp_method.multiRead(

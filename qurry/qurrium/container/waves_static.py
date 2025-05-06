@@ -1,4 +1,4 @@
-"""WaveContainer (:mod:`qurry.qurry.qurrium.container.waves_static`)
+"""WaveContainer (:mod:`qurry.qurrium.container.waves_static`)
 
 """
 

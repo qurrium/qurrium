@@ -1,4 +1,4 @@
-"""AnalysisContainer (:mod:`qurry.qurry.qurrium.container.analyses`)"""
+"""AnalysisContainer (:mod:`qurry.qurrium.container.analyses`)"""
 
 from typing import Any, TypeVar
 from collections.abc import Hashable
