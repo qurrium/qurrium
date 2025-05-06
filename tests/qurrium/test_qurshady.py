@@ -29,7 +29,7 @@ from utils import current_time_filename, InputUnit, ResultUnit, check_unit
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
-from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
+from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE, set_cpu_only
 from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend.import_simulator import (
     SIM_DEFAULT_SOURCE,
@@ -40,6 +40,7 @@ from qurry.capsule import quickRead, quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
 from qurry.exceptions import QurryDependenciesNotWorking
 
+set_cpu_only()
 
 SEED_SIMULATOR = 2019  # <harmony/>
 THREDHOLD = 0.25
@@ -256,10 +257,6 @@ def test_quantity_unit(
             "The trace of the expect_rho should be 1: "
             + f"{np.trace(quantity_item['expect_rho'])}."
         )
-
-    exp_method.exps[exp_id].write(
-        save_location=os.path.join(os.path.dirname(__file__), "exports"),
-    )
 
 
 @pytest.mark.order(2)
