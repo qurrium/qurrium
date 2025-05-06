@@ -1,10 +1,10 @@
 """Utility functions for qurry.process (:mod:`qurry.process.utils`)"""
 
 from .counts_process import (
-    single_counts_under_degree,
-    single_counts_under_degree_pyrust,
-    counts_list_under_degree,
-    counts_list_under_degree_pyrust,
+    single_counts_recount,
+    single_counts_recount_pyrust,
+    counts_list_recount,
+    counts_list_recount_pyrust,
     BACKEND_AVAILABLE as counts_process_availability,
     shot_counts_selected_clreg_checker_pyrust,
     counts_list_vectorize_pyrust,

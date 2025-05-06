@@ -14,7 +14,7 @@ from .matrix_calcution import (
     DEFAULT_PYTHON_METHOD,
 )
 from ..utils import (
-    counts_list_under_degree_pyrust,
+    counts_list_recount_pyrust,
     shot_counts_selected_clreg_checker_pyrust,
     counts_list_vectorize_pyrust,
 )
@@ -63,7 +63,7 @@ def rho_m_flatten_core(
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
     num_classical_register = len(selected_classical_registers_sorted)
-    counts_under_degree_list = counts_list_under_degree_pyrust(
+    counts_under_degree_list = counts_list_recount_pyrust(
         counts,
         num_classical_register=measured_system_size,
         selected_classical_registers_sorted=selected_classical_registers_sorted,

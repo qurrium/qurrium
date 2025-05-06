@@ -8,7 +8,7 @@ import numpy as np
 
 from ...utils import (
     ensemble_cell as ensemble_cell_py,
-    single_counts_under_degree as single_counts_under_degree_py,
+    single_counts_recount as single_counts_under_degree_py,
 )
 from ...availability import (
     availablility,

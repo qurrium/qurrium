@@ -9,8 +9,8 @@ from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavai
 try:
     from ...boorust import counts_process  # type: ignore
 
-    single_counts_under_degree_rust_source = counts_process.single_counts_under_degree_rust
-    counts_list_under_degree_rust_source = counts_process.counts_list_under_degree_rust
+    single_counts_recount_rust_source = counts_process.single_counts_recount_rust
+    counts_list_recount_rust_source = counts_process.counts_list_recount_rust
     shot_counts_selected_clreg_checker_source = counts_process.shot_counts_selected_clreg_checker
     counts_list_vectorize_rust_source = counts_process.counts_list_vectorize_rust
 
@@ -20,13 +20,13 @@ except ImportError as err:
     RUST_AVAILABLE = False
     FAILED_RUST_IMPORT = err
 
-    def single_counts_under_degree_rust_source(*args, **kwargs):
+    def single_counts_recount_rust_source(*args, **kwargs):
         """Dummy function for counts_under_degree_rust."""
         raise PostProcessingRustImportError(
             "Rust is not available, using python to calculate counts under degree."
         ) from FAILED_RUST_IMPORT
 
-    def counts_list_under_degree_rust_source(*args, **kwargs):
+    def counts_list_recount_rust_source(*args, **kwargs):
         """Dummy function for counts_list_under_degree_rust."""
         raise PostProcessingRustImportError(
             "Rust is not available, using python to calculate counts list under degree."
@@ -54,7 +54,7 @@ BACKEND_AVAILABLE = availablility(
 DEFAULT_PROCESS_BACKEND = "Rust" if RUST_AVAILABLE else "Python"
 
 
-def single_counts_under_degree(
+def single_counts_recount(
     single_counts: dict[str, int],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -73,21 +73,21 @@ def single_counts_under_degree(
         dict[str, int]: The counts under the degree.
     """
 
-    single_counts_ud = {}
+    single_counts_recounted = {}
     for bitstring_all, num_counts_all in single_counts.items():
         bitstring = "".join(
             bitstring_all[num_classical_register - q_i - 1]
             for q_i in selected_classical_registers_sorted
         )
-        if bitstring in single_counts_ud:
-            single_counts_ud[bitstring] += num_counts_all
+        if bitstring in single_counts_recounted:
+            single_counts_recounted[bitstring] += num_counts_all
         else:
-            single_counts_ud[bitstring] = num_counts_all
+            single_counts_recounted[bitstring] = num_counts_all
 
-    return single_counts_ud
+    return single_counts_recounted
 
 
-def counts_list_under_degree(
+def counts_list_recount(
     counts_list: list[dict[str, int]],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -106,14 +106,14 @@ def counts_list_under_degree(
         list[dict[str, int]]: The counts under the degree.
     """
     return [
-        single_counts_under_degree(
+        single_counts_recount(
             single_counts, num_classical_register, selected_classical_registers_sorted
         )
         for single_counts in counts_list
     ]
 
 
-def single_counts_under_degree_pyrust(
+def single_counts_recount_pyrust(
     single_counts: dict[str, int],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -137,7 +137,7 @@ def single_counts_under_degree_pyrust(
 
     if backend == "Rust":
         if RUST_AVAILABLE:
-            return single_counts_under_degree_rust_source(
+            return single_counts_recount_rust_source(
                 single_counts, num_classical_register, selected_classical_registers_sorted
             )
         warnings.warn(
@@ -152,12 +152,12 @@ def single_counts_under_degree_pyrust(
             + "The backend should be 'Python' or 'Rust'.",
             PostProcessingRustUnavailableWarning,
         )
-    return single_counts_under_degree(
+    return single_counts_recount(
         single_counts, num_classical_register, selected_classical_registers_sorted
     )
 
 
-def counts_list_under_degree_pyrust(
+def counts_list_recount_pyrust(
     counts_list: list[dict[str, int]],
     num_classical_register: int,
     selected_classical_registers_sorted: list[int],
@@ -180,7 +180,7 @@ def counts_list_under_degree_pyrust(
     """
     if backend == "Rust":
         if RUST_AVAILABLE:
-            return counts_list_under_degree_rust_source(
+            return counts_list_recount_rust_source(
                 counts_list, num_classical_register, selected_classical_registers_sorted
             )
         warnings.warn(
@@ -195,7 +195,7 @@ def counts_list_under_degree_pyrust(
             + "The backend should be 'Python' or 'Rust'.",
             PostProcessingRustUnavailableWarning,
         )
-    return counts_list_under_degree(
+    return counts_list_recount(
         counts_list, num_classical_register, selected_classical_registers_sorted
     )
 

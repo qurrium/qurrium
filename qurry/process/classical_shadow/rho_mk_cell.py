@@ -8,7 +8,7 @@ import numpy as np
 
 from .unitary_set import U_M_MATRIX, IDENTITY, OUTER_PRODUCT
 from .matrix_calcution import rho_mki_kronecker_product_numpy
-from ..utils import single_counts_under_degree_pyrust
+from ..utils import single_counts_recount_pyrust
 
 # pylint: disable=invalid-name
 RhoMKCellMethod = Union[Literal["numpy", "numpy_precomputed"], str]
@@ -67,7 +67,7 @@ def rho_mk_cell_py(
     # subsystem making
     num_classical_register = len(list(single_counts.keys())[0])
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    single_counts_under_degree = single_counts_under_degree_pyrust(
+    single_counts_under_degree = single_counts_recount_pyrust(
         single_counts, num_classical_register, selected_classical_registers_sorted
     )
 
@@ -140,7 +140,7 @@ def rho_mk_cell_py_precomputed(
     # subsystem making
     num_classical_register = len(list(single_counts.keys())[0])
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    single_counts_under_degree = single_counts_under_degree_pyrust(
+    single_counts_under_degree = single_counts_recount_pyrust(
         single_counts, num_classical_register, selected_classical_registers_sorted
     )
 

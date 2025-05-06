@@ -22,7 +22,7 @@ from ...qurrium.utils.randomized import (
     local_unitary_op_to_pauli_coeff,
 )
 from ...qurrium.utils.random_unitary import check_input_for_experiment
-from ...process.utils import qubit_mapper, single_counts_under_degree_pyrust
+from ...process.utils import qubit_mapper, single_counts_recount_pyrust
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
@@ -969,7 +969,7 @@ class EchoListenRandomizedExperiment(
             list(final_mapping_1.values()),
         )
         first_counts_of_last_clreg = [
-            single_counts_under_degree_pyrust(
+            single_counts_recount_pyrust(
                 counts,
                 actual_bitstring_1_num_and_list[0],
                 actual_bitstring_1_num_and_list[1],
@@ -982,7 +982,7 @@ class EchoListenRandomizedExperiment(
             list(final_mapping_2.values()),
         )
         second_counts_of_last_clreg = [
-            single_counts_under_degree_pyrust(
+            single_counts_recount_pyrust(
                 counts,
                 actual_bitstring_2_num_and_list[0],
                 actual_bitstring_2_num_and_list[1],
