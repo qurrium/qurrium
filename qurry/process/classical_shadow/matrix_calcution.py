@@ -332,7 +332,7 @@ def select_single_trace_rho_method(
             np.ndarray[tuple[int, int], np.dtype[np.complex128]],
         ],
     ],
-    Union[np.complex128, jnp.ndarray],
+    np.complex128,
 ]:
     """Select the method to calculate the trace of Rho square.
 
@@ -340,7 +340,11 @@ def select_single_trace_rho_method(
         method (str): The method to use for the calculation.
 
     Returns:
-        Callable[[tuple], np.complex128]: The function to calculate the trace of Rho.
+        Callable[[tuple[
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+        ]], np.complex128]:
+            The function to calculate the trace of Rho.
     """
     if method == "trace_of_matmul":
         return single_trace_rho_by_trace_of_matmul
