@@ -118,6 +118,10 @@ class QurriumPrototype(ABC, Generic[_E]):
         )
         """The wrapper of experiments container from orphan_exps and multimanagers."""
 
+        if hasattr(self, "__post_init__"):
+            # Call the __post_init__ method if it exists
+            getattr(self, "__post_init__")()
+
     def build(
         self,
         circuits: list[Union[QuantumCircuit, Hashable]],
