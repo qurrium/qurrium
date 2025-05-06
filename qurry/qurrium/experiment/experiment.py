@@ -581,7 +581,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         if multiprocess:
             pool = ParallelManager()
             current_exp.beforewards.circuit_qasm.extend(
-                pool.starmap(qasm_dumps, ((q, qasm_version) for q in cirqs))
+                pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
             )
             current_exp.beforewards.target_qasm.extend(
                 zip(
