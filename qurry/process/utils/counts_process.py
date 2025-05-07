@@ -1,7 +1,7 @@
 """Post Processing - Utils - Counts Process (:mod:`qurry.process.utils.ccounts_process`)"""
 
 import warnings
-from typing import Union, Optional
+from typing import Union, Optional, Literal
 
 from ..availability import availablility, PostProcessingBackendLabel
 from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
@@ -13,6 +13,9 @@ try:
     counts_list_recount_rust_source = counts_process.counts_list_recount_rust
     shot_counts_selected_clreg_checker_source = counts_process.shot_counts_selected_clreg_checker
     counts_list_vectorize_rust_source = counts_process.counts_list_vectorize_rust
+    rho_m_flatten_counts_list_vectorize_rust_source = (
+        counts_process.rho_m_flatten_counts_list_vectorize_rust
+    )
 
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
@@ -42,6 +45,12 @@ except ImportError as err:
         """Dummy function for counts_list_vectorized_rust."""
         raise PostProcessingRustImportError(
             "Rust is not available, using python to calculate counts list vectorized."
+        ) from FAILED_RUST_IMPORT
+
+    def rho_m_flatten_counts_list_vectorize_rust_source(*args, **kwargs):
+        """Dummy function for rho_m_flatten_counts_list_vectorized_rust."""
+        raise PostProcessingRustImportError(
+            "Rust is not available, using python to calculate rho_m_flatten counts list vectorized."
         ) from FAILED_RUST_IMPORT
 
 
@@ -283,3 +292,49 @@ def counts_list_vectorize_pyrust(
 
         vectorized_counts.append((keys_int_array, values_int_array))
     return vectorized_counts
+
+
+def rho_m_flatten_counts_list_vectorize_pyrust(
+    counts_list: list[dict[str, int]],
+    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    selected_classical_registers_sorted: list[int],
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+) -> list[tuple[list[list[int]], list[int]]]:
+    """Dedicated function for rho_m_flatten counts list vectorized.
+
+    Args:
+        counts_list (list[dict[str, int]]):
+            The list of counts measured from the single quantum circuit.
+        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The shadow direction of the unitary operators.
+        selected_classical_registers_sorted (list[int]):
+            The list of **the index of the selected_classical_registers**.
+
+    Returns:
+        list[tuple[list[list[int]], list[int]]]: The counts under the degree.
+    """
+    if backend == "Rust":
+        if RUST_AVAILABLE:
+            return rho_m_flatten_counts_list_vectorize_rust_source(
+                counts_list, random_unitary_um, selected_classical_registers_sorted
+            )
+        warnings.warn(
+            "Rust is not available, using python to calculate rho_m_flatten counts list vectorized."
+            + f" Check: {FAILED_RUST_IMPORT}",
+            PostProcessingRustUnavailableWarning,
+        )
+        backend = "Python"
+
+    rho_m_flatten_vectorized_counts = []
+    for um_idx, single_counts in enumerate(counts_list):
+        keys_int_array: list[list[int]] = [
+            [
+                int(c) + 10 * random_unitary_um[um_idx][selected_classical_registers_sorted[q_idx]]
+                for q_idx, c in enumerate(bit_string)
+            ]
+            for bit_string in single_counts.keys()
+        ]
+        values_int_array: list[int] = list(single_counts.values())
+
+        rho_m_flatten_vectorized_counts.append((keys_int_array, values_int_array))
+    return rho_m_flatten_vectorized_counts

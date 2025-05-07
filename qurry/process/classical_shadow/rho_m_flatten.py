@@ -16,7 +16,7 @@ from .matrix_calcution import (
 from ..utils import (
     counts_list_recount_pyrust,
     shot_counts_selected_clreg_checker_pyrust,
-    counts_list_vectorize_pyrust,
+    rho_m_flatten_counts_list_vectorize_pyrust,
 )
 
 
@@ -62,32 +62,23 @@ def rho_m_flatten_core(
     begin = time.time()
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    num_classical_register = len(selected_classical_registers_sorted)
     counts_under_degree_list = counts_list_recount_pyrust(
         counts,
         num_classical_register=measured_system_size,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
-    counts_under_degree_list_vectorized = counts_list_vectorize_pyrust(counts_under_degree_list)
+    rho_m_flatten_counts_recounting_list_vectorized = rho_m_flatten_counts_list_vectorize_pyrust(
+        counts_under_degree_list, random_unitary_um, selected_classical_registers_sorted
+    )
 
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = []
-    for per_um, (bit_array_as_list, value_array_as_list) in zip(
-        random_unitary_um.values(), counts_under_degree_list_vectorized
-    ):
-
-        keys_int_array: np.ndarray[tuple[int, int], np.dtype[np.int32]] = np.array(
-            bit_array_as_list, dtype=np.int32
-        )
-        nu_expanded: np.ndarray[tuple[int, int], np.dtype[np.int32]] = np.broadcast_to(
-            [per_um[ci] for ci in selected_classical_registers_sorted],
-            (len(bit_array_as_list), num_classical_register),
-        )
-        lookup_keys: np.ndarray[tuple[int, int], np.dtype[np.int32]] = (
-            nu_expanded * 10 + keys_int_array
-        )
+    for bit_array_as_list, value_array_as_list in rho_m_flatten_counts_recounting_list_vectorized:
 
         rho_m_k_weighted = np.array(
-            [v * rho_mki_kronecker_product_2(kl) for kl, v in zip(lookup_keys, value_array_as_list)]
+            [
+                v * rho_mki_kronecker_product_2(kl)
+                for kl, v in zip(bit_array_as_list, value_array_as_list)
+            ]
         )
 
         rho_m = rho_m_k_weighted.sum(axis=0)
