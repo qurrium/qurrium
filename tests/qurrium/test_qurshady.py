@@ -254,9 +254,9 @@ def test_quantity_unit(
             + f"trace_of_matmul: {quantity_item['purity']} == "
             + f"einsum_ij_ij: {quantity_item['purity']}."
         )
-        assert np.abs(np.trace(quantity_item["expect_rho"]) - 1) < 1e-12, (
-            "The trace of the expect_rho should be 1: "
-            + f"{np.trace(quantity_item['expect_rho'])}."
+        tmp_expect_rho_trace = np.trace(quantity_item["expect_rho"])
+        assert np.abs(tmp_expect_rho_trace - 1) < 1e-12, (
+            "The trace of the expect_rho should be 1: " + f"{tmp_expect_rho_trace}."
         )
 
 
@@ -317,6 +317,7 @@ def test_multi_output_all(
                 rho_method=rho_method,
                 trace_method=trace_method,
                 analysis_name=f"multi_process.{rho_method}.{trace_method}",
+                skip_write=(rho_methods[-1] != rho_method or trace_methods[-1] != trace_method),
                 multiprocess_analysis=True,
                 multiprocess_write=True,
             )

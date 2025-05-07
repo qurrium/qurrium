@@ -8,7 +8,11 @@ import numpy as np
 
 from qurry.capsule import quickRead
 from qurry.qurrent.randomized_measure.utils import bitstring_mapping_getter
-from qurry.process.classical_shadow import classical_shadow_complex, ClassicalShadowComplex
+from qurry.process.classical_shadow import (
+    classical_shadow_complex,
+    ClassicalShadowComplex,
+    classical_shadow_core_availability,
+)
 from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 
 FILE_LOCATION = os.path.join(os.path.dirname(__file__), "shadow-case.json")
@@ -54,6 +58,12 @@ class ShadowCase(TypedDict):
     counts: list[dict[str, int]]
 
 
+class ClassicalShadowComplexExtended(ClassicalShadowComplex):
+    """Extended ClassicalShadowComplex with expect_rho trace."""
+
+    expect_rho_trace: np.complex128
+
+
 raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
 raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01]
 shadow_cases: list[ShadowCase] = [
@@ -81,6 +91,15 @@ shadow_cases: list[ShadowCase] = [
 ]
 
 
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
+
+    for availability_item in [classical_shadow_core_availability]:
+        assert availability_item[1]["Rust"], (
+            "Rust is not available." + f" Check the error: {availability_item[2]}"
+        )
+
+
 @pytest.mark.parametrize("shadow_case", shadow_cases)
 def test_shadow(shadow_case: ShadowCase):
     """Test the classical_shadow_complex function."""
@@ -94,12 +113,12 @@ def test_shadow(shadow_case: ShadowCase):
     trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
         ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
     )
-    result: dict[str, ClassicalShadowComplex] = {}
+    result: dict[str, ClassicalShadowComplexExtended] = {}
 
     # Call the classical_shadow_complex function with the provided arguments
     for rho_method in rho_methods:
         for trace_method in trace_methods:
-            result[rho_method + "." + trace_method] = classical_shadow_complex(
+            tmp = classical_shadow_complex(
                 shots=shadow_case["arguments"]["shots"],
                 counts=shadow_case["counts"],
                 random_unitary_um=shadow_case["random_unitary_ids"],
@@ -109,6 +128,10 @@ def test_shadow(shadow_case: ShadowCase):
                 rho_method=rho_method,
                 trace_method=trace_method,
             )
+            result[rho_method + "." + trace_method] = {
+                "expect_rho_trace": np.trace(tmp["expect_rho"]),
+                **tmp,
+            }
 
     # result["rust"] = classical_shadow_complex(
     #     shots=shadow_case["arguments"]["shots"],
@@ -137,8 +160,8 @@ def test_shadow(shadow_case: ShadowCase):
             + f"{name}: {result_tmp['purity']} != "
             + f"shadow_case['answer']: {shadow_case['answer']['purity']}"
         )
-        assert np.abs(np.trace(result_tmp["expect_rho"]) - 1) < 1e-12, (
-            "The trace of the expect_rho should be 1: " + f"{np.trace(result_tmp['expect_rho'])}."
+        assert np.abs(result_tmp["expect_rho_trace"] - 1) < 1e-12, (
+            "The trace of the expect_rho should be 1: " + f"{result_tmp['expect_rho_trace']}."
         )
 
     for (name_1, result_tmp_1), (name_2, result_tmp_2) in combinations(result.items(), 2):
@@ -147,9 +170,8 @@ def test_shadow(shadow_case: ShadowCase):
             + f"{name_1}: {result_tmp_1['purity']} != {name_2}: {result_tmp_2['purity']}"
         )
         assert (
-            np.abs(np.trace(result_tmp_1["expect_rho"]) - np.trace(result_tmp_2["expect_rho"]))
-            < 1e-12
+            np.abs(result_tmp_1["expect_rho_trace"] - result_tmp_2["expect_rho_trace"]) < 1e-12
         ), (
             "The trace of the expect_rho should be equal: "
-            + f"{np.trace(result_tmp_1['expect_rho'])} != {np.trace(result_tmp_2['expect_rho'])}."
+            + f"{result_tmp_1['expect_rho_trace']} != {result_tmp_2['expect_rho_trace']}."
         )

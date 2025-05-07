@@ -4,9 +4,10 @@ from typing import Union
 import pytest
 
 from qurry.process.utils import (
+    counts_process_availability,
     bit_slice_availability,
     dummy_availability,
-    test_availability,
+    test_availability as self_test_availability,
 )
 from qurry.process.utils.bit_slice import (
     qubit_selector as qubit_selector_py,
@@ -17,20 +18,23 @@ from qurry.process.utils.bit_slice import (
 from qurry.process.utils.test import test_bit_slice
 
 
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
+
+    for availability_item in [
+        counts_process_availability,
+        bit_slice_availability,
+        dummy_availability,
+        self_test_availability,
+    ]:
+        assert availability_item[1]["Rust"], (
+            "Rust is not available." + f" Check the error: {availability_item[2]}"
+        )
+
+
 def test_test_bit_slice():
     """Test the test_bit_slice function."""
-
-    assert test_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {test_availability[2]}"
-    )
     test_bit_slice()
-
-
-def test_dummy_availability():
-    """Test the dummy_availability function."""
-    assert dummy_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {dummy_availability[2]}"
-    )
 
 
 test_setup_selector: list[tuple[int, Union[int, tuple[int, int]], str]] = [

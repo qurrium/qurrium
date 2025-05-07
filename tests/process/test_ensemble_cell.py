@@ -5,10 +5,7 @@ import pytest
 import numpy as np
 
 from qurry.process.utils import randomized_availability
-from qurry.process.utils.randomized import (
-    ensemble_cell as ensemble_cell_py,
-    ensemble_cell_rust,
-)
+from qurry.process.utils.randomized import ensemble_cell as ensemble_cell_py, ensemble_cell_rust
 
 
 class TargetItemEnsembleCell(TypedDict):

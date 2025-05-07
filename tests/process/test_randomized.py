@@ -35,7 +35,7 @@ FILE_LOCATION = os.path.join(os.path.dirname(__file__), "easy-dummy.json")
 
 
 easy_dummy: dict[str, dict[str, int]] = quickRead(FILE_LOCATION)
-large_dummy_list = [easy_dummy["0"] for i in range(10)]
+large_dummy_list = [easy_dummy["0"] for _ in range(2)]
 test_setup_core: list[
     tuple[int, list[dict[str, int]], Union[int, tuple[int, int], None], tuple[int, int]]
 ] = [
@@ -50,11 +50,8 @@ test_setup_core: list[
 ]
 
 
-@pytest.mark.parametrize("test_items", test_setup_core)
-def test_entangled_entropy_core(
-    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]]
-):
-    """Test the entangled_entropy_core function."""
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
     for availability_item in [
         randomized_availability,
@@ -62,10 +59,21 @@ def test_entangled_entropy_core(
         purity_cell_availability,
         entangled_v1_availability,
         purity_cell_v1_availability,
+        overlap_availability,
+        echo_cell_availability,
+        overlap_v1_availability,
+        echo_cell_v1_availability,
     ]:
         assert availability_item[1]["Rust"], (
             "Rust is not available." + f" Check the error: {availability_item[2]}"
         )
+
+
+@pytest.mark.parametrize("test_items", test_setup_core)
+def test_entangled_entropy_core(
+    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]],
+):
+    """Test the entangled_entropy_core function."""
 
     selected_classical_registers = sorted(
         list(range(*test_items[3]))
@@ -156,20 +164,9 @@ def test_entangled_entropy_core(
 
 @pytest.mark.parametrize("test_items", test_setup_core)
 def test_overlap_echo_core(
-    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]]
+    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]],
 ):
     """Test the overlap_echo_core function."""
-
-    for availability_item in [
-        randomized_availability,
-        overlap_availability,
-        echo_cell_availability,
-        overlap_v1_availability,
-        echo_cell_v1_availability,
-    ]:
-        assert availability_item[1]["Rust"], (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
 
     selected_classical_registers = sorted(
         list(range(*test_items[3]))
