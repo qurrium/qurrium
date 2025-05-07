@@ -581,22 +581,22 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         if multiprocess:
             pool = ParallelManager()
             current_exp.beforewards.circuit_qasm.extend(
-                pool.starmap(qasm_dumps, ((q, qasm_version) for q in cirqs))
+                pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
             )
             current_exp.beforewards.target_qasm.extend(
                 zip(
-                    (str(k) for k in targets_keys),
+                    [str(k) for k in targets_keys],
                     pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
                 )
             )
         else:
             current_exp.beforewards.circuit_qasm.extend(
-                (qasm_dumps(q, qasm_version) for q in cirqs)
+                [qasm_dumps(q, qasm_version) for q in cirqs]
             )
             current_exp.beforewards.target_qasm.extend(
                 zip(
-                    (str(k) for k in targets_keys),
-                    (qasm_dumps(q, qasm_version) for q in targets_values),
+                    [str(k) for k in targets_keys],
+                    [qasm_dumps(q, qasm_version) for q in targets_values],
                 )
             )
 
@@ -1179,7 +1179,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         mode: str = "w+",
         indent: int = 2,
         encoding: str = "utf-8",
-        jsonable: bool = False,
+        jsonable: bool = True,
         export_transpiled_circuit: bool = False,
         qurryinfo_hold_access: Optional[str] = None,
         multiprocess: bool = True,

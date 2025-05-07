@@ -4,15 +4,15 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
+use crate::counts_process::single_counts_recount_prototype;
 use crate::randomized::randomized::ensemble_cell_rust;
-use crate::construct::counts_under_degree_prototype;
 
 #[pyfunction]
 #[pyo3(signature = (idx, single_counts, selected_classical_registers))]
 pub fn purity_cell_2_rust(
     idx: i32,
     single_counts: HashMap<String, i32>,
-    selected_classical_registers: Vec<i32>
+    selected_classical_registers: Vec<i32>,
 ) -> (i32, f64, Vec<i32>) {
     let shots: i32 = single_counts.values().sum();
     let num_classical_registers: i32 = single_counts.keys().next().unwrap().len() as i32;
@@ -21,10 +21,10 @@ pub fn purity_cell_2_rust(
     selected_classical_registers_sorted.sort();
     let subsystem_size = selected_classical_registers_sorted.len() as i32;
 
-    let single_counts_under_degree: HashMap<String, i32> = counts_under_degree_prototype(
+    let single_counts_under_degree: HashMap<String, i32> = single_counts_recount_prototype(
         single_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone()
+        selected_classical_registers_sorted.clone(),
     );
 
     let purity_cell: f64 = single_counts_under_degree
@@ -46,11 +46,15 @@ pub fn purity_cell_2_rust(
 pub fn entangled_entropy_core_2_rust(
     shots: i32,
     counts: Vec<HashMap<String, i32>>,
-    selected_classical_registers: Option<Vec<i32>>
+    selected_classical_registers: Option<Vec<i32>>,
 ) -> (HashMap<i32, f64>, Vec<i32>, &'static str, f64) {
     // check if the sum of shots is equal to the sum of all counts
     let sample_shots: i32 = counts[0].values().sum();
-    assert_eq!(shots, sample_shots, "shots {} does not match sample_shots {}", shots, sample_shots);
+    assert_eq!(
+        shots, sample_shots,
+        "shots {} does not match sample_shots {}",
+        shots, sample_shots
+    );
 
     // Determine the size of the allsystems
     let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
@@ -59,21 +63,25 @@ pub fn entangled_entropy_core_2_rust(
         Some(selected_classical_registers) => selected_classical_registers,
         None => (0..measured_system_size).collect(),
     };
+    for q_i in selected_classical_registers_actual.iter() {
+        assert!(
+            *q_i >= 0 && *q_i < measured_system_size,
+            "Invalid selected classical registers: {:?}",
+            selected_classical_registers_actual
+        );
+    }
 
     let begin: Instant = Instant::now();
 
-    let result_vec = counts
-        .par_iter()
-        .enumerate()
-        .map(|(identifier, data)| {
-            let result: (i32, f64, Vec<i32>) = purity_cell_2_rust(
-                identifier as i32,
-                data.clone(),
-                selected_classical_registers_actual.clone()
-            );
-            // println!("| purity_cell: {:?} {}", result, subsystems_size);
-            result
-        });
+    let result_vec = counts.par_iter().enumerate().map(|(identifier, data)| {
+        let result: (i32, f64, Vec<i32>) = purity_cell_2_rust(
+            identifier as i32,
+            data.clone(),
+            selected_classical_registers_actual.clone(),
+        );
+        // println!("| purity_cell: {:?} {}", result, subsystems_size);
+        result
+    });
 
     let selected_classical_registers_actual_sorted = {
         let mut selected_sorted_inner = selected_classical_registers_actual.clone();
@@ -85,20 +93,20 @@ pub fn entangled_entropy_core_2_rust(
     result_vec
         .collect::<Vec<(i32, f64, Vec<i32>)>>()
         .iter()
-        .for_each(|(idx, purity_cell, selected_classical_registers_sorted_result)| {
-            purity_loader_2.insert(*idx, *purity_cell);
+        .for_each(
+            |(idx, purity_cell, selected_classical_registers_sorted_result)| {
+                purity_loader_2.insert(*idx, *purity_cell);
 
-            let compare = selected_classical_registers_actual_sorted
-                .iter()
-                .zip(selected_classical_registers_sorted_result.iter())
-                .all(|(a, b)| a == b);
-            if !compare {
-                selected_classical_registers_checked.insert(
-                    *idx,
-                    selected_classical_registers_sorted_result.clone()
-                );
-            }
-        });
+                let compare = selected_classical_registers_actual_sorted
+                    .iter()
+                    .zip(selected_classical_registers_sorted_result.iter())
+                    .all(|(a, b)| a == b);
+                if !compare {
+                    selected_classical_registers_checked
+                        .insert(*idx, selected_classical_registers_sorted_result.clone());
+                }
+            },
+        );
     if selected_classical_registers_checked.len() > 0 {
         println!(
             "Selected classical registers are not the same: {:?}",
@@ -108,5 +116,10 @@ pub fn entangled_entropy_core_2_rust(
 
     let duration_2: f64 = begin.elapsed().as_secs_f64() as f64;
 
-    (purity_loader_2, selected_classical_registers_actual_sorted, "", duration_2)
+    (
+        purity_loader_2,
+        selected_classical_registers_actual_sorted,
+        "",
+        duration_2,
+    )
 }

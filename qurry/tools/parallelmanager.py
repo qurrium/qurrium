@@ -2,7 +2,7 @@
 
 import warnings
 from typing import Optional, Iterable, Callable, TypeVar, Any, Literal
-from multiprocessing import Pool, cpu_count, get_context
+from multiprocessing import cpu_count, get_context
 from tqdm.contrib.concurrent import process_map
 
 from .progressbar import default_setup
@@ -108,7 +108,7 @@ class ParallelManager:
         self,
         func: Callable[..., T_map],
         args_list: Iterable,
-        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
+        start_method: Literal["spawn", "fork", "forkserver"] = "spawn",
     ) -> list[T_map]:
         """This function is a wrapper for starmap from multiprocessing.
 
@@ -116,8 +116,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to None.
-                If None, use the default start method of the system.
+                Start method for multiprocessing. Defaults to "spawn".
 
         Returns:
             tqdm.tqdm[T_map]: Results.
@@ -125,7 +124,7 @@ class ParallelManager:
 
         if self.workers_num == 1:
             return list(map(func, *zip(*args_list)))
-        pool_instance = get_context(start_method).Pool if start_method else Pool
+        pool_instance = get_context(start_method).Pool
 
         with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
             return pool.starmap(func, args_list)
@@ -134,7 +133,7 @@ class ParallelManager:
         self,
         func: Callable[[T_tgt], T_map],
         arg_list: Iterable[T_tgt],
-        start_method: Optional[Literal["spawn", "fork", "forkserver"]] = None,
+        start_method: Literal["spawn", "fork", "forkserver"] = "spawn",
     ) -> list[T_map]:
         """This function is a wrapper for map from multiprocessing.
 
@@ -142,8 +141,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             arg_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to None.
-                If None, use the default start method of the system.
+                Start method for multiprocessing. Defaults to "spawn".
 
         Returns:
             list[T_map]: Results.
@@ -152,7 +150,7 @@ class ParallelManager:
         if self.workers_num == 1:
             return list(map(func, arg_list))
 
-        pool_instance = get_context(start_method).Pool if start_method else Pool
+        pool_instance = get_context(start_method).Pool
 
         with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
             return pool.map(func, arg_list)

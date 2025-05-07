@@ -96,12 +96,22 @@ Reference:
 """
 
 from .classical_shadow import (
-    BACKEND_AVAILABLE as classical_shadow_availability,
+    expectation_rho,
+    trace_rho_square,
+    classical_shadow_complex,
+    RhoMCoreMethod,
+    TraceRhoMethod,
+    DEFAULT_ALL_TRACE_RHO_METHOD,
+)
+from .rho_m_core import (
+    BACKEND_AVAILABLE as classical_shadow_core_availability,
+    PostProcessingBackendLabel,
+    DEFAULT_PROCESS_BACKEND,
+)
+from .matrix_calcution import set_cpu_only
+from .container import (
     ClassicalShadowBasic,
     ClassicalShadowExpectation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
-    expectation_rho,
-    trace_rho_square,
-    classical_shadow_complex,
 )

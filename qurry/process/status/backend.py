@@ -1,9 +1,4 @@
-"""
-================================================================
-Post-processing Status Conclusions
-(:mod:`qurry.process.status.backend`)
-================================================================
-"""
+"""Check the availability of the post-processing modules. (:mod:`qurry.process.status.backend`)"""
 
 from typing import Literal, Optional
 
@@ -19,9 +14,11 @@ from ..randomized_measure import (
 )
 from ..hadamard_test import purity_echo_core_availability
 from ..magnet_square import magnet_square_availability
+from ..classical_shadow import classical_shadow_core_availability
 
 from ..utils import (
-    construct_availability,
+    counts_process_availability,
+    bit_slice_availability,
     randomized_availability,
     dummy_availability,
     test_availability,
@@ -61,15 +58,18 @@ def availability_status_print() -> tuple[
         purity_echo_core_availability,
         # magnet_square
         magnet_square_availability,
+        # classical_shadow
+        classical_shadow_core_availability,
         # utils
         randomized_availability,
-        construct_availability,
+        counts_process_availability,
+        bit_slice_availability,
         dummy_availability,
         test_availability,
     ]
     pre_hoshi = [
         ("txt", f"| Qurry version: {__version__}"),
-        ("divider", 56),
+        ("divider", 75),
         ("h3", "Qurry Post-Processing"),
         {
             "type": "itemize",
@@ -110,7 +110,7 @@ def availability_status_print() -> tuple[
                 "ljust_description_filler": ".",
             }
         )
-    pre_hoshi.append(("divider", 56))
+    pre_hoshi.append(("divider", 75))
     for d, v in [
         ("Yes", "Working normally."),
         ("Error", "Exception occurred."),
@@ -128,7 +128,7 @@ def availability_status_print() -> tuple[
                 "ljust_description_len": 10,
             }
         )
-    pre_hoshi.append(("divider", 56))
+    pre_hoshi.append(("divider", 75))
     return Hoshi(pre_hoshi), availability_status, errors_status
 
 

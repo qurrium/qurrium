@@ -1,6 +1,7 @@
 """ShadowUnveil - Qurry (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
 from typing import Union, Optional, Any, Type, Literal, Iterable
+import warnings
 from collections.abc import Hashable
 from pathlib import Path
 from multiprocessing import get_context
@@ -22,6 +23,10 @@ from .experiment import (
     DEFAULT_PROCESS_BACKEND,
     quantities_input_collecter,
     outside_analyze_wrapper,
+    RhoMCoreMethod,
+    TraceRhoMethod,
+    DEFAULT_ALL_TRACE_RHO_METHOD,
+    JAX_AVAILABLE,
 )
 from ...qurrium.qurrium import QurriumPrototype
 from ...qurrium.utils.iocontrol import RJUST_LEN
@@ -131,6 +136,26 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
 
     __name__ = "EntropyRandomizedMeasure"
     short_name = SHORT_NAME
+
+    def __post_init__(self):
+        """Initialize the class."""
+        if JAX_AVAILABLE:
+            # pylint: disable=import-outside-toplevel
+            import jax
+
+            if not jax.config.values["jax_enable_x64"]:
+                jax.config.update("jax_enable_x64", True)
+            # pylint: enable=import-outside-toplevel
+
+            if not jax.config.values["jax_enable_x64"]:
+                warnings.warn(
+                    "JAX is not set to use 64-bit precision, but it should be setup by Qurrium"
+                    + "Since we rely on 64-bit precision, please set it to use 64-bit precision. "
+                    + "You can set it by `jax.config.update('jax_enable_x64', True)`. "
+                    + "Or you can set it in your environment by `export JAX_ENABLE_X64=True`. "
+                    + "Otherwise, the results will be inaccurate when use JAX.",
+                    RuntimeWarning,
+                )
 
     @property
     def experiment_instance(self) -> Type[ShadowUnveilExperiment]:
@@ -400,7 +425,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
     def multiOutput(
         self,
         config_list: list[Union[dict[str, Any], ShadowUnveilMeasureArgs]],
-        summoner_name: str = "exps",
+        summoner_name: str = short_name,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -416,16 +441,15 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
 
         Args:
             config_list (list[Union[dict[str, Any], ShadowUnveilMeasureArgs]]):
-                The list of default configurations of multiple experiment. Defaults to [].
+                The list of default configurations of multiple experiment.
             summoner_name (str, optional):
-                Name for multimanager. Defaults to 'exps'.
+                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
-                The quantum backend.
-                Defaults to AerSimulator().
+                The backend to run. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional):
                 Tags of experiment of :cls:`MultiManager`. Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
@@ -479,8 +503,9 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
         multiprocess_analysis: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
+        rho_method: RhoMCoreMethod = "numpy_precomputed",
+        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        method: Literal["trace_of_matmul", "hilbert_schmidt_inner_product"] = "trace_of_matmul",
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
@@ -510,39 +535,28 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
 
             selected_qubits (Optional[list[int]], optional):
                 The selected qubits. Defaults to None.
-            backend (PostProcessingBackendLabel, optional):
-                The backend for the postprocessing. Defaults to DEFAULT_PROCESS_BACKEND.
-        method (Literal["trace_of_matmul", "hilbert_schmidt_inner_product"], optional):
-            The method to calculate the trace of Rho square.
-            - "trace_of_matmul": Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-            - "hilbert_schmidt_inner_product":
-                Use np.einsum("ij,ij", rho_m1, rho_m2) to calculate the trace.
-                Defaults to "trace_of_matmul".
-
-            "hilbert_schmidt_inner_product" is inspired by Frobenius inner product
-            or Hilbert-Schmidt operator
-            Although it considers $Tr(A^*B)$ where A, B are matrices,
-            $A^*$ is the conjugate transpose of A, which is not the $Tr(AB)$, the trace we want.
-            But the implementation of Hilbert-Schmidt operator on Google Cirq,
-            the quantum computing package by Google, just uses the following line:
-
-            .. code-block:: python
-                np.einsum('ij,ij', m1.conj(), m2)
-
-            This inspired us to use
-
-            .. code-block:: python
-                np.einsum("ij,ij", rho_m1.conj(), rho_m2)
-                + np.einsum("ij,ij", rho_m2.conj(), rho_m1)
-
-            to calculate the trace. And somehow, it is the same as
-
-            .. code-block:: python
-                np.trace((rho_m1 @ rho_m2)) + np.trace((rho_m2 @ rho_m1))
-
-            Also, the einsum method is much faster than the matmul method for
-            it decreases the complexity from O(n^3) to O(n^2)
-            on the unused matrix elements of matrix product.
+            rho_method (RhoMCoreMethod, optional):
+                The method to use for the calculation. Defaults to "numpy_precomputed".
+                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+                - "numpy": Use Numpy to calculate the rho_m.
+                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+                - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+                Currently, "numpy_precomputed" is the best option for performance.
+            trace_method (TraceRhoMethod, optional):
+                The method to calculate the trace of Rho square.
+                - "trace_of_matmul":
+                    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                - "quick_trace_of_matmul" or "einsum_ij_ji":
+                    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
+                    Which is the fastest method to calculate the trace.
+                    Due to handle all computation in einsum.
+                - "einsum_aij_bji_to_ab_numpy":
+                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                - "einsum_aij_bji_to_ab_jax":
+                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            backend (PostProcessingBackend, optional):
+                Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 
@@ -558,8 +572,16 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 current_multimanager = self.multimanagers[summoner_id]
             else:
                 raise ValueError("No such summoner_id in multimanagers.")
-            if len(current_multimanager.afterwards.allCounts) == 0:
-                raise ValueError("No counts in multimanagers.")
+            counts_check = [
+                k
+                for k in current_multimanager.beforewards.circuits_map.keys()
+                if len(self.exps[k].afterwards.counts) == 0
+            ]
+            if len(counts_check) > 0:
+                raise ValueError(
+                    f"Counts of {len(counts_check)} experiments are empty, "
+                    + f"please check them before analysis: {counts_check}."
+                )
 
             idx_tagmap_quantities = len(current_multimanager.quantity_container)
             name = (
@@ -569,7 +591,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             )
 
             all_counts_progress = qurry_progressbar(
-                list(current_multimanager.afterwards.allCounts.keys()),
+                current_multimanager.beforewards.circuits_map.keys(),
                 desc="Preparing analyzing for multiprocessing...",
             )
 
@@ -587,10 +609,10 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=selected_qubits,
+                                rho_method=rho_method,
+                                trace_method=trace_method,
                                 backend=backend,
-                                method=method,
                                 counts_used=counts_used,
-                                multiprocess=False,
                             )
                         )
                     else:
@@ -598,10 +620,10 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=v_args.get("selected_qubits", selected_qubits),
+                                rho_method=v_args.get("rho_method", rho_method),
+                                trace_method=v_args.get("trace_method", trace_method),
                                 backend=v_args.get("backend", backend),
-                                method=v_args.get("method", method),
                                 counts_used=v_args.get("counts_used", counts_used),
-                                multiprocess=False,
                             )
                         )
                 else:
@@ -609,10 +631,10 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                         quantities_input_collecter(
                             current_exps=current_multimanager.exps[k],
                             selected_qubits=selected_qubits,
+                            rho_method=rho_method,
+                            trace_method=trace_method,
                             backend=backend,
-                            method=method,
                             counts_used=counts_used,
-                            multiprocess=False,
                         )
                     )
 
@@ -646,8 +668,9 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             skip_write=skip_write,
             multiprocess_write=multiprocess_write,
             selected_qubits=selected_qubits,
+            rho_method=rho_method,
+            trace_method=trace_method,
             backend=backend,
-            method=method,
             counts_used=counts_used,
             **analysis_args,
         )

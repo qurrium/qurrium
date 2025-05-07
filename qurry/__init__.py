@@ -33,7 +33,8 @@ from .version import __version__
 try:
     import qurry.boorust  # type: ignore
 
-    sys.modules["qurry.boorust.construct"] = qurry.boorust.construct  # type: ignore
+    sys.modules["qurry.boorust.counts_process"] = qurry.boorust.counts_process  # type: ignore
+    sys.modules["qurry.boorust.bit_slice"] = qurry.boorust.bit_slice  # type: ignore
     sys.modules["qurry.boorust.randomized"] = qurry.boorust.randomized  # type: ignore
     sys.modules["qurry.boorust.hadamard"] = qurry.boorust.hadamard  # type: ignore
     sys.modules["qurry.boorust.dummy"] = qurry.boorust.dummy  # type: ignore

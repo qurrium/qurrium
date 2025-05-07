@@ -222,9 +222,6 @@ def circuits_map_distributer(
         for idx in idx_circs:
             experiment_container[current_id].afterwards.counts.append(counts_tmp_container[idx])
         experiment_container[current_id].commons.datetimes.add_only(retrieve_times_name)
-        current_multimanager.afterwards.allCounts[current_id] = experiment_container[
-            current_id
-        ].afterwards.counts
 
 
 def retrieve_exceptions_loader(

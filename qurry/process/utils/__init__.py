@@ -1,16 +1,22 @@
-"""Utility functions for qurry.process (:mod:`qurry.process.utils`)
+"""Utility functions for qurry.process (:mod:`qurry.process.utils`)"""
 
-"""
-
-from .construct import (
+from .counts_process import (
+    single_counts_recount,
+    single_counts_recount_pyrust,
+    counts_list_recount,
+    counts_list_recount_pyrust,
+    BACKEND_AVAILABLE as counts_process_availability,
+    shot_counts_selected_clreg_checker_pyrust,
+    counts_list_vectorize_pyrust,
+    rho_m_flatten_counts_list_vectorize_pyrust,
+)
+from .bit_slice import (
     qubit_selector,
     cycling_slice,
     degree_handler,
-    counts_under_degree,
-    counts_under_degree_pyrust,
     qubit_mapper,
     is_cycling_slice_active,
-    BACKEND_AVAILABLE as construct_availability,
+    BACKEND_AVAILABLE as bit_slice_availability,
 )
 from .randomized import (
     hamming_distance,
@@ -18,4 +24,4 @@ from .randomized import (
     BACKEND_AVAILABLE as randomized_availability,
 )
 from .dummy import BACKEND_AVAILABLE as dummy_availability
-from .test import BACKEND_AVAILABLE as test_availability, test_construct
+from .test import BACKEND_AVAILABLE as test_availability, test_bit_slice

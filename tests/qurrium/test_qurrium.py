@@ -1,6 +1,7 @@
 """Test the qurry.qurrium module SamplingExecuter and WavesExecuter."""
 
 import os
+from typing import Union
 import pytest
 
 from qiskit import QuantumCircuit
@@ -8,7 +9,6 @@ from qiskit import QuantumCircuit
 from utils import InputUnit, ResultUnit
 
 from qurry.qurrium import SamplingExecuter, WavesExecuter
-from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend import GeneralSimulator
 from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
 
@@ -84,7 +84,7 @@ for exp_method_tmp, test_item_division_tmp in [
     test_quantity_unit_targets,
 )
 def test_quantity_unit(
-    exp_method: QurriumPrototype,
+    exp_method: Union[SamplingExecuter, WavesExecuter],
     test_item_division: str,
     test_item_name: str,
     test_item: InputUnit,
@@ -92,7 +92,7 @@ def test_quantity_unit(
     """Test the quantity of echo.
 
     Args:
-        exp_method (QurriumPrototype):
+        exp_method (Union[SamplingExecuter, WavesExecuter]):
             The QurriumPrototype instance.
         test_item_division (str):
             The test item division.
@@ -130,7 +130,7 @@ def test_quantity_unit(
     ],
 )
 def test_multi_output_all(
-    exp_method: QurriumPrototype,
+    exp_method: Union[SamplingExecuter, WavesExecuter],
     test_item_division: str,
     summoner_name: str,
 ) -> None:

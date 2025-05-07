@@ -1,6 +1,4 @@
-"""Test (:mod:`qurry.process.utils.test`)
-
-"""
+"""Test (:mod:`qurry.process.utils.test`)"""
 
 import warnings
 
@@ -10,7 +8,7 @@ from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavai
 try:
     from ...boorust import test  # type: ignore
 
-    test_construct_source = test.test_construct
+    test_bit_slice_source = test.test_bit_slice
 
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
@@ -18,10 +16,10 @@ except ImportError as err:
     RUST_AVAILABLE = False
     FAILED_RUST_IMPORT = err
 
-    def test_construct_source():
-        """Dummy function for test_construct."""
+    def test_bit_slice_source():
+        """Dummy function for test_bit_slice."""
         raise PostProcessingRustImportError(
-            "Rust is not available, skipping test_construct."
+            "Rust is not available, skipping test_bit_slice."
         ) from FAILED_RUST_IMPORT
 
 
@@ -33,11 +31,11 @@ BACKEND_AVAILABLE = availablility(
 )
 
 
-def test_construct():
+def test_bit_slice():
     """Test the construct module."""
 
     if RUST_AVAILABLE:
-        test_construct_source()
+        test_bit_slice_source()
     else:
         warnings.warn(
             f"Rust is not available, Check: {FAILED_RUST_IMPORT}",
