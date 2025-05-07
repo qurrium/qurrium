@@ -68,28 +68,6 @@ pub fn counts_list_recount_rust(
 }
 
 #[pyfunction]
-#[pyo3(signature = (counts))]
-pub fn counts_list_vectorize_rust(
-    counts: Vec<HashMap<String, i32>>,
-) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
-    let mut counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
-    for single_counts in counts {
-        let mut bitstrings: Vec<Vec<i32>> = Vec::new();
-        let mut counts_vec: Vec<i32> = Vec::new();
-        for (bit_string, count) in single_counts {
-            let bitstring_vec: Vec<i32> = bit_string
-                .chars()
-                .map(|c| c.to_digit(2).unwrap() as i32)
-                .collect();
-            bitstrings.push(bitstring_vec);
-            counts_vec.push(count);
-        }
-        counts_list_vectorized.push((bitstrings, counts_vec));
-    }
-    counts_list_vectorized
-}
-
-#[pyfunction]
 #[pyo3(signature = (shots, counts, selected_classical_registers = None))]
 pub fn shot_counts_selected_clreg_checker(
     shots: i32,
@@ -120,4 +98,62 @@ pub fn shot_counts_selected_clreg_checker(
     }
 
     (measured_system_size, selected_classical_registers_actual)
+}
+
+#[pyfunction]
+#[pyo3(signature = (counts))]
+pub fn counts_list_vectorize_rust(
+    counts: Vec<HashMap<String, i32>>,
+) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
+    let mut counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
+    for single_counts in counts {
+        let mut bitstrings: Vec<Vec<i32>> = Vec::new();
+        let mut counts_vec: Vec<i32> = Vec::new();
+        for (bit_string, count) in single_counts {
+            let bitstring_vec: Vec<i32> = bit_string
+                .chars()
+                .map(|c| c.to_digit(2).unwrap() as i32)
+                .collect();
+            bitstrings.push(bitstring_vec);
+            counts_vec.push(count);
+        }
+        counts_list_vectorized.push((bitstrings, counts_vec));
+    }
+    counts_list_vectorized
+}
+
+#[pyfunction]
+#[pyo3(signature = (counts, random_unitary_um, selected_classical_registers_sorted))]
+pub fn rho_m_flatten_counts_list_vectorize_rust(
+    counts: Vec<HashMap<String, i32>>,
+    random_unitary_um: HashMap<i32, HashMap<i32, i32>>,
+    selected_classical_registers_sorted: Vec<i32>,
+) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
+    let mut rho_m_flatten_counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
+
+    for (um_idx, single_counts) in counts.iter().enumerate() {
+        let mut bitstrings: Vec<Vec<i32>> = Vec::new();
+        let mut counts_vec: Vec<i32> = Vec::new();
+        for (bit_string, count) in single_counts {
+            assert!(
+                bit_string.len() == selected_classical_registers_sorted.len(),
+                "bit_string length {} does not match selected_classical_registers_sorted length {}",
+                bit_string.len(),
+                selected_classical_registers_sorted.len()
+            );
+            let bitstring_vec: Vec<i32> = bit_string
+                .chars()
+                .enumerate()
+                .map(|(q_idx, c)| {
+                    random_unitary_um[&(um_idx as i32)][&selected_classical_registers_sorted[q_idx]]
+                        * 10
+                        + c.to_digit(2).unwrap() as i32
+                })
+                .collect();
+            bitstrings.push(bitstring_vec);
+            counts_vec.push(count.clone());
+        }
+        rho_m_flatten_counts_list_vectorized.push((bitstrings, counts_vec));
+    }
+    rho_m_flatten_counts_list_vectorized
 }
