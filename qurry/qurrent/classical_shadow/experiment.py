@@ -296,7 +296,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         assert (
             "random_unitary_ids" in self.beforewards.side_product
         ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."
-        random_unitary_ids = self.beforewards.side_product["random_unitary_ids"]
+        if len(self.beforewards.side_product["random_unitary_ids"]) != self.args.times:
+            raise ValueError(
+                f"The number of random unitary ids should be {self.args.times}, "
+                + f"but got {len(self.beforewards.side_product['random_unitary_ids'])}."
+            )
+        random_unitary_ids = {
+            int(k): {int(k2): int(v2) for k2, v2 in v.items()}
+            for k, v in self.beforewards.side_product["random_unitary_ids"].items()
+        }
         assert isinstance(
             self.args.registers_mapping, dict
         ), f"registers_mapping {self.args.registers_mapping} is not dict."
