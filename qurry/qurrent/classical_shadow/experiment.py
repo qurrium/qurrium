@@ -645,18 +645,17 @@ def outside_analyze(
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                Use np.trace(np.matmul(rho_m1, rho_m2))
+                to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                Which is the fastest method to calculate the trace.
-                Due to handle all computation in einsum.
+                Use np.einsum("ij,ji", rho_m1, rho_m2)
+                to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
         backend (PostProcessingBackend, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-
 
     Returns:
         tuple[str, ShadowUnveilAnalysis]:

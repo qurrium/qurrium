@@ -175,7 +175,7 @@ def expectation_rho(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     expect_rho = expectation_rho_core(
         rho_m_list=rho_m_list,
@@ -263,7 +263,7 @@ def trace_rho_square(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
     trace_rho_sum_real = trace_rho_sum.real
@@ -446,7 +446,7 @@ def classical_shadow_complex(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     expect_rho = expectation_rho_core(
         rho_m_list=rho_m_list,
