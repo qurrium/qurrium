@@ -74,7 +74,7 @@ result_items: dict[str, dict[str, ResultUnit]] = {
 """Result items. """
 result_items.update(
     {
-        f"{items_name}_multi.{rho_method}.{trace_method}": {}
+        f"{items_name}_multi.multi_process.{rho_method}.{trace_method}": {}
         for items_name in ["04", "04_extra_clbits"]
         for rho_method in rho_methods
         for trace_method in trace_methods
