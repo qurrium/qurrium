@@ -110,6 +110,13 @@ class QurryExperiment(
         old_name = "" if isinstance(q.name, str) else q.name
         old_name = "" if len(old_name) < 1 else old_name
         q_copy = q.copy()
+        if len(q_copy.cregs) < 1:
+            raise ValueError(
+                "| No classical register in the given circuits, counts will be empty. "
+                + "Please add classical register to the circuit. "
+                + "(Don't be frustrated, I did the same thing on unit test. "
+                + "It made me confused and thought what's wrong for a while before ('_').)"
+            )
         q_copy.name = ".".join(
             [n for n in [arguments.exp_name, the_chosen_key, old_name] if len(n) > 0]
         )

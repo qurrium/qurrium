@@ -95,10 +95,13 @@ class WavesExecuterExperiment(
                 The circuits of the experiment and the side products.
         """
         cirqs = []
+        no_cregs = []
         if pbar is not None:
             pbar.set_description_str("Loading circuits")
         for i, (k, q) in enumerate(targets):
             q_copy = q.copy()
+            if len(q_copy.cregs) < 1:
+                no_cregs.append(i)
             chosen_key = "" if isinstance(k, int) else str(k)
             old_name = "" if isinstance(q.name, str) else q.name
             old_name = "" if len(old_name) < 1 else old_name
@@ -106,6 +109,19 @@ class WavesExecuterExperiment(
                 [n for n in [f"{arguments.exp_name}_{i}", chosen_key, old_name] if len(n) > 0]
             )
             cirqs.append(q_copy)
+        if len(no_cregs) == len(targets):
+            raise ValueError(
+                "| No classical register in ALL circuits, counts will be empty. "
+                + "Please add classical register to the circuit. "
+                + "(Don't be frustrated, I did the same thing on unit test. "
+                + "It made me confused and thought what's wrong for a while before ('_').)"
+            )
+        if len(no_cregs) > 0:
+            raise ValueError(
+                "| No classical register in the following circuits, counts will be empty."
+                + "Please add classical register to the circuit. "
+                + f"The index of circuit without classical register: {no_cregs}"
+            )
 
         return cirqs, {}
 
