@@ -181,7 +181,7 @@ def trace_rho_square_core(
     """
 
     if trace_method in ["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]:
-        rho_m_array = np.array(rho_m_list)
+        rho_m_array: np.ndarray = np.array(rho_m_list)
         trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(
             trace_method
         )
