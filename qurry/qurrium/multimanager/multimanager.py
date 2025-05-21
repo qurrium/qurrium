@@ -394,12 +394,10 @@ class MultiManager(Generic[_E]):
             chunks_num = very_easy_chunk_size(
                 tasks_num=len(initial_config_list),
                 num_process=DEFAULT_POOL_SIZE,
-                max_chunk_size=DEFAULT_POOL_SIZE * 2,
+                max_chunk_size=min(max(1, len(initial_config_list) // DEFAULT_POOL_SIZE), 20),
             )
 
-            pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-            )
+            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
             with pool as p:
 
                 exps_iterable = qurry_progressbar(

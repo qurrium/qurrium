@@ -6,7 +6,7 @@ import pytest
 
 from qiskit import QuantumCircuit
 
-from utils import InputUnit, ResultUnit
+from utils import InputUnit, ResultUnit, check_unit
 
 from qurry.qurrium import SamplingExecuter, WavesExecuter
 from qurry.tools.backend import GeneralSimulator
@@ -17,43 +17,50 @@ SEED_SIMULATOR = 2019  # <harmony/>
 backend = GeneralSimulator()
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
 
-test_items: dict[str, dict[str, InputUnit]] = {}
-"""Test items. """
-result_items: dict[str, dict[str, ResultUnit]] = {}
+test_items: dict[str, dict[str, InputUnit]] = {
+    "01": {},
+    "02": {},
+}
+"""Input items. """
+result_items: dict[str, dict[str, ResultUnit]] = {
+    "01": {},
+    "02": {},
+    "01_multi.report.001": {},
+    "02_multi.report.001": {},
+}
 """Result items. """
 
-circuits: dict[str, QuantumCircuit] = {
+circuits_with_measure: dict[str, QuantumCircuit] = {
     "4-trivial": TrivialParamagnet(4),
     "4-GHZ": GHZ(4),
     "4-topological-period": TopologicalParamagnet(4),
-    "6-trivial": TrivialParamagnet(6),
-    "6-GHZ": GHZ(6),
-    "6-topological-period": TopologicalParamagnet(6),
 }
 """Circuits. """
+for qc in circuits_with_measure.values():
+    qc.measure_all()
 
 
 exp_demo_01 = SamplingExecuter()
 test_items["01"] = {}
-for num_qubits, circ_name, answer in [
-    (4, "4-trivial", 1.0),
-    (4, "4-GHZ", 0.5),
-    (4, "4-topological-period", 0.25),
+for num_qubits, circ_name in [
+    (4, "4-trivial"),
+    (4, "4-GHZ"),
+    (4, "4-topological-period"),
 ]:
     test_items["01"][".".join(("sampling_excuter", circ_name))] = {
         "measure": {"wave": circ_name, "sampling": 5, "tags": ("sampling_excuter", circ_name)},
         "analyze": {},
-        "answer": 0,
+        "answer": 42,
     }
-    exp_demo_01.add(circuits[circ_name], circ_name)
+    exp_demo_01.add(circuits_with_measure[circ_name], circ_name)
 
 
 exp_demo_02 = WavesExecuter()
 test_items["02"] = {}
-for num_qubits, circ_name, answer in [
-    (4, "4-trivial", 1.0),
-    (4, "4-GHZ", 0.5),
-    (4, "4-topological-period", 0.25),
+for num_qubits, circ_name in [
+    (4, "4-trivial"),
+    (4, "4-GHZ"),
+    (4, "4-topological-period"),
 ]:
     test_items["02"][".".join(("waves_excuter", circ_name))] = {
         "measure": {
@@ -61,9 +68,9 @@ for num_qubits, circ_name, answer in [
             "tags": ("waves_excuter", circ_name),
         },
         "analyze": {},
-        "answer": answer,
+        "answer": 42,
     }
-    exp_demo_02.add(circuits[circ_name], circ_name)
+    exp_demo_02.add(circuits_with_measure[circ_name], circ_name)
 
 
 test_quantity_unit_targets = []
@@ -121,6 +128,18 @@ def test_quantity_unit(
             + f"{len(test_item['measure']['waves'])}, {test_item_name}."
         )
 
+    exp_method.exps[exp_id].analyze(**test_item["analyze"])
+
+    quantity = exp_method.exps[exp_id].reports[0].content._asdict()
+
+    result_items[test_item_division][test_item_name] = check_unit(
+        quantity,
+        "ultimate_answer",
+        test_item["answer"],
+        1e-12,
+        test_item_name,
+    )
+
 
 @pytest.mark.parametrize(
     ["exp_method", "test_item_division", "summoner_name"],
@@ -161,8 +180,38 @@ def test_multi_output_all(
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
         skip_build_write=True,
+        multiprocess_write=True,
         multiprocess_build=True,
     )
+
+    specific_analysis_args = {
+        exp_id: analysis_args[".".join(config["tags"])]
+        for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
+    }
+
+    summoner_id = exp_method.multiAnalysis(
+        summoner_id,
+        analysis_name="report",
+        specific_analysis_args=specific_analysis_args,  # type: ignore
+    )
+    report_001 = exp_method.multimanagers[summoner_id].quantity_container["report.001"]
+
+    for config in config_list:
+        for quantity in report_001[config["tags"]]:
+            assert isinstance(quantity, dict), (
+                f"The quantity is not a dict: {quantity}, "
+                + f"{quantity.keys()}/{'.'.join(config['tags'])}/report.001."
+            )
+
+            result_items[f"{test_item_division}_multi.report.001"][".".join(config["tags"])] = (
+                check_unit(
+                    quantity,
+                    "ultimate_answer",
+                    42,
+                    1e-12,
+                    ".".join(config["tags"]),
+                )
+            )
 
     read_summoner_id = exp_method.multiRead(
         summoner_name=exp_method.multimanagers[summoner_id].summoner_name,

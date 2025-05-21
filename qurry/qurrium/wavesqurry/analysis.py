@@ -24,7 +24,7 @@ class WavesExecuterAnalysis(AnalysisPrototype):
     class AnalysisContent(NamedTuple):
         """Analysis content."""
 
-        utlmatic_answer: int
+        ultimate_answer: int
         """~The Answer to the Ultimate Question of Life, The Universe, and Everything.~"""
         dummy: int
         """Just a dummy field."""

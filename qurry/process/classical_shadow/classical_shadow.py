@@ -175,7 +175,7 @@ def expectation_rho(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     expect_rho = expectation_rho_core(
         rho_m_list=rho_m_list,
@@ -222,11 +222,11 @@ def trace_rho_square(
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                Which is the fastest method to calculate the trace.
-                Due to handle all computation in einsum.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
@@ -263,7 +263,7 @@ def trace_rho_square(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
     trace_rho_sum_real = trace_rho_sum.real
@@ -410,11 +410,11 @@ def classical_shadow_complex(
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                Which is the fastest method to calculate the trace.
-                Due to handle all computation in einsum.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
@@ -446,7 +446,7 @@ def classical_shadow_complex(
         backend=backend,
     )
     if pbar is not None:
-        pbar.set_description(f"| taking time: {taken:.4f} sec |")
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     expect_rho = expectation_rho_core(
         rho_m_list=rho_m_list,

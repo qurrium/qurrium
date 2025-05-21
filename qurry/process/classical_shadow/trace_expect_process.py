@@ -34,7 +34,9 @@ def expectation_rho_core(
         np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The expectation value of Rho.
     """
 
-    expect_rho = np.sum(rho_m_list, axis=0, dtype=np.complex128)
+    expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = np.sum(
+        rho_m_list, axis=0, dtype=np.complex128
+    )  # type: ignore
     assert expect_rho.shape == (2 ** len(selected_classical_registers_sorted),) * 2, (
         f"The shape of expect_rho: {expect_rho.shape} "
         + f"and the shape of rho_m_list: {rho_m_list[0].shape} are different."
@@ -47,11 +49,11 @@ def expectation_rho_core(
 TraceRhoMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
 """The method to calculate the trace of Rho square.
 - "trace_of_matmul":
-    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+    Use np.trace(np.matmul(rho_m1, rho_m2)) 
+    to calculate the each summation item in `rho_m_list`.
 - "quick_trace_of_matmul" or "einsum_ij_ji":
-    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-    Which is the fastest method to calculate the trace.
-    Due to handle all computation in einsum.
+    Use np.einsum("ij,ji", rho_m1, rho_m2) 
+    to calculate the each summation item in `rho_m_list`.
 - "einsum_aij_bji_to_ab_numpy":
     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 - "einsum_aij_bji_to_ab_jax":
@@ -164,11 +166,11 @@ def trace_rho_square_core(
         trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                Which is the fastest method to calculate the trace.
-                Due to handle all computation in einsum.
+                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
@@ -179,7 +181,7 @@ def trace_rho_square_core(
     """
 
     if trace_method in ["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"]:
-        rho_m_array = np.array(rho_m_list)
+        rho_m_array: np.ndarray = np.array(rho_m_list)
         trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(
             trace_method
         )

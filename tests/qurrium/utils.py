@@ -1,9 +1,55 @@
 """Utility functions for testing qurry package."""
 
+import os
 from typing import TypedDict, Any, Optional
+import warnings
 import numpy as np
 
+from qurry.capsule import quickRead
 from qurry.tools.datetime import current_time
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
+from qurry.exceptions import QurryDependenciesNotWorking
+
+SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
+
+
+def detect_simulator_source() -> str:
+    """Detect the simulator source.
+    If the default simulator source is not Qiskit Aer, a warning is raised.
+    This function is used to check if the Qiskit Aer simulator is available.
+
+    Returns:
+        str: The simulator source.
+    """
+
+    if SIM_DEFAULT_SOURCE != "qiskit_aer":
+        warnings.warn(
+            f"Qiskit Aer is not used as the default simulator: {SIM_DEFAULT_SOURCE}. "
+            f"Current simulator source is: {SIM_IMPORT_ERROR_INFOS[SIM_DEFAULT_SOURCE]},"
+            "some test cases may be skipped.",
+            category=QurryDependenciesNotWorking,
+        )
+    return SIM_DEFAULT_SOURCE
+
+
+def prepare_random_unitary_seeds(
+    filename: str = SEED_FILE_LOCATION,
+) -> dict[int, dict[int, dict[int, int]]]:
+    """Prepare random unitary seeds from a file.
+
+    Args:
+        filename (str): The filename containing the random unitary seeds.
+
+    Returns:
+        dict[str, dict[str, dict[str, int]]]: The random unitary seeds.
+    """
+
+    random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(filename)
+    random_unitary_seeds = {
+        int(k): {int(k2): {int(k3): v3 for k3, v3 in v2.items()} for k2, v2 in v.items()}
+        for k, v in random_unitary_seeds_raw.items()
+    }
+    return random_unitary_seeds
 
 
 def current_time_filename():
@@ -66,9 +112,8 @@ def check_unit(
         + ([k in quantity for k in other_quantity_names] if other_quantity_names else [])
     ), (
         f"{test_item_name} | The necessary quantities '{target_quantity_name}' "
-        + f"or other quantities: {other_quantity_names}"
-        if other_quantity_names
-        else "" + " not found in quantity." + f" Quantity: {quantity}"
+        + (f"or other quantities: {other_quantity_names}" if other_quantity_names else "")
+        + f" not found in quantity. Quantity: {quantity}"
     )
 
     diff = np.abs(quantity[target_quantity_name] - answer)
