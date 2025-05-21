@@ -149,7 +149,7 @@ class QurryExperiment(
         dummy = -100
         return {
             "dummy": dummy,
-            "utlmatic_answer": 42,
+            "ultimate_answer": 42,
         }
 
     def analyze(

@@ -145,10 +145,10 @@ class WavesExecuterExperiment(
             )
         print("| ultimate_question:", ultimate_question)
         dummy = -100
-        utlmatic_answer = 42
+        ultimate_answer = 42
         return {
             "dummy": dummy,
-            "utlmatic_answer": utlmatic_answer,
+            "ultimate_answer": ultimate_answer,
         }
 
     def analyze(
