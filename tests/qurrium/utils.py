@@ -7,7 +7,7 @@ import numpy as np
 
 from qurry.capsule import quickRead
 from qurry.tools.datetime import current_time
-from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIMULATOR_SOURCES
 from qurry.exceptions import QurryDependenciesNotWorking
 
 SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
@@ -25,7 +25,7 @@ def detect_simulator_source() -> str:
     if SIM_DEFAULT_SOURCE != "qiskit_aer":
         warnings.warn(
             f"Qiskit Aer is not used as the default simulator: {SIM_DEFAULT_SOURCE}. "
-            f"Current simulator source is: {SIM_IMPORT_ERROR_INFOS[SIM_DEFAULT_SOURCE]},"
+            f"Current simulator source is: {SIMULATOR_SOURCES[SIM_DEFAULT_SOURCE]},"
             "some test cases may be skipped.",
             category=QurryDependenciesNotWorking,
         )
