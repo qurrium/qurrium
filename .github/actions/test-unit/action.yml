@@ -38,6 +38,8 @@ runs:
           python -m pip install matplotlib pep440 flake8
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi
+        echo "| Installing Optional Third Party Dependencies"
+        python -m pip install jax
         if [[ "${{ inputs.qiskit-v1 }}" == "yes" ]]; then
           echo "| Installing Qiskit v1"
           python -m pip install "qiskit<2.0.0"
@@ -49,4 +51,5 @@ runs:
     - name: Test with pytest
       shell: bash
       run: |
-        python pytest -v -s --durations=0 -n auto || python -m pytest -v -s
+        JAX_ENABLE_X64=True python -m pytest -v -s --durations=0
+

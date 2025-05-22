@@ -289,9 +289,6 @@ class IBMQRunner(Runner):
         if overwrite:
             print("| Overwrite the previous retrieve.")
         self.current_multimanager.reset_afterwards(security=True, mute_warning=True)
-        assert (
-            len(self.current_multimanager.afterwards.allCounts) == 0
-        ), "All counts should be null."
 
         current = current_time()
         self.current_multimanager.multicommons.datetimes[retrieve_times_name] = current
@@ -374,9 +371,6 @@ class IBMQRunner(Runner):
                     counts_tmp_container[idx]
                 )
             self.experiment_container[current_id].commons.datetimes[retrieve_times_name] = current
-            self.current_multimanager.afterwards.allCounts[current_id] = self.experiment_container[
-                current_id
-            ].afterwards.counts
 
         return self.current_multimanager.beforewards.job_id
 

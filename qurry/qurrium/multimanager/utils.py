@@ -66,12 +66,12 @@ def experiment_writer(
         )
 
         chunks_num, chunks_sorted_list, _distributions = very_easy_chunk_distribution(
-            respect_memory_array[1:], DEFAULT_POOL_SIZE, DEFAULT_POOL_SIZE * 2
+            respect_memory_array=respect_memory_array[1:],
+            num_process=DEFAULT_POOL_SIZE,
+            max_chunk_size=min(max(1, len(respect_memory_array[1:]) // DEFAULT_POOL_SIZE), 40),
         )
 
-        exporting_pool = get_context("spawn").Pool(
-            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-        )
+        exporting_pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
         with exporting_pool as ep:
             export_imap_result = qurry_progressbar(
                 ep.imap_unordered(

@@ -242,9 +242,6 @@ class IBMProviderRunner(Runner):
         if overwrite:
             print("| Overwrite the previous retrieve.")
         self.current_multimanager.reset_afterwards(security=True, mute_warning=True)
-        assert (
-            len(self.current_multimanager.afterwards.allCounts) == 0
-        ), "All counts should be null."
 
         current = current_time()
         self.current_multimanager.multicommons.datetimes[retrieve_times_name] = current

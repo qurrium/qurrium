@@ -4,33 +4,37 @@ from typing import Union
 import pytest
 
 from qurry.process.utils import (
-    construct_availability,
+    counts_process_availability,
+    bit_slice_availability,
     dummy_availability,
-    test_availability,
+    test_availability as self_test_availability,
 )
-from qurry.process.utils.construct import (
+from qurry.process.utils.bit_slice import (
     qubit_selector as qubit_selector_py,
     qubit_selector_rust,
     cycling_slice as cycling_slice_py,
     cycling_slice_rust,
 )
-from qurry.process.utils.test import test_construct
+from qurry.process.utils.test import test_bit_slice
 
 
-def test_test_construct():
-    """Test the test_construct function."""
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    assert test_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {test_availability[2]}"
-    )
-    test_construct()
+    for availability_item in [
+        counts_process_availability,
+        bit_slice_availability,
+        dummy_availability,
+        self_test_availability,
+    ]:
+        assert availability_item[1]["Rust"], (
+            "Rust is not available." + f" Check the error: {availability_item[2]}"
+        )
 
 
-def test_dummy_availability():
-    """Test the dummy_availability function."""
-    assert dummy_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {dummy_availability[2]}"
-    )
+def test_test_bit_slice():
+    """Test the test_bit_slice function."""
+    test_bit_slice()
 
 
 test_setup_selector: list[tuple[int, Union[int, tuple[int, int]], str]] = [
@@ -49,8 +53,8 @@ test_setup_cycling: list[tuple[Union[int, tuple[int, int]], str]] = []
 def test_qubit_selector(test_items: tuple[int, Union[int, tuple[int, int]], str]):
     """Test the qubit_selector function."""
 
-    assert construct_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {construct_availability[2]}"
+    assert bit_slice_availability[1]["Rust"], (
+        "Rust is not available." + f" Check the error: {bit_slice_availability[2]}"
     )
     qubit_selector_py_result = qubit_selector_py(*test_items[:1])
     qubit_selector_rust_result = qubit_selector_rust(*test_items[:1])

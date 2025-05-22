@@ -1,6 +1,4 @@
-"""Qurry Post Processing Exceptions (:mod:`qurry.process.exceptions`)
-
-"""
+"""Qurry Post Processing Exceptions (:mod:`qurry.process.exceptions`)"""
 
 
 class QurryPostProcessingError(Exception):
@@ -22,6 +20,10 @@ class PostProcessingCythonImportError(QurryPostProcessingError, ImportError):
 
 class PostProcessingRustImportError(QurryPostProcessingError, ImportError):
     """Rust import error."""
+
+
+class PostProcessingThirdPartyImportError(QurryPostProcessingError, ImportError):
+    """Third party import error."""
 
 
 # General Warning
@@ -46,5 +48,9 @@ class PostProcessingRustUnavailableWarning(QurryPostProcessingWarning):
     """Rust unavailable warning."""
 
 
-class PostProcessingBackendDeprecatedWarning(QurryPostProcessingWarning):
+class PostProcessingThirdPartyUnavailableWarning(QurryPostProcessingWarning):
+    """Third party unavailable warning."""
+
+
+class PostProcessingBackendDeprecatedWarning(QurryPostProcessingWarning, DeprecationWarning):
     """Post-processing backend is deprecated."""

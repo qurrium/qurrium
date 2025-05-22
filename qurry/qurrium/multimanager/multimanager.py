@@ -42,7 +42,7 @@ class MultiManager(Generic[_E]):
     exps: ExperimentContainer[_E]
     """The experiments container."""
 
-    _unexports: list[str] = ["retrievedResult"]
+    _unexports: list[str] = ["allCounts", "retrievedResult"]
     """The content would not be exported."""
     _not_sync = ["allCounts", "retrievedResult"]
     """The content would not be synchronized."""
@@ -394,12 +394,10 @@ class MultiManager(Generic[_E]):
             chunks_num = very_easy_chunk_size(
                 tasks_num=len(initial_config_list),
                 num_process=DEFAULT_POOL_SIZE,
-                max_chunk_size=DEFAULT_POOL_SIZE * 2,
+                max_chunk_size=min(max(1, len(initial_config_list) // DEFAULT_POOL_SIZE), 20),
             )
 
-            pool = get_context("spawn").Pool(
-                processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-            )
+            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
             with pool as p:
 
                 exps_iterable = qurry_progressbar(
@@ -458,13 +456,16 @@ class MultiManager(Generic[_E]):
         """Read the multi-experiment.
 
         Args:
-            experiment_instance (ExperimentPrototype): The instance of experiment.
-            summoner_name (Optional[str], optional): Name of experiment of the MultiManager.
-                Defaults to None.
+            experiment_instance (ExperimentPrototype):
+                The instance of experiment.
+            summoner_name (Optional[str], optional):
+                Name of experiment of the MultiManager. Defaults to None.
             save_location (Union[Path, str], optional):
                 Location of saving experiment. Defaults to Path("./").
-            is_read_or_retrieve (bool, optional): Whether read or retrieve. Defaults to False.
-            read_from_tarfile (bool, optional): Whether read from tarfile. Defaults to False.
+            is_read_or_retrieve (bool, optional):
+                Whether read or retrieve. Defaults to False.
+            read_from_tarfile (bool, optional):
+                Whether read from tarfile. Defaults to False.
 
         Returns:
             MultiManager: The container of experiments and multi-experiment.
@@ -515,10 +516,9 @@ class MultiManager(Generic[_E]):
                 file_location=files,
                 version="v5",
             )
-            afterwards = After.read(
-                export_location=naming_complex.export_location,
-                file_location=files,
-                version="v5",
+            afterwards = After(
+                retrievedResult=TagList(),
+                allCounts={},
             )
             quantity_container = QuantityContainer()
             assert isinstance(files["tagMapQuantity"], dict), "Quantity must be dict."
@@ -540,7 +540,10 @@ class MultiManager(Generic[_E]):
             files = raw_multiconfig["files"]
             old_files = {}
             beforewards = Before.read(export_location=naming_complex.export_location, version="v7")
-            afterwards = After.read(export_location=naming_complex.export_location, version="v7")
+            afterwards = After(
+                retrievedResult=TagList(),
+                allCounts={},
+            )
             quantity_container = QuantityContainer()
             assert isinstance(files["quantity"], dict), "Quantity must be dict."
             for qk in files["quantity"].keys():
@@ -617,13 +620,13 @@ class MultiManager(Generic[_E]):
     def update_save_location(
         self,
         save_location: Union[Path, str],
-        # short_name: str = "",  # TODO: short_name
         without_serial: bool = True,
     ) -> dict[str, Any]:
         """Update the save location of the multi-experiment.
 
         Args:
             save_location (Union[Path, str]): Location of saving experiment.
+            short_name (str): The short name of Qurry Instance.
             without_serial (bool, optional): Whether without serial number. Defaults to True.
 
         Returns:
@@ -633,7 +636,6 @@ class MultiManager(Generic[_E]):
         self.naming_complex = naming(
             without_serial=without_serial,
             exps_name=self.multicommons.summoner_name,
-            # short_name=short_name,
             save_location=save_location,
         )
         self.multicommons = self.multicommons._replace(
@@ -704,7 +706,7 @@ class MultiManager(Generic[_E]):
         if save_location is None:
             save_location = self.multicommons.save_location
         else:
-            self.update_save_location(save_location=save_location, without_serial=True)
+            self.update_save_location(save_location=save_location)
 
         self.gitignore.ignore("*.json")
         self.gitignore.sync("qurryinfo.json")
@@ -867,8 +869,16 @@ class MultiManager(Generic[_E]):
         if specific_analysis_args is None:
             specific_analysis_args = {}
 
-        if len(self.afterwards.allCounts) == 0:
-            raise ValueError("No counts in multimanagers.")
+        counts_check = [
+            k
+            for k in self.beforewards.circuits_map.keys()
+            if len(self.exps[k].afterwards.counts) == 0
+        ]
+        if len(counts_check) > 0:
+            raise ValueError(
+                f"Counts of {len(counts_check)} experiments are empty, "
+                + f"please check them before analysis: {counts_check}."
+            )
 
         idx_tagmap_quantities = len(self.quantity_container)
         name = (
@@ -879,7 +889,7 @@ class MultiManager(Generic[_E]):
         self.quantity_container[name] = TagList()
 
         all_counts_progress = qurry_progressbar(
-            self.afterwards.allCounts.keys(),
+            self.beforewards.circuits_map.keys(),
             bar_format=("| {n_fmt}/{total_fmt} - Analysis: {desc} - {elapsed} < {remaining}"),
         )
         for k in all_counts_progress:

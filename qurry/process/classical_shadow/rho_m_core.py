@@ -6,20 +6,21 @@
 import time
 import warnings
 from typing import Literal, Union
-from multiprocessing import get_context
 import numpy as np
 
-from .rho_mk_cell import rho_mk_cell_py, handle_rho_mk_py_iterable, rho_mk_cell_py_wrapper
+from .matrix_calcution import JAX_AVAILABLE, FAILED_JAX_IMPORT
+from .rho_mk_cell import rho_mk_cell_py, rho_mk_cell_py_precomputed, RhoMKCellMethod
+from .rho_m_flatten import rho_m_flatten_core
+from ..utils import shot_counts_selected_clreg_checker_pyrust
 from ..availability import (
     availablility,
-    default_postprocessing_backend,
     PostProcessingBackendLabel,
+    default_postprocessing_backend,
 )
 from ..exceptions import (
     # PostProcessingRustImportError,
     PostProcessingRustUnavailableWarning,
 )
-from ...tools.parallelmanager import DEFAULT_POOL_SIZE
 
 
 # try:
@@ -48,6 +49,8 @@ BACKEND_AVAILABLE = availablility(
     "classical_shadow.rho_m_core",
     [
         ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
+        ("numpy", True, None),
+        ("JAX", JAX_AVAILABLE, FAILED_JAX_IMPORT),
     ],
 )
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
@@ -58,11 +61,10 @@ def rho_m_core_py(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    multiprocess: bool = True,
+    rho_method: RhoMKCellMethod = "numpy_precomputed",
 ) -> tuple[
-    dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
-    str,
     float,
 ]:
     """Rho M Cell Core calculation.
@@ -76,77 +78,77 @@ def rho_m_core_py(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
+        rho_method (RhoMKCellMethod, optional):
+            The method to use for the calculation. Defaults to "Python_precomputed".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
 
     Returns:
         tuple[
-            dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
             list[int],
-            str,
             float
         ]:
-            The rho_m, the set of rho_m_i,
-            the sorted list of the selected qubits,
-            the message, the taken time.
+            The dictionary of rho_m, the sorted list of the selected qubits, and calculation time.
     """
-    sample_shots = sum(counts[0].values())
-    assert sample_shots == shots, f"shots {shots} does not match sample_shots {sample_shots}"
-
-    # Determine subsystem size
-    measured_system_size = len(list(counts[0].keys())[0])
-
-    if selected_classical_registers is None:
-        selected_classical_registers = list(range(measured_system_size))
-    elif not isinstance(selected_classical_registers, list):
-        raise ValueError(
-            "selected_classical_registers should be list, "
-            + f"but get {type(selected_classical_registers)}"
-        )
-    assert all(
-        0 <= q_i < measured_system_size for q_i in selected_classical_registers
-    ), f"Invalid selected classical registers: {selected_classical_registers}"
-    msg = f"| Selected classical registers: {selected_classical_registers}"
+    _measured_system_size, selected_classical_registers = shot_counts_selected_clreg_checker_pyrust(
+        shots=shots,
+        counts=counts,
+        selected_classical_registers=selected_classical_registers,
+    )
 
     begin = time.time()
 
     selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
 
-    if multiprocess:
-        pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
-        with pool as p:
-            rho_mk_py_result_iterable = p.imap_unordered(
-                rho_mk_cell_py_wrapper,
-                [
-                    (idx, single_counts, random_unitary_um[idx], selected_classical_registers)
-                    for idx, single_counts in enumerate(counts)
-                ],
-            )
-            rho_m_dict = handle_rho_mk_py_iterable(
-                rho_mk_py_result_iterable=rho_mk_py_result_iterable,
-                shots=shots,
-                selected_classical_registers_sorted=selected_classical_registers_sorted,
-            )
-    else:
-        rho_m_dict = {}
-        rho_mk_py_result_iterable = [
-            rho_mk_cell_py(
-                idx=idx,
-                single_counts=single_counts,
-                nu_shadow_direction=random_unitary_um[idx],
-                selected_classical_registers=selected_classical_registers,
-            )
-            for idx, single_counts in enumerate(counts)
-        ]
-        rho_m_dict = handle_rho_mk_py_iterable(
-            rho_mk_py_result_iterable=rho_mk_py_result_iterable,
-            shots=shots,
-            selected_classical_registers_sorted=selected_classical_registers_sorted,
+    rho_m_list = []
+    selected_qubits_checked: dict[int, bool] = {}
+
+    cell_calculation_method = (
+        rho_mk_cell_py_precomputed if rho_method == "numpy_precomputed" else rho_mk_cell_py
+    )
+
+    cell_calculation_results = [
+        cell_calculation_method(
+            idx, single_counts, random_unitary_um[idx], selected_classical_registers
+        )
+        for idx, single_counts in enumerate(counts)
+    ]
+
+    for idx, rho_m_k_data, selected_classical_registers_sorted_result in cell_calculation_results:
+        selected_qubits_checked[idx] = (
+            selected_classical_registers_sorted_result != selected_classical_registers_sorted
         )
 
-    taken = round(time.time() - begin, 3)
+        tmp_arr: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]] = [
+            rho_mk * num_bitstring for bitstring, num_bitstring, rho_mk in rho_m_k_data
+        ]
+        tmp = sum(tmp_arr) / shots
+        rho_m_list.append(tmp)
 
-    return rho_m_dict, selected_classical_registers_sorted, msg, taken
+    if any(selected_qubits_checked.values()):
+        problematic_cells = [idx for idx, checked in selected_qubits_checked.items() if checked]
+        warnings.warn(
+            f"Selected qubits are not sorted for {problematic_cells} cells.",
+            RuntimeWarning,
+        )
+
+    taken = time.time() - begin
+
+    return rho_m_list, selected_classical_registers_sorted, taken
+
+
+# pylint: disable=invalid-name
+RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"], str]
+"""Type for rho_m_core method.
+It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+- "numpy": Use Numpy to calculate the rho_m.
+- "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+- "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
+- "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+Currently, "numpy_precomputed" is the best option for performance.
+"""
+# pylint: enable=invalid-name
 
 
 def rho_m_core(
@@ -154,12 +156,11 @@ def rho_m_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    multiprocess: bool = True,
 ) -> tuple[
-    dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     list[int],
-    str,
     float,
 ]:
     """Rho M Cell Core calculation.
@@ -173,22 +174,29 @@ def rho_m_core(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy":
+                Use Numpy to calculate the rho_m.
+            - "numpy_precomputed":
+                Use Numpy to calculate the rho_m with precomputed values.
+            - "jax_flatten":
+                Use JAX to calculate the rho_m with a flattening workflow.
+                Also, this method prefers CPU backend for Kronecker product calculation.
+            - "numpy_flatten":
+                Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
         backend (PostProcessingBackendLabel, optional):
-            The backend to use for the calculation. Defaults to DEFAULT_PROCESS_BACKEND.
-            It can be either "Python" or "Rust".
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to True.
+            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
         tuple[
-            dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
             list[int],
-            str,
             float
         ]:
-            The rho_m, the set of rho_m_i,
-            the sorted list of the selected qubits,
-            the message, the taken time.
+            The dictionary of rho_m, the sorted list of the selected qubits, and calculation time.
     """
     if backend == "Rust":
         # if RUST_AVAILABLE:
@@ -204,12 +212,36 @@ def rho_m_core(
             PostProcessingRustUnavailableWarning,
         )
         backend = "Python"
-    if backend == "Python":
+    if rho_method == "jax_flatten":
+        if JAX_AVAILABLE:
+            return rho_m_flatten_core(
+                shots=shots,
+                counts=counts,
+                random_unitary_um=random_unitary_um,
+                selected_classical_registers=selected_classical_registers,
+                method="jax",
+            )
+        warnings.warn(
+            "JAX is not available, using Python to calculate rho_m_flatten.",
+            PostProcessingRustUnavailableWarning,
+        )
+        rho_method = "numpy_flatten"
+    if rho_method == "numpy_flatten":
+        return rho_m_flatten_core(
+            shots=shots,
+            counts=counts,
+            random_unitary_um=random_unitary_um,
+            selected_classical_registers=selected_classical_registers,
+            method="numpy",
+        )
+
+    if rho_method in ["numpy", "numpy_precomputed"]:
         return rho_m_core_py(
             shots=shots,
             counts=counts,
             random_unitary_um=random_unitary_um,
             selected_classical_registers=selected_classical_registers,
-            multiprocess=multiprocess,
+            rho_method=rho_method,
         )
+
     raise ValueError(f"Invalid backend {backend}. It should be either 'Python' or 'Rust'.")

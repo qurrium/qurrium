@@ -4,7 +4,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::construct::{cycling_slice_rust, degree_handler_rust, QubitDegree};
+use crate::bit_slice::{cycling_slice_rust, degree_handler_rust, QubitDegree};
 use crate::randomized::randomized::ensemble_cell_rust;
 
 #[pyfunction]

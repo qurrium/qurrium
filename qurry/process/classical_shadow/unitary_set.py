@@ -17,8 +17,6 @@ And the set of unitary operators :math:`U_M` will represent by following diction
 from typing import Literal, Union
 import numpy as np
 
-# import numpy.typing as npt
-
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import RXGate, RYGate, RZGate
 
@@ -62,7 +60,7 @@ U_M_MATRIX: dict[
     2: np.array(
         [
             [np.exp(0), 0],
-            [0, np.cos(0)],
+            [0, np.exp(0)],
         ],
         dtype=np.complex128,
     ),
@@ -130,4 +128,34 @@ for the identity matrix.
 It's just :math:`\mathbb{I} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}`.
 
 What a simple matrix!
+"""
+
+
+PRECOMPUTED_RHO_M_K_I: dict[
+    tuple[int, str], np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]
+] = {
+    (direction, s_q): (
+        3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[s_q] @ U_M_MATRIX[direction]
+    )
+    - IDENTITY
+    for direction in [0, 1, 2]
+    for s_q in ["0", "1"]
+}
+r"""Precomputed :math:`\rho_{mki}` matrix.
+
+This is suggested by GitHub Copilot with Claude 3.7 Sonnet Thinking,
+which I never thought of.
+"""
+
+
+PRECOMPUTED_RHO_M_K_I_2 = {
+    direction * 10
+    + int(s): (3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[s] @ U_M_MATRIX[direction])
+    - IDENTITY
+    for direction in [0, 1, 2]
+    for s in ["0", "1"]
+}
+r"""Precomputed :math:`\rho_{mki}` matrix.
+
+But use the integer as the key.
 """

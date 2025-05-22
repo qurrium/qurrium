@@ -88,7 +88,10 @@ before-test = [
     'echo "======================================================================"',
     "echo ''",
 ]
-test-command = ["pytest -n auto {project}/tests || pytest {project}/tests"]
+test-command = [
+    "export JAX_ENABLE_X64=True",
+    "pytest -n auto {project}/tests || pytest {project}/tests",
+]
 
 [tool.cibuildwheel.linux]
 before-all = [

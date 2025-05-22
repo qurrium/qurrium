@@ -1,20 +1,17 @@
-"""Post Processing - Utils - Construct (:mod:`qurry.process.utils.construct`)
-
-"""
+"""Post Processing - Utils - Bit Slice (:mod:`qurry.process.utils.bit_slice`)"""
 
 import warnings
 from typing import Union, Optional, Sequence, TypeVar, overload
 
-from ..availability import availablility, PostProcessingBackendLabel
+from ..availability import availablility
 from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
 
 try:
-    from ...boorust import construct  # type: ignore
+    from ...boorust import bit_slice  # type: ignore
 
-    qubit_selector_rust_source = construct.qubit_selector_rust  # type: ignore
-    cycling_slice_rust_source = construct.cycling_slice_rust  # type: ignore
-    degree_handler_rust_source = construct.degree_handler_rust
-    counts_under_degree_rust_source = construct.counts_under_degree_rust
+    qubit_selector_rust_source = bit_slice.qubit_selector_rust  # type: ignore
+    cycling_slice_rust_source = bit_slice.cycling_slice_rust  # type: ignore
+    degree_handler_rust_source = bit_slice.degree_handler_rust
 
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
@@ -41,15 +38,9 @@ except ImportError as err:
             "Rust is not available, using python to calculate degree handler."
         ) from FAILED_RUST_IMPORT
 
-    def counts_under_degree_rust_source(*args, **kwargs):
-        """Dummy function for counts_under_degree_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate counts under degree."
-        ) from FAILED_RUST_IMPORT
-
 
 BACKEND_AVAILABLE = availablility(
-    "utils.construct",
+    "utils.bit_slice",
     [
         ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
     ],
@@ -399,108 +390,6 @@ def degree_handler_rust(
         PostProcessingRustUnavailableWarning,
     )
     return degree_handler(allsystem_size, degree, measure)
-
-
-def counts_under_degree(
-    single_counts: dict[str, int],
-    num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
-) -> dict[str, int]:
-    """Calculate the counts under the degree.
-
-    Args:
-        single_counts (dict[str, int]):
-            Counts measured from the single quantum circuit.
-        num_classical_register (int):
-            The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The list of **the index of the selected_classical_registers**.
-
-    Returns:
-        dict[str, int]: The counts under the degree.
-    """
-
-    single_counts_under_degree = {}
-    for bitstring_all, num_counts_all in single_counts.items():
-        bitstring = "".join(
-            bitstring_all[num_classical_register - q_i - 1]
-            for q_i in selected_classical_registers_sorted
-        )
-        if bitstring in single_counts_under_degree:
-            single_counts_under_degree[bitstring] += num_counts_all
-        else:
-            single_counts_under_degree[bitstring] = num_counts_all
-
-    return single_counts_under_degree
-
-
-def counts_under_degree_rust(
-    single_counts: dict[str, int],
-    num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
-) -> dict[str, int]:
-    """Calculate the counts under the degree.
-
-    Args:
-        single_counts (dict[str, int]):
-            Counts measured from the single quantum circuit.
-        num_classical_register (int):
-            The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The list of **the index of the selected_classical_registers**.
-
-    Returns:
-        dict[str, int]: The counts under the degree.
-    """
-    if RUST_AVAILABLE:
-        return counts_under_degree_rust_source(
-            single_counts, num_classical_register, selected_classical_registers_sorted
-        )
-    warnings.warn(
-        "Rust is not available, using python to calculate counts under degree."
-        + f" Check: {FAILED_RUST_IMPORT}",
-        PostProcessingRustUnavailableWarning,
-    )
-    return counts_under_degree(
-        single_counts, num_classical_register, selected_classical_registers_sorted
-    )
-
-
-def counts_under_degree_pyrust(
-    single_counts: dict[str, int],
-    num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
-    backend: PostProcessingBackendLabel = "Rust",
-) -> dict[str, int]:
-    """Calculate the counts under the degree.
-
-    Args:
-        single_counts (dict[str, int]):
-            Counts measured from the single quantum circuit.
-        num_classical_register (int):
-            The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The list of **the index of the selected_classical_registers**.
-        backend (PostProcessingBackendLabel, optional):
-            Backend for the process. Defaults to "Rust".
-
-    Returns:
-        dict[str, int]: The counts under the degree.
-    """
-
-    if backend == "Rust":
-        return counts_under_degree_rust(
-            single_counts, num_classical_register, selected_classical_registers_sorted
-        )
-    if backend != "Python":
-        warnings.warn(
-            f"Invalid backend '{backend}', using Python to calculate counts under degree. "
-            + "The backend should be 'Python' or 'Rust'.",
-            PostProcessingRustUnavailableWarning,
-        )
-    return counts_under_degree(
-        single_counts, num_classical_register, selected_classical_registers_sorted
-    )
 
 
 def is_cycling_slice_active(
