@@ -136,7 +136,6 @@ def test_quantity_unit(
         quantity,
         "ultimate_answer",
         test_item["answer"],
-        1e-12,
         test_item_name,
     )
 
@@ -208,7 +207,6 @@ def test_multi_output_all(
                     quantity,
                     "ultimate_answer",
                     42,
-                    1e-12,
                     ".".join(config["tags"]),
                 )
             )

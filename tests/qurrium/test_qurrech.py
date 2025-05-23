@@ -281,8 +281,8 @@ def test_quantity_unit(
         quantity,
         "echo",
         test_item["answer"],
-        THREDHOLD,
         test_item_name,
+        THREDHOLD,
     )
 
 
@@ -357,8 +357,8 @@ def test_multi_output_all(
                     quantity,
                     "echo",
                     answer_dict[".".join(config["tags"])],
-                    THREDHOLD,
                     ".".join(config["tags"]),
+                    THREDHOLD,
                 )
             )
 

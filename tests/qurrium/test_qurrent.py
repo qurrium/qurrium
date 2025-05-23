@@ -45,6 +45,7 @@ from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 from qurry.qurrent import EntropyMeasure
 from qurry.qurrium.qurrium import QurriumPrototype
 from qurry.tools.backend.import_simulator import GeneralSimulator
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.capsule import quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
 
@@ -251,12 +252,17 @@ def test_quantity_unit(
             + f"from {quantity_01[all_system_source_keyname]} "
             + f"and {quantity_02[all_system_source_keyname]}."
         )
-        assert np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"]) < 1e-12, (
+
+        assert (
+            np.abs(quantity_03["entropyAllSys"] - quantity_02["entropyAllSys"])
+            < NUMERICAL_ERROR_TOLERANCE
+        ), (
             "The all system entropy should be the same for same all system source: "
             + f"{quantity_03['entropyAllSys']} == {quantity_02['entropyAllSys']}."
             + f"from {quantity_03[all_system_source_keyname]} "
             + f"and {quantity_02[all_system_source_keyname]}."
         )
+
         assert (
             quantity_02[all_system_source_keyname] == "independent"
         ), f"The source of all system is not independent: {quantity_02[all_system_source_keyname]}."
@@ -269,8 +275,8 @@ def test_quantity_unit(
         quantity_01,
         "purity",
         test_item["answer"],
-        THREDHOLD,
         test_item_name,
+        THREDHOLD,
         other_quantities_names(test_item_division),
     )
 
@@ -345,8 +351,8 @@ def test_multi_output_all(
                     quantity,
                     "purity",
                     answer_dict[".".join(config["tags"])],
-                    THREDHOLD,
                     ".".join(config["tags"]),
+                    THREDHOLD,
                     other_quantities_names(test_item_division),
                 )
             )

@@ -3,10 +3,11 @@
 from typing import Union
 import os
 import pytest
+from itertools import combinations
 import numpy as np
 
 from qurry.capsule import quickRead
-from qurry.process.utils import cycling_slice, randomized_availability
+from qurry.process.utils import cycling_slice, randomized_availability, NUMERICAL_ERROR_TOLERANCE
 from qurry.process.randomized_measure.entangled_entropy_v1.entangled_entropy import (
     entangled_entropy_core,
 )
@@ -126,36 +127,29 @@ def test_entangled_entropy_core(
     rust_result = np.average(np.array(list(rust[0].values())))
     rust_2_result = np.average(np.array(list(rust_2[0].values())))
 
-    assert np.abs(py_result - py_2_result) < 1e-12, (
-        "New Python and Python results are not equal in entangled_entropy_core: "
-        + f"py_2: {py_2_result}, py: {py_result} - "
-        + f"py_2: {py_2[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_result - py_result) < 1e-12, (
-        "Rust and Python results are not equal in entangled_entropy_core: "
-        + f"rust: {rust_result}, py: {py_result} - "
-        + f"rust: {rust[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_2_result - py_2_result) < 1e-12, (
-        "New Rust and New Python results are not equal in entangled_entropy_core: "
-        + f"rust_2: {rust_2_result}, py_2: {py_2_result} - "
-        + f"rust_2: {rust_2[1]}, py_2: {py_2[1]}"
-    )
-    assert np.abs(rust_result - rust_2_result) < 1e-12, (
-        "Rust and New Rust results are not equal in entangled_entropy_core: "
-        + f"rust: {rust_result}, rust_2: {rust_2_result} - "
-        + f"rust: {rust[1]}, {rust[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_result - rust_2_result) < 1e-12, (
-        "Python and New Rust results are not equal in entangled_entropy_core: "
-        + f"py: {py_result}, rust_2: {rust_2_result} - "
-        + f"py: {py[1]}, {py[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_2_result - rust_result) < 1e-12, (
-        "New Python and Rust results are not equal in entangled_entropy_core: "
-        + f"py_2: {py_2_result}, rust: {rust_result} - "
-        + f"py_2: {py_2[1]}, rust: {rust[1]}, {rust[2]}"
-    )
+    comparison_target = [
+        ("py_2", "Python", py_2_result, f"{py_2[1]}"),
+        ("py", "Python V1", py_result, f"{py[1]}, {py[2]}"),
+        ("rust_2", "Rust", rust_2_result, f"{rust_2[1]}"),
+        ("rust", "Rust V1", rust_result, f"{rust[1]}, {rust[2]}"),
+    ]
+    for (
+        name_01,
+        desc_01,
+        result_01,
+        info_01,
+    ), (
+        name_02,
+        desc_02,
+        result_02,
+        info_02,
+    ) in combinations(comparison_target, 2):
+        assert np.abs(result_01 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{desc_01} and {desc_02} results are not equal in entangled_entropy_core: "
+            + f"{name_01}: {result_01}, {name_02}: {result_02} - "
+            + f"{name_01}: {info_01}, {name_02}: {info_02}"
+        )
+
     assert selected_classical_registers == selected_classical_registers_by_cycling, (
         f"selected_classical_registers: {selected_classical_registers} != "
         + f"selected_classical_registers_by_cycling: {selected_classical_registers_by_cycling}"
@@ -221,36 +215,29 @@ def test_overlap_echo_core(
     py_2_result = np.average(np.array(list(py_2[0].values())))
     rust_2_result = np.average(np.array(list(rust_2[0].values())))
 
-    assert np.abs(py_result - py_2_result) < 1e-12, (
-        "New Python and Python results are not equal in overlap_echo_core: "
-        + f"py_2: {py_2_result}, py: {py_result} - "
-        + f"py_2: {py_2[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_result - py_result) < 1e-12, (
-        "Rust and Python results are not equal in overlap_echo_core: "
-        + f"rust: {rust_result}, py: {py_result} - "
-        + f"rust: {rust[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_2_result - py_2_result) < 1e-12, (
-        "New Rust and New Python results are not equal in overlap_echo_core: "
-        + f"rust_2: {rust_2_result}, py_2: {py_2_result} - "
-        + f"rust_2: {rust_2[1]}, py_2: {py_2[1]}"
-    )
-    assert np.abs(rust_result - rust_2_result) < 1e-12, (
-        "Rust and New Rust results are not equal in overlap_echo_core: "
-        + f"rust: {rust_result}, rust_2: {rust_2_result} - "
-        + f"rust: {rust[1]}, {rust[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_result - rust_2_result) < 1e-12, (
-        "Python and New Rust results are not equal in overlap_echo_core: "
-        + f"py: {py_result}, rust_2: {rust_2_result} - "
-        + f"py: {py[1]}, {py[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_2_result - rust_result) < 1e-12, (
-        "New Python and Rust results are not equal in overlap_echo_core: "
-        + f"py_2: {py_2_result}, rust: {rust_result} - "
-        + f"py_2: {py_2[1]}, rust: {rust[1]}, {rust[2]}"
-    )
+    comparison_target = [
+        ("py_2", "Python", py_2_result, f"{py_2[1]}"),
+        ("py", "Python V1", py_result, f"{py[1]}, {py[2]}"),
+        ("rust_2", "Rust", rust_2_result, f"{rust_2[1]}"),
+        ("rust", "Rust V1", rust_result, f"{rust[1]}, {rust[2]}"),
+    ]
+    for (
+        name_01,
+        desc_01,
+        result_01,
+        info_01,
+    ), (
+        name_02,
+        desc_02,
+        result_02,
+        info_02,
+    ) in combinations(comparison_target, 2):
+        assert np.abs(result_01 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{desc_01} and {desc_02} results are not equal in entangled_entropy_core: "
+            + f"{name_01}: {result_01}, {name_02}: {result_02} - "
+            + f"{name_01}: {info_01}, {name_02}: {info_02}"
+        )
+
     assert selected_classical_registers == selected_classical_registers_by_cycling, (
         f"selected_classical_registers: {selected_classical_registers} != "
         + f"selected_classical_registers_by_cycling: {selected_classical_registers_by_cycling}"

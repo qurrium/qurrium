@@ -4,7 +4,7 @@ from typing import TypedDict, Union
 import pytest
 import numpy as np
 
-from qurry.process.utils import randomized_availability
+from qurry.process.utils import randomized_availability, NUMERICAL_ERROR_TOLERANCE
 from qurry.process.utils.randomized import ensemble_cell as ensemble_cell_py, ensemble_cell_rust
 
 
@@ -41,9 +41,9 @@ def test_ensemble_cell_rust(test_items: TargetItemEnsembleCell):
     ensemble_cell_rust_result = ensemble_cell_rust(*test_items["target"])
 
     assert (
-        np.abs(ensemble_cell_rust_result - ensemble_cell_py_result) < 1e-10
+        np.abs(ensemble_cell_rust_result - ensemble_cell_py_result) < NUMERICAL_ERROR_TOLERANCE
     ), "Rust and Python results are not equal in ensemble_cell."
-    assert np.abs(ensemble_cell_rust_result - test_items["answer"]) < 1e-10, (
+    assert np.abs(ensemble_cell_rust_result - test_items["answer"]) < NUMERICAL_ERROR_TOLERANCE, (
         "The result of ensemble_cell is not correct,"
         + f"ensemble_cell_rust_result: {ensemble_cell_rust_result} "
         + f"!= test_items['answer']: {test_items['answer']}"

@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 
 from qurry.capsule import quickRead
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.tools.datetime import current_time
 from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIMULATOR_SOURCES
 from qurry.exceptions import QurryDependenciesNotWorking
@@ -83,8 +84,8 @@ def check_unit(
     quantity: dict[str, Any],
     target_quantity_name: str,
     answer: float,
-    threshold: float,
     test_item_name: str,
+    threshold: float = NUMERICAL_ERROR_TOLERANCE,
     other_quantity_names: Optional[list[str]] = None,
 ) -> ResultUnit:
     """Check the unit of the test.
@@ -96,10 +97,10 @@ def check_unit(
             The name of the target quantity.
         answer (float):
             The expected answer.
-        threshold (float):
-            The threshold for the check.
         test_item_name (str):
             The name of the test item.
+        threshold (float, optional):
+            The threshold for the check. Default is NUMERICAL_ERROR_TOLERANCE.
         other_quantity_names (Optional[list[str]]):
             Other quantities to check.
 
