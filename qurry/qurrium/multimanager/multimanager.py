@@ -24,7 +24,7 @@ from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
 from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON
 from ...capsule.mori import TagList, GitSyncControl
-from ...declare import BaseRunArgs, AnalyzeArgs
+from ...declare import BaseRunArgs, AnalyzeArgs, ConfigListType
 from ...exceptions import QurryResetAccomplished, QurryResetSecurityActivated
 
 
@@ -272,7 +272,7 @@ class MultiManager(Generic[_E]):
     @classmethod
     def build(
         cls,
-        config_list: list[dict[str, Any]],
+        config_list: ConfigListType,
         experiment_instance: Type[_E],
         summoner_name: Optional[str] = None,
         shots: Optional[int] = None,
@@ -290,7 +290,7 @@ class MultiManager(Generic[_E]):
         """Build the multi-experiment.
 
         Args:
-            config_list (list[dict[str, Any]]): The list of config of experiments.
+            config_list (ConfigListType): The list of config of experiments.
             experiment_instance (ExperimentPrototype): The instance of experiment.
             summoner_name (Optional[str], optional): Name of experiment of the MultiManager.
                 Defaults to None.
