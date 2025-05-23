@@ -25,6 +25,7 @@ from .container import (
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
+from ..utils import NUMERICAL_ERROR_TOLERANCE
 
 
 def expectation_rho(
@@ -222,10 +223,10 @@ def trace_rho_square(
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                Use np.trace(np.matmul(rho_m1, rho_m2))
                 to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                Use np.einsum("ij,ji", rho_m1, rho_m2)
                 to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
@@ -410,10 +411,10 @@ def classical_shadow_complex(
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                Use np.trace(np.matmul(rho_m1, rho_m2))
                 to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                Use np.einsum("ij,ji", rho_m1, rho_m2)
                 to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
@@ -454,9 +455,10 @@ def classical_shadow_complex(
     )
 
     trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
-    if trace_rho_sum.imag != 0:
+    if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
         warnings.warn(
-            "The imaginary part of the trace of Rho square is not zero. "
+            "The imaginary part of the trace of Rho square is not zero, "
+            + f"error larger than the tolerance of {NUMERICAL_ERROR_TOLERANCE}. "
             + f"The imaginary part is {trace_rho_sum.imag}."
             + f"method: {trace_method}, {rho_method}, {backend}",
             RuntimeWarning,
