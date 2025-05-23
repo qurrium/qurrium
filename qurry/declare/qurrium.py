@@ -1,9 +1,9 @@
 """Declaration - Arguments (:mod:`qurry.declare.qurrium`)
 
-Arguments for :meth:`output` from :cls:`QurriumPrototype` 
+Arguments for :meth:`output` from :cls:`QurriumPrototype`
 """
 
-from typing import Optional, Union, TypedDict, Any, Literal
+from typing import Optional, Union, TypedDict, Any, Literal, TypeVar
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
@@ -40,6 +40,16 @@ class BasicArgs(TypedDict, total=False):
     encoding: str
     jsonable: bool
     pbar: Optional[tqdm.tqdm]
+
+
+_MA = TypeVar(
+    "_MA",
+    bound=BasicArgs,
+)
+ConfigListType = Union[list[dict[str, Any]], list[_MA], list[Union[_MA, dict[str, Any]]]]
+"""The type hint for :cls:`MultiManager` and 
+:meth:`multiBulid`, :meth:`multiOutput` from :cls:`QurriumPrototype`.
+"""
 
 
 class OutputArgs(BasicArgs):
