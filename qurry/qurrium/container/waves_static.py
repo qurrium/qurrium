@@ -1,6 +1,4 @@
-"""WaveContainer (:mod:`qurry.qurrium.container.waves_static`)
-
-"""
+"""WaveContainer (:mod:`qurry.qurrium.container.waves_static`)"""
 
 from typing import Literal, Union, Optional, overload
 from collections.abc import Hashable, Callable

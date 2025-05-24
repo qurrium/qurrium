@@ -1,6 +1,4 @@
-"""PassManagerContainer (:mod:`qurry.qurrium.container.passmanagers`)
-
-"""
+"""PassManagerContainer (:mod:`qurry.qurrium.container.passmanagers`)"""
 
 from qiskit.transpiler.passmanager import PassManager
 
