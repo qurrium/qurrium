@@ -2,7 +2,7 @@
 
 ## Why Mori?
 
-    There are many dedicated data structures for Qurry 🍛 
+    There are many dedicated data structures for Qurrium
     If we say one of them like a tree in forest, 
     then all data structures combine, 
     it makes a forest or '森' read as mori in Japanese. 
@@ -13,6 +13,5 @@
 """
 
 from .taglist import TagList, key_tuple_loads, tuple_str_parse
-from .csvlist import SingleColumnCSV
 from .gitsync import GitSyncControl
 from .config import DefaultConfig

@@ -8,6 +8,11 @@ import json
 from pathlib import Path
 
 
+DEFAULT_ENCODING = "utf-8"
+DEFAULT_INDENT = 2
+DEFAULT_MODE = "w+"
+
+
 def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
     """Make value json-allowable. If a value is not allowed by json, them return its '__str__'.
 
@@ -91,12 +96,12 @@ def sort_hashable_ahead(o: dict) -> dict:
 
 
 # pylint: disable=invalid-name
-def quickJSONExport(
+def quickJSON(
     content: Iterable,
     filename: Union[str, Path],
     mode: str,
-    indent: int = 2,
-    encoding: str = "utf-8",
+    indent: int = DEFAULT_INDENT,
+    encoding: str = DEFAULT_ENCODING,
     jsonable: bool = False,
     save_location: Union[Path, str] = Path("./"),
     mute: bool = True,
