@@ -8,6 +8,7 @@ from pathlib import Path
 from qiskit import QuantumCircuit
 
 from ..utils.qasm import qasm_loads
+from ...capsule import DEFAULT_ENCODING
 
 V5_TO_V7_FIELD = {
     "jobID": "job_id",
@@ -85,14 +86,12 @@ class Before(NamedTuple):
         cls,
         file_index: dict[str, str],
         save_location: Path,
-        encoding: str = "utf-8",
     ) -> "Before":
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            encoding (str, optional): The encoding of exported experiment file. Defaults to "utf-8".
 
         Returns:
             tuple[dict[str, Any], "Before", dict[str, Any]]:
@@ -101,7 +100,7 @@ class Before(NamedTuple):
                 and the experiment's side product.
         """
         raw_data = {}
-        with open(save_location / file_index["advent"], "r", encoding=encoding) as f:
+        with open(save_location / file_index["advent"], "r", encoding=DEFAULT_ENCODING) as f:
             raw_data = json.load(f)
 
         advent: dict[str, Any] = raw_data["adventures"]
@@ -116,7 +115,7 @@ class Before(NamedTuple):
         for filekey, filename in file_index.items():
             filekeydiv = filekey.split(".")
             if filekeydiv[0] == "tales":
-                with open(save_location / filename, "r", encoding=encoding) as f:
+                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
                     advent["side_product"][filekeydiv[1]] = json.load(f)
 
         return cls(**advent)
@@ -210,3 +209,33 @@ class Before(NamedTuple):
         for key, qasm in self.target_qasm:
             revived_target[key] = QuantumCircuit.from_qasm_str(qasm)
         return revived_target
+
+
+def create_beforewards(beforewards: Optional[Before], exp_name: str) -> Before:
+    """Create a Beforewards object.
+
+    Args:
+        beforewards (Optional[Before]):
+            The Beforewards object to create. Defaults to None.
+        exp_name (str): The name of the experiment.
+    Returns:
+        Before: The Beforewards object.
+    Raises:
+        TypeError: If 'beforewards' is not a Before object or None.
+    """
+
+    if isinstance(beforewards, Before):
+        return beforewards
+    if beforewards is None:
+        beforewards = Before(
+            target=[],
+            target_qasm=[],
+            circuit=[],
+            circuit_qasm=[],
+            fig_original=[],
+            job_id=[],
+            exp_name=exp_name,
+            side_product={},
+        )
+
+    raise TypeError(f"beforewards must be a Before object or None, but got {type(beforewards)}.")

@@ -10,8 +10,8 @@ from qiskit.providers import Backend
 
 from ...declare import BaseRunArgs, TranspileArgs
 from ...tools.backend import backend_name_getter
-from ...tools.datetime import DatetimeDict
-from ...capsule import jsonablize
+from ...tools.datetime import current_time, DatetimeDict
+from ...capsule import jsonablize, DEFAULT_ENCODING
 
 REQUIRED_FOLDER = ["args", "advent", "legacy", "tales", "reports"]
 """The required folder for exporting experiment."""
@@ -183,11 +183,6 @@ class Commonparams(NamedTuple):
     tags: tuple[str, ...]
     """Tags of experiment."""
 
-    # Auto-analysis when counts are ready
-    default_analysis: list[dict[str, Any]]
-    """When counts are ready, 
-    the experiment will automatically analyze the counts with the given analysis."""
-
     # Arguments for exportation
     save_location: Union[Path, str]
     """Location of saving experiment. 
@@ -303,7 +298,6 @@ class Commonparams(NamedTuple):
         exp_id: str,
         file_index: dict[str, str],
         save_location: Path,
-        encoding: str = "utf-8",
     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         """Read the exported experiment file.
 
@@ -311,7 +305,6 @@ class Commonparams(NamedTuple):
             exp_id (str): The ID of experiment.
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            encoding (str, optional): The encoding of exported experiment file. Defaults to "utf-8".
 
         Returns:
             tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -320,7 +313,7 @@ class Commonparams(NamedTuple):
                 and the experiment's side product.
         """
         raw_data = {}
-        with open(save_location / file_index["args"], "r", encoding=encoding) as f:
+        with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
             raw_data = json.load(f)
         data_args: dict[str, dict[str, Any]] = {
             "arguments": raw_data["arguments"],
@@ -352,3 +345,112 @@ class Commonparams(NamedTuple):
             self.backend if isinstance(self.backend, str) else backend_name_getter(self.backend)
         )
         return commons
+
+
+def commons_dealing(
+    commons_dict: dict[str, Any],
+) -> dict[str, Any]:
+    """Dealing some special commons arguments.
+
+    Args:
+        commons_dict (dict[str, Any]): The common parameters of the experiment.
+
+    Returns:
+        dict[str, Any]: The dealt common parameters of the experiment.
+    """
+    if "datetimes" not in commons_dict:
+        commons_dict["datetimes"] = DatetimeDict({"bulid": current_time()})
+    else:
+        commons_dict["datetimes"] = DatetimeDict(commons_dict["datetimes"])
+    if "tags" in commons_dict:
+        if isinstance(commons_dict["tags"], list):
+            commons_dict["tags"] = tuple(commons_dict["tags"])
+
+    return commons_dict
+
+
+def create_exp_args(
+    arguments: Union[_A, dict[str, Any]],
+    arguments_instance: type[_A],
+) -> tuple[_A, dict[str, Any]]:
+    """Create experiment arguments from the given arguments.
+
+    Args:
+        arguments (Union[_A, dict[str, Any]]): The arguments to be parsed.
+        arguments_instance (type[_A]): The instance of the arguments class.
+    Returns:
+        tuple[_A, dict[str, Any]]: A tuple containing the parsed arguments instance and
+            a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the arguments is not an instance of the arguments class or a dictionary.
+    """
+
+    if isinstance(arguments, arguments_instance):
+        return arguments, {}
+
+    if isinstance(arguments, dict):
+        arguments_deprecated = {}
+        arg_parsed = {}
+        # pylint: disable=protected-access
+        dataclass_fields = arguments_instance._dataclass_fields()
+        for k, v in arguments.items():
+            if k in dataclass_fields:
+                arg_parsed[k] = v
+            else:
+                arguments_deprecated[k] = v
+        # pylint: enable=protected-access
+        return arguments_instance(**arg_parsed), arguments_deprecated
+
+    raise TypeError(f"arguments should be {arguments_instance} or dict, not {type(arguments)}")
+
+
+def create_exp_commons(
+    commons: Union[Commonparams, dict[str, Any]],
+) -> tuple[Commonparams, dict[str, Any]]:
+    """Create experiment commons from the given commons.
+
+    Args:
+        commons (Union[Commonparams, dict[str, Any]]): The commons to be parsed.
+    Returns:
+        tuple[Commonparams, dict[str, Any]]: A tuple containing the parsed commons instance and
+            a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the commons is not an instance of the commons class or a dictionary.
+    """
+
+    if isinstance(commons, Commonparams):
+        return commons, {}
+
+    if isinstance(commons, dict):
+        commons_deprecated = {}
+        commons_parsed = {}
+        for k, v in commons.items():
+            if k in Commonparams._fields:
+                commons_parsed[k] = v
+            else:
+                commons_deprecated[k] = v
+        return Commonparams(**commons_dealing(commons_parsed)), commons_deprecated
+
+    raise TypeError(f"commons should be {Commonparams} or dict, not {type(commons)}")
+
+
+def create_exp_outfields(
+    outfields: Union[dict[str, Any], None],
+) -> dict[str, Any]:
+    """Create experiment outfields from the given outfields.
+
+    Args:
+        outfields (Union[dict[str, Any], None]): The outfields to be parsed.
+    Returns:
+        dict[str, Any]: The parsed outfields.
+    Raises:
+        TypeError: If the outfields is not a dictionary or None.
+    """
+
+    if outfields is None:
+        return {}
+
+    if isinstance(outfields, dict):
+        return outfields
+
+    raise TypeError(f"outfields should be dict or None, not {type(outfields)}")

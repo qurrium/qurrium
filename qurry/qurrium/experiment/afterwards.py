@@ -2,12 +2,13 @@
 
 import gc
 import json
-from typing import NamedTuple, Any
+from typing import NamedTuple, Any, Union
 from pathlib import Path
 import warnings
 
 from qiskit.result import Result
 
+from ...capsule import DEFAULT_ENCODING
 from ...exceptions import QurryResetSecurityActivated, QurryResetAccomplished
 
 
@@ -34,14 +35,12 @@ class After(NamedTuple):
         cls,
         file_index: dict[str, str],
         save_location: Path,
-        encoding: str = "utf-8",
     ) -> "After":
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            encoding (str, optional): The encoding of exported experiment file. Defaults to "utf-8".
 
         Returns:
             tuple[dict[str, Any], "After", dict[str, Any]]:
@@ -50,7 +49,7 @@ class After(NamedTuple):
                 and the experiment's side product.
         """
         raw_data = {}
-        with open(save_location / file_index["legacy"], encoding=encoding) as f:
+        with open(save_location / file_index["legacy"], encoding=DEFAULT_ENCODING) as f:
             raw_data = json.load(f)
         legacy: dict[str, Any] = raw_data["legacy"]
         for k, dv in cls.default_value().items():
@@ -110,3 +109,23 @@ class After(NamedTuple):
                 + "If you are sure to clear the result, please set .(security=True).",
                 QurryResetSecurityActivated,
             )
+
+
+def create_afterwards(
+    after: Union[After, None] = None,
+) -> After:
+    """Create an Afterwards object.
+
+    Args:
+        after (Union[After, None], optional):
+            The After object to create. Defaults to None.
+
+    Returns:
+        After: The After object.
+    """
+    if after is None:
+        return After(**After.default_value())
+    if isinstance(after, After):
+        return after
+
+    raise TypeError("The 'after' must be an instance of 'After' or None.")
