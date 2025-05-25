@@ -1,18 +1,15 @@
 """MultiManager - Arguments (:mod:`qurry.qurrium.multimanager.arguments`)"""
 
 from pathlib import Path
-from typing import Literal, Union, Optional, NamedTuple, Any, TypedDict
+from typing import Literal, Union, NamedTuple, Any, TypedDict
 import json
 
 from qiskit.providers import Backend
 
+from ...capsule import DEFAULT_ENCODING
 from ...tools.datetime import DatetimeDict
 from ...declare import BaseRunArgs
 
-ExportFiletypeLiteral = Literal["json"]
-"""Type of exporting filetype."""
-DEFAULT_EXPORT_FILETYPE: ExportFiletypeLiteral = "json"
-"""The default exporting filetype."""
 PendingStrategyLiteral = Literal["onetime", "each", "tags"]
 """Type of pending strategy."""
 PENDING_STRATEGY: list[PendingStrategyLiteral] = ["onetime", "each", "tags"]
@@ -72,7 +69,6 @@ class MultiCommonparamsRawdDict(TypedDict):
     jobstype: PendingTargetProviderLiteral
     pending_strategy: PendingStrategyLiteral
     manager_run_args: Union[BaseRunArgs, dict[str, Any]]
-    filetype: ExportFiletypeLiteral
     datetimes: Union[DatetimeDict, dict[str, str]]
     outfields: dict[str, Any]
 
@@ -91,7 +87,6 @@ class MultiCommonparamsDict(TypedDict):
     jobstype: PendingTargetProviderLiteral
     pending_strategy: PendingStrategyLiteral
     manager_run_args: Union[BaseRunArgs, dict[str, Any]]
-    filetype: ExportFiletypeLiteral
     datetimes: DatetimeDict
 
 
@@ -129,8 +124,6 @@ class MultiCommonparams(NamedTuple):
     manager_run_args: Union[BaseRunArgs, dict[str, Any]]
     """Other arguments will be passed to `IBMQJobManager()`"""
 
-    filetype: ExportFiletypeLiteral
-
     # header
     datetimes: DatetimeDict
 
@@ -149,7 +142,6 @@ class MultiCommonparams(NamedTuple):
             "jobstype": "local",
             "pending_strategy": "tags",
             "manager_run_args": {},
-            "filetype": DEFAULT_EXPORT_FILETYPE,
             "datetimes": DatetimeDict(),
         }
 
@@ -159,7 +151,6 @@ class MultiCommonparams(NamedTuple):
         mutlticonfig_name: Union[Path, str],
         save_location: Union[Path, str],
         export_location: Union[Path, str],
-        encoding: Optional[str] = None,
     ) -> Union[MultiCommonparamsRawdDict, dict[str, Any]]:
         """Build `MultiCommonparams` from rawread file.
 
@@ -170,8 +161,6 @@ class MultiCommonparams(NamedTuple):
                 The location of saving experiment.
             export_location (Union[Path, str]):
                 The location of exporting experiment.
-            encoding (Optional[str], optional):
-                The encoding of the file. Defaults to None.
 
         Returns:
             Union[
@@ -181,7 +170,7 @@ class MultiCommonparams(NamedTuple):
         """
 
         rawread_multiconfig = {}
-        with open(mutlticonfig_name, "r", encoding=encoding) as f:
+        with open(mutlticonfig_name, "r", encoding=DEFAULT_ENCODING) as f:
             rawread_multiconfig: dict[str, Any] = json.load(f)
 
         rawread_multiconfig = v5_to_v7_field_transpose(rawread_multiconfig)
@@ -250,7 +239,6 @@ class MultiCommonparams(NamedTuple):
                 jobstype=multicommons["jobstype"],
                 pending_strategy=multicommons["pending_strategy"],
                 manager_run_args=multicommons["manager_run_args"],
-                filetype=multicommons["filetype"],
                 datetimes=multicommons["datetimes"],
             ),
             outfields,
