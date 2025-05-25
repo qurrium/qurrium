@@ -33,7 +33,8 @@ def damerau_levenshtein_distance_py(
     2
 
     This implementation is based on Michael Homer's implementation
-    (https://web.archive.org/web/20150909134357/http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/)
+    (https://web.archive.org/web/20150909134357/\
+http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/)
     and inspired by https://github.com/lanl/pyxDamerauLevenshtein,
     a Cython implementation of same algorithm.
 
