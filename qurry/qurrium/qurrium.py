@@ -246,7 +246,7 @@ Arguments for :meth:`Backend.run`. Defaults to `None`.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
-Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
                 Defaults to `None`.
