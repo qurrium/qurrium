@@ -224,10 +224,8 @@ def create_beforewards(beforewards: Optional[Before], exp_name: str) -> Before:
         TypeError: If 'beforewards' is not a Before object or None.
     """
 
-    if isinstance(beforewards, Before):
-        return beforewards
     if beforewards is None:
-        beforewards = Before(
+        return Before(
             target=[],
             target_qasm=[],
             circuit=[],
@@ -237,5 +235,7 @@ def create_beforewards(beforewards: Optional[Before], exp_name: str) -> Before:
             exp_name=exp_name,
             side_product={},
         )
+    if isinstance(beforewards, Before):
+        return beforewards
 
     raise TypeError(f"beforewards must be a Before object or None, but got {type(beforewards)}.")
