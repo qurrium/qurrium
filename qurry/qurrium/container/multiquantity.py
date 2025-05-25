@@ -31,7 +31,6 @@ class QuantityContainer(dict[str, TagList[Hashable, dict[str, float]]]):
         key: str,
         name: str,
         save_location: Union[str, Path],
-        filetype: Literal["json", "csv"] = "json",
         version: Literal["v5", "v7"] = "v7",
     ):
         """Reads the analysis.
@@ -41,31 +40,22 @@ class QuantityContainer(dict[str, TagList[Hashable, dict[str, float]]]):
             name (Optional[str], optional): The name of the analysis. Defaults to None.
             taglist_name (str): The name of the taglist.
             save_location (Union[str, Path]): The save location of the analysis.
+            version (Literal["v5", "v7"], optional): The version of the analysis. Defaults to "v7".
         """
         assert version in ["v5", "v7"], "version must be 'v5' or 'v7'"
         taglist_name = "quantity" if version == "v7" else "tagMapQuantity"
 
         self[key] = TagList.read(
-            filename=f"{name}.{taglist_name}.{filetype}",
+            filename=f"{name}.{taglist_name}.json",
             taglist_name=taglist_name,
             save_location=save_location,
         )
 
-    def write(
-        self,
-        save_location: Union[str, Path],
-        filetype: Literal["json", "csv"] = "json",
-        indent: int = 2,
-        encoding: str = "utf-8",
-    ) -> dict[str, str]:
+    def write(self, save_location: Union[str, Path]) -> dict[str, str]:
         """Writes the analysis to files.
 
         Args:
             save_location (Union[str, Path]): The save location of the analysis.
-            filetype (Literal[&#39;json&#39;, &#39;csv&#39;], optional):
-                The filetype of the analysis. Defaults to "json".
-            indent (int, optional): The indent of the json file. Defaults to 2.
-            encoding (str, optional): The encoding of the json file. Defaults to "utf-8".
 
         Returns:
             dict[str, str]: The path of the files.
@@ -77,26 +67,12 @@ class QuantityContainer(dict[str, TagList[Hashable, dict[str, float]]]):
             return quantity_output
 
         quantity_progress = qurry_progressbar(
-            self.items(),
-            desc="exporting quantity",
-            bar_format="qurry-barless",
+            self.items(), desc="exporting quantity", bar_format="qurry-barless"
         )
 
         for i, (k, v) in enumerate(quantity_progress):
             quantity_progress.set_description_str(f"exporting quantity: {k}")
-            filename = v.export(
-                save_location=save_location,
-                taglist_name="quantity",
-                name=f"{k}",
-                filetype=filetype,
-                open_args={
-                    "mode": "w+",
-                    "encoding": encoding,
-                },
-                json_dump_args={
-                    "indent": indent,
-                },
-            )
+            filename = v.export(save_location=save_location, taglist_name="quantity", name=f"{k}")
             quantity_output[k] = str(filename)
 
             if i == len(self) - 1:
