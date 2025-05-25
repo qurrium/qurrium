@@ -172,18 +172,14 @@ class GitSyncControl(list[str]):
                 UserWarning,
             )
             return False
+        actual_file_path = save_location / ".gitignore"
 
-        if not os.path.exists(save_location / ".gitignore"):
+        if not os.path.exists(actual_file_path):
             if raise_not_found_error:
                 raise FileNotFoundError(f"The .gitignore is not found on {save_location}.")
-            warnings.warn(
-                f"The .gitignore is not found on {save_location}, "
-                "the .gitignore will not be loaded.",
-                UserWarning,
-            )
             return False
 
-        with open(save_location / ".gitignore", encoding=encoding, **open_args) as ignore_list:
+        with open(actual_file_path, encoding=encoding, **open_args) as ignore_list:
             for line in ignore_list.readlines():
                 new_line = line.strip()
                 if new_line not in self:
