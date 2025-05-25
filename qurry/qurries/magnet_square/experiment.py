@@ -99,7 +99,7 @@ class MagnetSquareExperiment(
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
 
@@ -139,7 +139,7 @@ class MagnetSquareExperiment(
 
         Args:
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to `None`.
+                The progress bar. Defaults to None.
 
         Returns:
             MagnetSquareAnalysis: The result of the analysis.
@@ -183,7 +183,7 @@ class MagnetSquareExperiment(
             backend (PostProcessingBackendLabel, optional):
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to `None`.
+                The progress bar. Defaults to None.
 
         Returns:
             MagnetSquare: The result of the magnet square.

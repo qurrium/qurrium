@@ -27,7 +27,7 @@ def add(
         key (Optional[Hashable], optional):
             Given a specific key to add to the wave function or circuit,
             if `key == None`, then generate a number as key.
-            Defaults to `None`.
+            Defaults to None.
         replace (Literal[True, False, &#39;duplicate&#39;], optional):
             If the key is already in the wave function or circuit,
             then replace the old wave function or circuit when `True`,
@@ -115,8 +115,8 @@ def get_wave(self, wave=None, run_by=None):
             The key of wave in 'fict' `.waves`.
             Defaults to None.
         run_by (Optional[str], optional):
-            Export as `Gate`, `Operator`, `Instruction` or a copy when input is `None`.
-            Defaults to `None`.
+            Export as `Gate`, `Operator`, `Instruction` or a copy when input is None.
+            Defaults to None.
 
 
     Raises:
@@ -345,7 +345,7 @@ def _add(
         key (Optional[Hashable], optional):
             Given a specific key to add to the wave function or circuit,
             if `key == None`, then generate a number as key.
-            Defaults to `None`.
+            Defaults to None.
         replace (Literal[True, False, &#39;duplicate&#39;], optional):
             If the key is already in the wave function or circuit,
             then replace the old wave function or circuit when `True`,

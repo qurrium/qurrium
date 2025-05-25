@@ -118,34 +118,34 @@ class EchoListenRandomized(
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the second quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_1 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_2 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the second quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to False.
             second_backend (Optional[Backend], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             second_transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
-                for the second quantum circuit. Defaults to `None`.
+                for the second quantum circuit. Defaults to None.
             second_passmanager (
                 Optional[Union[str, PassManager, tuple[str, PassManager]], optional
             ):
-                The passmanager for the second quantum circuit. Defaults to `None`.
+                The passmanager for the second quantum circuit. Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -176,24 +176,24 @@ class EchoListenRandomized(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
-                The passmanager. Defaults to `None`.
+                The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                The tags of the experiment. Defaults to `None`.
+                The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to `None`.
+                The location to save the experiment. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
 
         Returns:
             EchoListenRandomizedOutputArgs: The output arguments.
@@ -278,34 +278,34 @@ class EchoListenRandomized(
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the second quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_1 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_2 (Union[int, tuple[int, int], None], optional):
                 The range of the unitary operator for the second quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to False.
             second_backend (Optional[Backend], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             second_transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
-                for the second quantum circuit. Defaults to `None`.
+                for the second quantum circuit. Defaults to None.
             second_passmanager (
                 Optional[Union[str, PassManager, tuple[str, PassManager]], optional
             ):
-                The passmanager for the second quantum circuit. Defaults to `None`.
+                The passmanager for the second quantum circuit. Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -337,24 +337,24 @@ class EchoListenRandomized(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
-                The passmanager. Defaults to `None`.
+                The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                The tags of the experiment. Defaults to `None`.
+                The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to `None`.
+                The location to save the experiment. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
 
         Returns:
             str: The ID of the experiment.
@@ -415,7 +415,7 @@ class EchoListenRandomized(
             specific_analysis_args (
                 SpecificAnalsisArgs[EchoListenRandomizedAnalyzeArgs], optional
             ):
-                The specific arguments for analysis. Defaults to `None`.
+                The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
@@ -425,11 +425,11 @@ class EchoListenRandomized(
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
-                Defaults to `None`.
+                Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
-                The index of the counts used. Defaults to `None`.
+                The index of the counts used. Defaults to None.
 
         Returns:
             str: The summoner_id of multimanager.

@@ -197,10 +197,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
                 Given the experiment multiple tags to make a dictionary for recongnizing it.
                 Defaults to None.
@@ -338,10 +338,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -915,7 +915,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then use the value in `self.commons` to be exported,
                 if it's None too, then raise error.
-                Defaults to `None`.
+                Defaults to None.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
                 When set to True, the transpiled circuit will be exported as txt.

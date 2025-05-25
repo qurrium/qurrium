@@ -78,10 +78,10 @@ class EchoListenHadamard(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -159,10 +159,10 @@ class EchoListenHadamard(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):

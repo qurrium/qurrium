@@ -63,7 +63,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             key (Optional[Hashable], optional):
                 Given a specific key to add to the wave function or circuit,
                 if `key == None`, then generate a number as key.
-                Defaults to `None`.
+                Defaults to None.
             replace (Literal[True, False, &#39;duplicate&#39;], optional):
                 If the key is already in the wave function or circuit,
                 then replace the old wave function or circuit when `True`,
@@ -162,10 +162,10 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                         This name is also used for creating a folder to store the exports.
                         Defaults to `'experiment'`.
                     run_args (RunArgsType, optional):
-        Arguments for :meth:`Backend.run`. Defaults to `None`.
+        Arguments for :meth:`Backend.run`. Defaults to None.
                     transpile_args (Optional[TranspileArgs], optional):
                         Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                        Defaults to `None`.
+                        Defaults to None.
                     passmanager (PassManagerType, optional):
                         The passmanager. Defaults to None.
                     tags (Optional[tuple[str, ...]], optional):
@@ -249,7 +249,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):

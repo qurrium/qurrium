@@ -148,9 +148,9 @@ class EntropyMeasureRandomizedV1(
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
             measure (Union[int, tuple[int, int], None], optional):
-                The measure range. Defaults to `None`.
+                The measure range. Defaults to None.
             unitary_loc (Union[int, tuple[int, int], None], optional):
-                The range of the unitary operator. Defaults to `None`.
+                The range of the unitary operator. Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -181,10 +181,10 @@ class EntropyMeasureRandomizedV1(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -257,9 +257,9 @@ class EntropyMeasureRandomizedV1(
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
             measure (Union[int, tuple[int, int], None], optional):
-                The measure range. Defaults to `None`.
+                The measure range. Defaults to None.
             unitary_loc (Union[int, tuple[int, int], None], optional):
-                The range of the unitary operator. Defaults to `None`.
+                The range of the unitary operator. Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -290,10 +290,10 @@ class EntropyMeasureRandomizedV1(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):

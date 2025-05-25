@@ -104,8 +104,8 @@ class WaveContainer(dict[Hashable, QuantumCircuit]):
                 The key of wave in 'fict' `.waves`.
                 Defaults to None.
             run_by (Optional[str], optional):
-                Export as `Gate`, `Operator`, `Instruction` or a copy when input is `None`.
-                Defaults to `None`.
+                Export as `Gate`, `Operator`, `Instruction` or a copy when input is None.
+                Defaults to None.
 
 
         Raises:

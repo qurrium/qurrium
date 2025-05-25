@@ -94,20 +94,20 @@ class EchoListenRandomizedExperiment(
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the second quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator for the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The range of the unitary operator for the second quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
@@ -115,7 +115,7 @@ class EchoListenRandomizedExperiment(
             second_backend (Optional[Union[Backend, str]], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
-                Defaults to `None`.
+                Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -239,7 +239,7 @@ class EchoListenRandomizedExperiment(
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
 
@@ -410,10 +410,10 @@ class EchoListenRandomizedExperiment(
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
+                Defaults to None.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
@@ -650,7 +650,7 @@ class EchoListenRandomizedExperiment(
         Args:
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
 
         Raises:
             ValueError: No circuit ready.
@@ -745,10 +745,10 @@ class EchoListenRandomizedExperiment(
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
-                The location to save the experiment. Defaults to `None`.
+                The location to save the experiment. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
 
         Returns:
             str: The ID of the experiment.
@@ -818,15 +818,15 @@ class EchoListenRandomizedExperiment(
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
-                Defaults to `None`.
+                Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
-                The index of the counts used. Defaults to `None`.
+                The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar API, you can use put a :cls:`tqdm` object here.
                 This function will update the progress bar description.
-                Defaults to `None`.
+                Defaults to None.
 
         Returns:
             EchoListenRandomizedAnalysis: The result of the experiment
@@ -964,7 +964,7 @@ class EchoListenRandomizedExperiment(
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar API, you can use put a :cls:`tqdm` object here.
                 This function will update the progress bar description.
-                Defaults to `None`.
+                Defaults to None.
 
         Returns:
             WaveFuctionOverlapResult: A dictionary contains purity, entropy,
