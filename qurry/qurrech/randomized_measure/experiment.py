@@ -30,7 +30,7 @@ from ...process.randomized_measure.wavefunction_overlap import (
     WaveFuctionOverlapResult,
 )
 from ...tools import ParallelManager, set_pbar_description, backend_name_getter
-from ...declare import BaseRunArgs, TranspileArgs
+from ...declare import RunArgsType, TranspileArgs
 from ...exceptions import (
     RandomizedMeasureUnitaryOperatorNotFullCovering,
     OverlapComparisonSizeDifferent,
@@ -407,12 +407,11 @@ class EchoListenRandomizedExperiment(
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
         passmanager_pair: Optional[tuple[str, PassManager]] = None,
         tags: Optional[tuple[str, ...]] = None,
         # multimanager
-        default_analysis: Optional[list[dict[str, Any]]] = None,
         serial: Optional[int] = None,
         summoner_id: Optional[Hashable] = None,
         summoner_name: Optional[str] = None,
@@ -420,10 +419,6 @@ class EchoListenRandomizedExperiment(
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
         # special
@@ -444,7 +439,7 @@ class EchoListenRandomizedExperiment(
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
@@ -455,9 +450,6 @@ class EchoListenRandomizedExperiment(
                 Given the experiment multiple tags to make a dictionary for recongnizing it.
                 Defaults to None.
 
-            default_analysis (list[dict[str, Any]], optional):
-                The analysis methods will be excuted after counts has been computed.
-                Defaults to [].
             serial (Optional[int], optional):
                 Index of experiment in a multiOutput.
                 **!!ATTENTION, this should only be used by `Multimanager`!!**
@@ -477,14 +469,6 @@ class EchoListenRandomizedExperiment(
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
@@ -512,7 +496,6 @@ class EchoListenRandomizedExperiment(
             transpile_args=transpile_args,
             tags=tags,
             exp_name=exp_name,
-            default_analysis=default_analysis,
             serial=serial,
             summoner_id=summoner_id,
             summoner_name=summoner_name,
@@ -683,13 +666,7 @@ class EchoListenRandomizedExperiment(
         # export may be slow, consider export at finish or something
         if isinstance(save_location, (Path, str)) and export:
             set_pbar_description(pbar, "Setup data exporting...")
-            current_exp.write(
-                save_location=save_location,
-                mode=mode,
-                indent=indent,
-                encoding=encoding,
-                jsonable=jsonable,
-            )
+            current_exp.write(save_location=save_location)
 
         return current_exp
 
@@ -790,10 +767,6 @@ class EchoListenRandomizedExperiment(
         self,
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> str:
         """Export the result of the experiment.
@@ -803,14 +776,6 @@ class EchoListenRandomizedExperiment(
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to `None`.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to `None`.
@@ -861,24 +826,11 @@ class EchoListenRandomizedExperiment(
                 + f"but got {len(self.afterwards.result)}."
             )
 
-        if len(self.commons.default_analysis) > 0:
-            for i, _analysis in enumerate(self.commons.default_analysis):
-                set_pbar_description(
-                    pbar, f"Default Analysis executing {i}/{len(self.commons.default_analysis)}..."
-                )
-                self.analyze(**_analysis)
-
         if export:
             # export may be slow, consider export at finish or something
             if isinstance(save_location, (Path, str)):
                 set_pbar_description(pbar, "Setup data exporting...")
-                self.write(
-                    save_location=save_location,
-                    mode=mode,
-                    indent=indent,
-                    encoding=encoding,
-                    jsonable=jsonable,
-                )
+                self.write(save_location=save_location)
 
         return self.exp_id
 
