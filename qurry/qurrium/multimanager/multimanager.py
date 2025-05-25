@@ -7,7 +7,6 @@ import tarfile
 import warnings
 from pathlib import Path
 from typing import Union, Optional, Any, Type, Generic
-from collections.abc import Hashable
 from uuid import uuid4
 from multiprocessing import get_context
 
@@ -22,9 +21,9 @@ from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
 from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
-from ...capsule import quickJSON
+from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_INDENT
 from ...capsule.mori import TagList, GitSyncControl
-from ...declare import BaseRunArgs, AnalyzeArgs, ConfigListType
+from ...declare import BaseRunArgs, AnalyzeArgs, SpecificAnalsisArgs
 from ...exceptions import QurryResetAccomplished, QurryResetSecurityActivated
 
 
@@ -134,6 +133,10 @@ class MultiManager(Generic[_E]):
     def id(self) -> str:
         """ID of experiment of the MultiManager."""
         return self.multicommons.summoner_id
+
+    def __hash__(self):
+        """Hash the MultiManager by its ID."""
+        return hash(self.multicommons.summoner_id)
 
     @property
     def summoner_name(self) -> str:
@@ -272,7 +275,7 @@ class MultiManager(Generic[_E]):
     @classmethod
     def build(
         cls,
-        config_list: ConfigListType,
+        config_list: list[dict[str, Any]],
         experiment_instance: Type[_E],
         summoner_name: Optional[str] = None,
         shots: Optional[int] = None,
@@ -286,11 +289,13 @@ class MultiManager(Generic[_E]):
         skip_writing: bool = False,
         multiprocess_build: bool = False,
         multiprocess_write: bool = False,
-    ) -> "MultiManager":
+    ) -> "MultiManager[_E]":
         """Build the multi-experiment.
 
         Args:
-            config_list (ConfigListType): The list of config of experiments.
+            config_list (list[dict[str, Any]]):
+                The list of config of experiments.
+                This config is used to build the experiments.
             experiment_instance (ExperimentPrototype): The instance of experiment.
             summoner_name (Optional[str], optional): Name of experiment of the MultiManager.
                 Defaults to None.
@@ -451,8 +456,7 @@ class MultiManager(Generic[_E]):
         save_location: Union[Path, str] = Path("./"),
         is_read_or_retrieve: bool = False,
         read_from_tarfile: bool = False,
-        encoding: str = "utf-8",
-    ) -> "MultiManager":
+    ) -> "MultiManager[_E]":
         """Read the multi-experiment.
 
         Args:
@@ -476,7 +480,7 @@ class MultiManager(Generic[_E]):
             save_location=save_location,
         )
         gitignore = GitSyncControl()
-        gitignore.read(naming_complex.export_location)
+        gitignore.load(naming_complex.export_location)
 
         multiconfig_name_v5 = (
             naming_complex.export_location / f"{naming_complex.expsName}.multiConfig.json"
@@ -507,7 +511,6 @@ class MultiManager(Generic[_E]):
                 mutlticonfig_name=multiconfig_name_v5,
                 save_location=naming_complex.save_location,
                 export_location=naming_complex.export_location,
-                encoding=encoding,
             )
             files: dict[str, Union[str, dict[str, str]]] = raw_multiconfig["files"]
             old_files = raw_multiconfig["files"].copy()
@@ -535,7 +538,6 @@ class MultiManager(Generic[_E]):
                 mutlticonfig_name=multiconfig_name_v7,
                 save_location=naming_complex.save_location,
                 export_location=naming_complex.export_location,
-                encoding=encoding,
             )
             files = raw_multiconfig["files"]
             old_files = {}
@@ -645,11 +647,7 @@ class MultiManager(Generic[_E]):
 
         return self.naming_complex._asdict()
 
-    def _write_multiconfig(
-        self,
-        encoding: str = "utf-8",
-        mute: bool = True,
-    ) -> dict[str, Any]:
+    def _write_multiconfig(self) -> dict[str, Any]:
         multiconfig_name = Path(self.multicommons.export_location) / "multi.config.json"
         self.multicommons.files["multi.config"] = str(multiconfig_name)
         self.gitignore.sync("multi.config.json")
@@ -661,10 +659,10 @@ class MultiManager(Generic[_E]):
         quickJSON(
             content=multiconfig,
             filename=multiconfig_name,
-            mode="w+",
+            mode=DEFAULT_MODE,
             jsonable=True,
-            encoding=encoding,
-            mute=mute,
+            encoding=DEFAULT_ENCODING,
+            mute=True,
         )
 
         return multiconfig
@@ -672,8 +670,6 @@ class MultiManager(Generic[_E]):
     def write(
         self,
         save_location: Optional[Union[Path, str]] = None,
-        indent: int = 2,
-        encoding: str = "utf-8",
         export_transpiled_circuit: bool = False,
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
@@ -685,8 +681,6 @@ class MultiManager(Generic[_E]):
         Args:
             save_location (Union[Path, str], optional): Location of saving experiment.
                 Defaults to None.
-            indent (int, optional): The indent of json file. Defaults to 2.
-            encoding (str, optional): The encoding of json file. Defaults to "utf-8".
             export_transpiled_circuit (bool, optional):
                 Export the transpiled circuit. Defaults to False.
             skip_before_and_after (bool, optional):
@@ -701,7 +695,7 @@ class MultiManager(Generic[_E]):
         Returns:
             dict[str, Any]: The dict of multiConfig.
         """
-        self.gitignore.read(self.multicommons.export_location)
+        self.gitignore.load(self.multicommons.export_location)
         print("| Export multimanager...")
         if save_location is None:
             save_location = self.multicommons.save_location
@@ -739,18 +733,10 @@ class MultiManager(Generic[_E]):
                 filename = tmp.export(
                     name=None,
                     save_location=self.multicommons.export_location,
-                    filetype=self.multicommons.filetype,
                     taglist_name=f"{exporting_name[k]}",
-                    open_args={
-                        "mode": "w+",
-                        "encoding": encoding,
-                    },
-                    json_dump_args={
-                        "indent": indent,
-                    },
                 )
                 self.multicommons.files[exporting_name[k]] = str(filename)
-                self.gitignore.sync(f"{exporting_name[k]}.{self.multicommons.filetype}")
+                self.gitignore.sync(f"{exporting_name[k]}.json")
 
             elif isinstance(self[k], (dict, list)):
                 export_progress.set_description_str(f"{k} as {exporting_name[k]}")
@@ -761,10 +747,10 @@ class MultiManager(Generic[_E]):
                 quickJSON(
                     content=self[k],
                     filename=filename,
-                    mode="w+",
+                    mode=DEFAULT_MODE,
                     jsonable=True,
-                    indent=indent,
-                    encoding=encoding,
+                    indent=DEFAULT_INDENT,
+                    encoding=DEFAULT_ENCODING,
                     mute=True,
                 )
 
@@ -777,15 +763,12 @@ class MultiManager(Generic[_E]):
         # tagMapQuantity or quantity
         if not skip_quantities:
             self.multicommons.files["quantity"] = self.quantity_container.write(
-                save_location=self.multicommons.export_location,
-                filetype=self.multicommons.filetype,
-                indent=indent,
-                encoding=encoding,
+                save_location=self.multicommons.export_location
             )
-            self.gitignore.sync(f"*.quantity.{self.multicommons.filetype}")
+            self.gitignore.sync("*.quantity.json")
 
         # multiConfig
-        multiconfig = self._write_multiconfig(encoding=encoding, mute=True)
+        multiconfig = self._write_multiconfig()
         print(f"| Export multi.config.json for {self.summoner_id}")
 
         # gitignore
@@ -798,8 +781,8 @@ class MultiManager(Generic[_E]):
                 beforewards=self.beforewards,
                 multicommons=self.multicommons,
                 taglist_name=exporting_name["files_taglist"],
-                indent=indent,
-                encoding=encoding,
+                indent=DEFAULT_INDENT,
+                encoding=DEFAULT_ENCODING,
                 export_transpiled_circuit=export_transpiled_circuit,
                 multiprocess=multiprocess,
             )
@@ -845,10 +828,8 @@ class MultiManager(Generic[_E]):
         self,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: Optional[
-            dict[Hashable, Union[dict[str, Any], AnalyzeArgs, bool]]
-        ] = None,
-        **analysis_args: dict[str, Any],
+        specific_analysis_args: SpecificAnalsisArgs = None,
+        **analysis_args: Union[dict[str, Any], AnalyzeArgs],
     ) -> str:
         """Analyze the experiments.
 
@@ -856,11 +837,9 @@ class MultiManager(Generic[_E]):
             exps_container (ExperimentContainer[_ExpInst]): The container of experiments.
             analysis_name (str, optional): The name of analysis. Defaults to "report".
             no_serialize (bool, optional): Whether serialize the analysis. Defaults to False.
-            specific_analysis_args (
-                Optional[dict[Hashable, Union[dict[str, Any], bool]]], optional
-            ):
+            specific_analysis_args (SpecificAnalsisArgs, optional):
                 The specific analysis arguments. Defaults to None.
-            **analysis_args (dict[str, Any]): The arguments of analysis.
+            **analysis_args (Union[dict[str, Any], AnalyzeArgs]): The arguments of analysis.
 
         Returns:
             str: The name of analysis.
