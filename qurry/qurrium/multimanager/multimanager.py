@@ -781,8 +781,6 @@ class MultiManager(Generic[_E]):
                 beforewards=self.beforewards,
                 multicommons=self.multicommons,
                 taglist_name=exporting_name["files_taglist"],
-                indent=DEFAULT_INDENT,
-                encoding=DEFAULT_ENCODING,
                 export_transpiled_circuit=export_transpiled_circuit,
                 multiprocess=multiprocess,
             )

@@ -8,7 +8,7 @@ from .process import multiprocess_exporter_wrapper
 from ..utils.chunk import very_easy_chunk_distribution
 from ..container import ExperimentContainer, _E
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
-from ...capsule import quickJSON
+from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING, DEFAULT_INDENT
 
 
 def experiment_writer(
@@ -16,8 +16,6 @@ def experiment_writer(
     beforewards: Before,
     multicommons: MultiCommonparams,
     taglist_name: str,
-    indent: int = 2,
-    encoding: str = "utf-8",
     export_transpiled_circuit: bool = False,
     multiprocess: bool = False,
 ):
@@ -56,10 +54,6 @@ def experiment_writer(
 
         first_export = experiment_container[respect_memory_array[0][0]].write(
             save_location=multicommons.save_location,
-            mode="w+",
-            indent=indent,
-            encoding=encoding,
-            jsonable=True,
             export_transpiled_circuit=export_transpiled_circuit,
             qurryinfo_hold_access=multicommons.summoner_id,
             pbar=None,
@@ -83,10 +77,6 @@ def experiment_writer(
                                 save_location=multicommons.save_location,
                                 export_transpiled_circuit=export_transpiled_circuit,
                             ),
-                            "w+",
-                            indent,
-                            encoding,
-                            True,
                         )
                         for id_exec, memory_usage in chunks_sorted_list
                     ),
@@ -111,10 +101,6 @@ def experiment_writer(
         for id_exec in single_exporting_progress:
             tmp_id, tmp_qurryinfo_content = experiment_container[id_exec].write(
                 save_location=multicommons.save_location,
-                mode="w+",
-                indent=indent,
-                encoding=encoding,
-                jsonable=True,
                 qurryinfo_hold_access=multicommons.summoner_id,
                 export_transpiled_circuit=export_transpiled_circuit,
                 multiprocess=True,
@@ -133,27 +119,16 @@ def experiment_writer(
 
     print("| Exporting file taglist...")
     beforewards.files_taglist.export(
-        name=None,
-        save_location=multicommons.export_location,
-        taglist_name=f"{taglist_name}",
-        filetype=multicommons.filetype,
-        open_args={
-            "mode": "w+",
-            "encoding": encoding,
-        },
-        json_dump_args={
-            "indent": indent,
-        },
+        name=None, save_location=multicommons.export_location, taglist_name=f"{taglist_name}"
     )
     print(f"| Exporting {all_qurryinfo_loc}...")
     quickJSON(
         content=all_qurryinfo,
         filename=all_qurryinfo_loc,
-        mode="w+",
-        jsonable=True,
-        indent=indent,
-        encoding=encoding,
-        mute=True,
+        mode=DEFAULT_MODE,
+        jsonable=False,
+        indent=DEFAULT_INDENT,
+        encoding=DEFAULT_ENCODING,
     )
     del all_qurryinfo
     print(f"| Exporting {all_qurryinfo_loc} done.")
