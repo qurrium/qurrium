@@ -12,6 +12,12 @@ from qiskit.transpiler.passmanager import PassManager
 
 from .analysis import EchoListenRandomizedAnalysis
 from .arguments import EchoListenRandomizedArguments, SHORT_NAME
+from .utils import (
+    overlapping_given_check,
+    overlapping_size_check,
+    unitary_full_cover_check,
+    create_config,
+)
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...qurrium.experiment.utils import memory_usage_factor_expect
@@ -22,7 +28,7 @@ from ...qurrium.utils.randomized import (
     local_unitary_op_to_pauli_coeff,
 )
 from ...qurrium.utils.random_unitary import check_input_for_experiment
-from ...process.utils import qubit_mapper, single_counts_recount_pyrust
+from ...process.utils import single_counts_recount_pyrust
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
@@ -32,8 +38,6 @@ from ...process.randomized_measure.wavefunction_overlap import (
 from ...tools import ParallelManager, set_pbar_description, backend_name_getter
 from ...declare import RunArgsType, TranspileArgs
 from ...exceptions import (
-    RandomizedMeasureUnitaryOperatorNotFullCovering,
-    OverlapComparisonSizeDifferent,
     SeperatedExecutingOverlapResult,
     QurryTranspileConfigurationIgnored,
 )
@@ -156,72 +160,38 @@ class EchoListenRandomizedExperiment(
         target_key_2, target_circuit_2 = targets[1]
         actual_qubits_2 = target_circuit_2.num_qubits
 
-        if actual_qubits_1 != actual_qubits_2:
-            if any([measure_1 is None, measure_2 is None]):
-                raise ValueError(
-                    "When the number of qubits in two circuits is not the same, "
-                    + "the measure range of two circuits should be specified."
-                )
-            if any([unitary_loc_1 is None, unitary_loc_2 is None]):
-                raise ValueError(
-                    "When the number of qubits in two circuits is not the same, "
-                    + "the unitary location of two circuits should be specified."
-                )
+        overlapping_given_check(
+            actual_qubits_1, actual_qubits_2, measure_1, measure_2, unitary_loc_1, unitary_loc_2
+        )
 
-        registers_mapping_1 = qubit_mapper(actual_qubits_1, measure_1)
-        qubits_measured_1 = list(registers_mapping_1)
-        unitary_located_mapping_1 = qubit_mapper(actual_qubits_1, unitary_loc_1)
-        assert list(unitary_located_mapping_1.values()) == list(
-            range(len(unitary_located_mapping_1))
-        ), "The unitary_located_mapping_1 should be continuous."
-        measured_but_not_unitary_located_1 = [
-            qi for qi in qubits_measured_1 if qi not in unitary_located_mapping_1
-        ]
+        (
+            registers_mapping_1,
+            qubits_measured_1,
+            unitary_located_mapping_1,
+            measured_but_not_unitary_located_1,
+        ) = create_config(actual_qubits_1, measure_1, unitary_loc_1, "1")
+        (
+            registers_mapping_2,
+            qubits_measured_2,
+            unitary_located_mapping_2,
+            measured_but_not_unitary_located_2,
+        ) = create_config(actual_qubits_2, measure_2, unitary_loc_2, "2")
 
-        registers_mapping_2 = qubit_mapper(actual_qubits_2, measure_2)
-        qubits_measured_2 = list(registers_mapping_2)
-        unitary_located_mapping_2 = qubit_mapper(actual_qubits_2, unitary_loc_2)
-        assert list(unitary_located_mapping_2.values()) == list(
-            range(len(unitary_located_mapping_2))
-        ), "The unitary_located_mapping_2 should be continuous."
-        measured_but_not_unitary_located_2 = [
-            qi for qi in qubits_measured_2 if qi not in unitary_located_mapping_2
-        ]
-
-        if len(qubits_measured_1) != len(qubits_measured_2):
-            raise OverlapComparisonSizeDifferent(
-                "The qubits number of measuring range in two circuits should be the same, "
-                + "but got different number of qubits measured."
-                + f"Got circuit 1: {len(qubits_measured_1)} {qubits_measured_1}"
-                + f"and circuit 2: {len(qubits_measured_2)} {qubits_measured_2}."
-            )
-        if len(unitary_located_mapping_1) != len(unitary_located_mapping_2):
-            raise OverlapComparisonSizeDifferent(
-                "The qubits number of unitary location in two circuits should be the same, "
-                + "but got different number of qubits located."
-                + f"Got circuit 1: {len(unitary_located_mapping_1)} {unitary_located_mapping_1}"
-                + f"and circuit 2: {len(unitary_located_mapping_2)} {unitary_located_mapping_2}."
-            )
-
-        if not unitary_loc_not_cover_measure:
-            if measured_but_not_unitary_located_1:
-                raise RandomizedMeasureUnitaryOperatorNotFullCovering(
-                    f"Some qubits {measured_but_not_unitary_located_1} are measured "
-                    + "but not random unitary located in first circuit. "
-                    + f"unitary_loc_1: {unitary_loc_1}, measure_1: {measure_1} "
-                    + "If you are sure about this, "
-                    + "you can set `unitary_loc_not_cover_measure=True` "
-                    + "to close this warning.",
-                )
-            if measured_but_not_unitary_located_2:
-                raise RandomizedMeasureUnitaryOperatorNotFullCovering(
-                    f"Some qubits {measured_but_not_unitary_located_2} are measured "
-                    + "but not random unitary located in second circuit. "
-                    + f"unitary_loc_2: {unitary_loc_2}, measure_2: {measure_2} "
-                    + "If you are sure about this, "
-                    + "you can set `unitary_loc_not_cover_measure=True` "
-                    + "to close this warning.",
-                )
+        overlapping_size_check(
+            qubits_measured_1,
+            qubits_measured_2,
+            unitary_located_mapping_1,
+            unitary_located_mapping_2,
+        )
+        unitary_full_cover_check(
+            unitary_loc_not_cover_measure,
+            measured_but_not_unitary_located_1,
+            measured_but_not_unitary_located_2,
+            measure_1,
+            measure_2,
+            unitary_loc_1,
+            unitary_loc_2,
+        )
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
