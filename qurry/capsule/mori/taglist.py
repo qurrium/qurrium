@@ -8,7 +8,7 @@ import os
 import json
 import warnings
 
-from .utils import OpenArgs, JSONDumpArgs, create_open_args, create_json_dump_args
+from ..utils import OpenArgs, JSONDumpArgs, create_open_args, create_json_dump_args
 from ..jsonablize import parse
 from ..exception import TagListTakeNotIterableWarning
 

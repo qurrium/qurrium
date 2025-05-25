@@ -7,7 +7,7 @@ from collections.abc import Iterable, Hashable
 import json
 from pathlib import Path
 
-from .mori.utils import DEFAULT_ENCODING, DEFAULT_INDENT
+from .utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
 
 def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:

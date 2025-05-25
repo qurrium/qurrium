@@ -5,7 +5,7 @@ import warnings
 from pathlib import Path
 from typing import Union, Optional
 
-from .utils import OpenArgs, PrintArgs, create_open_args, create_print_args
+from ..utils import OpenArgs, PrintArgs, create_open_args, create_print_args
 
 
 class GitSyncControl(list[str]):
