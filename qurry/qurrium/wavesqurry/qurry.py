@@ -3,22 +3,33 @@
 It is only for pendings and retrieve to remote backend.
 """
 
-from typing import Union, Optional, Any, Type, Literal
+from typing import Union, Optional, Type, Literal
 from collections.abc import Hashable
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
-from qiskit.transpiler.passmanager import PassManager
 
-from .arguments import SHORT_NAME
+from .arguments import (
+    SHORT_NAME,
+    WavesExecuterMeasureArgs,
+    WavesExecuterOutputArgs,
+    WavesExecuterAnalyzeArgs,
+)
 from .experiment import WavesExecuterExperiment
 from ..qurrium import QurriumPrototype
-from ...declare import BaseRunArgs, TranspileArgs, OutputArgs
+from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
 
-class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
+class WavesExecuter(
+    QurriumPrototype[
+        WavesExecuterExperiment,
+        WavesExecuterMeasureArgs,
+        WavesExecuterOutputArgs,
+        WavesExecuterAnalyzeArgs,
+    ]
+):
     """The pending and retrieve executer for waves."""
 
     __name__ = "WavesExecuter"
@@ -35,20 +46,16 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
-        passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        passmanager: PassManagerType = None,
         tags: Optional[tuple[str, ...]] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> OutputArgs:
+    ) -> WavesExecuterOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
@@ -63,7 +70,7 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
@@ -79,20 +86,12 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
         Returns:
-            OutputArgs: The output arguments.
+            WavesExecuterOutputArgs: The output arguments.
         """
         if waves is None:
             raise ValueError("The `waves` must be provided.")
@@ -110,10 +109,6 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
             "qasm_version": qasm_version,
             "export": export,
             "save_location": save_location,
-            "mode": mode,
-            "indent": indent,
-            "encoding": encoding,
-            "jsonable": jsonable,
             "pbar": pbar,
         }
 
@@ -123,18 +118,14 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
-        passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        passmanager: PassManagerType = None,
         tags: Optional[tuple[str, ...]] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
     ):
         """Execute the experiment.
@@ -151,7 +142,7 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
@@ -167,14 +158,6 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
@@ -196,10 +179,6 @@ class WavesExecuter(QurriumPrototype[WavesExecuterExperiment]):
             qasm_version=qasm_version,
             export=export,
             save_location=save_location,
-            mode=mode,
-            indent=indent,
-            encoding=encoding,
-            jsonable=jsonable,
             pbar=pbar,
         )
 

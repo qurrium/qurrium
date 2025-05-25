@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from qiskit import QuantumCircuit
 
 from ..experiment import ArgumentsPrototype
-from ...declare import BasicArgs
+from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
 @dataclass(frozen=True)
@@ -23,6 +23,14 @@ class WavesExecuterMeasureArgs(BasicArgs, total=False):
     """Output arguments for :meth:`output`."""
 
     waves: Optional[list[Union[QuantumCircuit, Hashable]]]
+
+
+class WavesExecuterOutputArgs(OutputArgs):
+    """Output arguments for :meth:`output`."""
+
+
+class WavesExecuterAnalyzeArgs(AnalyzeArgs, total=False):
+    """The input of the analyze method."""
 
 
 SHORT_NAME = "waves_executer"
