@@ -43,7 +43,7 @@ from ...tools import (
 )
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
-from ...declare import BaseRunArgs, TranspileArgs
+from ...declare import RunArgsType, TranspileArgs
 from ...exceptions import (
     QurryResetSecurityActivated,
     QurryResetAccomplished,
@@ -168,7 +168,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
         # multimanager
         tags: Optional[tuple[str, ...]] = None,
@@ -196,7 +196,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
@@ -310,7 +310,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
         passmanager_pair: Optional[tuple[str, PassManager]] = None,
         tags: Optional[tuple[str, ...]] = None,
@@ -337,7 +337,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to `None`.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
