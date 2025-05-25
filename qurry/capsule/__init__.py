@@ -33,14 +33,8 @@
 import webbrowser
 from random import random
 
-from .jsonablize import (
-    parse as jsonablize,
-    quickJSON,
-    sort_hashable_ahead,
-    DEFAULT_ENCODING,
-    DEFAULT_INDENT,
-    DEFAULT_MODE,
-)
+from .jsonablize import parse as jsonablize, quickJSON, sort_hashable_ahead
+from .mori.utils import DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 from .quick import quickRead
 from .hoshi import repr_modifier as _repr_modifier
 

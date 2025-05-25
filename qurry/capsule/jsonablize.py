@@ -7,10 +7,7 @@ from collections.abc import Iterable, Hashable
 import json
 from pathlib import Path
 
-
-DEFAULT_ENCODING = "utf-8"
-DEFAULT_INDENT = 2
-DEFAULT_MODE = "w+"
+from .mori.utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
 
 def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
