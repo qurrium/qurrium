@@ -243,7 +243,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             backend (Optional[Backend], optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
-                Naming this experiment to recognize it 
+                Naming this experiment to recognize it
                 when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
