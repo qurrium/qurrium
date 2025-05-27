@@ -868,7 +868,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 + f"{str(repeat_times).rjust(RJUST_LEN, '0')}.id={self.commons.exp_id}"
             )
 
-        self.commons = self.commons._replace(filename=filename)
         files = {
             "folder": folder,
             "qurryinfo": folder + "qurryinfo.json",

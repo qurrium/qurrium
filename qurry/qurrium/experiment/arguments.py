@@ -150,8 +150,6 @@ class CommonparamsDict(TypedDict):
     transpile_args: TranspileArgs
     tags: tuple[str, ...]
     save_location: Union[Path, str]
-    filename: str
-    files: dict[str, Path]
     serial: Optional[int]
     summoner_id: Optional[str]
     summoner_name: Optional[str]
@@ -190,72 +188,6 @@ class Commonparams(NamedTuple):
     to their dedicated folders in this location respectively.
     This location is the default location for it's not specific 
     where to save when call :meth:`.write()`, if does, then will be overwriten and update."""
-    filename: str
-    """The name of file to be exported, 
-    it will be decided by the :meth:`.export` when it's called.
-    More info in the pydoc of :prop:`files` or :meth:`.export`.
-    """
-    files: dict[str, Path]
-    """The list of file to be exported.
-
-    ### Single experiment:
-
-    For the :meth:`.write` function actually exports 4 different files
-    respecting to `adventure`, `legacy`, `tales`, and `reports` like:
-
-    .. code-block:: python
-        files = {
-            'folder': './bla_exp/',
-            'qurryinfo': './bla_exp/qurryinfo.json',
-
-            'args': './bla_exp/args/bla_exp.id={exp_id}.args.json',
-            'advent': './bla_exp/advent/bla_exp.id={exp_id}.advent.json',
-            'legacy': './bla_exp/legacy/bla_exp.id={exp_id}.legacy.json',
-            'tales.dummyx1': './bla_exp/tales/bla_exp.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './bla_exp/tales/bla_exp.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './bla_exp/tales/bla_exp.id={exp_id}.dummyxn.json',
-            'reports': './bla_exp/reports/bla_exp.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': './bla_exp/tales/bla_exp.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': './bla_exp/tales/bla_exp.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': './bla_exp/tales/bla_exp.id={exp_id}.dummyzm.reports.json',
-        }
-
-    which `bla_exp` is the example filename.
-
-    ### Multi-experiment:
-
-    If this experiment is called by :cls:`MultiManager`, 
-    then the it will be named after `summoner_name` as known as the name of :cls:`MultiManager`.
-
-    .. code-block:: python
-        files = {
-            'folder': './BLABLA_project/',
-            'qurryinfo': './BLABLA_project/qurryinfo.json',
-
-            'args': './BLABLA_project/args/index={serial}.id={exp_id}.args.json',
-            'advent': './BLABLA_project/advent/index={serial}.id={exp_id}.advent.json',
-            'legacy': './BLABLA_project/legacy/index={serial}.id={exp_id}.legacy.json',
-            'tales.dummyx1': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyxn.json',
-            'reports': './BLABLA_project/reports/index={serial}.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
-        }
-
-    which `BLBLA_project` is the example :cls:`MultiManager` name 
-    stored at :prop:`commonparams.summoner_name`.
-    At this senerio, the :prop:`exp_name` will never apply as filename.
-
-    """
 
     # Arguments for multi-experiment
     serial: Optional[int]
@@ -282,8 +214,6 @@ class Commonparams(NamedTuple):
             "transpile_args": {},
             "tags": (),
             "save_location": Path("."),
-            "filename": "unknown",
-            "files": {},
             "serial": None,
             "summoner_id": None,
             "summoner_name": None,
@@ -339,9 +269,7 @@ class Commonparams(NamedTuple):
         # pylint: disable=no-member
         commons: CommonparamsDict = jsonablize(self._asdict())
         # pylint: enable=no-member
-        commons["backend"] = (
-            self.backend if isinstance(self.backend, str) else backend_name_getter(self.backend)
-        )
+        commons["backend"] = backend_name_getter(self.backend)
         return commons
 
 
