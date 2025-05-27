@@ -254,8 +254,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             exp_name=exp_name,
             tags=tags,
             save_location=Path("./"),
-            filename="",
-            files={},
             serial=serial,
             summoner_id=summoner_id,
             summoner_name=summoner_name,
