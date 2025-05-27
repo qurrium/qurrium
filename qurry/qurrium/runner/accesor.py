@@ -27,20 +27,6 @@ def acessibility() -> dict[PendingTargetProviderLiteral, bool]:
 
     # pylint: disable=import-outside-toplevel, unused-import
     try:
-        from .ibmqrunner import IBMQRunner
-
-        result["IBMQ"] = True
-    except QurryExtraPackageRequired:
-        result["IBMQ"] = False
-
-    try:
-        from .ibmprovider_runer import IBMProviderRunner
-
-        result["IBM"] = True
-    except QurryExtraPackageRequired:
-        result["IBM"] = False
-
-    try:
         from .ibmruntime_runner import IBMRuntimeRunner
 
         result["IBMRuntime"] = True
@@ -103,69 +89,7 @@ class RemoteAccessor:
         provider: Optional[Any] = None,
     ):
         # pylint: disable=import-outside-toplevel
-        if backend_type == "IBMQ":
-            if not BACKEND_AVAILABLE["IBMQ"]:
-                raise QurryExtraPackageRequired(
-                    "Backend 'IBMQ' is not available, please install 'qiskit_ibmq_provider' first."
-                )
-            from .ibmqrunner import IBMQRunner, IBMQBackend  # type: ignore
-
-            if not isinstance(backend, IBMQBackend) and backend is not None:
-                raise ValueError(
-                    "You must use 'IBMQBackend' from 'qiskit_ibmq_provider' "
-                    + "which imports from 'qiskit.providers.ibmq' for 'IBMQ' jobstype. "
-                    + "If you import backend or provider from 'qiskit_ibm_provider', "
-                    + "it used 'IBMBackend' for 'IBM' jobstype, "
-                    + "which is different from 'IBMQBackend'."
-                )
-            if not isinstance(provider, IBMQBackend) and provider is not None:
-                raise ValueError(
-                    "You must use 'IBMQBackend' from 'qiskit_ibmq_provider' "
-                    + "which imports from 'qiskit.providers.ibmq' for 'IBMQ' jobstype."
-                )
-
-            self.multirunner = IBMQRunner(
-                besummonned=multimanager.summoner_id,
-                multimanager=multimanager,
-                backend=backend,
-                provider=provider,
-                experimental_container=experiment_container,
-            )
-
-        elif backend_type == "IBM":
-            if not BACKEND_AVAILABLE["IBM"]:
-                raise QurryExtraPackageRequired(
-                    "Backend 'IBM' is not available, please install 'qiskit_ibm_provider' first."
-                )
-            from .ibmprovider_runer import (
-                IBMProviderRunner,
-                IBMBackend as IBMProviderBackend,
-                IBMProvider,
-            )
-
-            if not isinstance(backend, IBMProviderBackend) and backend is not None:
-                raise TypeError(
-                    "You must use 'IBMBackend' from 'qiskit_ibm_provider' "
-                    + "which imports from 'qiskit.providers.ibm' for 'IBM' jobstype. "
-                    + "If you import backend or provider from 'qiskit_ibmq_provider', "
-                    + "it used 'IBMQBackend' for 'IBMQ' jobstype, "
-                    + "which is different from 'IBMBackend'."
-                )
-            if not isinstance(provider, IBMProvider) and provider is not None:
-                raise TypeError(
-                    "You must use 'IBMProvider' from 'qiskit_ibm_provider' "
-                    + "which imports from 'qiskit.providers.ibm' for 'IBM' jobstype."
-                )
-
-            self.multirunner = IBMProviderRunner(
-                besummonned=multimanager.summoner_id,
-                multimanager=multimanager,
-                backend=backend,
-                provider=provider,
-                experimental_container=experiment_container,
-            )
-
-        elif backend_type == "IBMRuntime":
+        if backend_type == "IBMRuntime":
             if not BACKEND_AVAILABLE["IBMRuntime"]:
                 raise QurryExtraPackageRequired(
                     "Backend 'IBMRuntime' is not available, "
@@ -204,7 +128,7 @@ class RemoteAccessor:
             if backend is None:
                 raise QurryInvalidArgument(
                     "You must provide the backend for the jobstype "
-                    + "which is not 'IBMQ', 'IBM' or 'IBMRuntime'."
+                    + "which is not 'IBMRuntime'."
                 )
             self.multirunner = DummyRunner(
                 manager=multimanager,
