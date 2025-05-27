@@ -149,7 +149,6 @@ class CommonparamsDict(TypedDict):
     run_args: Union[BaseRunArgs, dict[str, Any]]
     transpile_args: TranspileArgs
     tags: tuple[str, ...]
-    default_analysis: list[dict[str, Any]]
     save_location: Union[Path, str]
     filename: str
     files: dict[str, Path]
@@ -282,7 +281,6 @@ class Commonparams(NamedTuple):
             "run_args": {},
             "transpile_args": {},
             "tags": (),
-            "default_analysis": [],
             "save_location": Path("."),
             "filename": "unknown",
             "files": {},
