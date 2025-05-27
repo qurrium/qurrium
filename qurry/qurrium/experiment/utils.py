@@ -1,9 +1,11 @@
 """Experiment Utilities (:mod:`qurry.qurrium.experiment.utils`)"""
 
+import os
 import warnings
 from uuid import uuid4, UUID
 from typing import Optional, Union
 from collections.abc import Hashable
+from pathlib import Path
 import numpy as np
 
 from qiskit import QuantumCircuit
@@ -12,22 +14,14 @@ from .arguments import Commonparams, ArgumentsPrototype
 from .beforewards import Before
 from .afterwards import After
 from .analyses import AnalysesContainer
+from ..utils.iocontrol import RJUST_LEN
 from ...capsule.hoshi import Hoshi
 from ...exceptions import (
     QurryHashIDInvalid,
     QurryInvalidInherition,
-    QurryWarning,
+    UnconfiguredWarning,
     QurrySummonerInfoIncompletion,
 )
-
-
-EXPERIMENT_UNEXPORTS = ["side_product", "result", "circuits"]
-"""Unexports properties."""
-DEPRECATED_PROPERTIES = ["figTranspiled", "fig_original"]
-"""Deprecated properties.
-    - `figTranspiled` is deprecated since v0.6.0.
-    - `fig_original` is deprecated since v0.6.10.
-"""
 
 
 def exp_id_process(exp_id: Optional[str]) -> str:
@@ -109,7 +103,7 @@ def implementation_check(
         warnings.warn(
             "You should set a new __name__ for your experiment class, "
             + "otherwise it will be considered as an abstract class of Qurrium during printing.",
-            category=QurryWarning,
+            category=UnconfiguredWarning,
         )
 
 
@@ -250,3 +244,73 @@ def make_statesheet(
             info.newline(("txt", item, 3))
 
     return info
+
+
+def create_save_location(
+    save_location: Optional[Union[str, Path]],
+    commons: Optional[Commonparams] = None,
+) -> Path:
+    """Create a save location for the experiment.
+
+    Args:
+        save_location (Optional[str]): The save location of the experiment.
+        commons (Optional[Commonparams]):
+            The common parameters of the experiment.
+            It is used to get the default save location if `save_location` is None.
+
+    Returns:
+        Path: The save location as a Path object.
+
+    Raises:
+        ValueError:
+            If `save_location` is not a Path or str,
+            or if it is None and `commons` is also None.
+    """
+    if isinstance(save_location, Path):
+        return save_location
+    if isinstance(save_location, str):
+        return Path(save_location)
+    if save_location is None and commons is not None:
+        if commons.save_location is None:
+            raise ValueError("save_location is None, please provide a valid save_location")
+        return Path(commons.save_location)
+
+    raise ValueError(f"save_location must be Path or str, not {type(save_location)}")
+
+
+def folder_with_repeat_times(exp_name: str, repeat_times: int) -> str:
+    """Create a folder with repeat times.
+
+    Args:
+        exp_name (str): The name of the experiment.
+        repeat_times (int, optional): The repeat times of the experiment. Defaults to 1.
+
+    Returns:
+        str: The folder name with repeat times.
+    """
+    return f"./{exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}/"
+
+
+def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) -> tuple[str, str]:
+    """Decide the folder and filename for the experiment.
+
+    Args:
+        commons (Commonparams): The common parameters of the experiment.
+        args (ArgumentsPrototype): The arguments of the experiment.
+
+    Returns:
+        tuple[str, str]: The folder and filename for the experiment.
+    """
+
+    if all(v is not None for v in [commons.serial, commons.summoner_id, commons.summoner_id]):
+        folder = f"./{commons.summoner_name}/"
+        filename = f"index={commons.serial}.id={commons.exp_id}"
+        return folder, filename
+
+    repeat_times = 1
+    folder = folder_with_repeat_times(args.exp_name, repeat_times)
+    while os.path.exists(folder):
+        repeat_times += 1
+        folder = folder_with_repeat_times(args.exp_name, repeat_times)
+    filename = f"{args.exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}.id={commons.exp_id}"
+    return folder, filename
