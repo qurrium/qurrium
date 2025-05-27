@@ -156,6 +156,14 @@ class CommonparamsDict(TypedDict):
     datetimes: DatetimeDict
 
 
+class CommonparamsReadReturn(TypedDict):
+    """The return type of :meth:`Commonparams.read_with_arguments`."""
+
+    arguments: dict[str, Any]
+    commonparams: dict[str, Any]
+    outfields: dict[str, Any]
+
+
 class Commonparams(NamedTuple):
     """Construct the experiment's parameters for system running."""
 
@@ -226,7 +234,7 @@ class Commonparams(NamedTuple):
         exp_id: str,
         file_index: dict[str, str],
         save_location: Path,
-    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    ) -> CommonparamsReadReturn:
         """Read the exported experiment file.
 
         Args:
@@ -235,7 +243,7 @@ class Commonparams(NamedTuple):
             save_location (Path): The location of exported experiment file.
 
         Returns:
-            tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+            CommonparamsReadReturn
                 The experiment's arguments,
                 the experiment's common parameters,
                 and the experiment's side product.
@@ -254,11 +262,11 @@ class Commonparams(NamedTuple):
 
         assert data_args["commonparams"]["exp_id"] == exp_id, "The exp_id is not match."
 
-        return (
-            data_args["arguments"],
-            data_args["commonparams"],
-            data_args["outfields"],
-        )
+        return {
+            "arguments": data_args["arguments"],
+            "commonparams": data_args["commonparams"],
+            "outfields": data_args["outfields"],
+        }
 
     def export(self) -> CommonparamsDict:
         """Export the experiment's common parameters.

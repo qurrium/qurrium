@@ -2,7 +2,6 @@
 
 import os
 import json
-import copy
 import warnings
 from abc import abstractmethod, ABC
 from typing import Union, Optional, Any, Type, Literal, Generic
@@ -26,11 +25,10 @@ from .utils import (
     implementation_check,
     summonner_check,
     make_statesheet,
-    DEPRECATED_PROPERTIES,
-    EXPERIMENT_UNEXPORTS,
+    create_save_location,
+    decide_folder_and_filename,
 )
 from ..utils import get_counts_and_exceptions, qasm_dumps, outfields_check, outfields_hint
-from ..utils.iocontrol import RJUST_LEN
 from ..utils.chunk import very_easy_chunk_size
 from ...tools import (
     ParallelManager,
@@ -44,11 +42,7 @@ from ...tools import (
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
 from ...declare import RunArgsType, TranspileArgs
-from ...exceptions import (
-    QurryResetSecurityActivated,
-    QurryResetAccomplished,
-    QurryTranspileConfigurationIgnored,
-)
+from ...exceptions import QurryResetSecurityActivated, QurryTranspileConfigurationIgnored
 
 
 class ExperimentPrototype(ABC, Generic[_A, _R]):
@@ -63,7 +57,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         """The arguments instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
 
-    # analysis
     @property
     @abstractmethod
     def analysis_instance(self) -> Type[_R]:
@@ -136,7 +129,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         implementation_check(self.__name__, self.args, self.commons)
         summonner_check(self.commons.serial, self.commons.summoner_id, self.commons.summoner_name)
 
-        self.beforewards = create_beforewards(beforewards, self.args.exp_name)
+        self.beforewards = create_beforewards(beforewards)
         self.afterwards = create_afterwards(afterwards)
         self.reports: AnalysesContainer[_R] = (
             reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
@@ -243,10 +236,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         # Given parameters and default parameters
         set_pbar_description(pbar, "Prepaing parameters...")
 
-        checked_exp_id = exp_id_process(exp_id)
         arguments, commonparams, outfields = cls.params_control(
             targets=targets,
-            exp_id=checked_exp_id,
+            exp_id=exp_id_process(exp_id),
             shots=shots,
             backend=backend,
             run_args=run_args,
@@ -271,7 +263,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         assert isinstance(new_exps.commons.backend, Backend), "Require a valid backend."
         assert len(new_exps.beforewards.circuit) == 0, "New experiment should have no circuit."
-        assert len(new_exps.beforewards.fig_original) == 0, "New experiment should have no figure."
         assert len(new_exps.beforewards.circuit_qasm) == 0, "New experiment should have no qasm."
         assert len(new_exps.afterwards.result) == 0, "New experiment should have no result."
         assert len(new_exps.afterwards.counts) == 0, "New experiment should have no counts."
@@ -670,9 +661,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             return getattr(self.beforewards, key)
         if key in self.afterwards._fields:
             return getattr(self.afterwards, key)
-        if key in DEPRECATED_PROPERTIES:
-            warnings.warn("This property is deprecated.", DeprecationWarning)
-            return None
         raise KeyError(
             f"{key} is not a valid field of " + f"'{Before.__name__}' and '{After.__name__}'."
         )
@@ -694,31 +682,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             analysis: Analysis of the counts from measurement.
         """
         raise NotImplementedError("This method should be implemented.")
-
-    def clear_analysis(self, *args, security: bool = False, mute: bool = False) -> None:
-        """Reset the measurement and release memory.
-
-        Args:
-            security (bool, optional): Security for clearing. Defaults to `False`.
-            mute (bool, optional): Mute the warning when clearing. Defaults to `False`.
-        """
-
-        if len(args) > 0:
-            raise ValueError("Use 'clear_analysis(security=True)' to clear.")
-
-        if security and isinstance(security, bool):
-            self.reports.clear()
-            if not mute:
-                warnings.warn(
-                    "The measurement has reset and release memory allocating.",
-                    category=QurryResetAccomplished,
-                )
-        else:
-            warnings.warn(
-                "Reset does not execute to prevent executing accidentally, "
-                + "if you are sure to do this, then use '.clear_analysis(security=True)' to clear.",
-                category=QurryResetSecurityActivated,
-            )
 
     # show info
     def __hash__(self) -> int:
@@ -768,11 +731,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 p.breakable()
                 p.text(f"analysis_num={len(self.reports)})")
 
-    def statesheet(
-        self,
-        report_expanded: bool = False,
-        hoshi: bool = False,
-    ) -> Hoshi:
+    def statesheet(self, report_expanded: bool = False, hoshi: bool = False) -> Hoshi:
         """Show the state of experiment.
 
         Args:
@@ -814,61 +773,16 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             Export: A namedtuple containing the data of experiment
                 which can be more easily to export as json file.
         """
-        if isinstance(save_location, Path):
-            ...
-        elif isinstance(save_location, str):
-            save_location = Path(save_location)
-        elif save_location is None:
-            save_location = Path(self.commons.save_location)
-            if self.commons.save_location is None:
-                raise ValueError("save_location is None, please provide a valid save_location")
-        else:
-            raise TypeError(f"save_location must be Path or str, not {type(save_location)}")
-
+        save_location = create_save_location(save_location, self.commons)
         if self.commons.save_location != save_location:
             self.commons = self.commons._replace(save_location=save_location)
 
-        adventures, tales = copy.deepcopy(
-            self.beforewards.export(
-                unexports=EXPERIMENT_UNEXPORTS,
-                export_transpiled_circuit=export_transpiled_circuit,
-            )
-        )
-        legacy = copy.deepcopy(self.afterwards.export(unexports=EXPERIMENT_UNEXPORTS))
-        reports, tales_reports = copy.deepcopy(self.reports.export())
-
-        # filename
-        filename, folder = "", ""
+        adventures, tales = self.beforewards.export(export_transpiled_circuit)
+        legacy = self.afterwards.export()
+        reports, tales_reports = self.reports.export()
 
         # multi-experiment mode
-        if all(
-            (v is not None)
-            for v in [
-                self.commons.serial,
-                self.commons.summoner_id,
-                self.commons.summoner_id,
-            ]
-        ):
-            folder += f"./{self.commons.summoner_name}/"
-            filename += f"index={self.commons.serial}.id={self.commons.exp_id}"
-        else:
-            repeat_times = 1
-            tmp = (
-                folder + f"./{self.beforewards.exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}/"
-            )
-            while os.path.exists(tmp):
-                repeat_times += 1
-                tmp = (
-                    folder
-                    + f"./{self.beforewards.exp_name}."
-                    + f"{str(repeat_times).rjust(RJUST_LEN, '0')}/"
-                )
-            folder = tmp
-            filename += (
-                f"{self.beforewards.exp_name}."
-                + f"{str(repeat_times).rjust(RJUST_LEN, '0')}.id={self.commons.exp_id}"
-            )
-
+        folder, filename = decide_folder_and_filename(self.commons, self.args)
         files = {
             "folder": folder,
             "qurryinfo": folder + "qurryinfo.json",
@@ -884,7 +798,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         return Export(
             exp_id=str(self.commons.exp_id),
-            exp_name=str(self.beforewards.exp_name),
+            exp_name=str(self.args.exp_name),
             serial=(None if self.commons.serial is None else int(self.commons.serial)),
             summoner_id=(None if self.commons.summoner_id else str(self.commons.summoner_id)),
             summoner_name=(None if self.commons.summoner_name else str(self.commons.summoner_name)),
@@ -936,14 +850,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         set_pbar_description(pbar, "Preparing to export...")
 
         # experiment write
-        export_material = self.export(
-            save_location=save_location,
-            export_transpiled_circuit=export_transpiled_circuit,
-        )
-        exp_id, files = export_material.write(
-            multiprocess=multiprocess,
-            pbar=pbar,
-        )
+        export_material = self.export(save_location, export_transpiled_circuit)
+        exp_id, files = export_material.write(multiprocess, pbar)
 
         assert "qurryinfo" in files, "qurryinfo location is not in files."
         # qurryinfo write
@@ -954,26 +862,15 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         ):
             # if qurryinfo_hold_access is set, then export by MultiManager
             return exp_id, files
+        qurryinfo_location = real_save_location / files["qurryinfo"]
 
-        if os.path.exists(real_save_location / export_material.files["qurryinfo"]):
-            with open(
-                real_save_location / export_material.files["qurryinfo"],
-                "r",
-                encoding=DEFAULT_ENCODING,
-            ) as f:
+        if os.path.exists(qurryinfo_location):
+            with open(qurryinfo_location, "r", encoding=DEFAULT_ENCODING) as f:
                 qurryinfo_found: dict[str, dict[str, str]] = dict(json.load(f))
                 qurryinfo_found[exp_id] = files
-            quickJSON(
-                content=qurryinfo_found,
-                filename=str(real_save_location / files["qurryinfo"]),
-                mode=DEFAULT_MODE,
-            )
+            quickJSON(qurryinfo_found, str(qurryinfo_location), DEFAULT_MODE)
         else:
-            quickJSON(
-                content={exp_id: files},
-                filename=str(real_save_location / files["qurryinfo"]),
-                mode=DEFAULT_MODE,
-            )
+            quickJSON({exp_id: files}, str(qurryinfo_location), DEFAULT_MODE)
 
         return exp_id, files
 
@@ -983,7 +880,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         exp_id: str,
         file_index: dict[str, str],
         save_location: Union[Path, str] = Path("./"),
-    ) -> "ExperimentPrototype":
+    ):
         """Core of read function.
 
         Args:
@@ -999,34 +896,19 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             QurryExperiment: The experiment to be read.
         """
 
-        if isinstance(save_location, (Path, str)):
-            save_location = Path(save_location)
-        else:
-            raise ValueError("'save_location' needs to be the type of 'str' or 'Path'.")
+        save_location = create_save_location(save_location)
         if not os.path.exists(save_location):
             raise FileNotFoundError(f"'save_location' does not exist, '{save_location}'.")
 
-        # Construct the experiment
-        # arguments, commonparams, outfields
-        export_material_set = {}
-        (
-            export_material_set["arguments"],
-            export_material_set["commonparams"],
-            export_material_set["outfields"],
-        ) = Commonparams.read_with_arguments(
-            exp_id=exp_id,
-            file_index=file_index,
-            save_location=save_location,
+        reading_return_args = Commonparams.read_with_arguments(
+            exp_id=exp_id, file_index=file_index, save_location=save_location
         )
         exp_instance = cls(
-            export_material_set["arguments"],
-            export_material_set["commonparams"],
-            export_material_set["outfields"],
+            **reading_return_args,
             beforewards=Before.read(file_index=file_index, save_location=save_location),
             afterwards=After.read(file_index=file_index, save_location=save_location),
             reports=AnalysesContainer(),
         )
-
         reports_read: dict[Hashable, _R] = exp_instance.analysis_instance.read(
             file_index=file_index, save_location=save_location
         )
@@ -1035,10 +917,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return exp_instance
 
     @classmethod
-    def _read_core_multiprocess(
-        cls,
-        all_arugments: tuple[str, dict[str, str], Union[Path, str]],
-    ) -> "ExperimentPrototype":
+    def _read_core_multiprocess(cls, all_arugments: tuple[str, dict[str, str], Union[Path, str]]):
         """Core of read function for multiprocess.
 
         Args:
@@ -1051,15 +930,14 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Returns:
             QurryExperiment: The experiment to be read.
         """
-        exp_id, file_index, save_location = all_arugments
-        return cls._read_core(exp_id, file_index, save_location)
+        return cls._read_core(*all_arugments)
 
     @classmethod
     def read(
         cls,
         name_or_id: Union[Path, str],
         save_location: Union[Path, str] = Path("./"),
-    ) -> list["ExperimentPrototype"]:
+    ):
         """Read the experiment from file.
 
         Args:
@@ -1075,18 +953,12 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             list[ExperimentPrototype]: The experiment to be read.
         """
 
-        if isinstance(save_location, (Path, str)):
-            save_location = Path(save_location)
-        else:
-            raise ValueError("'save_location' needs to be the type of 'str' or 'Path'.")
+        save_location = create_save_location(save_location)
         if not os.path.exists(save_location):
             raise FileNotFoundError(f"'save_location' does not exist, '{save_location}'.")
-
         export_location = save_location / name_or_id
         if not os.path.exists(export_location):
             raise FileNotFoundError(f"'ExportLoaction' does not exist, '{export_location}'.")
-
-        qurryinfo: dict[str, dict[str, str]] = {}
         qurryinfo_location = export_location / "qurryinfo.json"
         if not os.path.exists(qurryinfo_location):
             raise FileNotFoundError(
@@ -1094,6 +966,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 + "It's required for loading all experiment data."
             )
 
+        qurryinfo: dict[str, dict[str, str]] = {}
         with open(qurryinfo_location, "r", encoding=DEFAULT_ENCODING) as f:
             qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
             qurryinfo.update(qurryinfo_found)
