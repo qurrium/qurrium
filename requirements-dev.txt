@@ -11,6 +11,8 @@ matplotlib
 pytest
 pytest-xdist
 pytest-order
+pytest-cov
+coverage
 
 # qiskit-aer
 qiskit-aer

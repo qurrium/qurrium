@@ -216,6 +216,6 @@ filterwarnings = ["ignore::DeprecationWarning"]
 # it can raise 100k+ warnings in a single test. WTF?
 
 [tool.coverage.run]
-# include = ["./qurry/*"]
-omit = ["./qurry/tests/*"]
+include = ["./qurry/*"]
+omit = ["./tests/*"]
 data_file = "./.coverage/.coverage"
