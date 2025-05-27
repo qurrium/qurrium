@@ -58,26 +58,13 @@ class After(NamedTuple):
 
         return cls(**legacy)
 
-    def export(
-        self,
-        unexports: list[str],
-    ) -> dict[str, Any]:
+    def export(self) -> dict[str, Any]:
         """Export the experiment's data after executing.
-
-        Args:
-            unexports (Optional[list[str]], optional): The list of unexported key. Defaults to None.
 
         Returns:
             dict[str, Any]: The experiment's data after executing.
         """
-        legacy = {}
-        # pylint: disable=no-member
-        for k, v in self._asdict().items():
-            # pylint: enable=no-member
-            if k not in unexports:
-                legacy[k] = v
-
-        return legacy
+        return {"counts": self.counts}
 
     def clear_result(self, *args, security: bool = False, mute_warning: bool = True):
         """Clear the result of experiment.
