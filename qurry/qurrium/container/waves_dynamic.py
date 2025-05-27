@@ -325,7 +325,7 @@ def wave_container_maker(
 
 DyanmicWaveContainerByDict = wave_container_maker("WaveContainer", dict)
 """
-A Qurry standard wave function container 
+A Qurrium standard wave function container 
 should be something dict-like structure, 
 basically a typing.MutableMapping.
 """

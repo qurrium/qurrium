@@ -1,4 +1,4 @@
-"""EntropyMeasureRandomized - Qurry
+"""EntropyMeasureRandomized - Qurrium
 (:mod:`qurry.qurrent.randomized_measure.qurry`)
 
 """

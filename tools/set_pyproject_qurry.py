@@ -1,7 +1,4 @@
-"""
-============================================================================
-Set Pyproject Qurry (:file:`set_pyproject_qurry.py`)
-============================================================================
+"""Set Pyproject Qurrium (:file:`set_pyproject_qurry.py`)
 
 Rename the project name in pyproject.toml from "qurry" to "qurrium".
 """

@@ -1,4 +1,4 @@
-"""EchoListenRandomized - Qurry
+"""EchoListenRandomized - Qurrium
 (:mod:`qurry.qurrech.randomized_measure.qurry`)
 
 """

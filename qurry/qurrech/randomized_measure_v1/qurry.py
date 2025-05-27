@@ -1,4 +1,4 @@
-"""EchoListenRandomizedV1 - Qurry
+"""EchoListenRandomizedV1 - Qurrium
 (:mod:`qurry.qurrech.randomized_measure_v1.qurry`)
 
 This is a deprecated version of the randomized measure module.

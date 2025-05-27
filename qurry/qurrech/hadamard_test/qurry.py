@@ -1,4 +1,4 @@
-"""EchoListenHadamard - Qurry
+"""EchoListenHadamard - Qurrium
 (:mod:`qurry.qurrech.hadamard_test.qurry`)
 
 """

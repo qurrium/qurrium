@@ -628,7 +628,6 @@ class MultiManager(Generic[_E]):
 
         Args:
             save_location (Union[Path, str]): Location of saving experiment.
-            short_name (str): The short name of Qurry Instance.
             without_serial (bool, optional): Whether without serial number. Defaults to True.
 
         Returns:

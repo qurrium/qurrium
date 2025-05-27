@@ -94,7 +94,7 @@ def qiskit_version_statesheet() -> Hoshi:
         Hoshi: The statesheet of the version of qiskit and its packages.
     """
     item = [
-        ("txt", f"| Qurry version: {__version__}"),
+        ("txt", f"| Qurrium version: {__version__}"),
         ("divider", 44),
         ("h3", "Qiskit version"),
     ]

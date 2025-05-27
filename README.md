@@ -1,4 +1,4 @@
-# Qurry 🍛 - The python package for measuring quantum entanglement entropy and wave function overlap.
+# Qurrium - The python package for measuring quantum entanglement entropy and wave function overlap.
 
 ## _The python package that makes the randomized measurement easy._
 
@@ -46,11 +46,11 @@ To install rust, run the following command:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Then install `qurry` by the following command:
+Then install `qurrium` by the following command:
 
 ```bash
-git clone https://github.com/harui2019/qurry-preview.git --recursive
-cd qurry
+git clone https://github.com/harui2019/qurrium.git --recursive
+cd qurrium
 pip install -e .
 ```
 

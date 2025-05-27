@@ -68,9 +68,9 @@ def availability_status_print() -> tuple[
         test_availability,
     ]
     pre_hoshi = [
-        ("txt", f"| Qurry version: {__version__}"),
+        ("txt", f"| Qurrium version: {__version__}"),
         ("divider", 75),
-        ("h3", "Qurry Post-Processing"),
+        ("h3", "Qurrium Post-Processing"),
         {
             "type": "itemize",
             "description": "Backend Availability",

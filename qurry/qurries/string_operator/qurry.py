@@ -1,4 +1,4 @@
-"""StringOperator - Qurry
+"""StringOperator - Qurrium
 (:mod:`qurry.qurries.string_operator.qurry`)
 
 """

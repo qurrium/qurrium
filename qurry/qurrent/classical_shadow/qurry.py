@@ -1,4 +1,4 @@
-"""ShadowUnveil - Qurry (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
+"""ShadowUnveil - Qurrium (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
 from typing import Union, Optional, Type, Literal, Iterable
 import warnings

@@ -1,4 +1,4 @@
-"""MagnetSquare - Qurry
+"""MagnetSquare - Qurrium
 (:mod:`qurry.qurries.magnet_square.qurry`)
 
 """
