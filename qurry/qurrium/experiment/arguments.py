@@ -295,6 +295,34 @@ def commons_dealing(
     return commons_dict
 
 
+def filter_deprecated_args(
+    arguments_or_commons_input: dict[str, Any],
+    container_fields: Union[tuple[str, ...], set[str]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Filter deprecated arguments from the given arguments or commons.
+
+    Args:
+        arguments_or_commons_input (dict[str, Any]): The arguments or commons to be filtered.
+        container_fields (Union[tuple[str, ...], set[str]]): The fields to be kept.
+    Returns:
+        tuple[dict[str, Any], dict[str, Any]]: A tuple containing the filtered arguments or commons
+            and a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the arguments_or_commons_input is not a dictionary.
+    """
+    arguments_deprecated = {}
+    arguments_parsed = {}
+    for k, v in arguments_or_commons_input.items():
+        if k in container_fields:
+            arguments_parsed[k] = v
+            continue
+        if any([isinstance(v, (int, bool)), bool(v), v is None]):
+            # Some deprecated arguments are empty, so we only add non-empty ones.
+            arguments_deprecated[k] = v
+
+    return arguments_parsed, arguments_deprecated
+
+
 def create_exp_args(
     arguments: Union[_A, dict[str, Any]],
     arguments_instance: type[_A],
@@ -315,15 +343,10 @@ def create_exp_args(
         return arguments, {}
 
     if isinstance(arguments, dict):
-        arguments_deprecated = {}
-        arg_parsed = {}
         # pylint: disable=protected-access
-        dataclass_fields = arguments_instance._dataclass_fields()
-        for k, v in arguments.items():
-            if k in dataclass_fields:
-                arg_parsed[k] = v
-            else:
-                arguments_deprecated[k] = v
+        arg_parsed, arguments_deprecated = filter_deprecated_args(
+            arguments, arguments_instance._dataclass_fields()
+        )
         # pylint: enable=protected-access
         return arguments_instance(**arg_parsed), arguments_deprecated
 
@@ -348,13 +371,7 @@ def create_exp_commons(
         return commons, {}
 
     if isinstance(commons, dict):
-        commons_deprecated = {}
-        commons_parsed = {}
-        for k, v in commons.items():
-            if k in Commonparams._fields:
-                commons_parsed[k] = v
-            else:
-                commons_deprecated[k] = v
+        commons_parsed, commons_deprecated = filter_deprecated_args(commons, Commonparams._fields)
         return Commonparams(**commons_dealing(commons_parsed)), commons_deprecated
 
     raise TypeError(f"commons should be {Commonparams} or dict, not {type(commons)}")

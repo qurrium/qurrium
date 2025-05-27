@@ -127,8 +127,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         self.args, arguments_deprecated = create_exp_args(arguments, self.arguments_instance)
         self.commons, commonparams_deprecated = create_exp_commons(commonparams)
         self.outfields = create_exp_outfields(outfields)
-        self.outfields["arguments_deprecated"] = arguments_deprecated
-        self.outfields["commonparams_deprecated"] = commonparams_deprecated
+        # Add deprecated arguments to outfields only if they are not empty
+        if len(arguments_deprecated):
+            self.outfields["arguments_deprecated"] = arguments_deprecated
+        if len(commonparams_deprecated):
+            self.outfields["commonparams_deprecated"] = commonparams_deprecated
 
         implementation_check(self.__name__, self.args, self.commons)
         summonner_check(self.commons.serial, self.commons.summoner_id, self.commons.summoner_name)
