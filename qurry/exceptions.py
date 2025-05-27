@@ -39,7 +39,7 @@ class QurryCountLost(QurryError):
 
 
 class QurryDependenciesFailureError(QurryError):
-    """The dependencies of Qurry like Qiskit raise some error."""
+    """The dependencies of Qurrium like Qiskit raise some error."""
 
 
 class RandomizedMeasureError(QurryError):

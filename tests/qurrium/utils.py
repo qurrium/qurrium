@@ -6,8 +6,9 @@ import warnings
 import numpy as np
 
 from qurry.capsule import quickRead
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.tools.datetime import current_time
-from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIMULATOR_SOURCES
 from qurry.exceptions import QurryDependenciesNotWorking
 
 SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
@@ -25,7 +26,7 @@ def detect_simulator_source() -> str:
     if SIM_DEFAULT_SOURCE != "qiskit_aer":
         warnings.warn(
             f"Qiskit Aer is not used as the default simulator: {SIM_DEFAULT_SOURCE}. "
-            f"Current simulator source is: {SIM_IMPORT_ERROR_INFOS[SIM_DEFAULT_SOURCE]},"
+            f"Current simulator source is: {SIMULATOR_SOURCES[SIM_DEFAULT_SOURCE]},"
             "some test cases may be skipped.",
             category=QurryDependenciesNotWorking,
         )
@@ -83,8 +84,8 @@ def check_unit(
     quantity: dict[str, Any],
     target_quantity_name: str,
     answer: float,
-    threshold: float,
     test_item_name: str,
+    threshold: float = NUMERICAL_ERROR_TOLERANCE,
     other_quantity_names: Optional[list[str]] = None,
 ) -> ResultUnit:
     """Check the unit of the test.
@@ -96,10 +97,10 @@ def check_unit(
             The name of the target quantity.
         answer (float):
             The expected answer.
-        threshold (float):
-            The threshold for the check.
         test_item_name (str):
             The name of the test item.
+        threshold (float, optional):
+            The threshold for the check. Default is NUMERICAL_ERROR_TOLERANCE.
         other_quantity_names (Optional[list[str]]):
             Other quantities to check.
 

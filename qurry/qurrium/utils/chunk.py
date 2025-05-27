@@ -16,17 +16,22 @@ def very_easy_chunk_size(
     Args:
         tasks_num (int): The number of tasks.
         num_process (int, optional):
-            The chunk size. Defaults to CPU_COUNT * 4.
+            The number of processes. Defaults to DEFAULT_POOL_SIZE.
         max_chunk_size (int, optional):
             The maximum chunk size. Defaults to CPU_COUNT * 4.
 
     Returns:
         int: The chunk size.
     """
-    chunks_num = int(tasks_num / num_process) + 1
+    if max_chunk_size < 1:
+        raise ValueError("max_chunk_size must be greater than 0")
+    if max_chunk_size == 1:
+        return 1
+
+    chunks_num = tasks_num // num_process + 1
     while chunks_num > max_chunk_size:
         num_process *= 2
-        chunks_num = int(tasks_num / num_process) + 1
+        chunks_num = tasks_num // num_process + 1
     return chunks_num
 
 
@@ -45,17 +50,21 @@ def very_easy_chunk_distribution(
             The id is the ID of the experiment, and the memory is the memory usage.
             The array is sorted by the memory usage.
         num_process (int, optional):
-            The chunk size. Defaults to CPU_COUNT * 4.
+            The number of processes. Defaults to DEFAULT_POOL_SIZE.
+        max_chunk_size (int, optional):
+            The maximum chunk size. Defaults to CPU_COUNT * 4.
 
     Returns:
         tuple[int, list[tuple[str, int]], list[list[str]]]:
             The chunk distribution is a list of tuples of (id, memory).
     """
+    if max_chunk_size < 1:
+        raise ValueError("max_chunk_size must be greater than 0")
 
-    chunks_num = int(len(respect_memory_array) / num_process) + 1
+    chunks_num = len(respect_memory_array) // num_process + 1
     while chunks_num > max_chunk_size:
         num_process *= 2
-        chunks_num = int(len(respect_memory_array) / num_process) + 1
+        chunks_num = len(respect_memory_array) // num_process + 1
     chunks_sorted_list = []
     distributions = [[] for _ in range(num_process)]
 

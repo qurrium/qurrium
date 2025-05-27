@@ -10,8 +10,8 @@ from qiskit.providers import Backend
 
 from ...declare import BaseRunArgs, TranspileArgs
 from ...tools.backend import backend_name_getter
-from ...tools.datetime import DatetimeDict
-from ...capsule import jsonablize
+from ...tools.datetime import current_time, DatetimeDict
+from ...capsule import jsonablize, DEFAULT_ENCODING
 
 REQUIRED_FOLDER = ["args", "advent", "legacy", "tales", "reports"]
 """The required folder for exporting experiment."""
@@ -149,14 +149,19 @@ class CommonparamsDict(TypedDict):
     run_args: Union[BaseRunArgs, dict[str, Any]]
     transpile_args: TranspileArgs
     tags: tuple[str, ...]
-    default_analysis: list[dict[str, Any]]
     save_location: Union[Path, str]
-    filename: str
-    files: dict[str, Path]
     serial: Optional[int]
     summoner_id: Optional[str]
     summoner_name: Optional[str]
     datetimes: DatetimeDict
+
+
+class CommonparamsReadReturn(TypedDict):
+    """The return type of :meth:`Commonparams.read_with_arguments`."""
+
+    arguments: dict[str, Any]
+    commonparams: dict[str, Any]
+    outfields: dict[str, Any]
 
 
 class Commonparams(NamedTuple):
@@ -183,11 +188,6 @@ class Commonparams(NamedTuple):
     tags: tuple[str, ...]
     """Tags of experiment."""
 
-    # Auto-analysis when counts are ready
-    default_analysis: list[dict[str, Any]]
-    """When counts are ready, 
-    the experiment will automatically analyze the counts with the given analysis."""
-
     # Arguments for exportation
     save_location: Union[Path, str]
     """Location of saving experiment. 
@@ -196,72 +196,6 @@ class Commonparams(NamedTuple):
     to their dedicated folders in this location respectively.
     This location is the default location for it's not specific 
     where to save when call :meth:`.write()`, if does, then will be overwriten and update."""
-    filename: str
-    """The name of file to be exported, 
-    it will be decided by the :meth:`.export` when it's called.
-    More info in the pydoc of :prop:`files` or :meth:`.export`.
-    """
-    files: dict[str, Path]
-    """The list of file to be exported.
-
-    ### Single experiment:
-
-    For the :meth:`.write` function actually exports 4 different files
-    respecting to `adventure`, `legacy`, `tales`, and `reports` like:
-
-    .. code-block:: python
-        files = {
-            'folder': './bla_exp/',
-            'qurryinfo': './bla_exp/qurryinfo.json',
-
-            'args': './bla_exp/args/bla_exp.id={exp_id}.args.json',
-            'advent': './bla_exp/advent/bla_exp.id={exp_id}.advent.json',
-            'legacy': './bla_exp/legacy/bla_exp.id={exp_id}.legacy.json',
-            'tales.dummyx1': './bla_exp/tales/bla_exp.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './bla_exp/tales/bla_exp.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './bla_exp/tales/bla_exp.id={exp_id}.dummyxn.json',
-            'reports': './bla_exp/reports/bla_exp.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': './bla_exp/tales/bla_exp.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': './bla_exp/tales/bla_exp.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': './bla_exp/tales/bla_exp.id={exp_id}.dummyzm.reports.json',
-        }
-
-    which `bla_exp` is the example filename.
-
-    ### Multi-experiment:
-
-    If this experiment is called by :cls:`MultiManager`, 
-    then the it will be named after `summoner_name` as known as the name of :cls:`MultiManager`.
-
-    .. code-block:: python
-        files = {
-            'folder': './BLABLA_project/',
-            'qurryinfo': './BLABLA_project/qurryinfo.json',
-
-            'args': './BLABLA_project/args/index={serial}.id={exp_id}.args.json',
-            'advent': './BLABLA_project/advent/index={serial}.id={exp_id}.advent.json',
-            'legacy': './BLABLA_project/legacy/index={serial}.id={exp_id}.legacy.json',
-            'tales.dummyx1': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyxn.json',
-            'reports': './BLABLA_project/reports/index={serial}.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
-        }
-
-    which `BLBLA_project` is the example :cls:`MultiManager` name 
-    stored at :prop:`commonparams.summoner_name`.
-    At this senerio, the :prop:`exp_name` will never apply as filename.
-
-    """
 
     # Arguments for multi-experiment
     serial: Optional[int]
@@ -287,10 +221,7 @@ class Commonparams(NamedTuple):
             "run_args": {},
             "transpile_args": {},
             "tags": (),
-            "default_analysis": [],
             "save_location": Path("."),
-            "filename": "unknown",
-            "files": {},
             "serial": None,
             "summoner_id": None,
             "summoner_name": None,
@@ -303,24 +234,22 @@ class Commonparams(NamedTuple):
         exp_id: str,
         file_index: dict[str, str],
         save_location: Path,
-        encoding: str = "utf-8",
-    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    ) -> CommonparamsReadReturn:
         """Read the exported experiment file.
 
         Args:
             exp_id (str): The ID of experiment.
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            encoding (str, optional): The encoding of exported experiment file. Defaults to "utf-8".
 
         Returns:
-            tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+            CommonparamsReadReturn
                 The experiment's arguments,
                 the experiment's common parameters,
                 and the experiment's side product.
         """
         raw_data = {}
-        with open(save_location / file_index["args"], "r", encoding=encoding) as f:
+        with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
             raw_data = json.load(f)
         data_args: dict[str, dict[str, Any]] = {
             "arguments": raw_data["arguments"],
@@ -333,11 +262,11 @@ class Commonparams(NamedTuple):
 
         assert data_args["commonparams"]["exp_id"] == exp_id, "The exp_id is not match."
 
-        return (
-            data_args["arguments"],
-            data_args["commonparams"],
-            data_args["outfields"],
-        )
+        return {
+            "arguments": data_args["arguments"],
+            "commonparams": data_args["commonparams"],
+            "outfields": data_args["outfields"],
+        }
 
     def export(self) -> CommonparamsDict:
         """Export the experiment's common parameters.
@@ -348,7 +277,131 @@ class Commonparams(NamedTuple):
         # pylint: disable=no-member
         commons: CommonparamsDict = jsonablize(self._asdict())
         # pylint: enable=no-member
-        commons["backend"] = (
-            self.backend if isinstance(self.backend, str) else backend_name_getter(self.backend)
-        )
+        commons["backend"] = backend_name_getter(self.backend)
         return commons
+
+
+def commons_dealing(
+    commons_dict: dict[str, Any],
+) -> dict[str, Any]:
+    """Dealing some special commons arguments.
+
+    Args:
+        commons_dict (dict[str, Any]): The common parameters of the experiment.
+
+    Returns:
+        dict[str, Any]: The dealt common parameters of the experiment.
+    """
+    if "datetimes" not in commons_dict:
+        commons_dict["datetimes"] = DatetimeDict({"bulid": current_time()})
+    else:
+        commons_dict["datetimes"] = DatetimeDict(commons_dict["datetimes"])
+    if "tags" in commons_dict:
+        if isinstance(commons_dict["tags"], list):
+            commons_dict["tags"] = tuple(commons_dict["tags"])
+
+    return commons_dict
+
+
+def filter_deprecated_args(
+    arguments_or_commons_input: dict[str, Any],
+    container_fields: Union[tuple[str, ...], set[str]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Filter deprecated arguments from the given arguments or commons.
+
+    Args:
+        arguments_or_commons_input (dict[str, Any]): The arguments or commons to be filtered.
+        container_fields (Union[tuple[str, ...], set[str]]): The fields to be kept.
+    Returns:
+        tuple[dict[str, Any], dict[str, Any]]: A tuple containing the filtered arguments or commons
+            and a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the arguments_or_commons_input is not a dictionary.
+    """
+    arguments_deprecated = {}
+    arguments_parsed = {}
+    for k, v in arguments_or_commons_input.items():
+        if k in container_fields:
+            arguments_parsed[k] = v
+            continue
+        if any([isinstance(v, (int, bool)), bool(v), v is None]):
+            # Some deprecated arguments are empty, so we only add non-empty ones.
+            arguments_deprecated[k] = v
+
+    return arguments_parsed, arguments_deprecated
+
+
+def create_exp_args(
+    arguments: Union[_A, dict[str, Any]],
+    arguments_instance: type[_A],
+) -> tuple[_A, dict[str, Any]]:
+    """Create experiment arguments from the given arguments.
+
+    Args:
+        arguments (Union[_A, dict[str, Any]]): The arguments to be parsed.
+        arguments_instance (type[_A]): The instance of the arguments class.
+    Returns:
+        tuple[_A, dict[str, Any]]: A tuple containing the parsed arguments instance and
+            a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the arguments is not an instance of the arguments class or a dictionary.
+    """
+
+    if isinstance(arguments, arguments_instance):
+        return arguments, {}
+
+    if isinstance(arguments, dict):
+        # pylint: disable=protected-access
+        arg_parsed, arguments_deprecated = filter_deprecated_args(
+            arguments, arguments_instance._dataclass_fields()
+        )
+        # pylint: enable=protected-access
+        return arguments_instance(**arg_parsed), arguments_deprecated
+
+    raise TypeError(f"arguments should be {arguments_instance} or dict, not {type(arguments)}")
+
+
+def create_exp_commons(
+    commons: Union[Commonparams, dict[str, Any]],
+) -> tuple[Commonparams, dict[str, Any]]:
+    """Create experiment commons from the given commons.
+
+    Args:
+        commons (Union[Commonparams, dict[str, Any]]): The commons to be parsed.
+    Returns:
+        tuple[Commonparams, dict[str, Any]]: A tuple containing the parsed commons instance and
+            a dictionary of deprecated fields.
+    Raises:
+        TypeError: If the commons is not an instance of the commons class or a dictionary.
+    """
+
+    if isinstance(commons, Commonparams):
+        return commons, {}
+
+    if isinstance(commons, dict):
+        commons_parsed, commons_deprecated = filter_deprecated_args(commons, Commonparams._fields)
+        return Commonparams(**commons_dealing(commons_parsed)), commons_deprecated
+
+    raise TypeError(f"commons should be {Commonparams} or dict, not {type(commons)}")
+
+
+def create_exp_outfields(
+    outfields: Union[dict[str, Any], None],
+) -> dict[str, Any]:
+    """Create experiment outfields from the given outfields.
+
+    Args:
+        outfields (Union[dict[str, Any], None]): The outfields to be parsed.
+    Returns:
+        dict[str, Any]: The parsed outfields.
+    Raises:
+        TypeError: If the outfields is not a dictionary or None.
+    """
+
+    if outfields is None:
+        return {}
+
+    if isinstance(outfields, dict):
+        return outfields
+
+    raise TypeError(f"outfields should be dict or None, not {type(outfields)}")

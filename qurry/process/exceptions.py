@@ -1,4 +1,4 @@
-"""Qurry Post Processing Exceptions (:mod:`qurry.process.exceptions`)"""
+"""Qurrium Post Processing Exceptions (:mod:`qurry.process.exceptions`)"""
 
 
 class QurryPostProcessingError(Exception):

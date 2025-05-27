@@ -1,4 +1,4 @@
-"""Qurry 🍛 - The Quantum Experiment Manager for Qiskit
+"""Qurrium - The Quantum Experiment Manager for Qiskit
 and The Measuring Tool for Renyi Entropy, Loschmidt Echo, and More
 
 """

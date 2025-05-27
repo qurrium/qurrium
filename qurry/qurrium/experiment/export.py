@@ -9,8 +9,8 @@ import gc
 import tqdm
 
 from .arguments import CommonparamsDict, REQUIRED_FOLDER
-from ...tools import ParallelManager
-from ...capsule import quickJSON
+from ...tools import ParallelManager, set_pbar_description
+from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 
 
 class Export(NamedTuple):
@@ -163,34 +163,17 @@ class Export(NamedTuple):
 
     def write(
         self,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
-        mute: bool = False,
         multiprocess: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
-        Args:
-            save_location (Optional[Union[Path, str]], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then use the value in `self.commons` to be exported,
-                if it's None too, then raise error.
-                Defaults to `None`.
+        Hint:
+            This function will traversal all objects in the export_set,
+            so it will ensure the jsonable of all objects.
+            And this will reduce the performance of exporting.
 
-            mode (str):
-                Mode for :func:`open` function, for :func:`mori.quickJSON`. Defaults to 'w+'.
-            indent (int, optional):
-                Indent length for json, for :func:`mori.quickJSON`. Defaults to 2.
-            encoding (str, optional):
-                Encoding method, for :func:`mori.quickJSON`. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to transpile all object to jsonable via :func:`mori.jsonablize`,
-                for :func:`mori.quickJSON`. Defaults to False.
-            mute (bool, optional):
-                Whether to mute the output, for :func:`mori.quickJSON`. Defaults to False.
+        Args:
             multiprocess (bool, optional):
                 Whether to use multiprocess to export, Defaults to False.
                 It's dangerous to use multiprocess to export. It may cause memory leak.
@@ -231,10 +214,7 @@ class Export(NamedTuple):
         }
         # tales ..............  # tales
         for tk, tv in self.tales.items():
-            if isinstance(tv, (dict, list, tuple)):
-                export_set[f"tales.{tk}"] = tv
-            else:
-                export_set[f"tales.{tk}"] = [tv]
+            export_set[f"tales.{tk}"] = tv if isinstance(tv, (dict, list, tuple)) else [tv]
             if f"tales.{tk}" not in self.files:
                 warnings.warn(f"tales.{tk} is not in export_names, it's not exported.")
         # reports ............  # reports
@@ -244,19 +224,18 @@ class Export(NamedTuple):
         }
         # reports.tales ......  # tales_reports
         for tk, tv in self.tales_reports.items():
-            if isinstance(tv, (dict, list, tuple)):
-                export_set[f"reports.tales.{tk}"] = tv
-            else:
-                export_set[f"reports.tales.{tk}"] = [tv]
+            export_set[f"reports.tales.{tk}"] = tv if isinstance(tv, (dict, list, tuple)) else [tv]
             if f"reports.tales.{tk}" not in self.files:
                 warnings.warn(f"reports.tales.{tk} is not in export_names, it's not exported.")
         # Exportation
-        if pbar is not None:
-            pbar.set_description_str(
+        set_pbar_description(
+            pbar,
+            (
                 "Exporting "
                 + (f"{self.summoner_name}/" if self.summoner_name else "")
                 + f"{self.exp_name}..."
-            )
+            ),
+        )
         folder = Path(self.commons["save_location"]) / Path(self.files["folder"])
         if not os.path.exists(folder):
             os.mkdir(folder)
@@ -272,12 +251,14 @@ class Export(NamedTuple):
                     (
                         content,
                         str(Path(self.commons["save_location"]) / self.files[filekey]),
-                        mode,
-                        indent,
-                        encoding,
-                        jsonable,
+                        DEFAULT_MODE,
+                        DEFAULT_INDENT,
+                        DEFAULT_ENCODING,
+                        True,
+                        # although it reduces the performance for it will traversal all object,
+                        # but it will ensure the jsonable
+                        # since all objects are not jsonable by default.
                         Path("./"),
-                        mute,
                     )
                     for filekey, content in export_set.items()
                 ],
@@ -287,12 +268,13 @@ class Export(NamedTuple):
                 quickJSON(
                     content=content,
                     filename=str(Path(self.commons["save_location"]) / self.files[filekey]),
-                    mode=mode,
-                    indent=indent,
-                    encoding=encoding,
-                    jsonable=jsonable,
+                    mode=DEFAULT_MODE,
+                    indent=DEFAULT_INDENT,
+                    encoding=DEFAULT_ENCODING,
+                    jsonable=True,
+                    # although it reduces the performance for it will traversal all object,
+                    # but it will ensure the jsonable since all objects are not jsonable by default.
                     save_location=Path("./"),
-                    mute=mute,
                 )
 
         del export_set

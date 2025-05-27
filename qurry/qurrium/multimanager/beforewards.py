@@ -4,7 +4,6 @@ from pathlib import Path
 from collections.abc import Hashable
 from typing import Literal, Union, Optional, NamedTuple, Any
 
-from .arguments import DEFAULT_EXPORT_FILETYPE, ExportFiletypeLiteral
 from ...capsule import quickRead
 from ...capsule.mori import TagList
 
@@ -60,7 +59,6 @@ class Before(NamedTuple):
         export_location: Path,
         file_location: Optional[dict[str, Union[str, dict[str, str]]]] = None,
         version: Literal["v5", "v7"] = "v5",
-        filetype: ExportFiletypeLiteral = DEFAULT_EXPORT_FILETYPE,
     ):
         """Reads the data of :cls:`Before` from the file.
 
@@ -77,7 +75,7 @@ class Before(NamedTuple):
             file_location = {}
 
         if version == "v7":
-            real_file_location = {k: f"{v}.{filetype}" for k, v in EXPORTING_NAME.items()}
+            real_file_location = {k: f"{v}.json" for k, v in EXPORTING_NAME.items()}
         else:
             assert isinstance(file_location["exps_config"], str), "ExpsConfig must be Path"
             assert isinstance(file_location["circuits_num"], str), "circuitsNum must be Path"

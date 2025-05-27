@@ -8,6 +8,7 @@ import numpy as np
 
 from qurry.capsule import quickRead
 from qurry.qurrent.randomized_measure.utils import bitstring_mapping_getter
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
@@ -155,22 +156,28 @@ def test_shadow(shadow_case: ShadowCase):
 
     # Compare the result with the expected answer
     for name, result_tmp in result.items():
-        assert np.abs(result_tmp["purity"] - shadow_case["answer"]["purity"]) < 1e-12, (
+        assert (
+            np.abs(result_tmp["purity"] - shadow_case["answer"]["purity"])
+            < NUMERICAL_ERROR_TOLERANCE
+        ), (
             "The result is not correct,"
             + f"{name}: {result_tmp['purity']} != "
             + f"shadow_case['answer']: {shadow_case['answer']['purity']}"
         )
-        assert np.abs(result_tmp["expect_rho_trace"] - 1) < 1e-12, (
+        assert np.abs(result_tmp["expect_rho_trace"] - 1) < NUMERICAL_ERROR_TOLERANCE, (
             "The trace of the expect_rho should be 1: " + f"{result_tmp['expect_rho_trace']}."
         )
 
     for (name_1, result_tmp_1), (name_2, result_tmp_2) in combinations(result.items(), 2):
-        assert np.abs(result_tmp_1["purity"] - result_tmp_2["purity"]) < 1e-12, (
+        assert (
+            np.abs(result_tmp_1["purity"] - result_tmp_2["purity"]) < NUMERICAL_ERROR_TOLERANCE
+        ), (
             "The result is not correct,"
             + f"{name_1}: {result_tmp_1['purity']} != {name_2}: {result_tmp_2['purity']}"
         )
         assert (
-            np.abs(result_tmp_1["expect_rho_trace"] - result_tmp_2["expect_rho_trace"]) < 1e-12
+            np.abs(result_tmp_1["expect_rho_trace"] - result_tmp_2["expect_rho_trace"])
+            < NUMERICAL_ERROR_TOLERANCE
         ), (
             "The trace of the expect_rho should be equal: "
             + f"{result_tmp_1['expect_rho_trace']} != {result_tmp_2['expect_rho_trace']}."

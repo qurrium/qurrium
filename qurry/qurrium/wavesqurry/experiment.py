@@ -118,7 +118,7 @@ class WavesExecuterExperiment(
             )
         if len(no_cregs) > 0:
             raise ValueError(
-                "| No classical register in the following circuits, counts will be empty."
+                "| No classical register in the following circuits, counts will be empty. "
                 + "Please add classical register to the circuit. "
                 + f"The index of circuit without classical register: {no_cregs}"
             )

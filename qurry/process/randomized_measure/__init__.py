@@ -62,7 +62,7 @@ Reference:
 
         @article{PhysRevA.99.052323,
             title = {
-                Statistical correlations between locally randomized measurements: 
+                Statistical correlations between locally randomized measurements:
                 A toolbox for probing entanglement in many-body quantum states},
             author = {Elben, A. and Vermersch, B. and Roos, C. F. and Zoller, P.},
             journal = {Phys. Rev. A},

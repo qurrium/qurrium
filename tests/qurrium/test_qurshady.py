@@ -38,6 +38,7 @@ from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
 from qurry.qurrent.classical_shadow import ShadowUnveilAnalysis
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE, set_cpu_only
 from qurry.tools.backend.import_simulator import GeneralSimulator
 from qurry.capsule import quickJSON
@@ -227,7 +228,7 @@ def test_quantity_unit(
             # )
             # assert (
             #     np.abs(quantity_03_tmp["entropyAllSys"]
-            #            - quantity_02_tmp["entropyAllSys"]) < 1e-12
+            #            - quantity_02_tmp["entropyAllSys"]) < NUMERICAL_ERROR_TOLERANCE
             # ), (
             #     "The all system entropy should be the same for same all system source: "
             #     + f"{quantity_03_tmp['entropyAllSys']} == {quantity_02_tmp['entropyAllSys']}."
@@ -248,20 +249,24 @@ def test_quantity_unit(
             quantity_item,
             "purity",
             test_item["answer"],
-            THREDHOLD,
             test_item_name,
+            THREDHOLD,
             # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
             ["entropy", "expect_rho"],
         )
         tmp_expect_rho_trace = np.trace(quantity_item["expect_rho"])
-        assert np.abs(tmp_expect_rho_trace - 1) < 1e-12, (
-            "The trace of the expect_rho should be 1: " + f"{tmp_expect_rho_trace}."
+        assert np.abs(tmp_expect_rho_trace - 1) < NUMERICAL_ERROR_TOLERANCE, (
+            "The trace of the expect_rho should be 1, but error larger than tolerance: "
+            + f"{NUMERICAL_ERROR_TOLERANCE}, the trace: {tmp_expect_rho_trace}."
         )
     for (rho_trace_method_1, quantity_item_1), (
         rho_trace_method_2,
         quantity_item_2,
     ) in combinations(quantity.items(), 2):
-        assert np.abs(quantity_item_1["purity"] - quantity_item_2["purity"]) < 1e-12, (
+        assert (
+            np.abs(quantity_item_1["purity"] - quantity_item_2["purity"])
+            < NUMERICAL_ERROR_TOLERANCE
+        ), (
             "The purity should be the same for same rho and trace method: "
             + f"{rho_trace_method_1} != {rho_trace_method_2}: "
             + f"{quantity_item_1['purity']} != {quantity_item_2['purity']}."
@@ -344,8 +349,8 @@ def test_multi_output_all(
                         quantity,
                         "purity",
                         answer_dict[".".join(config["tags"])],
-                        THREDHOLD,
                         ".".join(config["tags"]),
+                        THREDHOLD,
                         # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
                         ["entropy", "expect_rho"],
                     )

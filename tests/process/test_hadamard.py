@@ -4,6 +4,7 @@ from typing import TypedDict, Union
 import pytest
 import numpy as np
 
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.hadamard_test.purity_echo_core import (
     purity_echo_core,
     BACKEND_AVAILABLE as purity_echo_core_availability,
@@ -43,9 +44,9 @@ def test_hadamard(test_input: TargetItemHadamardTest):
     )
 
     assert (
-        np.abs(purity_echo_rust_result - purity_echo_py_result) < 1e-10
+        np.abs(purity_echo_rust_result - purity_echo_py_result) < NUMERICAL_ERROR_TOLERANCE
     ), "Rust and Python results are not equal in purity_echo_core."
-    assert np.abs(purity_echo_rust_result - test_input["answer"]) < 1e-10, (
+    assert np.abs(purity_echo_rust_result - test_input["answer"]) < NUMERICAL_ERROR_TOLERANCE, (
         "The result of purity_echo_core is not correct,"
         + f"purity_echo_rust_result: {purity_echo_rust_result} "
         + f"!= test_input['answer']: {test_input['answer']}"

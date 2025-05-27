@@ -1,6 +1,6 @@
-"""ShadowUnveil - Qurry (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
+"""ShadowUnveil - Qurrium (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
-from typing import Union, Optional, Any, Type, Literal, Iterable
+from typing import Union, Optional, Type, Literal, Iterable
 import warnings
 from collections.abc import Hashable
 from pathlib import Path
@@ -9,12 +9,11 @@ import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
-from qiskit.transpiler.passmanager import PassManager
 
 from .arguments import (
     SHORT_NAME,
-    ShadowUnveilOutputArgs,
     ShadowUnveilMeasureArgs,
+    ShadowUnveilOutputArgs,
     ShadowUnveilAnalyzeArgs,
 )
 from .experiment import (
@@ -28,14 +27,21 @@ from .experiment import (
     DEFAULT_ALL_TRACE_RHO_METHOD,
     JAX_AVAILABLE,
 )
-from ...qurrium.qurrium import QurriumPrototype
+from ...qurrium import QurriumPrototype
 from ...qurrium.utils.iocontrol import RJUST_LEN
-from ...tools import qurry_progressbar, GeneralSimulator, DEFAULT_POOL_SIZE
-from ...declare import BaseRunArgs, TranspileArgs
+from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
+from ...declare import RunArgsType, TranspileArgs, PassManagerType, SpecificAnalsisArgs
 from ...capsule.mori import TagList
 
 
-class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
+class ShadowUnveil(
+    QurriumPrototype[
+        ShadowUnveilExperiment,
+        ShadowUnveilMeasureArgs,
+        ShadowUnveilOutputArgs,
+        ShadowUnveilAnalyzeArgs,
+    ]
+):
     r"""Classical Shadow with The Results of Second Order Renyi Entropy.
 
     References:
@@ -174,18 +180,14 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
-        passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        passmanager: PassManagerType = None,
         tags: Optional[tuple[str, ...]] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
@@ -198,9 +200,9 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The measure range. Defaults to `None`.
+                The measure range. Defaults to None.
             unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator. Defaults to `None`.
+                The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
@@ -233,12 +235,12 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+            run_args (RunArgsType, optional):
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+                Defaults to None.
+            passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
                 The tags of the experiment. Defaults to None.
@@ -249,14 +251,6 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
@@ -285,10 +279,6 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             "qasm_version": qasm_version,
             "export": export,
             "save_location": save_location,
-            "mode": mode,
-            "indent": indent,
-            "encoding": encoding,
-            "jsonable": jsonable,
             "pbar": pbar,
         }
 
@@ -304,18 +294,14 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
-        run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        run_args: RunArgsType = None,
         transpile_args: Optional[TranspileArgs] = None,
-        passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]] = None,
+        passmanager: PassManagerType = None,
         tags: Optional[tuple[str, ...]] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
-        mode: str = "w+",
-        indent: int = 2,
-        encoding: str = "utf-8",
-        jsonable: bool = False,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> str:
         """Execute the experiment.
@@ -328,9 +314,9 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 It will denote as `N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The measure range. Defaults to `None`.
+                The measure range. Defaults to None.
             unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator. Defaults to `None`.
+                The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
@@ -363,12 +349,12 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
-            run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                Arguments for :meth:`Backend.run`. Defaults to `None`.
+            run_args (RunArgsType, optional):
+                Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
-                Defaults to `None`.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+                Defaults to None.
+            passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
                 The tags of the experiment. Defaults to None.
@@ -379,14 +365,6 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 Whether to export the experiment. Defaults to False.
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
-            mode (str, optional):
-                The mode to open the file. Defaults to 'w+'.
-            indent (int, optional):
-                The indent of json file. Defaults to 2.
-            encoding (str, optional):
-                The encoding of json file. Defaults to 'utf-8'.
-            jsonable (bool, optional):
-                Whether to jsonablize the experiment output. Defaults to False.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
@@ -413,91 +391,18 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
             qasm_version=qasm_version,
             export=export,
             save_location=save_location,
-            mode=mode,
-            indent=indent,
-            encoding=encoding,
-            jsonable=jsonable,
             pbar=pbar,
         )
 
         return self.output(**output_args)
 
-    def multiOutput(
-        self,
-        config_list: list[Union[dict[str, Any], ShadowUnveilMeasureArgs]],
-        summoner_name: str = short_name,
-        summoner_id: Optional[str] = None,
-        shots: int = 1024,
-        backend: Backend = GeneralSimulator(),
-        tags: Optional[tuple[str, ...]] = None,
-        manager_run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
-        save_location: Union[Path, str] = Path("./"),
-        skip_build_write: bool = False,
-        skip_output_write: bool = False,
-        multiprocess_build: bool = False,
-        multiprocess_write: bool = False,
-    ) -> str:
-        """Output the multiple experiments.
-
-        Args:
-            config_list (list[Union[dict[str, Any], ShadowUnveilMeasureArgs]]):
-                The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
-            summoner_id (Optional[str], optional):
-                Id for multimanager. Defaults to None.
-            shots (int, optional):
-                Shots of the job. Defaults to `1024`.
-            backend (Backend, optional):
-                The backend to run. Defaults to GeneralSimulator().
-            tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of :cls:`MultiManager`. Defaults to None.
-            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                The extra arguments for running the job,
-                but for all experiments in the multimanager.
-                For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
-            save_location (Union[Path, str], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then cancelled the file to be exported.
-                Defaults to Path('./').
-            skip_build_write (bool, optional):
-                Whether to skip the file writing during the building.
-                Defaults to False.
-            skip_output_write (bool, optional):
-                Whether to skip the file writing during the output.
-                Defaults to False.
-            multiprocess_build (bool, optional):
-                Whether use multiprocess for building. Defaults to False.
-            multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
-
-        Returns:
-            str: The summoner_id of multimanager.
-        """
-
-        return super().multiOutput(
-            config_list=config_list,
-            summoner_name=summoner_name,
-            summoner_id=summoner_id,
-            shots=shots,
-            backend=backend,
-            tags=tags,
-            manager_run_args=manager_run_args,
-            save_location=save_location,
-            skip_build_write=skip_build_write,
-            skip_output_write=skip_output_write,
-            multiprocess_build=multiprocess_build,
-            multiprocess_write=multiprocess_write,
-        )
-
     def multiAnalysis(
         self,
         summoner_id: str,
+        *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: Optional[
-            dict[Hashable, Union[dict[str, Any], ShadowUnveilAnalyzeArgs, bool]]
-        ] = None,
+        specific_analysis_args: SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         multiprocess_analysis: bool = False,
@@ -517,11 +422,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 The name of analysis. Defaults to 'report'.
             no_serialize (bool, optional):
                 Whether to serialize the analysis. Defaults to False.
-            specific_analysis_args
-                Optional[dict[Hashable, Union[
-                    dict[str, Any], ShadowUnveilAnalyzeArgs, bool]
-                ]]], optional
-            ):
+            specific_analysis_args(SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs], optional):
                 The specific arguments for analysis. Defaults to None.
             compress (bool, optional):
                 Whether to compress the export file. Defaults to False.
@@ -648,7 +549,7 @@ class ShadowUnveil(QurriumPrototype[ShadowUnveilExperiment]):
                 )
                 for exp_id, report in outside_analyses_iterable:
                     current_multimanager.exps[exp_id].outside_analysis_recover(report)
-                    main, _tales = report.export(jsonable=False)
+                    main, _tales = report.export()
                     current_multimanager.quantity_container[name][
                         current_multimanager.exps[exp_id].commons.tags
                     ].append(main)

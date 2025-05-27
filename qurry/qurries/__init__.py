@@ -1,4 +1,4 @@
-"""Qurries - Other Qurry Modules (:mod:`qurry.qurries`)
+"""Qurries - Other Qurrium Modules (:mod:`qurry.qurries`)
 
 - MagnetSquare - Magnetic Square (Not Test yet)
     - Formerly known as `qurmagsq`
