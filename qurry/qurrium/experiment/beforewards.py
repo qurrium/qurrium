@@ -13,9 +13,9 @@ from ...capsule import DEFAULT_ENCODING
 V5_TO_V7_FIELD = {
     "jobID": "job_id",
     "expName": "exp_name",
-    "figOriginal": "fig_original",
     "sideProduct": "side_product",
 }
+DEPRECATED_PROPERTIES = ["figTranspiled", "fig_original", "exp_name"]
 
 
 def v5_to_v7_field_transpose(advent: dict[str, Any]) -> dict[str, Any]:
@@ -54,14 +54,10 @@ class Before(NamedTuple):
     """The transpiled circuits of experiment."""
     circuit_qasm: list[str]
     """The OpenQASM of transpiled circuits."""
-    fig_original: list[str]
-    """Raw circuit figures which is the circuit before transpile."""
 
     # Export data
     job_id: list[str]
     """ID of job for pending on real machine (IBMQBackend)."""
-    exp_name: str
-    """Name of experiment which is also showed on IBM Quantum Computing quene."""
 
     # side product
     side_product: dict[str, Any]
@@ -76,8 +72,6 @@ class Before(NamedTuple):
             "circuit": [],
             "circuit_qasm": [],
             "job_id": [],
-            "exp_name": [],
-            "fig_original": [],
             "side_product": {},
         }
 
@@ -104,6 +98,8 @@ class Before(NamedTuple):
             raw_data = json.load(f)
 
         advent: dict[str, Any] = raw_data["adventures"]
+        for k in DEPRECATED_PROPERTIES:
+            advent.pop(k, None)
         advent = v5_to_v7_field_transpose(advent)
         advent = v7_to_v11_field_transpose(advent)
         for k, dv in cls.default_value().items():
@@ -122,16 +118,15 @@ class Before(NamedTuple):
 
     def export(
         self,
-        unexports: Optional[list[str]] = None,
         export_transpiled_circuit: bool = False,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Export the experiment's data before executing.
 
         Args:
-            unexports (Optional[list[str]], optional): The list of unexported key. Defaults to None.
             export_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
-                When set to True, the transpiled circuit will be exported as txt.
+                for It's space-saving purpose and performance improvement.
+                When set to True, the transpiled circuit will be draw as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
 
         Returns:
@@ -140,24 +135,15 @@ class Before(NamedTuple):
                 and the experiment's side product.
         """
 
-        if unexports is None:
-            unexports = []
+        adventures = {
+            "target": self.target,
+            "target_qasm": self.target_qasm,
+            "circuit": self.circuit if export_transpiled_circuit else [],
+            "circuit_qasm": self.circuit_qasm,
+            "job_id": self.job_id,
+        }
 
-        tales: dict[str, str] = {}
-        adventures = {}
-        # pylint: disable=no-member
-        for k, v in self._asdict().items():
-            # pylint: enable=no-member
-            if k == "side_product":
-                tales = {**tales, **v}
-            elif k == "circuit":
-                adventures[k] = v if export_transpiled_circuit else []
-            elif k in unexports:
-                ...
-            else:
-                adventures[k] = v
-
-        return adventures, tales
+        return adventures, self.side_product
 
     def revive_circuit(self, replace_circuits: bool = False) -> list[QuantumCircuit]:
         """Revive the circuit from the qasm, return the revived circuits.
@@ -211,13 +197,12 @@ class Before(NamedTuple):
         return revived_target
 
 
-def create_beforewards(beforewards: Optional[Before], exp_name: str) -> Before:
+def create_beforewards(beforewards: Optional[Before]) -> Before:
     """Create a Beforewards object.
 
     Args:
         beforewards (Optional[Before]):
             The Beforewards object to create. Defaults to None.
-        exp_name (str): The name of the experiment.
     Returns:
         Before: The Beforewards object.
     Raises:
@@ -230,9 +215,7 @@ def create_beforewards(beforewards: Optional[Before], exp_name: str) -> Before:
             target_qasm=[],
             circuit=[],
             circuit_qasm=[],
-            fig_original=[],
             job_id=[],
-            exp_name=exp_name,
             side_product={},
         )
     if isinstance(beforewards, Before):
