@@ -24,7 +24,7 @@ jobs:
     name: Upload Wheel to PyPI
     runs-on: wheel-keeper
     permissions:
-      id-token: write # 用於 PyPI 的可信發布
+      id-token: write
 
     environment:
       name: ${{ inputs.pypi_target }}

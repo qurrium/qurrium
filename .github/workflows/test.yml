@@ -19,9 +19,6 @@ jobs:
     runs-on: [ubuntu-latest, self-hosted]
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ secrets.CI_TOKEN }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
