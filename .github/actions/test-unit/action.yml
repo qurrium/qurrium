@@ -1,18 +1,28 @@
 name: Test Unit
 author: Harui (Huai-Chun Chang)
-description: "The basic unit to test Qurry and Qurecipe. Including the parts written in Cython and Rust"
+description: "The basic unit to test Qurrium."
 branding:
   icon: "check"
   color: "blue"
 inputs:
-  qiskit-v1:
-    description: "The Qiskit version to test, yes for Qiskit v1, no for Qiskit v2"
+  python-version:
+    description: "The Python version to test"
+    required: true
+    default: "3.13"
+  qiskit-version:
+    description: "The Qiskit version to test"
     required: false
-    default: "no"
+    default: "v2"
 
 runs:
   using: "composite"
   steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
     - name: Check OS
       run: |
         echo "======================================================================"
@@ -29,27 +39,45 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pipenv wheel pip urllib3
-        echo "| Installing dependencies"
         if [[ -f requirements-dev.txt ]]; then
+          echo "| Installing dependencies"
           python -m pip install -r requirements-dev.txt
         else
           echo "| No requirements-dev.txt found, installing default dependencies"
+          echo "| This may lose some dependencies"
           python -m pip install pytest pytest-xdist pytest-order
           python -m pip install matplotlib pep440 flake8
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi
         echo "| Installing Optional Third Party Dependencies"
         python -m pip install jax
-        if [[ "${{ inputs.qiskit-v1 }}" == "yes" ]]; then
+
+    - name: Install Qiskit
+      shell: bash
+      run: |
+        if [[ "${{ inputs.qiskit-version }}" == "v0" ]]; then
+          echo "| Installing Qiskit v0 (Oldest supported version 0.45)"
+          python -m pip install "qiskit>=0.45.0,<1.0.0"
+        elif [[ "${{ inputs.qiskit-version }}" == "v1" ]]; then
           echo "| Installing Qiskit v1"
-          python -m pip install "qiskit<2.0.0"
+          python -m pip install "qiskit>=1.0.0,<2.0.0"
+        elif [[ "${{ inputs.qiskit-version }}" == "v2" ]]; then
+          echo "| Installing Qiskit v2"
+          python -m pip install "qiskit>=2.0.0"
+        else
+          echo "| Invalid Qiskit version specified: ${{ inputs.qiskit-version }}"
+          echo "| Please specify 'v0', 'v1', or 'v2' for the Qiskit version input."
+          exit 1
         fi
-        python -c "print('| Preparing setup.py '.ljust(70, '.'))"
-        python -m pip install -e .
-        python -c "print('| Dependencies are ready to go '.ljust(70, '.'))"
+
+    - name: Prepare setup.py
+      shell: bash
+      run: |
+        echo "| Preparing setup.py ................................................."
+        python -m pip install -e . --upgrade
+        echo "| Dependencies are ready to go"
 
     - name: Test with pytest
       shell: bash
       run: |
         JAX_ENABLE_X64=True python -m pytest -v -s --durations=0
-
