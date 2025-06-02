@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "qurry"
 dynamic = ["version", "readme", "dependencies"]
-description = "Qurrium - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
+description = "Qurrium 📏 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
 authors = [{ name = "Huai-Chung Chang", email = "harui2019@proton.me" }]
 classifiers = [
     "Intended Audience :: Science/Research",
