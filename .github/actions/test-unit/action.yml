@@ -1,16 +1,16 @@
 name: Test Unit
 author: Harui (Huai-Chun Chang)
-description: "The basic unit to test Qurrium."
+description: The basic unit to test Qurrium.
 branding:
   icon: "check"
   color: "blue"
 inputs:
   python-version:
-    description: "The Python version to test"
+    description: The Python version to test
     required: true
     default: "3.13"
   qiskit-version:
-    description: "The Qiskit version to test"
+    description: The Qiskit version to test
     required: false
     default: "v2"
 
