@@ -25,41 +25,6 @@ try:
     # Or the result of JAX will be not same as Numpy.
     # =========================================================
 
-    # kronocker product calculation
-    def rho_mki_kronecker_product_jax(
-        key_list_of_precomputed: list[tuple[int, str]],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        r"""Kronecker product for :math:`\rho_{mki}` by JAX.
-
-        Args:
-            key_list_of_precomputed (list[tuple[int, str]]):
-                The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-        Returns:
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-                The Kronecker product of the :math:`\rho_{mki}`.
-        """
-        return np.array(
-            ft.reduce(jnp.kron, [PRECOMPUTED_RHO_M_K_I[key] for key in key_list_of_precomputed])
-        )
-
-    def rho_mki_kronecker_product_jax_2(
-        key_list_of_precomputed: Iterable[int],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        r"""Kronecker product for :math:`\rho_{mki}` by JAX.
-
-        Args:
-            key_list_of_precomputed (Iterable[int]):
-                The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-        Returns:
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-                The Kronecker product of the :math:`\rho_{mki}`.
-        """
-        return np.array(
-            ft.reduce(jnp.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed])
-        )
-
     # trace summation calculation
     def all_trace_rho_by_einsum_aij_bji_to_ab_jax(
         rho_m_array: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
@@ -83,6 +48,40 @@ try:
         sum_off_diagonal = trace_matrix[mask].sum()
         return np.complex128(sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1)))
 
+    def prediction_einsum_aij_bji_to_ab_jax(
+        given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+        estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+    ) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+        """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
+
+        Args:
+            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The given operators.
+            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The estimators.
+
+        Returns:
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+                The prediction of given operators.
+        """
+        candidate_esitmators_foreach_given_operator = jnp.einsum(
+            "aij,bji->ab", given_operators, estimators
+        )
+        median_foreach_given_operator = jnp.median(
+            candidate_esitmators_foreach_given_operator, axis=1
+        )
+        median_location_given_operator = jnp.argmin(
+            np.abs(
+                candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
+            ),
+            axis=1,
+        )
+
+        return [
+            np.array(candidate_esitmators_foreach_given_operator[i, j], dtype=np.complex128)
+            for i, j in enumerate(median_location_given_operator)
+        ]  # type: ignore
+
     def set_cpu_only():
         """Set JAX to use CPU only."""
         if not jax.config.values["jax_platforms"]:
@@ -93,45 +92,6 @@ try:
 except ImportError as err:
     JAX_AVAILABLE = False
     FAILED_JAX_IMPORT = err
-
-    # kronecker product calculation
-    def rho_mki_kronecker_product_jax(
-        key_list_of_precomputed: list[tuple[int, str]],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        r"""Kronecker product for :math:`\rho_{mki}` by JAX.
-
-        Args:
-            key_list_of_precomputed (list[tuple[int, str]]):
-                The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-        Returns:
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-                The Kronecker product of the :math:`\rho_{mki}`.
-        """
-        raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to calculate Kronecker product."
-            + "error: "
-            + str(FAILED_JAX_IMPORT)
-        ) from FAILED_JAX_IMPORT
-
-    def rho_mki_kronecker_product_jax_2(
-        key_list_of_precomputed: Iterable[int],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-        r"""Kronecker product for :math:`\rho_{mki}` by JAX.
-
-        Args:
-            key_list_of_precomputed (Iterable[int]):
-                The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-        Returns:
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-                The Kronecker product of the :math:`\rho_{mki}`.
-        """
-        raise PostProcessingThirdPartyImportError(
-            "JAX is not available, using numpy to calculate Kronecker product."
-            + "error: "
-            + str(FAILED_JAX_IMPORT)
-        ) from FAILED_JAX_IMPORT
 
     # trace summation calculation
     def all_trace_rho_by_einsum_aij_bji_to_ab_jax(
@@ -149,6 +109,28 @@ except ImportError as err:
         """
         raise PostProcessingThirdPartyImportError(
             "JAX is not available, using numpy to calculate einsum_aij_bji_to_ab."
+            + "error: "
+            + str(FAILED_JAX_IMPORT)
+        ) from FAILED_JAX_IMPORT
+
+    def prediction_einsum_aij_bji_to_ab_jax(
+        given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+        estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+    ) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+        """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
+
+        Args:
+            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The given operators.
+            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The estimators.
+
+        Returns:
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+                The prediction of given operators.
+        """
+        raise PostProcessingThirdPartyImportError(
+            "JAX is not available, using numpy to calculate prediction_einsum_aij_bji_to_ab."
             + "error: "
             + str(FAILED_JAX_IMPORT)
         ) from FAILED_JAX_IMPORT
@@ -193,10 +175,11 @@ def rho_mki_kronecker_product_numpy(
             The list of the keys of the precomputed :math:`\rho_{mki}`.
 
     Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-            The Kronecker product of the :math:`\rho_{mki}`.
+        NDArray[np.complex128]: The Kronecker product of the :math:`\rho_{mki}`.
     """
-    return ft.reduce(np.kron, [PRECOMPUTED_RHO_M_K_I[key] for key in key_list_of_precomputed])
+    return ft.reduce(
+        np.kron, [PRECOMPUTED_RHO_M_K_I[key] for key in key_list_of_precomputed]
+    )  # type: ignore
 
 
 def rho_mki_kronecker_product_numpy_2(
@@ -209,64 +192,11 @@ def rho_mki_kronecker_product_numpy_2(
             The list of the keys of the precomputed :math:`\rho_{mki}`.
 
     Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-            The Kronecker product of the :math:`\rho_{mki}`.
+        NDArray[np.complex128]: The Kronecker product of the :math:`\rho_{mki}`.
     """
-    return ft.reduce(np.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed])
-
-
-def select_rho_mki_kronecker_product(
-    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
-) -> Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-    r"""Select the method for Kronecker product for :math:`\rho_{mki}`.
-
-    Args:
-        method (ClassicalShadowPythonMethod, optional):
-            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
-
-    Returns:
-        Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-            The function to calculate the Kronecker product of the :math:`\rho_{mki}`.
-    """
-    if method == "jax":
-        if JAX_AVAILABLE:
-            return rho_mki_kronecker_product_jax
-        warnings.warn(
-            "JAX is not available, using numpy to calculate Kronecker product.",
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        method = "numpy"
-    if method != "numpy":
-        raise ValueError(f"Invalid backend: {method}")
-    return rho_mki_kronecker_product_numpy
-
-
-def select_rho_mki_kronecker_product_2(
-    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
-) -> Callable[[Iterable[int]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-    r"""Select the method for Kronecker product for :math:`\rho_{mki}`.
-
-    Args:
-        method (ClassicalShadowPythonMethod, optional):
-            The method to use for the calculation. Defaults to DEFAULT_PYTHON_METHOD.
-
-    Returns:
-        Callable[[list[tuple[int, str]]], np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-            The function to calculate the Kronecker product of the :math:`\rho_{mki}`.
-    """
-    if method == "jax":
-        if JAX_AVAILABLE:
-            set_cpu_only()
-            # This method only get speedup when using JAX with CPU
-            return rho_mki_kronecker_product_jax_2
-        warnings.warn(
-            "JAX is not available, using numpy to calculate Kronecker product.",
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        method = "numpy"
-    if method != "numpy":
-        raise ValueError(f"Invalid backend: {method}")
-    return rho_mki_kronecker_product_numpy_2
+    return ft.reduce(
+        np.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed]
+    )  # type: ignore
 
 
 # single trace calculation
@@ -279,7 +209,11 @@ def single_trace_rho_by_trace_of_matmul(
     """The single trace of Rho by trace of matmul.
 
     Args:
-        rho_m1_and_rho_m2 (tuple): The tuple of rho_m1 and rho_m2.
+        rho_m1_and_rho_m2 (tuple[
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+        ]):
+            The tuple of rho_m1 and rho_m2.
 
     Returns:
         np.complex128: The trace of Rho.
@@ -297,7 +231,11 @@ def single_trace_rho_by_einsum_ij_ji(
     """The single trace of Rho by einsum_ij_ji by Numpy.
 
     Args:
-        rho_m1_and_rho_m2 (tuple): The tuple of rho_m1 and rho_m2.
+        rho_m1_and_rho_m2 (tupletuple[
+        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+    ]):
+            The tuple of rho_m1 and rho_m2.
 
     Returns:
         np.complex128: The trace of Rho.
@@ -427,3 +365,71 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
     if method != "einsum_aij_bji_to_ab_numpy":
         raise ValueError(f"Invalid backend: {method}")
     return all_trace_rho_by_einsum_aij_bji_to_ab_numpy
+
+
+def prediction_einsum_aij_bji_to_ab_numpy(
+    given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+    estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+    """Calculate the prediction of given operators by einsum_aij_bji_to_ab_numpy.
+
+    Args:
+        given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            The given operators.
+        estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            The estimators.
+
+    Returns:
+        list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+            The prediction of given operators.
+    """
+    candidate_esitmators_foreach_given_operator = np.einsum(
+        "aij,bji->ab", given_operators, estimators
+    )
+    median_foreach_given_operator = np.median(candidate_esitmators_foreach_given_operator, axis=1)
+    median_location_given_operator = np.argmin(
+        np.abs(
+            candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
+        ),
+        axis=1,
+    )
+
+    return [
+        candidate_esitmators_foreach_given_operator[i, j]
+        for i, j in enumerate(median_location_given_operator)
+    ]
+
+
+def select_prediction_einsum_aij_bji_to_ab(
+    method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+) -> Callable[
+    [
+        np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+        np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+    ],
+    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+]:
+    """Select the method to calculate the prediction of given operators.
+
+    Args:
+        method (AllTraceRhoMethod, optional):
+            The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD
+            It can be either "jax" or "numpy".
+
+    Returns:
+        Callable[[
+            np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+            np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]
+        ], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+            The function to calculate the prediction of given operators.
+    """
+    if method == "jax":
+        if JAX_AVAILABLE:
+            return prediction_einsum_aij_bji_to_ab_jax
+        warnings.warn(
+            "JAX is not available, using numpy to calculate prediction.",
+            PostProcessingThirdPartyUnavailableWarning,
+        )
+    if method != "numpy":
+        raise ValueError(f"Invalid backend: {method}")
+    return prediction_einsum_aij_bji_to_ab_numpy
