@@ -144,7 +144,6 @@ RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"],
 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
 - "numpy": Use Numpy to calculate the rho_m.
 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-- "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
 Currently, "numpy_precomputed" is the best option for performance.
 """
@@ -181,9 +180,6 @@ def rho_m_core(
                 Use Numpy to calculate the rho_m.
             - "numpy_precomputed":
                 Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten":
-                Use JAX to calculate the rho_m with a flattening workflow.
-                Also, this method prefers CPU backend for Kronecker product calculation.
             - "numpy_flatten":
                 Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
@@ -212,27 +208,12 @@ def rho_m_core(
             PostProcessingRustUnavailableWarning,
         )
         backend = "Python"
-    if rho_method == "jax_flatten":
-        if JAX_AVAILABLE:
-            return rho_m_flatten_core(
-                shots=shots,
-                counts=counts,
-                random_unitary_um=random_unitary_um,
-                selected_classical_registers=selected_classical_registers,
-                method="jax",
-            )
-        warnings.warn(
-            "JAX is not available, using Python to calculate rho_m_flatten.",
-            PostProcessingRustUnavailableWarning,
-        )
-        rho_method = "numpy_flatten"
     if rho_method == "numpy_flatten":
         return rho_m_flatten_core(
             shots=shots,
             counts=counts,
             random_unitary_um=random_unitary_um,
             selected_classical_registers=selected_classical_registers,
-            method="numpy",
         )
 
     if rho_method in ["numpy", "numpy_precomputed"]:
