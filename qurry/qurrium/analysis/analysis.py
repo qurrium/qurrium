@@ -1,6 +1,6 @@
 """Analysis Instance (:mod:`qurry.qurrium.analysis`)"""
 
-from typing import Optional, NamedTuple, Iterable, Any
+from typing import Optional, NamedTuple, Iterable, Any, Generic, TypeVar, Type
 from abc import abstractmethod
 from pathlib import Path
 import json
@@ -12,80 +12,35 @@ from ...exceptions import QurryInvalidInherition
 from ...tools.datetime import current_time
 
 
-class AnalysisPrototype:
+_RI = TypeVar("_RI", bound=NamedTuple)
+"""The input type of the analysis."""
+_RC = TypeVar("_RC", bound=NamedTuple)
+"""The content type of the analysis."""
+
+
+class AnalysisPrototype(Generic[_RI, _RC]):
     """The instance for the analysis of :cls:`QurryExperiment`."""
 
     __name__ = "AnalysisPrototype"
 
-    class AnalysisHeader(NamedTuple):
-        """Construct the experiment's output.
-        A standard `analysis` namedtuple will contain
-        ['serial', 'time', 'summoner', 'run_log', 'side_product']
-        for more information storing.
-        If it does not contain will raise `QurryInvalidInherition`.
-        """
+    serial: int
+    """Serial Number of analysis."""
+    datetime: str
+    """Written time of analysis."""
+    log: dict[str, Any]
+    """Other info will be recorded."""
 
-        serial: int
-        """Serial Number of analysis."""
-        datetime: str
-        """Written time of analysis."""
-        summoner: Optional[tuple] = None
-        """Which multiManager makes this analysis. 
-        If it's an independent one, then usr the default 'None'."""
-        log: dict = {}
-        """Other info will be recorded."""
-
+    @property
     @abstractmethod
-    class AnalysisInput(NamedTuple):
-        """To set the analysis."""
+    def input_instance(self) -> Type[_RI]:
+        """The input instance of the analysis."""
+        raise NotImplementedError("input_instance must be implemented in subclass.")
 
+    @property
     @abstractmethod
-    class AnalysisContent(NamedTuple):
-        """To set the analysis."""
-
-        sampling: int
-        """Number of circuit been repeated."""
-
-    @classmethod
-    def input_filter(cls, *args, **kwargs) -> tuple[AnalysisInput, dict[str, Any]]:
-        """Filter the input arguments for analysis.
-
-        Returns:
-            tuple[AnalysisInput, dict[str, Any]]: The filtered input and unused arguments.
-        """
-        if len(args) > 0:
-            raise ValueError("analysis filter can't be initialized with positional arguments.")
-        infields = {}
-        outfields = {}
-
-        for k, v in kwargs.items():
-            if k in cls.AnalysisInput._fields:
-                infields[k] = v
-            else:
-                outfields[k] = v
-
-        return cls.AnalysisInput(**infields), outfields
-
-    @classmethod
-    def content_filter(cls, *args, **kwargs) -> tuple[AnalysisContent, dict[str, Any]]:
-        """Filter the content arguments for analysis.
-
-        Returns:
-            tuple[AnalysisContent, dict[str, Any]]: The filtered content and unused arguments.
-        """
-        if len(args) > 0:
-            raise ValueError(
-                "analysis content filter can't be initialized with positional arguments."
-            )
-        infields = {}
-        outfields = {}
-        for k, v in kwargs.items():
-            if k in cls.AnalysisContent._fields:
-                infields[k] = v
-            else:
-                outfields[k] = v
-
-        return cls.AnalysisContent(**infields), outfields
+    def content_instance(self) -> Type[_RC]:
+        """The content instance of the analysis."""
+        raise NotImplementedError("content_instance must be implemented in subclass.")
 
     @property
     @abstractmethod
@@ -94,35 +49,42 @@ class AnalysisPrototype:
 
     def __init__(
         self,
+        *,
         serial: int,
-        summoner: Optional[tuple] = None,
         log: Optional[dict[str, Any]] = None,
-        **otherArgs,
+        datatime: Optional[str] = None,
+        **other_kwargs,
     ):
-        if log is None:
-            log = {}
-        self.header = self.AnalysisHeader(
-            serial=serial,
-            datetime=current_time(),
-            summoner=summoner,
-            log=log,
+        duplicate_fields = (
+            set(self.input_instance._fields)
+            & set(self.content_instance._fields)
+            & {"serial", "datetime", "log"}
         )
-        self.input, outfields = self.input_filter(**otherArgs)
-        self.content, self.outfields = self.content_filter(**outfields)
-
-        duplicate_fields = set(self.AnalysisInput._fields) & set(self.AnalysisContent._fields)
         if len(duplicate_fields) > 0:
             raise QurryInvalidInherition(
-                f"{self.__name__}.AnalysisInput and {self.__name__}"
-                + f".AnalysisContent should not have same fields: {duplicate_fields}."
+                f"{self.input_instance} and {self.content_instance} "
+                f"should not have same fields: {duplicate_fields} "
+                f"for {self.__name__}."
             )
+
+        self.serial = serial
+        self.datetime = current_time() if datatime is None else datatime
+        self.log = log if isinstance(log, dict) else {}
+
+        self.input: _RI = self.input_instance._make(
+            other_kwargs.pop(k) for k in self.input_instance._fields
+        )
+        """The input of the analysis."""
+        self.content: _RC = self.content_instance._make(
+            other_kwargs.pop(k) for k in self.content_instance._fields
+        )
+        """The content of the analysis."""
+        self.outfields = other_kwargs
 
     def __repr__(self) -> str:
         return (
             f"<{self.__name__}("
-            + f"serial={self.header.serial}, "
-            + f"{self.input.__repr__()}, "
-            + f"{self.content.__repr__()}), "
+            + f"serial={self.serial}, {self.input}, {self.content}), "
             + f"unused_args_num={len(self.outfields)}>"
         )
 
@@ -130,15 +92,13 @@ class AnalysisPrototype:
         if cycle:
             p.text(
                 f"<{self.__name__}("
-                + f"serial={self.header.serial}, "
-                + f"{self.input}, "
-                + f"{self.content}), "
+                + f"serial={self.serial}, {self.input}, {self.content}), "
                 + f"unused_args_num={len(self.outfields)}>"
             )
         else:
             with p.group(2, f"<{self.__name__}("):
                 p.breakable()
-                p.text(f"serial={self.header.serial},")
+                p.text(f"serial={self.serial},")
                 p.breakable()
                 p.text(f"{self.input},")
                 p.breakable()
@@ -147,14 +107,6 @@ class AnalysisPrototype:
                 p.text(f"unused_args_num={len(self.outfields)}")
                 p.breakable()
                 p.text(")>")
-
-    def __str__(self) -> str:
-        return (
-            f"{self.__name__} with serial={self.header.serial}, "
-            + f"{self.input.__str__()}, "
-            + f"{self.content.__str__()}, "
-            + f"{len(self.outfields)} unused arguments"
-        )
 
     def statesheet(
         self,
@@ -170,13 +122,12 @@ class AnalysisPrototype:
         """
         info = Hoshi(
             [
-                ("h1", f"{self.__name__} with serial={self.header.serial}"),
+                ("h1", f"{self.__name__} with serial={self.serial}"),
             ],
             name="Hoshi" if hoshi else "QurryAnalysisSheet",
         )
-        info.newline(("itemize", "header"))
-        for k, v in self.header._asdict().items():
-            info.newline(("itemize", str(k), str(v), "", 2))
+        info.newline(("itemize", "serial", self.serial, "", 1))
+        info.newline(("itemize", "datetime", self.datetime, "", 1))
 
         info.newline(("itemize", "input"))
         for k, v in self.input._asdict().items():
@@ -213,6 +164,10 @@ class AnalysisPrototype:
         for k, v in self.content._asdict().items():
             info.newline(("itemize", str(k), str(v), "", 2))
 
+        info.newline(("itemize", "log"))
+        for k, v in self.log.items():
+            info.newline(("itemize", str(k), str(v), "", 2))
+
         return info
 
     def export(
@@ -242,14 +197,37 @@ class AnalysisPrototype:
             else:
                 main[k] = v
         main["input"] = self.input._asdict()
-        main["header"] = self.header._asdict()
+        main["header"] = {
+            "serial": self.serial,
+            "datetime": self.datetime,
+            "log": self.log,
+        }
 
         if jsonable:
             return jsonablize(main), jsonablize(tales)
         return main, tales
 
     @classmethod
-    def load(cls, main: dict[str, Any], side: dict[str, Any]) -> "AnalysisPrototype":
+    def deprecated_fields_converts(
+        cls, main: dict[str, Any], side: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Convert deprecated fields to new fields.
+
+        This method should be implemented in the subclass if there are deprecated fields
+        that need to be converted.
+
+        Args:
+            main (dict[str, Any]): The main product dict.
+            side (dict[str, Any]): The side product dict.
+
+        Returns:
+            tuple[dict[str, Any], dict[str, Any]]:
+                The converted main and side product dicts.
+        """
+        return main, side
+
+    @classmethod
+    def load(cls, main: dict[str, Any], side: dict[str, Any]):
         """Read the analysis from main and side product dict.
 
         Args:
@@ -259,14 +237,14 @@ class AnalysisPrototype:
         Returns:
             AnalysisPrototype: The analysis instance.
         """
-        lost_key = []
-        for k in ("input", "header") + cls.AnalysisContent._fields:
-            if not (k in main or k in side):
-                lost_key.append(k)
-
+        main, side = cls.deprecated_fields_converts(main, side)
         content = {k: v for k, v in main.items() if k not in ("input", "header")}
-        instance = cls(**main["header"], **main["input"], **content, **side)
-        instance.header.log["lost_key"] = lost_key
+        serial = main["header"].get("serial", 0)
+        log = main["header"].get("log", {})
+        datetime = main["header"].get("datetime", current_time())
+        instance = cls(
+            serial=serial, log=log, datatime=datetime, **main["input"], **content, **side
+        )
         return instance
 
     @classmethod
