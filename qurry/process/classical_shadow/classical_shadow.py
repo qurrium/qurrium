@@ -15,29 +15,33 @@ from .rho_m_core import (
     RhoMCoreMethod,
 )
 from .trace_expect_process import (
-    expectation_rho_core,
+    mean_rho_core,
     trace_rho_square_core,
     DEFAULT_ALL_TRACE_RHO_METHOD,
+    AllTraceRhoMethod,
     TraceRhoMethod,
 )
+from .expectation_process import prediction_algorithm
 from .container import (
-    ClassicalShadowExpectation,
+    ClassicalShadowMeanRho,
+    ClassicalShadowEstimation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
 from ..utils import NUMERICAL_ERROR_TOLERANCE
 
 
-def expectation_rho(
+def mean_of_rho(
     shots: int,
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
+    # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> ClassicalShadowExpectation:
-    r"""Expectation value of Rho.
+) -> ClassicalShadowMeanRho:
+    r"""Calculate the mean of Rho.
 
     Reference:
         .. note::
@@ -141,12 +145,12 @@ def expectation_rho(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
+
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         backend (PostProcessingBackendLabel, optional):
@@ -156,7 +160,7 @@ def expectation_rho(
             The progress bar. Defaults to None.
 
     Returns:
-        ClassicalShadowExpectation: The expectation value of Rho.
+        ClassicalShadowMeanRho: The expectation value of Rho.
     """
 
     if isinstance(selected_classical_registers, Iterable):
@@ -178,16 +182,17 @@ def expectation_rho(
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
-    expect_rho = expectation_rho_core(
+    expect_rho = mean_rho_core(
         rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
-    return ClassicalShadowExpectation(
-        expect_rho=expect_rho,
-        rho_m_dict=dict(enumerate(rho_m_list)),
+    return ClassicalShadowMeanRho(
+        average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        # The mean of Rho
+        mean_of_rho=expect_rho,
     )
 
 
@@ -196,6 +201,7 @@ def trace_rho_square(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
+    # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
@@ -212,12 +218,12 @@ def trace_rho_square(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
+
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (TraceRhoMethod, optional):
@@ -230,8 +236,6 @@ def trace_rho_square(
                 to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
@@ -268,7 +272,7 @@ def trace_rho_square(
 
     trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
     trace_rho_sum_real = trace_rho_sum.real
-    if trace_rho_sum.imag != 0:
+    if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
             + f"The imaginary part is {trace_rho_sum.imag}."
@@ -278,11 +282,128 @@ def trace_rho_square(
     entropy = -np.log2(trace_rho_sum_real)
 
     return ClassicalShadowPurity(
-        purity=trace_rho_sum_real,
-        entropy=entropy,
-        rho_m_dict=dict(enumerate(rho_m_list)),
+        average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        # The trace of Rho square
+        purity=trace_rho_sum_real,
+        entropy=entropy,
+    )
+
+
+def esitimation_of_given_operators(
+    shots: int,
+    counts: list[dict[str, int]],
+    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    selected_classical_registers: Iterable[int],
+    # estimation of given operators
+    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    accuracy_prob_comp_delta: float = 0.01,
+    max_shadow_norm: float = 1.0,
+    # other config
+    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    pbar: Optional[tqdm.tqdm] = None,
+) -> ClassicalShadowEstimation:
+    r"""Calculate the expectation value of given operators.
+
+    Reference:
+        .. note::
+            - Predicting many properties of a quantum system from very few measurements -
+            Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
+            [doi:10.1038/s41567-020-0932-7](
+                https://doi.org/10.1038/s41567-020-0932-7)
+
+            - The randomized measurement toolbox -
+            Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
+            Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
+            [doi:10.1038/s42254-022-00535-2](
+                https://doi.org/10.1038/s42254-022-00535-2)
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The shadow direction of the unitary operators.
+        selected_classical_registers (Iterable[int]):
+            The list of **the index of the selected_classical_registers**.
+
+        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+            The list of the operators to estimate.
+        accuracy_prob_comp_delta (float, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (float, optional):
+            The maximum shadow norm. Defaults to 1.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
+        rho_method (RhoMCoreMethod, optional):
+            The method to use for the calculation. Defaults to "numpy_precomputed".
+            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            - "numpy": Use Numpy to calculate the rho_m.
+            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            Currently, "numpy_precomputed" is the best option for performance.
+        estimate_trace_method (AllTraceRhoMethod, optional):
+            The method to calculate the trace for searching esitmator.
+            - "einsum_aij_bji_to_ab_numpy":
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+
+    Returns:
+        ClassicalShadowEstimation: The estimation of the given operators.
+    """
+    if isinstance(selected_classical_registers, Iterable):
+        selected_classical_registers = list(selected_classical_registers)
+    else:
+        raise TypeError(
+            "The selected_classical_registers should be Iterable, "
+            + f"not {type(selected_classical_registers)}."
+        )
+
+    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+        shots=shots,
+        counts=counts,
+        random_unitary_um=random_unitary_um,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        backend=backend,
+    )
+    if pbar is not None:
+        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
+    average_classical_snapshots_rho = dict(enumerate(rho_m_list))
+
+    (
+        estimate_of_given_operators,
+        actual_accuracy_prob_comp_delta,
+        num_of_estimators,
+        accuracy_predict_epsilon,
+        max_shadow_norm,
+    ) = prediction_algorithm(
+        classical_snapshots_rho=average_classical_snapshots_rho,
+        given_operators=given_operators,
+        accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+        max_shadow_norm=max_shadow_norm,
+        trace_method=estimate_trace_method,
+    )
+
+    return ClassicalShadowEstimation(
+        average_classical_snapshots_rho=average_classical_snapshots_rho,
+        classical_registers_actually=selected_classical_registers_sorted,
+        taking_time=taken,
+        # esitimation of given operators
+        estimate_of_given_operators=estimate_of_given_operators,
+        accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
+        num_of_estimators_k=num_of_estimators,
+        accuracy_predict_epsilon=accuracy_predict_epsilon,
+        maximum_shadow_norm=max_shadow_norm,
     )
 
 
@@ -291,8 +412,14 @@ def classical_shadow_complex(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
+    # estimation of given operators
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
+    accuracy_prob_comp_delta: float = 0.01,
+    max_shadow_norm: float = 1.0,
+    # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
@@ -400,12 +527,20 @@ def classical_shadow_complex(
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
+
+        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+            The list of the operators to estimate. Defaults to None.
+        accuracy_prob_comp_delta (float, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (float, optional):
+            The maximum shadow norm. Defaults to 1.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (TraceRhoMethod, optional):
@@ -416,6 +551,12 @@ def classical_shadow_complex(
             - "quick_trace_of_matmul" or "einsum_ij_ji":
                 Use np.einsum("ij,ji", rho_m1, rho_m2)
                 to calculate the each summation item in `rho_m_list`.
+            - "einsum_aij_bji_to_ab_numpy":
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        estimate_trace_method (AllTraceRhoMethod, optional):
+            The method to calculate the trace for searching esitmator.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
@@ -449,7 +590,7 @@ def classical_shadow_complex(
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
-    expect_rho = expectation_rho_core(
+    expect_rho = mean_rho_core(
         rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
@@ -466,11 +607,44 @@ def classical_shadow_complex(
     trace_rho_sum_real = trace_rho_sum.real
     entropy = -np.log2(trace_rho_sum_real)
 
+    average_classical_snapshots_rho = dict(enumerate(rho_m_list))
+
+    if given_operators is None or len(given_operators) == 0:
+        (
+            estimate_of_given_operators,
+            actual_accuracy_prob_comp_delta,
+            num_of_estimators,
+            accuracy_predict_epsilon,
+            max_shadow_norm,
+        ) = ([], np.nan, 0, np.nan, np.nan)
+    else:
+        (
+            estimate_of_given_operators,
+            actual_accuracy_prob_comp_delta,
+            num_of_estimators,
+            accuracy_predict_epsilon,
+            max_shadow_norm,
+        ) = prediction_algorithm(
+            classical_snapshots_rho=average_classical_snapshots_rho,
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            trace_method=estimate_trace_method,
+        )
+
     return ClassicalShadowComplex(
-        expect_rho=expect_rho,
-        purity=trace_rho_sum_real,
-        entropy=entropy,
-        rho_m_dict=dict(enumerate(rho_m_list)),
+        average_classical_snapshots_rho=average_classical_snapshots_rho,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        # The mean of Rho
+        mean_of_rho=expect_rho,
+        # The trace of Rho square
+        purity=trace_rho_sum_real,
+        entropy=entropy,
+        # esitimation of given operators
+        estimate_of_given_operators=estimate_of_given_operators,
+        accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
+        num_of_estimators_k=num_of_estimators,
+        accuracy_predict_epsilon=accuracy_predict_epsilon,
+        maximum_shadow_norm=max_shadow_norm,
     )

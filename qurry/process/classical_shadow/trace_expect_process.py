@@ -17,7 +17,7 @@ from .matrix_calcution import (
 )
 
 
-def expectation_rho_core(
+def mean_rho_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     selected_classical_registers_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
