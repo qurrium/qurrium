@@ -96,7 +96,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
                 + f"unused_args_num={len(self.outfields)}>"
             )
         else:
-            with p.group(2, f"<{self.__name__}("):
+            with p.group(2, f"<{self.__name__}(", ")>"):
                 p.breakable()
                 p.text(f"serial={self.serial},")
                 p.breakable()
@@ -106,7 +106,6 @@ class AnalysisPrototype(Generic[_RI, _RC]):
                 p.breakable()
                 p.text(f"unused_args_num={len(self.outfields)}")
                 p.breakable()
-                p.text(")>")
 
     def statesheet(
         self,
