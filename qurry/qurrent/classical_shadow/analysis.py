@@ -12,6 +12,8 @@ from ...qurrium.analysis import AnalysisPrototype
 class SUAnalysisInput(NamedTuple):
     """To set the analysis."""
 
+    shots: int
+    """The number of shots."""
     num_qubits: int
     """The number of qubits."""
     selected_qubits: list[int]
@@ -76,8 +78,6 @@ class SUAnalysisInput(NamedTuple):
         }
 
     """
-    shots: int
-    """The number of shots."""
     unitary_located: Optional[list[int]] = None
     """The range of the unitary operator."""
 

@@ -21,6 +21,7 @@ from ...process.classical_shadow import (
     PostProcessingBackendLabel,
     RhoMCoreMethod,
     TraceRhoMethod,
+    AllTraceRhoMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     DEFAULT_PROCESS_BACKEND,
     set_cpu_only,
@@ -247,23 +248,39 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
     def analyze(
         self,
         selected_qubits: Optional[Iterable[int]] = None,
+        # estimation of given operators
+        given_operators: Optional[
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+        ] = None,
+        accuracy_prob_comp_delta: float = 0.01,
+        max_shadow_norm: float = 1.0,
+        # other config
         rho_method: RhoMCoreMethod = "numpy_precomputed",
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
-        """Calculate entangled entropy with more information combined.
+        r"""Calculate entangled entropy with more information combined.
 
         Args:
             selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
+
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (float, optional):
+                The maximum shadow norm. Defaults to 1.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
@@ -274,6 +291,12 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 - "quick_trace_of_matmul" or "einsum_ij_ji":
                     Use np.einsum("ij,ji", rho_m1, rho_m2)
                     to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy":
+                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                - "einsum_aij_bji_to_ab_jax":
+                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            estimate_trace_method (AllTraceRhoMethod, optional):
+                The method to calculate the trace for searching esitmator.
                 - "einsum_aij_bji_to_ab_numpy":
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
@@ -341,8 +364,14 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             counts=counts,
             random_unitary_ids=random_unitary_ids_classical_registers,
             selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
+            # estimation of given operators
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            # other config
             rho_method=rho_method,
             trace_method=trace_method,
+            estimate_trace_method=estimate_trace_method,
             backend=backend,
             pbar=pbar,
         )
@@ -370,12 +399,20 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         counts: Optional[list[dict[str, int]]] = None,
         random_unitary_ids: Optional[dict[int, dict[int, Union[Literal[0, 1, 2], int]]]] = None,
         selected_classical_registers: Optional[Iterable[int]] = None,
+        # estimation of given operators
+        given_operators: Optional[
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+        ] = None,
+        accuracy_prob_comp_delta: float = 0.01,
+        max_shadow_norm: float = 1.0,
+        # other config
         rho_method: RhoMCoreMethod = "numpy_precomputed",
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
-        """Randomized entangled entropy with complex.
+        r"""Randomized entangled entropy with complex.
 
         Args:
             shots (int):
@@ -386,15 +423,23 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 The shadow direction of the unitary operators.
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
+
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (float, optional):
+                The maximum shadow norm. Defaults to 1.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
                 Currently, "numpy_precomputed" is the best option for performance.
-            trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
+            trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
                 - "trace_of_matmul":
                     Use np.trace(np.matmul(rho_m1, rho_m2))
@@ -402,6 +447,12 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 - "quick_trace_of_matmul" or "einsum_ij_ji":
                     Use np.einsum("ij,ji", rho_m1, rho_m2)
                     to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy":
+                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                - "einsum_aij_bji_to_ab_jax":
+                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            estimate_trace_method (AllTraceRhoMethod, optional):
+                The method to calculate the trace for searching esitmator.
                 - "einsum_aij_bji_to_ab_numpy":
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
@@ -427,8 +478,14 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             counts=counts,
             random_unitary_um=random_unitary_ids,
             selected_classical_registers=selected_classical_registers,
+            # estimation of given operators
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            # other config
             rho_method=rho_method,
             trace_method=trace_method,
+            estimate_trace_method=estimate_trace_method,
             backend=backend,
             pbar=pbar,
         )
@@ -447,12 +504,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             ShadowUnveilAnalysis: The recovered analysis.
         """
 
-        if analysis.header.serial in self.reports:
-            new_serial = len(self.reports)
-            analysis.header = analysis.header._replace(serial=new_serial)
+        if analysis.serial in self.reports:
+            analysis.serial = len(self.reports)
 
-        serial = analysis.header.serial
-        self.reports[serial] = analysis
+        self.reports[analysis.serial] = analysis
         return analysis
 
 
@@ -465,33 +520,56 @@ class OutsideAnalyzeInput(TypedDict):
     counts: list[dict[str, int]]
     random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
     selected_classical_registers: Iterable[int]
-    bitstring_mapping: dict[int, int]
-    # for analysis instance
-    serial: int
+    # for analysis input
     num_qubits: int
     selected_qubits: list[int]
     registers_mapping: dict[int, int]
+    bitstring_mapping: dict[int, int]
     unitary_located: list[int]
-    counts_used: Optional[Iterable[int]]
+    # estimation of given operators
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]
+    accuracy_prob_comp_delta: float
+    max_shadow_norm: float
     # setup for running
+    serial: int
     rho_method: RhoMCoreMethod
     trace_method: TraceRhoMethod
+    estimate_trace_method: AllTraceRhoMethod
     backend: PostProcessingBackendLabel
+    counts_used: Optional[Iterable[int]]
 
 
 def quantities_input_collecter(
     current_exps: ShadowUnveilExperiment,
+    # analysis inputs
     selected_qubits: Optional[Iterable[int]] = None,
+    # estimation of given operators
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
+    accuracy_prob_comp_delta: float = 0.01,
+    max_shadow_norm: float = 1.0,
+    # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     counts_used: Optional[Iterable[int]] = None,
 ) -> OutsideAnalyzeInput:
-    """Collect the inputs for the quantities.
+    r"""Collect the inputs for the quantities.
 
     Args:
+        current_exps (ShadowUnveilExperiment):
+            The current experiment instance.
         selected_qubits (Optional[Iterable[int]], optional):
             The selected qubits. Defaults to None.
+
+        given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+            The list of the operators to estimate. Defaults to None.
+        accuracy_prob_comp_delta (float, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (float, optional):
+            The maximum shadow norm. Defaults to 1.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
         backend (PostProcessingBackendLabel, optional):
             The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         rho_method (RhoMCoreMethod, optional):
@@ -499,7 +577,6 @@ def quantities_input_collecter(
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
@@ -510,6 +587,12 @@ def quantities_input_collecter(
             - "quick_trace_of_matmul" or "einsum_ij_ji":
                 Use np.einsum("ij,ji", rho_m1, rho_m2)
                 to calculate the each summation item in `rho_m_list`.
+            - "einsum_aij_bji_to_ab_numpy":
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        estimate_trace_method (AllTraceRhoMethod, optional):
+            The method to calculate the trace for searching esitmator.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
@@ -572,18 +655,23 @@ def quantities_input_collecter(
         "counts": counts,
         "random_unitary_ids": random_unitary_ids_classical_registers,
         "selected_classical_registers": [final_mapping[qi] for qi in selected_qubits],
-        "bitstring_mapping": bitstring_mapping,
         # for analysis instance
-        "serial": serial,
         "num_qubits": current_exps.args.actual_num_qubits,
         "selected_qubits": selected_qubits,
         "registers_mapping": current_exps.args.registers_mapping,
+        "bitstring_mapping": bitstring_mapping,
         "unitary_located": current_exps.args.unitary_located,
-        "counts_used": counts_used,
+        # estimation of given operators
+        "given_operators": given_operators,
+        "accuracy_prob_comp_delta": accuracy_prob_comp_delta,
+        "max_shadow_norm": max_shadow_norm,
         # setup for running
+        "serial": serial,
         "rho_method": rho_method,
         "trace_method": trace_method,
+        "estimate_trace_method": estimate_trace_method,
         "backend": backend,
+        "counts_used": counts_used,
     }
 
 
@@ -594,52 +682,65 @@ def outside_analyze(
     counts: list[dict[str, int]],
     random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
-    bitstring_mapping: dict[int, int],
     # for analysis instance
-    serial: int,
     num_qubits: int,
     selected_qubits: list[int],
     registers_mapping: dict[int, int],
+    bitstring_mapping: dict[int, int],
     unitary_located: list[int],
-    counts_used: Optional[Iterable[int]] = None,
+    # estimation of given operators
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]],
+    accuracy_prob_comp_delta: float,
+    max_shadow_norm: float,
     # setup for running
+    serial: int,
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    counts_used: Optional[Iterable[int]] = None,
 ) -> tuple[str, ShadowUnveilAnalysis]:
-    """Randomized entangled entropy with complex.
+    r"""Randomized entangled entropy with complex.
 
     Args:
+        exp_id (str):
+            The ID of the experiment.
+
         shots (int):
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_unitary_ids (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The shadow direction of the unitary operators.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
-        bitstring_mapping (dict[str, int]):
-            The mapping of the bitstring to the index of the classical register.
 
-        serial (int):
-            The serial number of the experiment.
         num_qubits (int):
             The number of qubits.
         selected_qubits (list[int]):
             The selected qubits.
         registers_mapping (dict[int, int]):
             The mapping of the index of selected qubits to the index of the classical register.
+        bitstring_mapping (dict[str, int]):
+            The mapping of the bitstring to the index of the classical register.
         unitary_located (list[int]):
             The range of the unitary operator.
-        counts_used (Optional[Iterable[int]], optional):
-            The index of the counts used. Defaults to None.
 
+        given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+            The list of the operators to estimate. Defaults to None.
+        accuracy_prob_comp_delta (float, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (float, optional):
+            The maximum shadow norm. Defaults to 1.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
+        serial (int):
+            The serial number of the experiment.
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (TraceRhoMethod, optional):
@@ -654,8 +755,16 @@ def outside_analyze(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+        estimate_trace_method (AllTraceRhoMethod, optional):
+            The method to calculate the trace for searching esitmator.
+            - "einsum_aij_bji_to_ab_numpy":
+                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            - "einsum_aij_bji_to_ab_jax":
+                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
         backend (PostProcessingBackend, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
+        counts_used (Optional[Iterable[int]], optional):
+            The index of the counts used. Defaults to None.
 
     Returns:
         tuple[str, ShadowUnveilAnalysis]:
@@ -670,20 +779,28 @@ def outside_analyze(
         counts=counts,
         random_unitary_um=random_unitary_ids,
         selected_classical_registers=selected_classical_registers,
+        # estimation of given operators
+        given_operators=given_operators,
+        accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+        max_shadow_norm=max_shadow_norm,
+        # other config
         rho_method=rho_method,
         trace_method=trace_method,
+        estimate_trace_method=estimate_trace_method,
         backend=backend,
         pbar=None,
     )
 
     analysis = ShadowUnveilAnalysis(
-        serial=serial,
+        shots=shots,
+        # for analysis input
         num_qubits=num_qubits,
         selected_qubits=selected_qubits,
         registers_mapping=registers_mapping,
         bitstring_mapping=bitstring_mapping,
-        shots=shots,
         unitary_located=unitary_located,
+        # setup for running
+        serial=serial,
         counts_used=counts_used,
         **qs,
     )
