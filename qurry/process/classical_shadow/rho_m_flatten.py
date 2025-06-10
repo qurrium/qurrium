@@ -8,11 +8,7 @@ from typing import Literal, Union
 import numpy as np
 
 
-from .matrix_calcution import (
-    select_rho_mki_kronecker_product_2,
-    ClassicalShadowPythonMethod,
-    DEFAULT_PYTHON_METHOD,
-)
+from .matrix_calcution import rho_mki_kronecker_product_numpy_2
 from ..utils import (
     counts_list_recount_pyrust,
     shot_counts_selected_clreg_checker_pyrust,
@@ -25,7 +21,6 @@ def rho_m_flatten_core(
     counts: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
-    method: ClassicalShadowPythonMethod = DEFAULT_PYTHON_METHOD,
 ) -> tuple[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]], list[int], float]:
     """Rho M Cell Core calculation and directly return :cls:`ClassicalShadowComplex`.
 
@@ -38,10 +33,6 @@ def rho_m_flatten_core(
             The shadow direction of the unitary operators.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
-        method (ClassicalShadowPythonMethod, optional):
-            It can be either "jax" or "numpy".
-            - "jax": Use JAX to calculate the Kronecker product.
-            - "numpy": Use Numpy to calculate the Kronecker product.
 
     Returns:
         tuple[
@@ -57,7 +48,6 @@ def rho_m_flatten_core(
         counts=counts,
         selected_classical_registers=selected_classical_registers,
     )
-    rho_mki_kronecker_product_2 = select_rho_mki_kronecker_product_2(method=method)
 
     begin = time.time()
 
@@ -76,7 +66,7 @@ def rho_m_flatten_core(
 
         rho_m_k_weighted = np.array(
             [
-                v * rho_mki_kronecker_product_2(kl)
+                v * rho_mki_kronecker_product_numpy_2(kl)
                 for kl, v in zip(bit_array_as_list, value_array_as_list)
             ]
         )
