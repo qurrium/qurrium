@@ -520,8 +520,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         Args:
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Raises:
             ValueError: No circuit ready.
@@ -569,8 +568,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             save_location (Optional[Union[Path, str]], optional):
                 The location to save the experiment. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             str: The ID of the experiment.
@@ -591,6 +589,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         set_pbar_description(pbar, "Counts loading...")
         self.afterwards.counts.extend(counts)
+
+        analysis_input_fields: tuple[str, ...] = self.analysis_instance.input_type()._fields
+        if len(analysis_input_fields) == 0:
+            set_pbar_description(pbar, "Running analysis for no input required...")
+            self.analyze()
 
         if export:
             # export may be slow, consider export at finish or something
@@ -678,8 +681,14 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         """Analyzing the example circuit results in specific method.
         Where should be overwritten by each construction of new measurement.
 
+        If the analysis requires additional parameters,
+        they should be passed as arguments to this method.
+        Also, they should be defined in the :meth:`input_type` in the :cls:`AnalysisPrototype`
+        for :meth:`result` will count the input fields from the analysis to determine
+        whether to call this method for no input required.
+
         Returns:
-            analysis: Analysis of the counts from measurement.
+            _R: The result of the analysis.
         """
         raise NotImplementedError("This method should be implemented.")
 
@@ -694,30 +703,21 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__name__}(exp_id={self.commons.exp_id}, "
-            + f"{self.args.__repr__()}, "
-            + f"{self.commons.__repr__()}, "
-            + f"unused_args_num={len(self.outfields)}, "
-            + f"analysis_num={len(self.reports)})>"
+            f"<{self.__name__}(exp_id={self.commons.exp_id}, {self.args}, {self.commons}, "
+            f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
         )
 
     def _repr_no_id(self) -> str:
         return (
-            f"<{self.__name__}("
-            + f"{self.args}, "
-            + f"{self.commons}, "
-            + f"unused_args_num={len(self.outfields)}, "
-            + f"analysis_num={len(self.reports)})>"
+            f"<{self.__name__}({self.args}, {self.commons}, "
+            f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
         )
 
     def _repr_pretty_(self, p, cycle):
         if cycle:
             p.text(
-                f"<{self.__name__}(exp_id={self.commons.exp_id}, "
-                + f"{self.args}, "
-                + f"{self.commons}, "
-                + f"unused_args_num={len(self.outfields)}, "
-                + f"analysis_num={len(self.reports)})>"
+                f"<{self.__name__}(exp_id={self.commons.exp_id}, {self.args}, {self.commons}, "
+                f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
             )
         else:
             with p.group(2, f"<{self.__name__}(", ")>"):
@@ -828,21 +828,18 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             save_location (Optional[Union[Path, str]], optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then use the value in `self.commons` to be exported,
-                if it's None too, then raise error.
-                Defaults to None.
+                if it's None too, then raise error. Defaults to None.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
                 When set to True, the transpiled circuit will be exported as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
             qurryinfo_hold_access (str, optional):
                 Whether to hold the I/O of `qurryinfo`, then export by :cls:`MultiManager`,
-                it should be control by :cls:`MultiManager`.
-                Defaults to None.
+                it should be control by :cls:`MultiManager`. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             tuple[str, dict[str, str]]: The id of the experiment and the files location.
@@ -909,7 +906,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             afterwards=After.read(file_index=file_index, save_location=save_location),
             reports=AnalysesContainer(),
         )
-        reports_read: dict[Hashable, _R] = exp_instance.analysis_instance.read(
+        reports_read = exp_instance.analysis_instance.read(
             file_index=file_index, save_location=save_location
         )
         exp_instance.reports.update(reports_read)
