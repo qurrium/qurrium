@@ -3,8 +3,9 @@
 from typing import Optional, NamedTuple, Iterable, Any, Generic, TypeVar, Type
 from abc import abstractmethod
 from pathlib import Path
+import warnings
 import json
-import gc
+
 
 from ...capsule import jsonablize, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
@@ -30,22 +31,33 @@ class AnalysisPrototype(Generic[_RI, _RC]):
     log: dict[str, Any]
     """Other info will be recorded."""
 
-    @property
+    @classmethod
     @abstractmethod
-    def input_instance(self) -> Type[_RI]:
-        """The input instance of the analysis."""
-        raise NotImplementedError("input_instance must be implemented in subclass.")
+    def input_type(cls) -> Type[_RI]:
+        """The input type of the analysis."""
+        raise NotImplementedError("input_type must be implemented in subclass.")
 
     @property
+    def input_instance(self) -> Type[_RI]:
+        """The input instance of the analysis."""
+        return self.input_type()
+
+    @classmethod
     @abstractmethod
+    def content_type(cls) -> Type[_RC]:
+        """The content type of the analysis."""
+        raise NotImplementedError("content_type must be implemented in subclass.")
+
+    @property
     def content_instance(self) -> Type[_RC]:
         """The content instance of the analysis."""
-        raise NotImplementedError("content_instance must be implemented in subclass.")
+        return self.content_type()
 
     @property
     @abstractmethod
     def side_product_fields(self) -> Iterable[str]:
         """The fields that will be stored as side product."""
+        raise NotImplementedError("side_product_fields must be implemented in subclass.")
 
     def __init__(
         self,
@@ -247,11 +259,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         return instance
 
     @classmethod
-    def read(
-        cls,
-        file_index: dict[str, str],
-        save_location: Path,
-    ):
+    def read(cls, file_index: dict[str, str], save_location: Path):
         """Read the analysis from file index.
 
         Args:
@@ -262,43 +270,34 @@ class AnalysisPrototype(Generic[_RI, _RC]):
             dict[str, AnalysisPrototype]: The analysis instances in dictionary.
         """
 
-        export_material_set = {}
-        export_set = {}
+        export_material_set: dict[str, dict[str, dict[str, Any]]] = {
+            "reports": {},
+            "tales_report": {},
+        }
         for filekey, filename in file_index.items():
-            filekeydiv = filekey.split(".")
+            filekey_split = filekey.split(".")
             if filekey == "reports":
                 with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
-                    export_set["reports"] = json.load(f)
-                export_material_set["reports"] = export_set["reports"]["reports"]
+                    tmp = json.load(f)
+                    export_material_set["reports"] = tmp["reports"]
 
-            elif filekeydiv[0] == "reports" and filekeydiv[1] == "tales":
+            elif filekey_split[0] == "reports" and filekey_split[1] == "tales":
                 with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
-                    export_set[filekey] = json.load(f)
-                if "tales_report" not in export_material_set:
-                    export_material_set["tales_report"] = {}
-                export_material_set["tales_report"][filekeydiv[2]] = export_set[filekey]
+                    export_material_set["tales_report"][filekey_split[2]] = json.load(f)
 
-        del export_set
-        gc.collect()
+            else:
+                warnings.warn(
+                    f"Unknown filekey {filekey} in file index. "
+                    "This may be caused by the deprecated analysis module."
+                )
 
-        if "reports" in export_material_set:
-            mains = dict(export_material_set["reports"].items())
-            sides = {k: {} for k in export_material_set["reports"]}
-        else:
-            mains = {}
-            sides = {}
-        if "tales_report" in export_material_set:
-            for tk, tv in export_material_set["tales_report"].items():
-                for k, v in tv.items():
-                    if k not in sides:
-                        sides[k] = {}
-                        mains[k] = {}
-                    sides[k][tk] = v
-        del export_material_set
-        gc.collect()
+        mains = export_material_set["reports"]
+        sides = {rk: {} for rk in export_material_set["reports"]}
 
-        analysis_dict = {}
-        for k, v in mains.items():
-            analysis_dict[k] = cls.load(v, sides[k])
+        for tk, tv in export_material_set["tales_report"].items():
+            for rk, rv in tv.items():
+                if rk not in sides:
+                    sides[rk] = {}
+                sides[rk][tk] = rv
 
-        return analysis_dict
+        return {k: cls.load(v, sides[k]) for k, v in mains.items()}
