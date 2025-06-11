@@ -27,13 +27,13 @@ class EchoListenHadamardAnalysis(AnalysisPrototype[ELHAnalysisInput, ELHAnalysis
 
     __name__ = "ELHAnalysis"
 
-    @property
-    def input_instance(self) -> Type[ELHAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[ELHAnalysisInput]:
         """The input instance type."""
         return ELHAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[ELHAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[ELHAnalysisContent]:
         """The content instance type."""
         return ELHAnalysisContent
 

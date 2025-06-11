@@ -24,18 +24,18 @@ class EMHAnalysisContent(NamedTuple):
         return f"EMHAnalysisContent(purity={self.purity}, entropy={self.entropy}, and others)"
 
 
-class EntropyMeasureHadamardAnalysis(AnalysisPrototype):
+class EntropyMeasureHadamardAnalysis(AnalysisPrototype[EMHAnalysisInput, EMHAnalysisContent]):
     """The instance for the analysis of :cls:`EntropyHadamardExperiment`."""
 
     __name__ = "EMHAnalysis"
 
-    @property
-    def input_instance(self) -> Type[EMHAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[EMHAnalysisInput]:
         """The input instance type."""
         return EMHAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[EMHAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[EMHAnalysisContent]:
         """The content instance type."""
         return EMHAnalysisContent
 

@@ -39,13 +39,13 @@ class StringOperatorAnalysis(
 
     __name__ = "StringOperatorAnalysis"
 
-    @property
-    def input_instance(self) -> Type[StringOperatorAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[StringOperatorAnalysisInput]:
         """The input instance type."""
         return StringOperatorAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[StringOperatorAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[StringOperatorAnalysisContent]:
         """The content instance type."""
         return StringOperatorAnalysisContent
 

@@ -212,13 +212,13 @@ class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]
 
     __name__ = "SUAnalysis"
 
-    @property
-    def input_instance(self) -> Type[SUAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[SUAnalysisInput]:
         """The type of the input for the analysis."""
         return SUAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[SUAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[SUAnalysisContent]:
         """The type of the content for the analysis."""
         return SUAnalysisContent
 

@@ -50,13 +50,13 @@ class EchoListenRandomizedV1Analysis(AnalysisPrototype[ELRV1AnalysisInput, ELRV1
 
     __name__ = "ELRV1Analysis"
 
-    @property
-    def input_instance(self) -> Type[ELRV1AnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[ELRV1AnalysisInput]:
         """The input instance type."""
         return ELRV1AnalysisInput
 
-    @property
-    def content_instance(self) -> Type[ELRV1AnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[ELRV1AnalysisContent]:
         """The content instance type."""
         return ELRV1AnalysisContent
 

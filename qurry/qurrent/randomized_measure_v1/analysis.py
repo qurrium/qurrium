@@ -108,13 +108,13 @@ class EntropyMeasureRandomizedV1Analysis(
 
     __name__ = "EMRV1Analysis"
 
-    @property
-    def input_instance(self) -> Type[EMRV1AnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[EMRV1AnalysisInput]:
         """The input instance type."""
         return EMRV1AnalysisInput
 
-    @property
-    def content_instance(self) -> Type[EMRV1AnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[EMRV1AnalysisContent]:
         """The content instance type."""
         return EMRV1AnalysisContent
 

@@ -155,13 +155,13 @@ class EntropyMeasureRandomizedAnalysis(AnalysisPrototype[EMRAnalysisInput, EMRAn
 
     __name__ = "EMRAnalysis"
 
-    @property
-    def input_instance(self) -> Type[EMRAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[EMRAnalysisInput]:
         """The input instance type."""
         return EMRAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[EMRAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[EMRAnalysisContent]:
         """The content instance type."""
         return EMRAnalysisContent
 

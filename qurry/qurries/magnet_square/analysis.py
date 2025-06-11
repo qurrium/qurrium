@@ -41,13 +41,13 @@ class MagnetSquareAnalysis(
 
     __name__ = "MagnetSquareAnalysis"
 
-    @property
-    def input_instance(self) -> Type[MagnetSquareAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[MagnetSquareAnalysisInput]:
         """The input instance type."""
         return MagnetSquareAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[MagnetSquareAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[MagnetSquareAnalysisContent]:
         """The content instance type."""
         return MagnetSquareAnalysisContent
 

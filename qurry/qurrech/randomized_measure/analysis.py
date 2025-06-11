@@ -198,13 +198,13 @@ class EchoListenRandomizedAnalysis(AnalysisPrototype[ELRAnalysisInput, ELRAnalys
 
     __name__ = "ELRAnalysis"
 
-    @property
-    def input_instance(self) -> Type[ELRAnalysisInput]:
+    @classmethod
+    def input_type(cls) -> Type[ELRAnalysisInput]:
         """The input instance type."""
         return ELRAnalysisInput
 
-    @property
-    def content_instance(self) -> Type[ELRAnalysisContent]:
+    @classmethod
+    def content_type(cls) -> Type[ELRAnalysisContent]:
         """The content instance type."""
         return ELRAnalysisContent
 
