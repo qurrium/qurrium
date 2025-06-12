@@ -8,6 +8,8 @@
     - Formerly known as `qurtwistop`
 """
 
+from .samplingqurry import SamplingExecuter
+from .wavesqurry import WavesExecuter
 from .magnet_square import MagnetSquare
 from .string_operator import StringOperator
 
