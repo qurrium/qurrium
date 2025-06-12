@@ -5,9 +5,9 @@
 
 from typing import Literal, Union, overload
 
-from .hadamard_test import EchoListenHadamard, EchoListenHadamardOutputArgs
-from .randomized_measure import EchoListenRandomized, EchoListenRandomizedOutputArgs
-from .randomized_measure_v1 import EchoListenRandomizedV1, EchoListenRandomizedV1OutputArgs
+from .hadamard_test import EchoListenHadamard, EchoListenHadamardMeasureArgs
+from .randomized_measure import EchoListenRandomized, EchoListenRandomizedMeasureArgs
+from .randomized_measure_v1 import EchoListenRandomizedV1, EchoListenRandomizedV1MeasureArgs
 
 
 # pylint: disable=invalid-name

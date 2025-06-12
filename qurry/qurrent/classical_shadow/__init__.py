@@ -98,6 +98,6 @@ References:
 """
 
 from .analysis import ShadowUnveilAnalysis
-from .arguments import ShadowUnveilOutputArgs
+from .arguments import ShadowUnveilMeasureArgs
 from .experiment import ShadowUnveilExperiment
 from .qurry import ShadowUnveil

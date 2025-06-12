@@ -5,6 +5,6 @@ Formerly known as `qurmagsq`
 """
 
 from .analysis import MagnetSquareAnalysis
-from .arguments import MagnetSquareOutputArgs
+from .arguments import MagnetSquareMeasureArgs
 from .experiment import MagnetSquareExperiment
 from .qurry import MagnetSquare
