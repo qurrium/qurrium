@@ -8,10 +8,10 @@
     - Formerly known as `qurtwistop`
 """
 
-from .samplingqurry import SamplingExecuter
-from .wavesqurry import WavesExecuter
-from .magnet_square import MagnetSquare
-from .string_operator import StringOperator
+from .samplingqurry import SamplingExecuter, SamplingExecuterOutputArgs
+from .wavesqurry import WavesExecuter, WavesExecuterOutputArgs
+from .magnet_square import MagnetSquare, MagnetSquareOutputArgs
+from .string_operator import StringOperator, StringOperatorOutputArgs
 
 # from .twisted_operator import TwistedOperator
 # from .position_distribution import PositionDistribution

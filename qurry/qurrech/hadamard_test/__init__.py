@@ -4,5 +4,6 @@
 """
 
 from .analysis import EchoListenHadamardAnalysis
+from .arguments import EchoListenHadamardOutputArgs
 from .experiment import EchoListenHadamardExperiment
 from .qurry import EchoListenHadamard

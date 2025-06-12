@@ -4,5 +4,6 @@
 """
 
 from .experiment import EntropyMeasureRandomizedExperiment
+from .arguments import EntropyMeasureRandomizedOutputArgs
 from .analysis import EntropyMeasureRandomizedAnalysis
 from .qurry import EntropyMeasureRandomized

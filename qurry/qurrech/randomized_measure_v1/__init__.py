@@ -4,5 +4,6 @@
 """
 
 from .experiment import EchoListenRandomizedV1Experiment
+from .arguments import EchoListenRandomizedV1OutputArgs
 from .analysis import EchoListenRandomizedV1Analysis
 from .qurry import EchoListenRandomizedV1
