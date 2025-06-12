@@ -10,7 +10,7 @@ from .utils import AvailableStringOperatorTypes
 from ...qurrium.analysis import AnalysisPrototype
 
 
-class StringOperatorAnalysisInput(NamedTuple):
+class SOAnalysisInput(NamedTuple):
     """To set the analysis."""
 
     num_qubits: int
@@ -25,29 +25,27 @@ class StringOperatorAnalysisInput(NamedTuple):
     """The number of shots."""
 
 
-class StringOperatorAnalysisContent(NamedTuple):
+class SOAnalysisContent(NamedTuple):
     """The content of the analysis."""
 
     order: Optional[Union[float, np.float64]] = None
     """The order of the string operator."""
 
 
-class StringOperatorAnalysis(
-    AnalysisPrototype[StringOperatorAnalysisInput, StringOperatorAnalysisContent]
-):
+class StringOperatorAnalysis(AnalysisPrototype[SOAnalysisInput, SOAnalysisContent]):
     """The container for the analysis of :cls:`StringOperatorExperiment`."""
 
-    __name__ = "StringOperatorAnalysis"
+    __name__ = "SOAnalysis"
 
     @classmethod
-    def input_type(cls) -> Type[StringOperatorAnalysisInput]:
+    def input_type(cls) -> Type[SOAnalysisInput]:
         """The input instance type."""
-        return StringOperatorAnalysisInput
+        return SOAnalysisInput
 
     @classmethod
-    def content_type(cls) -> Type[StringOperatorAnalysisContent]:
+    def content_type(cls) -> Type[SOAnalysisContent]:
         """The content instance type."""
-        return StringOperatorAnalysisContent
+        return SOAnalysisContent
 
     @property
     def side_product_fields(self) -> Iterable[str]:

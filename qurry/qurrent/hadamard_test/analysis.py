@@ -21,7 +21,7 @@ class EMHAnalysisContent(NamedTuple):
     """The entanglement entropy of the system."""
 
     def __repr__(self):
-        return f"EMHAnalysisContent(purity={self.purity}, entropy={self.entropy}, and others)"
+        return f"EMHAnalysisContent(purity={self.purity}, entropy={self.entropy})"
 
 
 class EntropyMeasureHadamardAnalysis(AnalysisPrototype[EMHAnalysisInput, EMHAnalysisContent]):

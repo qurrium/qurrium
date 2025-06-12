@@ -18,9 +18,6 @@ class ELHAnalysisContent(NamedTuple):
     echo: float
     """The purity of the system."""
 
-    def __repr__(self):
-        return f"ELHAnalysisContent(echo={self.echo}, and others)"
-
 
 class EchoListenHadamardAnalysis(AnalysisPrototype[ELHAnalysisInput, ELHAnalysisContent]):
     """The analysis for calculating entangled entropy with more information combined."""
