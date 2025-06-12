@@ -51,18 +51,20 @@ try:
     def prediction_einsum_aij_bji_to_ab_jax(
         given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
         estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    ) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+    ) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
         """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
 
-        Args:
-            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
-                The given operators.
-            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
-                The estimators.
+            Args:
+                given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                    The given operators.
+                estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                    The estimators.
 
         Returns:
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-                The prediction of given operators.
+            tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+                A tuple containing:
+                - A list of median values for each given operator.
+                - A list of the corresponding median estimators for each given operator.
         """
         candidate_esitmators_foreach_given_operator = jnp.einsum(
             "aij,bji->ab", given_operators, estimators
@@ -77,7 +79,7 @@ try:
             axis=1,
         )
 
-        return [
+        return list(median_foreach_given_operator), [
             np.array(candidate_esitmators_foreach_given_operator[i, j], dtype=np.complex128)
             for i, j in enumerate(median_location_given_operator)
         ]  # type: ignore
@@ -116,7 +118,7 @@ except ImportError as err:
     def prediction_einsum_aij_bji_to_ab_jax(
         given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
         estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    ) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+    ) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
         """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
 
         Args:
@@ -126,8 +128,10 @@ except ImportError as err:
                 The estimators.
 
         Returns:
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-                The prediction of given operators.
+            tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+                A tuple containing:
+                - A list of median values for each given operator.
+                - A list of the corresponding median estimators for each given operator.
         """
         raise PostProcessingThirdPartyImportError(
             "JAX is not available, using numpy to calculate prediction_einsum_aij_bji_to_ab."
@@ -370,7 +374,7 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
 def prediction_einsum_aij_bji_to_ab_numpy(
     given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
     estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-) -> list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
+) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
     """Calculate the prediction of given operators by einsum_aij_bji_to_ab_numpy.
 
     Args:
@@ -380,8 +384,10 @@ def prediction_einsum_aij_bji_to_ab_numpy(
             The estimators.
 
     Returns:
-        list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]:
-            The prediction of given operators.
+        tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+            A tuple containing:
+            - A list of median values for each given operator.
+            - A list of the corresponding median estimators for each given operator.
     """
     candidate_esitmators_foreach_given_operator = np.einsum(
         "aij,bji->ab", given_operators, estimators
@@ -394,7 +400,7 @@ def prediction_einsum_aij_bji_to_ab_numpy(
         axis=1,
     )
 
-    return [
+    return list(median_foreach_given_operator), [
         candidate_esitmators_foreach_given_operator[i, j]
         for i, j in enumerate(median_location_given_operator)
     ]
@@ -407,7 +413,7 @@ def select_prediction_einsum_aij_bji_to_ab(
         np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
         np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
     ],
-    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]],
 ]:
     """Select the method to calculate the prediction of given operators.
 
@@ -420,16 +426,16 @@ def select_prediction_einsum_aij_bji_to_ab(
         Callable[[
             np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
             np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]
-        ], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+        ], tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]]:
             The function to calculate the prediction of given operators.
     """
-    if method == "jax":
+    if method == "einsum_aij_bji_to_ab_jax":
         if JAX_AVAILABLE:
             return prediction_einsum_aij_bji_to_ab_jax
         warnings.warn(
             "JAX is not available, using numpy to calculate prediction.",
             PostProcessingThirdPartyUnavailableWarning,
         )
-    if method != "numpy":
+    if method != "einsum_aij_bji_to_ab_numpy":
         raise ValueError(f"Invalid backend: {method}")
     return prediction_einsum_aij_bji_to_ab_numpy

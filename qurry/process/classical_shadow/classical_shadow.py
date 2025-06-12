@@ -382,10 +382,13 @@ def esitimation_of_given_operators(
 
     (
         estimate_of_given_operators,
+        corresponding_rhos,
         actual_accuracy_prob_comp_delta,
         num_of_estimators,
         accuracy_predict_epsilon,
         max_shadow_norm,
+        epsilon_upperbound,
+        shadow_norm_upperbound,
     ) = prediction_algorithm(
         classical_snapshots_rho=average_classical_snapshots_rho,
         given_operators=given_operators,
@@ -400,10 +403,13 @@ def esitimation_of_given_operators(
         taking_time=taken,
         # esitimation of given operators
         estimate_of_given_operators=estimate_of_given_operators,
+        corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
         num_of_estimators_k=num_of_estimators,
         accuracy_predict_epsilon=accuracy_predict_epsilon,
-        maximum_shadow_norm=max_shadow_norm,
+        max_shadow_norm=max_shadow_norm,
+        epsilon_upperbound=epsilon_upperbound,
+        shadow_norm_upperbound=shadow_norm_upperbound,
     )
 
 
@@ -610,28 +616,42 @@ def classical_shadow_complex(
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
 
     if given_operators is None or len(given_operators) == 0:
-        (
-            estimate_of_given_operators,
-            actual_accuracy_prob_comp_delta,
-            num_of_estimators,
-            accuracy_predict_epsilon,
-            max_shadow_norm,
-        ) = ([], np.nan, 0, np.nan, np.nan)
-    else:
-        (
-            estimate_of_given_operators,
-            actual_accuracy_prob_comp_delta,
-            num_of_estimators,
-            accuracy_predict_epsilon,
-            max_shadow_norm,
-        ) = prediction_algorithm(
-            classical_snapshots_rho=average_classical_snapshots_rho,
-            given_operators=given_operators,
-            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
-            max_shadow_norm=max_shadow_norm,
-            trace_method=estimate_trace_method,
+        return ClassicalShadowComplex(
+            average_classical_snapshots_rho=average_classical_snapshots_rho,
+            classical_registers_actually=selected_classical_registers_sorted,
+            taking_time=taken,
+            # The mean of Rho
+            mean_of_rho=expect_rho,
+            # The trace of Rho square
+            purity=trace_rho_sum_real,
+            entropy=entropy,
+            # esitimation of given operators
+            estimate_of_given_operators=[],
+            corresponding_rhos=[],
+            accuracy_prob_comp_delta=np.nan,
+            num_of_estimators_k=0,
+            accuracy_predict_epsilon=np.nan,
+            max_shadow_norm=np.nan,
+            epsilon_upperbound=np.nan,
+            shadow_norm_upperbound=np.nan,
         )
 
+    (
+        estimate_of_given_operators,
+        corresponding_rhos,
+        actual_accuracy_prob_comp_delta,
+        num_of_estimators,
+        accuracy_predict_epsilon,
+        max_shadow_norm,
+        epsilon_upperbound,
+        shadow_norm_upperbound,
+    ) = prediction_algorithm(
+        classical_snapshots_rho=average_classical_snapshots_rho,
+        given_operators=given_operators,
+        accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+        max_shadow_norm=max_shadow_norm,
+        trace_method=estimate_trace_method,
+    )
     return ClassicalShadowComplex(
         average_classical_snapshots_rho=average_classical_snapshots_rho,
         classical_registers_actually=selected_classical_registers_sorted,
@@ -643,8 +663,11 @@ def classical_shadow_complex(
         entropy=entropy,
         # esitimation of given operators
         estimate_of_given_operators=estimate_of_given_operators,
+        corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
         num_of_estimators_k=num_of_estimators,
         accuracy_predict_epsilon=accuracy_predict_epsilon,
-        maximum_shadow_norm=max_shadow_norm,
+        max_shadow_norm=max_shadow_norm,
+        epsilon_upperbound=epsilon_upperbound,
+        shadow_norm_upperbound=shadow_norm_upperbound,
     )

@@ -46,8 +46,10 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     """
 
-    estimate_of_given_operators: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
-    r"""The result of measurement primitive :math:`\mathcal{U}`."""
+    estimate_of_given_operators: list[np.complex128]
+    r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
+    corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
+    r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`."""
     # The accuracy of estimation
     accuracy_prob_comp_delta: float
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
@@ -105,9 +107,8 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: float
-    r"""The maximum shadow norm, which is defined in the supplementary material 
-    with value between 0 and 1.
+    max_shadow_norm: float
+    r"""The maximum shadow norm, which is defined in the supplementary material.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
     from the equation (S13) in the supplementary material.
 
@@ -120,15 +121,44 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     where :math:`\epsilon` is the prediction of accuracy,
     and :math:`M` is the number of given operatorsm
     and :math:`N` is the number of classical snapshots.
-    The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
-    which is defined in the supplementary material with value between 0 and 1.
+    The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm.
 
-    Due to maximum shadow norm is complex and it is a norm,
-    we suppose we have the worst case scenario,
-    where the maximum shadow norm is 1 as default.
-    Thus, we can simplify the equation to:
+    Due to its calculation is complex, we curently use the value of np.nan
+    to represent the maximum shadow norm.
+    """
+    epsilon_upperbound: float
+    r"""The upper bound of the prediction of accuracy, 
+    which used the notation :math:`\epsilon`
+    and mentioned in Theorem S1 in the supplementary material,
+    the equation (S13) in the supplementary material.
+
     .. math::
-        N = \frac{34}{\epsilon^2}
+        || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+    where :math:`O` is the any operator, and :math:`n` is the number of qubits,
+
+    So we set the shadow norm as follows,
+    .. math::
+        \chi = || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}} \\
+        \chi_{\infty} = 4^n || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\infty}^2 \\
+        \chi^2 \leq \chi_{\infty}
+    and we can simplify the equation to:
+    .. math::
+        N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi^2 
+            \leq \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi_{\infty}^2
+    Then get:
+    .. math::
+        \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
+    """
+    shadow_norm_upperbound: float
+    r"""The largest shadow norm upper bound is defined as follows,
+    .. math::
+        || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+    where :math:`O` is the operator, and :math:`n` is the number of qubits,
+    which mentioned in the paper at Theorem 1 (informal version).
+
+    This is the worst scenario of the shadow norm
+    for its scaling can be reduced to :math:`3^n || O ||_{\infty}^2`,
+    which is the significantly lower bound than the worst case scenario.
     """
 
 

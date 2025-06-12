@@ -354,7 +354,16 @@ def prediction_algorithm(
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-) -> tuple[list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]], float, int, float, float]:
+) -> tuple[
+    list[np.complex128],
+    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    float,
+    int,
+    float,
+    float,
+    float,
+    float,
+]:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
     Args:
@@ -379,9 +388,28 @@ def prediction_algorithm(
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
     Returns:
-        tuple[list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]], float, int, float, float]:
-            The estimate of given operators, the actual accuracy probability component delta,
-            the number of estimators, the accuracy prediction epsilon, and the maximum shadow norm.
+        tuple[
+            list[np.complex128],
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+            float, int, float, float, float, float
+        ]:
+            - estimate_of_given_operators: list[np.complex128]
+                The esitmation values of measurement primitive :math:`\mathcal{U}`.
+            - corresponding_rhos: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+                The corresponding rho of measurement primitive :math:`\mathcal{U}`.
+            - actual_accuracy_prob_comp_delta: float
+                The actual accuracy probability component delta,
+            - num_of_estimators: int
+                The number of esitmators
+            - accuracy_predict_epsilon: float
+                The prediction of accuracy
+            - max_shadow_norm: float
+                The maximum shadow norm
+            - epsilon_upperbound: float
+                The upper bound of the prediction of accuracy epsilon
+            - shadow_norm_upperbound: float
+                The upper bound of the shadow norm
+    Raises:
     """
     num_classical_snapshot = len(classical_snapshots_rho)
     shape_of_classical_snapshots = next(iter(classical_snapshots_rho.values())).shape
@@ -397,14 +425,17 @@ def prediction_algorithm(
             "the number of given operators must be greater than 0."
         )
 
+    epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
+        num_classical_snapshot, given_operators
+    )
     if max_shadow_norm is not None:
         accuracy_predict_epsilon = accuracy_predict_epsilon_calc(
             num_classical_snapshot, max_shadow_norm
         )
     else:
-        accuracy_predict_epsilon, max_shadow_norm = worst_accuracy_predict_epsilon_calc(
-            num_classical_snapshot, given_operators
-        )
+        accuracy_predict_epsilon = epsilon_upperbound
+        max_shadow_norm = np.nan
+
     num_of_estimators, actual_accuracy_prob_comp_delta = num_of_esitmator_calc(
         num_classical_snapshot, num_of_given_operators, accuracy_prob_comp_delta
     )
@@ -421,13 +452,16 @@ def prediction_algorithm(
         ]
     )  # type: ignore
     prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
-    estimate_of_given_operators = prediction_einsum_aij_bji_to_ab(
+    estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
         np.array(given_operators), estimators  # type: ignore
     )
     return (
         estimate_of_given_operators,
+        corresponding_rhos,
         actual_accuracy_prob_comp_delta,
         num_of_estimators,
         accuracy_predict_epsilon,
         max_shadow_norm,
+        epsilon_upperbound,
+        shadow_norm_upperbound,
     )
