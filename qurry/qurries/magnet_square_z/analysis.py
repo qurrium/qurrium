@@ -15,14 +15,12 @@ class ZDirMSAnalysisContent(NamedTuple):
 
     magnet_square: Union[float, np.float64]
     """Magnetic Square."""
-    magnet_square_cells: Union[dict[int, np.float64], dict[int, np.float64]]
-    """Magnetic Square cells."""
     num_qubits: int
     """The number of qubits."""
     shots: int
     """The number of shots."""
-    counts_num: Optional[int] = None
-    """Number of counts."""
+    magnet_square_cells: Union[dict[int, np.float64], dict[int, np.float64]]
+    """Magnetic Square cells."""
     taking_time: Optional[float] = None
     """Taking time."""
 

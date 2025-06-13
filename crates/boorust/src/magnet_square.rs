@@ -27,7 +27,7 @@ pub fn magnetic_square_core_rust(
     shots: i32,
     counts: Vec<HashMap<String, i32>>,
     num_qubits: i32,
-) -> (f64, HashMap<i32, f64>, usize, f64) {
+) -> (f64, HashMap<i32, f64>, f64) {
     let sample_shots: i32 = counts[0].values().sum();
     assert_eq!(
         shots, sample_shots,
@@ -55,7 +55,7 @@ pub fn magnetic_square_core_rust(
 
     let taken = begin.elapsed().as_secs_f64();
 
-    (magnetsq, magnetsq_cell_dict, counts.len(), taken)
+    (magnetsq, magnetsq_cell_dict, taken)
 }
 
 #[pyfunction]
@@ -64,17 +64,12 @@ pub fn z_dir_magnetic_square_core_rust(
     shots: i32,
     single_counts: HashMap<String, i32>,
     num_qubits: i32,
-) -> (f64, HashMap<i32, f64>, usize, f64) {
+) -> (f64, HashMap<i32, f64>, f64) {
     let sample_shots: i32 = single_counts.values().sum();
     assert_eq!(
         shots, sample_shots,
         "shots {} does not match sample_shots {}",
         shots, sample_shots
-    );
-    assert!(
-        single_counts.keys().all(|bits| bits.len() == 2),
-        "Bits must be 2-bit strings, but found: {:?}",
-        single_counts
     );
 
     let begin = Instant::now();
@@ -107,5 +102,5 @@ pub fn z_dir_magnetic_square_core_rust(
 
     let taken = begin.elapsed().as_secs_f64();
 
-    (magnetsq, magnetsq_cell_dict, permutations.len(), taken)
+    (magnetsq, magnetsq_cell_dict, taken)
 }

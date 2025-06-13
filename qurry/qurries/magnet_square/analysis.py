@@ -16,16 +16,14 @@ class MSAnalysisContent(NamedTuple):
 
     magnet_square: Union[float, np.float64]
     """Magnetic Square."""
-    magnet_square_cells: Union[dict[int, np.float64], dict[int, np.float64]]
-    """Magnetic Square cells."""
     num_qubits: int
     """The number of qubits."""
     shots: int
     """The number of shots."""
     unitary_operator: Union[str, npt.NDArray[np.float64], npt.NDArray[np.complex128]]
     """The numpy array of the unitary operator or a string representing the axis of rotation."""
-    counts_num: Optional[int] = None
-    """Number of counts."""
+    magnet_square_cells: Union[dict[int, np.float64], dict[int, np.float64]]
+    """Magnetic Square cells."""
     taking_time: Optional[float] = None
     """Taking time."""
 

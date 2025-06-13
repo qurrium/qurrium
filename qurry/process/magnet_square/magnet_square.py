@@ -18,8 +18,6 @@ class MagnetSquare(TypedDict):
     """Magnetization Square."""
     magnet_square_cells: Union[dict[int, float], dict[int, np.float64]]
     """Magnetization Square cells."""
-    counts_num: int
-    """Number of counts."""
     taking_time: float
     """Taking time."""
 
@@ -46,7 +44,7 @@ def magnet_square(
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description("Magnetization Square being calculated.")
 
-    (magsq, magnet_square_cells, counts_num, taking_time) = magnetic_square_core(
+    magsq, magnet_square_cells, taking_time = magnetic_square_core(
         shots=shots, counts=counts, num_qubits=num_qubits, backend=backend
     )
     if isinstance(pbar, tqdm.tqdm):
@@ -55,7 +53,6 @@ def magnet_square(
     return {
         "magnet_square": magsq,
         "magnet_square_cells": magnet_square_cells,
-        "counts_num": counts_num,
         "taking_time": taking_time,
     }
 
@@ -84,7 +81,7 @@ def z_dir_magnet_square(
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description("Z Direction Magnetization Square being calculated.")
 
-    (magsq, magnet_square_cells, counts_num, taking_time) = z_dir_magnetic_square_core(
+    magsq, magnet_square_cells, taking_time = z_dir_magnetic_square_core(
         shots=shots, single_counts=single_counts, num_qubits=num_qubits, backend=backend
     )
 
@@ -96,6 +93,5 @@ def z_dir_magnet_square(
     return {
         "magnet_square": magsq,
         "magnet_square_cells": magnet_square_cells,
-        "counts_num": counts_num,
         "taking_time": taking_time,
     }
