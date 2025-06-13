@@ -1,4 +1,4 @@
-"""Post Processing - Magnetic Square - Magnetic Square
+"""Post Processing - Magnetization Square - Magnetization Square
 (:mod:`qurry.process.magnet_square.magnet_square`)
 
 """
