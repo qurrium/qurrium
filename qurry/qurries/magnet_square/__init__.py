@@ -1,5 +1,4 @@
-"""MagnetSquare - Magnetic Square
-(:mod:`qurry.qurries.magnet_square`)
+"""MagnetSquare - Magnetization Square on Specific Direction (:mod:`qurry.qurries.magnet_square`)
 
 Formerly known as `qurmagsq`
 """

@@ -31,7 +31,7 @@ class ZDirMSAnalysisContent(NamedTuple):
 
 
 class ZDirMagnetSquareAnalysis(AnalysisPrototype[ZDirMSAnalysisInput, ZDirMSAnalysisContent]):
-    """The container for the analysis of :cls:`MagnetSquareExperiment`."""
+    """The container for the analysis of :cls:`ZDirMagnetSquareExperiment`."""
 
     __name__ = "ZDirMSAnalysis"
 

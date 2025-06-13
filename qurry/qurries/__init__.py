@@ -1,7 +1,6 @@
 """Qurries - Other Qurrium Modules (:mod:`qurry.qurries`)
 
-- MagnetSquare - Magnetic Square (Not Test yet)
-    - Formerly known as `qurmagsq`
+
 - StringOperator - String Operator (Not Test yet)
     - Formerly known as `qurstrop`
 - TwistedOperator - Twisted Operator (Proposal)

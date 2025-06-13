@@ -1,13 +1,12 @@
-"""MagnetSquare - Arguments
-(:mod:`qurry.qurries.magnet_square.arguments`)
+"""MagnetSquare - Arguments (:mod:`qurry.qurries.magnet_square.arguments`)"""
 
-"""
-
-from typing import Optional, Union
+from typing import Optional, Union, Literal
 from collections.abc import Hashable
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
+from qiskit.circuit import Gate
+from qiskit.quantum_info import Operator
 
 from ...qurrium.experiment import ArgumentsPrototype
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
@@ -24,6 +23,10 @@ class MagnetSquareArguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     num_qubits: int = 0
     """The number of qubits."""
+    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z"
+    """The unitary operator to apply.
+    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
 
 
 class MagnetSquareMeasureArgs(BasicArgs, total=False):
@@ -31,10 +34,19 @@ class MagnetSquareMeasureArgs(BasicArgs, total=False):
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
+    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
+    """The unitary operator to apply.
+    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
 
 
 class MagnetSquareOutputArgs(OutputArgs):
     """Output arguments for :meth:`output`."""
+
+    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
+    """The unitary operator to apply.
+    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
 
 
 class MagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):

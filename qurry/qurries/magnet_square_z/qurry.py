@@ -27,7 +27,7 @@ class ZDirMagnetSquare(
         ZDirMagnetSquareAnalyzeArgs,
     ]
 ):
-    """Z Direction Magnetic Square Qurry."""
+    """Z Direction Magnetization Square Qurry."""
 
     __name__ = "ZDirMagnetSquare"
     short_name = SHORT_NAME

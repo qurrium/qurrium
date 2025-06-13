@@ -38,4 +38,4 @@ class ZDirMagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of the analyze method."""
 
 
-SHORT_NAME = "qurries_magnet_square"
+SHORT_NAME = "qurries_magnet_square_zdir"
