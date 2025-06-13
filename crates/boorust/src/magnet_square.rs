@@ -60,7 +60,7 @@ pub fn magnetic_square_core_rust(
 
 #[pyfunction]
 #[pyo3(signature = (shots, single_counts, num_qubits))]
-pub fn z_dir_magnetic_square_core(
+pub fn z_dir_magnetic_square_core_rust(
     shots: i32,
     single_counts: HashMap<String, i32>,
     num_qubits: i32,
