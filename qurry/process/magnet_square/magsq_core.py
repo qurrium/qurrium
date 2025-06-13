@@ -170,7 +170,7 @@ def z_dir_magnetic_square_core(
 
     if backend == "Rust":
         if RUST_AVAILABLE:
-            return magnetic_square_core_rust_source(shots, single_counts, num_qubits)
+            return z_dir_magnetic_square_core_rust_source(shots, single_counts, num_qubits)
         warnings.warn(
             PostProcessingRustUnavailableWarning(
                 "Rust is not available, using python to calculate magnetic square."
