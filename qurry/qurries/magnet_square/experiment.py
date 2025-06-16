@@ -24,7 +24,7 @@ from ...tools import ParallelManager, set_pbar_description
 class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSquareAnalysis]):
     """The instance of experiment."""
 
-    __name__ = "EntropyMeasureRandomizedExperiment"
+    __name__ = "MagnetSquareExperiment"
 
     @property
     def arguments_instance(self) -> Type[MagnetSquareArguments]:
@@ -162,13 +162,6 @@ class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSq
             MagnetSquareAnalysis: The result of the analysis.
         """
 
-        qs = self.quantities(
-            shots=self.commons.shots,
-            counts=self.afterwards.counts,
-            num_qubits=self.args.num_qubits,
-            pbar=pbar,
-        )
-
         unitary_operator = self.args.unitary_operator
         if isinstance(unitary_operator, str):
             unitary_operator_converted = unitary_operator
@@ -177,10 +170,19 @@ class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSq
         else:
             unitary_operator_converted = np.array(unitary_operator, dtype=np.complex128)
 
+        qs = self.quantities(
+            shots=self.commons.shots,
+            counts=self.afterwards.counts,
+            num_qubits=self.args.num_qubits,
+            unitary_operator=unitary_operator_converted,
+            pbar=pbar,
+        )
+
         serial = len(self.reports)
         analysis = self.analysis_instance(
             serial=serial,
             shots=self.commons.shots,
+            num_qubits=self.args.num_qubits,
             unitary_operator=unitary_operator_converted,
             **qs,
         )

@@ -20,7 +20,7 @@ class ZDirMagnetSquareExperiment(
 ):
     """The instance of experiment."""
 
-    __name__ = "ZDirMagnetSquareExperimentt"
+    __name__ = "ZDirMagnetSquareExperiment"
 
     @property
     def arguments_instance(self) -> Type[ZDirMagnetSquareArguments]:

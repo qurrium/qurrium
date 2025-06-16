@@ -7,10 +7,6 @@ import sys
 
 from .qurrech import EchoListen, WaveFunctionOverlap
 from .qurrent import EntropyMeasure, ShadowUnveil
-
-# from .qurmagsq import MagnetSquare
-# from .qurstrop import StringOperator
-
 from .qurries import WavesExecuter, SamplingExecuter, MagnetSquare, ZDirMagnetSquare, StringOperator
 
 from .tools import (
