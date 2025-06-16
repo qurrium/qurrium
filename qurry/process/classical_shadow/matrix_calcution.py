@@ -69,10 +69,10 @@ try:
         candidate_esitmators_foreach_given_operator = jnp.einsum(
             "aij,bji->ab", given_operators, estimators
         )
-        median_foreach_given_operator = jnp.median(
+        median_foreach_given_operator = np.median(
             candidate_esitmators_foreach_given_operator, axis=1
         )
-        median_location_given_operator = jnp.argmin(
+        median_location_given_operator = np.argmin(
             np.abs(
                 candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
             ),

@@ -100,8 +100,12 @@ class SUAnalysisContent(NamedTuple):
     entropy: float
     """The entropy calculated by classical shadow."""
     # esitimation of given operators
+    median_of_estimate: np.complex128
+    r"""The median of the estimation values of measurement primitive :math:`\mathcal{U}`."""
     estimate_of_given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     r"""The result of measurement primitive :math:`\mathcal{U}`."""
+    corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
+    r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`."""
     accuracy_prob_comp_delta: float
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
     and mentioned in Theorem S1 in the supplementary material,
@@ -199,7 +203,9 @@ NEW_FIELDS_DEFAULTS = {
     "taking_time": 0.0,
     "purity": np.nan,
     "entropy": np.nan,
+    "median_of_estimate": np.complex128(0),
     "estimate_of_given_operators": [],
+    "corresponding_rhos": [],
     "accuracy_prob_comp_delta": np.nan,
     "num_of_estimators_k": 0,
     "accuracy_predict_epsilon": np.nan,
@@ -254,4 +260,4 @@ class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]
     @property
     def side_product_fields(self) -> Iterable[str]:
         """The fields that will be stored as side product."""
-        return ["average_classical_snapshots_rho"]
+        return ["average_classical_snapshots_rho", "corresponding_rhos"]

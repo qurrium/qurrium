@@ -299,7 +299,7 @@ def esitimation_of_given_operators(
     # estimation of given operators
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
-    max_shadow_norm: float = 1.0,
+    max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
@@ -335,8 +335,10 @@ def esitimation_of_given_operators(
             The list of the operators to estimate.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
-        max_shadow_norm (float, optional):
-            The maximum shadow norm. Defaults to 1.
+        max_shadow_norm (Optional[float], optional):
+            The maximum shadow norm. Defaults to None.
+            If it is None, it will be calculated by the largest shadow norm upper bound.
+            If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
         rho_method (RhoMCoreMethod, optional):
@@ -381,6 +383,7 @@ def esitimation_of_given_operators(
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
 
     (
+        median_of_estimate,
         estimate_of_given_operators,
         corresponding_rhos,
         actual_accuracy_prob_comp_delta,
@@ -402,12 +405,13 @@ def esitimation_of_given_operators(
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
         # esitimation of given operators
+        median_of_estimate=median_of_estimate,
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
         num_of_estimators_k=num_of_estimators,
         accuracy_predict_epsilon=accuracy_predict_epsilon,
-        max_shadow_norm=max_shadow_norm,
+        maximum_shadow_norm=max_shadow_norm,
         epsilon_upperbound=epsilon_upperbound,
         shadow_norm_upperbound=shadow_norm_upperbound,
     )
@@ -421,7 +425,7 @@ def classical_shadow_complex(
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
-    max_shadow_norm: float = 1.0,
+    max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
@@ -538,8 +542,10 @@ def classical_shadow_complex(
             The list of the operators to estimate. Defaults to None.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
-        max_shadow_norm (float, optional):
-            The maximum shadow norm. Defaults to 1.
+        max_shadow_norm (Optional[float], optional):
+            The maximum shadow norm. Defaults to None.
+            If it is None, it will be calculated by the largest shadow norm upper bound.
+            If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
         rho_method (RhoMCoreMethod, optional):
@@ -626,17 +632,19 @@ def classical_shadow_complex(
             purity=trace_rho_sum_real,
             entropy=entropy,
             # esitimation of given operators
+            median_of_estimate=np.complex128(0),
             estimate_of_given_operators=[],
             corresponding_rhos=[],
             accuracy_prob_comp_delta=np.nan,
             num_of_estimators_k=0,
             accuracy_predict_epsilon=np.nan,
-            max_shadow_norm=np.nan,
+            maximum_shadow_norm=np.nan,
             epsilon_upperbound=np.nan,
             shadow_norm_upperbound=np.nan,
         )
 
     (
+        median_of_estimate,
         estimate_of_given_operators,
         corresponding_rhos,
         actual_accuracy_prob_comp_delta,
@@ -662,12 +670,13 @@ def classical_shadow_complex(
         purity=trace_rho_sum_real,
         entropy=entropy,
         # esitimation of given operators
+        median_of_estimate=median_of_estimate,
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
         num_of_estimators_k=num_of_estimators,
         accuracy_predict_epsilon=accuracy_predict_epsilon,
-        max_shadow_norm=max_shadow_norm,
+        maximum_shadow_norm=max_shadow_norm,
         epsilon_upperbound=epsilon_upperbound,
         shadow_norm_upperbound=shadow_norm_upperbound,
     )

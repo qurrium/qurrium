@@ -46,6 +46,8 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     """
 
+    median_of_estimate: np.complex128
+    r"""The median of the estimation values of measurement primitive :math:`\mathcal{U}`."""
     estimate_of_given_operators: list[np.complex128]
     r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
     corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
@@ -107,7 +109,7 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    max_shadow_norm: float
+    maximum_shadow_norm: float
     r"""The maximum shadow norm, which is defined in the supplementary material.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
     from the equation (S13) in the supplementary material.
