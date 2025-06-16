@@ -1,9 +1,4 @@
-"""
-================================================================
-Setup Script for Qurry
-================================================================
-
-"""
+"""Setup Script for Qurrium"""
 
 from setuptools import setup
 from setuptools_rust import Binding, RustExtension
