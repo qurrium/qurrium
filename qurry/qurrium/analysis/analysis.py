@@ -91,7 +91,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         if len(lost_fields) > 0:
             raise QurryInvalidInherition(
                 f"{self.__name__} should have all fields in "
-                f"{self.input_instance} and {self.content_instance}, "
+                f"{self.input_instance.__name__} and {self.content_instance.__name__}, "
                 f"but lost fields: {lost_fields}."
             )
         self.input: _RI = self.input_instance._make(

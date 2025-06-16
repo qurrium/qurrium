@@ -166,7 +166,7 @@ class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSq
         if isinstance(unitary_operator, str):
             unitary_operator_converted = unitary_operator
         elif isinstance(unitary_operator, (Operator, Gate)):
-            unitary_operator_converted = np.array(unitary_operator.to_matrix())
+            unitary_operator_converted = np.array(unitary_operator.to_matrix(), dtype=np.complex128)
         else:
             unitary_operator_converted = np.array(unitary_operator, dtype=np.complex128)
 
