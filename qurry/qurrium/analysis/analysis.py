@@ -83,6 +83,17 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         self.datetime = current_time() if datatime is None else datatime
         self.log = log if isinstance(log, dict) else {}
 
+        lost_fields = [
+            k
+            for k in self.input_instance._fields + self.content_instance._fields
+            if k not in other_kwargs
+        ]
+        if len(lost_fields) > 0:
+            raise QurryInvalidInherition(
+                f"{self.__name__} should have all fields in "
+                f"{self.input_instance} and {self.content_instance}, "
+                f"but lost fields: {lost_fields}."
+            )
         self.input: _RI = self.input_instance._make(
             other_kwargs.pop(k) for k in self.input_instance._fields
         )
