@@ -3,7 +3,6 @@
 from typing import Optional, NamedTuple, Iterable, Any, Generic, TypeVar, Type
 from abc import abstractmethod
 from pathlib import Path
-import warnings
 import json
 
 
@@ -295,12 +294,6 @@ class AnalysisPrototype(Generic[_RI, _RC]):
             elif filekey_split[0] == "reports" and filekey_split[1] == "tales":
                 with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
                     export_material_set["tales_report"][filekey_split[2]] = json.load(f)
-
-            else:
-                warnings.warn(
-                    f"Unknown filekey {filekey} in file index. "
-                    "This may be caused by the deprecated analysis module."
-                )
 
         mains = export_material_set["reports"]
         sides = {rk: {} for rk in export_material_set["reports"]}
