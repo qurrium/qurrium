@@ -2,8 +2,8 @@
 
 from typing import Union
 import os
-import pytest
 from itertools import combinations
+import pytest
 import numpy as np
 
 from qurry.capsule import quickRead

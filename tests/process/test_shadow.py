@@ -130,29 +130,9 @@ def test_shadow(shadow_case: ShadowCase):
                 trace_method=trace_method,
             )
             result[rho_method + "." + trace_method] = {
-                "expect_rho_trace": np.trace(tmp["expect_rho"]),
+                "expect_rho_trace": np.trace(tmp["mean_of_rho"]),
                 **tmp,
             }
-
-    # result["rust"] = classical_shadow_complex(
-    #     shots=shadow_case["arguments"]["shots"],
-    #     counts=shadow_case["counts"],
-    #     random_unitary_um=shadow_case["random_unitary_ids"],
-    #     selected_classical_registers=[
-    #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
-    #     ],
-    #     backend="Rust",
-    # )
-    # result["rust_einsum_ij_ji"] = classical_shadow_complex(
-    #     shots=shadow_case["arguments"]["shots"],
-    #     counts=shadow_case["counts"],
-    #     random_unitary_um=shadow_case["random_unitary_ids"],
-    #     selected_classical_registers=[
-    #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
-    #     ],
-    #     backend="Rust",
-    #     method="einsum_ij_ji",
-    # )
 
     # Compare the result with the expected answer
     for name, result_tmp in result.items():
