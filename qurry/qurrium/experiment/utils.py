@@ -18,9 +18,9 @@ from ..utils.iocontrol import RJUST_LEN
 from ...capsule.hoshi import Hoshi
 from ...exceptions import (
     QurryHashIDInvalid,
+    QurrySummonerInvalid,
     QurryInvalidInherition,
     UnconfiguredWarning,
-    QurrySummonerInfoIncompletion,
 )
 
 
@@ -118,6 +118,12 @@ def summonner_check(
         serial (Optional[int]): The serial number of the experiment.
         summoner_id (Optional[str]): The ID of the summoner.
         summoner_name (Optional[str]): The name of the summoner.
+
+    Raises:
+        QurrySummonerInvalid: If the summoner information is not completed.
+
+    Returns:
+        bool: True if the summoner information is completed, False otherwise.
     """
 
     summon_check = {
@@ -135,11 +141,11 @@ def summonner_check(
         summon_msg.newline(("itemize", "Summoner info fulfilled.", summon_fulfill))
         for k, v in summon_check.items():
             summon_msg.newline(("itemize", k, str(v), f"fulfilled: {v is not None}", 2))
-        warnings.warn(
-            "Summoner data is not completed, it will export in single experiment mode.",
-            category=QurrySummonerInfoIncompletion,
-        )
         summon_msg.print()
+        raise QurrySummonerInvalid(
+            "Summoner data is not completed, it will export in single experiment mode.",
+        )
+    return summon_fulfill
 
 
 def make_statesheet(
