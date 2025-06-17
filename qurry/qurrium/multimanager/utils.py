@@ -115,6 +115,7 @@ def experiment_writer(
         desc="Loading file infomation...",
         bar_format="qurry-barless",
     ):
+        beforewards.files_taglist[experiment_container[id_exec].commons.tags].clear()
         beforewards.files_taglist[experiment_container[id_exec].commons.tags].append(files)
 
     print("| Exporting file taglist...")
