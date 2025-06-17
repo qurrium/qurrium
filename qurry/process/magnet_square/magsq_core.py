@@ -187,9 +187,6 @@ def z_dir_magnetic_square_core(
     assert (
         shots == sample_counts_sum
     ), f"Shots: {shots} must be equal to the sum of counts: {sample_counts_sum}."
-    assert all(
-        len(bits) == 2 for bits in single_counts
-    ), f"Bits must be 2 bit, but found: {single_counts}"
 
     begin = time.time()
     pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)
