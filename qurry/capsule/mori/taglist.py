@@ -28,21 +28,16 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
         Union[tuple[str, ...], str]: Result of tuplizing.
     """
     if k[0] == "(" and k[-1] == ")":
-        kt = list(k[1:-1].split(", "))
+        kt = list(k[1:-1].split(","))
         kt2 = []
         for ktsub in kt:
             if len(ktsub) > 0:
-                if ktsub[0] == "'":
-                    kt2.append(ktsub[1:-1])
-                elif ktsub[0] == '"':
-                    kt2.append(ktsub[1:-1])
+                if ktsub[0] == "'" or ktsub[0] == '"':
+                    kt2.append(ktsub[1:-1].strip())
                 elif ktsub.isdigit():
                     kt2.append(int(ktsub))
                 else:
                     kt2.append(ktsub)
-
-            else:
-                ...
 
         kt2 = tuple(kt2)
         return kt2
@@ -51,8 +46,8 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
 
 @overload
 def key_tuple_loads(
-    o: dict[Union[Hashable, _K], _T],
-) -> dict[Union[Hashable, tuple[Hashable, ...], _K], _T]: ...
+    o: Union[dict[_K, _T], dict[Hashable, _T]],
+) -> Union[dict[_K, _T], dict[Hashable, _T], dict[tuple[Hashable, ...], _T]]: ...
 @overload
 def key_tuple_loads(o: _T) -> _T: ...
 
@@ -82,7 +77,7 @@ def key_tuple_loads(o):
     return o
 
 
-class TagList(defaultdict[_K, list[Union[_V, Any]]]):
+class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
     """Specific data structures of :mod:`qurrium` like `dict[str, list[any]]`.
 
     >>> bla = TagList()
@@ -126,7 +121,7 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
         not_list_v = []
         for k, v in pass_o.items():
             if isinstance(v, Iterable):
-                self[k].extend(v)
+                self[k].extend(v)  # type: ignore
             else:
                 not_list_v.append(k)
 
