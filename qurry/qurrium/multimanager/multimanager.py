@@ -36,7 +36,7 @@ class MultiManager(Generic[_E]):
     beforewards: Before
     afterwards: After
 
-    quantity_container: QuantityContainer
+    quantity_container: QuantityContainer[tuple[str, ...]]
     """The container of quantity."""
     exps: ExperimentContainer[_E]
     """The experiments container."""
