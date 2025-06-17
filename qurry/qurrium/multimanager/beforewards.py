@@ -45,8 +45,11 @@ class Before(NamedTuple):
     """
 
     job_taglist: TagList[TagListKeyable, str]
-    files_taglist: TagList[TagListKeyable, str]
-    index_taglist: TagList[TagListKeyable, Union[str, int]]
+    """The list of job id but grouped by tags, which multiple experiments shared."""
+    files_taglist: TagList[TagListKeyable, dict[str, str]]
+    """The list of files but grouped by tags, which multiple experiments shared."""
+    index_taglist: TagList[TagListKeyable, int]
+    """The list of experiments index but grouped by tags, which multiple experiments shared."""
 
     @staticmethod
     def _exporting_name():
