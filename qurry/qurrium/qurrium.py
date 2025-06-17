@@ -325,7 +325,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiBuild(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: str = short_name,
+        summoner_name: Optional[str] = None,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -343,8 +343,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
+            summoner_name (Optional[str], optional):
+                Name for multimanager. Defaults to None.
+                When `None`, it will be set to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
@@ -385,6 +386,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             return summoner_id
         if summoner_id is not None:
             raise ValueError("Unknow summoner_id in multimanagers.")
+        if summoner_name is None:
+            summoner_name = self.short_name
 
         ready_config_list: list[dict[str, Any]] = []
         for raw_config in config_list:
@@ -428,7 +431,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiOutput(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: str = short_name,
+        summoner_name: Optional[str] = None,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -445,8 +448,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
+            summoner_name (Optional[str], optional):
+                Name for multimanager. Defaults to None.
+                When `None`, it will be set to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
