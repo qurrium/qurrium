@@ -18,12 +18,10 @@ from ...process.utils import qubit_mapper
 from ...process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
-    PostProcessingBackendLabel,
     RhoMCoreMethod,
     TraceRhoMethod,
     AllTraceRhoMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
-    DEFAULT_PROCESS_BACKEND,
     set_cpu_only,
 )
 from ...process.classical_shadow.rho_m_core import JAX_AVAILABLE
@@ -258,7 +256,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         rho_method: RhoMCoreMethod = "numpy_precomputed",
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
@@ -303,8 +300,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            backend (PostProcessingBackendLabel, optional):
-                The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
@@ -374,7 +369,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             rho_method=rho_method,
             trace_method=trace_method,
             estimate_trace_method=estimate_trace_method,
-            backend=backend,
             pbar=pbar,
         )
 
@@ -411,7 +405,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         rho_method: RhoMCoreMethod = "numpy_precomputed",
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
         r"""Randomized entangled entropy with complex.
@@ -461,8 +454,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            backend (PostProcessingBackend, optional):
-                Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
 
@@ -490,7 +481,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             rho_method=rho_method,
             trace_method=trace_method,
             estimate_trace_method=estimate_trace_method,
-            backend=backend,
             pbar=pbar,
         )
 
@@ -539,7 +529,6 @@ class OutsideAnalyzeInput(TypedDict):
     rho_method: RhoMCoreMethod
     trace_method: TraceRhoMethod
     estimate_trace_method: AllTraceRhoMethod
-    backend: PostProcessingBackendLabel
     counts_used: Optional[Iterable[int]]
 
 
@@ -555,7 +544,6 @@ def quantities_input_collecter(
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     counts_used: Optional[Iterable[int]] = None,
 ) -> OutsideAnalyzeInput:
     r"""Collect the inputs for the quantities.
@@ -603,8 +591,6 @@ def quantities_input_collecter(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         counts_used (Optional[Iterable[int]], optional):
             The index of the counts used. Defaults to None.
 
@@ -676,7 +662,6 @@ def quantities_input_collecter(
         "rho_method": rho_method,
         "trace_method": trace_method,
         "estimate_trace_method": estimate_trace_method,
-        "backend": backend,
         "counts_used": counts_used,
     }
 
@@ -703,7 +688,6 @@ def outside_analyze(
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     counts_used: Optional[Iterable[int]] = None,
 ) -> tuple[str, ShadowUnveilAnalysis]:
     r"""Randomized entangled entropy with complex.
@@ -795,7 +779,6 @@ def outside_analyze(
         rho_method=rho_method,
         trace_method=trace_method,
         estimate_trace_method=estimate_trace_method,
-        backend=backend,
         pbar=None,
     )
 

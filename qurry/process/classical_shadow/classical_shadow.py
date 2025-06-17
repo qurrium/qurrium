@@ -8,12 +8,7 @@ import warnings
 import tqdm
 import numpy as np
 
-from .rho_m_core import (
-    rho_m_core,
-    PostProcessingBackendLabel,
-    DEFAULT_PROCESS_BACKEND,
-    RhoMCoreMethod,
-)
+from .rho_m_core import rho_m_core, RhoMCoreMethod
 from .trace_expect_process import (
     mean_rho_core,
     trace_rho_square_core,
@@ -38,7 +33,6 @@ def mean_of_rho(
     selected_classical_registers: Iterable[int],
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowMeanRho:
     r"""Calculate the mean of Rho.
@@ -177,7 +171,6 @@ def mean_of_rho(
         random_unitary_um=random_unitary_um,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
-        backend=backend,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -204,7 +197,6 @@ def trace_rho_square(
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
     """Trace of Rho square.
@@ -236,8 +228,6 @@ def trace_rho_square(
                 to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        backend (PostProcessingBackendLabel, optional):
-            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -265,7 +255,6 @@ def trace_rho_square(
         random_unitary_um=random_unitary_um,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
-        backend=backend,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -275,8 +264,7 @@ def trace_rho_square(
     if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
-            + f"The imaginary part is {trace_rho_sum.imag}."
-            + f"method: {trace_method}, {rho_method}, {backend}",
+            f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}, {rho_method}",
             RuntimeWarning,
         )
     entropy = -np.log2(trace_rho_sum_real)
@@ -303,7 +291,6 @@ def esitimation_of_given_operators(
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowEstimation:
     r"""Calculate the expectation value of given operators.
@@ -354,8 +341,6 @@ def esitimation_of_given_operators(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        backend (PostProcessingBackendLabel, optional):
-            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -376,7 +361,6 @@ def esitimation_of_given_operators(
         random_unitary_um=random_unitary_um,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
-        backend=backend,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -428,7 +412,6 @@ def classical_shadow_complex(
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
@@ -571,8 +554,6 @@ def classical_shadow_complex(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        backend (PostProcessingBackend, optional):
-            Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -595,7 +576,6 @@ def classical_shadow_complex(
         random_unitary_um=random_unitary_um,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
-        backend=backend,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -610,8 +590,7 @@ def classical_shadow_complex(
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero, "
             + f"error larger than the tolerance of {NUMERICAL_ERROR_TOLERANCE}. "
-            + f"The imaginary part is {trace_rho_sum.imag}."
-            + f"method: {trace_method}, {rho_method}, {backend}",
+            + f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}, {rho_method}.",
             RuntimeWarning,
         )
     trace_rho_sum_real = trace_rho_sum.real

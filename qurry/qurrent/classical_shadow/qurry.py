@@ -18,8 +18,6 @@ from .arguments import (
 )
 from .experiment import (
     ShadowUnveilExperiment,
-    PostProcessingBackendLabel,
-    DEFAULT_PROCESS_BACKEND,
     quantities_input_collecter,
     outside_analyze_wrapper,
     RhoMCoreMethod,
@@ -410,7 +408,6 @@ class ShadowUnveil(
         selected_qubits: Optional[list[int]] = None,
         rho_method: RhoMCoreMethod = "numpy_precomputed",
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
@@ -438,10 +435,9 @@ class ShadowUnveil(
                 The selected qubits. Defaults to None.
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+                It can be either "numpy", "numpy_precomputed", "numpy_flatten".
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "jax_flatten": Use JAX to calculate the rho_m with a flattening workflow.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (TraceRhoMethod, optional):
@@ -456,8 +452,6 @@ class ShadowUnveil(
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            backend (PostProcessingBackend, optional):
-                Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 
@@ -512,7 +506,6 @@ class ShadowUnveil(
                                 selected_qubits=selected_qubits,
                                 rho_method=rho_method,
                                 trace_method=trace_method,
-                                backend=backend,
                                 counts_used=counts_used,
                             )
                         )
@@ -523,7 +516,6 @@ class ShadowUnveil(
                                 selected_qubits=v_args.get("selected_qubits", selected_qubits),
                                 rho_method=v_args.get("rho_method", rho_method),
                                 trace_method=v_args.get("trace_method", trace_method),
-                                backend=v_args.get("backend", backend),
                                 counts_used=v_args.get("counts_used", counts_used),
                             )
                         )
@@ -534,7 +526,6 @@ class ShadowUnveil(
                             selected_qubits=selected_qubits,
                             rho_method=rho_method,
                             trace_method=trace_method,
-                            backend=backend,
                             counts_used=counts_used,
                         )
                     )
@@ -571,7 +562,6 @@ class ShadowUnveil(
             selected_qubits=selected_qubits,
             rho_method=rho_method,
             trace_method=trace_method,
-            backend=backend,
             counts_used=counts_used,
             **analysis_args,
         )
