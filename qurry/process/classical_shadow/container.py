@@ -46,8 +46,6 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     """
 
-    median_of_estimate: np.complex128
-    r"""The median of the estimation values of measurement primitive :math:`\mathcal{U}`."""
     estimate_of_given_operators: list[np.complex128]
     r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
     corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]

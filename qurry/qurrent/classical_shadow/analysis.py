@@ -100,8 +100,6 @@ class SUAnalysisContent(NamedTuple):
     entropy: float
     """The entropy calculated by classical shadow."""
     # esitimation of given operators
-    median_of_estimate: np.complex128
-    r"""The median of the estimation values of measurement primitive :math:`\mathcal{U}`."""
     estimate_of_given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     r"""The result of measurement primitive :math:`\mathcal{U}`."""
     corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
@@ -203,7 +201,6 @@ NEW_FIELDS_DEFAULTS = {
     "taking_time": 0.0,
     "purity": np.nan,
     "entropy": np.nan,
-    "median_of_estimate": np.complex128(0),
     "estimate_of_given_operators": [],
     "corresponding_rhos": [],
     "accuracy_prob_comp_delta": np.nan,

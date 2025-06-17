@@ -355,7 +355,6 @@ def prediction_algorithm(
     max_shadow_norm: Optional[float] = None,
     trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> tuple[
-    np.complex128,
     list[np.complex128],
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     float,
@@ -394,8 +393,6 @@ def prediction_algorithm(
             list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
             float, int, float, float, float, float
         ]:
-            - median_of_estimate: np.complex128
-                The median of the estimation values of measurement primitive :math:`\mathcal{U}`.
             - estimate_of_given_operators: list[np.complex128]
                 The esitmation values of measurement primitive :math:`\mathcal{U}`.
             - corresponding_rhos: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
@@ -458,9 +455,7 @@ def prediction_algorithm(
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
         np.array(given_operators), estimators  # type: ignore
     )
-    median_of_estimate: np.complex128 = np.median(estimate_of_given_operators)  # type: ignore
     return (
-        median_of_estimate,
         estimate_of_given_operators,
         corresponding_rhos,
         actual_accuracy_prob_comp_delta,

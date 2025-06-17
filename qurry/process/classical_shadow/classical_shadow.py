@@ -383,7 +383,6 @@ def esitimation_of_given_operators(
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
 
     (
-        median_of_estimate,
         estimate_of_given_operators,
         corresponding_rhos,
         actual_accuracy_prob_comp_delta,
@@ -405,7 +404,6 @@ def esitimation_of_given_operators(
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
         # esitimation of given operators
-        median_of_estimate=median_of_estimate,
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
@@ -632,7 +630,6 @@ def classical_shadow_complex(
             purity=trace_rho_sum_real,
             entropy=entropy,
             # esitimation of given operators
-            median_of_estimate=np.complex128(0),
             estimate_of_given_operators=[],
             corresponding_rhos=[],
             accuracy_prob_comp_delta=np.nan,
@@ -644,7 +641,6 @@ def classical_shadow_complex(
         )
 
     (
-        median_of_estimate,
         estimate_of_given_operators,
         corresponding_rhos,
         actual_accuracy_prob_comp_delta,
@@ -670,7 +666,6 @@ def classical_shadow_complex(
         purity=trace_rho_sum_real,
         entropy=entropy,
         # esitimation of given operators
-        median_of_estimate=median_of_estimate,
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
