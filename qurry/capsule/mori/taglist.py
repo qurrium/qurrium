@@ -45,11 +45,11 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
 
 
 @overload
-def key_tuple_loads(
-    o: Union[dict[_K, _T], dict[Hashable, _T]],
-) -> Union[dict[_K, _T], dict[Hashable, _T], dict[tuple[Hashable, ...], _T]]: ...
-@overload
 def key_tuple_loads(o: _T) -> _T: ...
+@overload
+def key_tuple_loads(o: dict[_K, _T]) -> dict[_K, _T]: ...
+@overload
+def key_tuple_loads(o: dict[Hashable, _T]) -> dict[Hashable, _T]: ...
 
 
 def key_tuple_loads(o):
@@ -99,7 +99,6 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
 
     Raises:
         ValueError: When input is not a dict.
-
     """
 
     __name__ = "TagList"
@@ -144,12 +143,8 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
                 d += v
         return d
 
-    def guider(
-        self,
-        proposal_tag: Optional[_K] = None,
-        v: Any = None,
-    ) -> None:
-        """
+    def guider(self, proposal_tag: Optional[_K] = None, v: Any = None) -> None:
+        """Append a value to the :cls:`TagList` with a tag.
 
         Args:
             proposal_tag (any): The tag for this value.

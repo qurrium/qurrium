@@ -10,11 +10,7 @@ from ..utils import OpenArgs, PrintArgs, create_open_args, create_print_args
 class GitSyncControl(list[str]):
     """A gitignore file generator. A quick way to create .gitignore"""
 
-    def sync(
-        self,
-        filename: str,
-        force: bool = False,
-    ) -> bool:
+    def sync(self, filename: str, force: bool = False) -> bool:
         """Add file to sync.
 
         Args:
@@ -38,16 +34,14 @@ class GitSyncControl(list[str]):
         self.append(line)
         return True
 
-    def ignore(
-        self,
-        filename: str,
-        force: bool = False,
-    ) -> bool:
+    def ignore(self, filename: str, force: bool = False) -> bool:
         """Add file to ignore from sync.
 
         Args:
             filename (str): Filename.
-
+            force (bool, optional): Force to add the file to ignore.
+                If the file is already added, then it will be added again.
+                Defaults to False.
 
         Returns:
             bool: The file is added to be ignored and return True.
@@ -62,6 +56,16 @@ class GitSyncControl(list[str]):
             return False
         self.append(line)
         return True
+
+    def comment(self, comment: str) -> None:
+        """Add comment to .gitignore.
+
+        Args:
+            comment (str): The comment to be added.
+        """
+        if not comment.startswith("#"):
+            comment = f"# {comment}"
+        self.append(comment)
 
     def export(
         self,
@@ -84,7 +88,6 @@ class GitSyncControl(list[str]):
                 The other arguments for :func:`print` function.
                 Defaults to DEFAULT_PRINT_ARGS, which is:
                 >>> {}
-
         """
 
         open_args = create_open_args(open_args=open_args)
