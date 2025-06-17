@@ -503,6 +503,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         circ_serial: list[int] = []
         experiment_progress = qurry_progressbar(current_multimanager.exps.items())
 
+        is_call_auto_multianalysis = False
         for exp_id, exp_instance in experiment_progress:
             experiment_progress.set_description_str("Experiments running...")
 
@@ -514,6 +515,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 save_location=current_multimanager.multicommons.save_location,
             )
             assert current_id == exp_id, f"exps_id output: {current_id} != exp_id: {exp_id}"
+            is_call_auto_multianalysis = (
+                exp_instance.is_auto_analysis and exp_instance.is_hold_by_multimanager
+            )
 
             circ_serial_len = len(circ_serial)
             tmp_circ_serial = [
@@ -524,9 +528,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             current_multimanager.beforewards.pending_pool[exp_id] = tmp_circ_serial
             current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
             current_multimanager.beforewards.job_id.append((exp_id, "local"))
-
         current_multimanager.multicommons.datetimes.add_serial("output")
 
+        if is_call_auto_multianalysis:
+            print("| Auto analysis is called, running analysis...")
+            current_multimanager.analyze(analysis_name="auto_report", no_serialize=True)
         if not skip_output_write:
             bewritten = self.multiWrite(besummonned, multiprocess_write=multiprocess_write)
             assert bewritten == besummonned

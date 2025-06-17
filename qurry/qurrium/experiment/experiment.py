@@ -63,6 +63,26 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         """The analysis instance for this experiment."""
         raise NotImplementedError("This method should be implemented.")
 
+    @property
+    def is_auto_analysis(self) -> bool:
+        """Check if the experiment has auto analysis.
+
+        Returns:
+            bool: True if the experiment has auto analysis, False otherwise.
+        """
+        return len(self.analysis_instance.input_type()._fields) == 0
+
+    @property
+    def is_hold_by_multimanager(self) -> bool:
+        """Check if the experiment is hold by a multimanager.
+
+        Returns:
+            bool: True if the experiment is hold by a multimanager, False otherwise.
+        """
+        return summonner_check(
+            self.commons.serial, self.commons.summoner_id, self.commons.summoner_name
+        )
+
     args: _A
     """The arguments of the experiment."""
     commons: Commonparams
@@ -125,7 +145,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             self.outfields["arguments_deprecated"] = arguments_deprecated
         if len(commonparams_deprecated):
             self.outfields["commonparams_deprecated"] = commonparams_deprecated
-
         implementation_check(self.__name__, self.args, self.commons)
         summonner_check(self.commons.serial, self.commons.summoner_id, self.commons.summoner_name)
 
@@ -285,8 +304,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             targets (list[tuple[Hashable, QuantumCircuit]]): The circuits of the experiment.
             arguments (_Arg): The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
             multiprocess (bool, optional): Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
@@ -407,7 +425,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
-
         current_exp.beforewards.target.extend(targets)
         cirqs, side_prodict = current_exp.method(
             targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
@@ -416,7 +433,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-
         targets_keys, targets_values = zip(*targets)
         targets_keys: tuple[Hashable, ...]
         targets_values: tuple[QuantumCircuit, ...]
@@ -493,10 +509,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return current_exp
 
     @classmethod
-    def build_for_multiprocess(
-        cls,
-        config: dict[str, Any],
-    ):
+    def build_for_multiprocess(cls, config: dict[str, Any]):
         """Build wrapper for multiprocess.
 
         Args:
@@ -512,10 +525,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return cls.build(**config), config
 
     # local execution
-    def run(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> str:
+    def run(self, pbar: Optional[tqdm.tqdm] = None) -> str:
         """Export the result after running the job.
 
         Args:
@@ -541,9 +551,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         set_pbar_description(pbar, "Executing...")
         event_name, date = self.commons.datetimes.add_serial("run")
         execution: Job = self.commons.backend.run(  # type: ignore
-            self.beforewards.circuit,
-            shots=self.commons.shots,
-            **self.commons.run_args,
+            self.beforewards.circuit, shots=self.commons.shots, **self.commons.run_args
         )
         # commons
         set_pbar_description(pbar, f"Executing completed '{event_name}', denoted date: {date}...")
@@ -590,10 +598,17 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         set_pbar_description(pbar, "Counts loading...")
         self.afterwards.counts.extend(counts)
 
-        analysis_input_fields: tuple[str, ...] = self.analysis_instance.input_type()._fields
-        if len(analysis_input_fields) == 0:
-            set_pbar_description(pbar, "Running analysis for no input required...")
-            self.analyze()
+        if self.is_auto_analysis:
+            if self.is_hold_by_multimanager:
+                set_pbar_description(
+                    pbar,
+                    "Auto running analysis will take over by "
+                    f"{self.commons.summoner_id}: "
+                    f"{self.commons.summoner_name} after all experiments are done.",
+                )
+            else:
+                set_pbar_description(pbar, "Running analysis for no input required...")
+                self.analyze()
 
         if export:
             # export may be slow, consider export at finish or something
