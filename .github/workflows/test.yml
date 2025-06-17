@@ -53,9 +53,9 @@ jobs:
         run: |
           python -m pip install flake8
           # stop the build if there are Python syntax errors or undefined names
-          python -m flake8 . --count --show-source --statistics
+          python -m flake8 . --count --show-source --statistics --config tox.ini
           # exit-zero treats all errors as warnings
-          python -m flake8 . --count --exit-zero --statistics
+          python -m flake8 . --count --exit-zero --statistics --config tox.ini
 
   test_py_latest_and_oldest:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
