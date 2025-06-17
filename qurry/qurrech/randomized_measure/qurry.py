@@ -207,6 +207,9 @@ class EchoListenRandomized(
             passmanager=second_passmanager, passmanager_container=self.passmanagers
         )
 
+        if wave1 == "your_darkness" and wave2 == "my_darkness":
+            print("| Let me take it all away...")
+
         return {
             "circuits": [wave1, wave2],
             "times": times,
