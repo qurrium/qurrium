@@ -694,7 +694,6 @@ class MultiManager(Generic[_E]):
         Returns:
             dict[str, Any]: The dict of multiConfig.
         """
-        self.gitignore.load(self.multicommons.export_location)
         print("| Export multimanager...")
         if save_location is None:
             save_location = self.multicommons.save_location
@@ -783,6 +782,7 @@ class MultiManager(Generic[_E]):
                 export_transpiled_circuit=export_transpiled_circuit,
                 multiprocess=multiprocess,
             )
+            self.gitignore.sync(f"{exporting_name['files_taglist']}.quantity.json")
 
         return multiconfig
 

@@ -143,7 +143,7 @@ class GitSyncControl(list[str]):
             FileNotFoundError: The .gitignore is not found.
             TypeError: The save_location is not the type of 'str' or 'Path'.
         """
-        open_args = create_open_args(open_args=open_args)
+        open_args = create_open_args(open_args=open_args, is_read_only=True)
 
         assert "encoding" in open_args, "encoding must be specified in open_args"
         encoding = open_args.pop("encoding")
