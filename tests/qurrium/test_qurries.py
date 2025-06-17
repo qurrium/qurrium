@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit
 
 from utils import InputUnit, ResultUnit, check_unit
 
-from qurry.qurrium import SamplingExecuter, WavesExecuter
+from qurry.qurries import SamplingExecuter, WavesExecuter
 from qurry.tools.backend import GeneralSimulator
 from qurry.recipe import GHZ, TopologicalParamagnet, TrivialParamagnet
 

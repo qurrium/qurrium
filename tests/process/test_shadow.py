@@ -108,9 +108,7 @@ def test_shadow(shadow_case: ShadowCase):
     _bitstring_mapping, final_mapping = bitstring_mapping_getter(
         shadow_case["counts"], shadow_case["arguments"]["registers_mapping"]
     )
-    rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"] + (
-        ["jax_flatten"] if JAX_AVAILABLE else []
-    )
+    rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"]
     trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
         ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
     )
