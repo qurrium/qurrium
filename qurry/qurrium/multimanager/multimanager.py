@@ -782,7 +782,7 @@ class MultiManager(Generic[_E]):
                 export_transpiled_circuit=export_transpiled_circuit,
                 multiprocess=multiprocess,
             )
-            self.gitignore.sync(f"{exporting_name['files_taglist']}.quantity.json")
+            self.gitignore.sync(f"{exporting_name['files_taglist']}.json")
 
         return multiconfig
 
