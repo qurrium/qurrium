@@ -304,4 +304,4 @@ class AnalysisPrototype(Generic[_RI, _RC]):
                     sides[rk] = {}
                 sides[rk][tk] = rv
 
-        return {k: cls.load(v, sides[k]) for k, v in mains.items()}
+        return {int(k) if k.isdigit() else k: cls.load(v, sides[k]) for k, v in mains.items()}
