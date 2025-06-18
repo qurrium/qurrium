@@ -16,7 +16,7 @@ from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetP
 from .beforewards import Before
 from .afterwards import After
 from .process import datetimedict_process
-from .utils import experiment_writer
+from .utils import experiment_writer, multimanager_report_naming
 from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
 from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
@@ -856,12 +856,7 @@ class MultiManager(Generic[_E]):
                 + f"please check them before analysis: {counts_check}."
             )
 
-        idx_tagmap_quantities = len(self.quantity_container)
-        name = (
-            analysis_name
-            if no_serialize
-            else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
-        )
+        name = multimanager_report_naming(analysis_name, no_serialize, self.quantity_container)
         self.quantity_container[name] = TagList()
 
         all_counts_progress = qurry_progressbar(
