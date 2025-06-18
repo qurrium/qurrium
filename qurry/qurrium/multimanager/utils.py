@@ -5,8 +5,9 @@ from multiprocessing import get_context
 from .arguments import MultiCommonparams
 from .beforewards import Before
 from .process import multiprocess_exporter_wrapper
+from ..utils.iocontrol import RJUST_LEN, serial_naming
 from ..utils.chunk import very_easy_chunk_distribution
-from ..container import ExperimentContainer, _E
+from ..container import ExperimentContainer, _E, QuantityContainer
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING, DEFAULT_INDENT
 
@@ -133,3 +134,40 @@ def experiment_writer(
     )
     del all_qurryinfo
     print(f"| Exporting {all_qurryinfo_loc} done.")
+
+
+def multimanager_report_naming(
+    analysis_name: str,
+    no_serialize: bool,
+    quantities_container: QuantityContainer,
+) -> str:
+    """Naming the report in the quantity container.
+
+    Args:
+        analysis_name (str):
+            The name of the analysis.
+        no_serialize (bool):
+            Whether to serialize the analysis.
+        quantities_container (QuantityContainer):
+            The container of the quantities.
+
+    Returns:
+        str: The name of the quantity container.
+    """
+    all_existing = quantities_container.keys()
+    if no_serialize:
+        if analysis_name in all_existing:
+            raise ValueError(
+                f"The analysis name '{analysis_name}' already exists in the quantities container. "
+                "Please choose a different name or remove the existing report."
+            )
+        return f"{analysis_name}"
+
+    repeat_times = 0
+
+    proposal_name = serial_naming(analysis_name, repeat_times, RJUST_LEN)
+    while proposal_name in all_existing:
+        repeat_times += 1
+        proposal_name = serial_naming(analysis_name, repeat_times, RJUST_LEN)
+
+    return proposal_name
