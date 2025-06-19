@@ -26,7 +26,7 @@ class RawReadMSAnswer(TypedDict):
     taking_time: float
 
 
-class RawReadMSZdirAnswer(TypedDict):
+class RawReadMSZAnswer(TypedDict):
     """TypedDict for magnet square answer from JSON."""
 
     magnet_square: float
@@ -36,7 +36,7 @@ class RawReadMSZdirAnswer(TypedDict):
     taking_time: float
 
 
-RRMSA = TypeVar("RRMSA", RawReadMSAnswer, RawReadMSZdirAnswer)
+RRMSA = TypeVar("RRMSA", RawReadMSAnswer, RawReadMSZAnswer)
 
 
 class RawReadMSUnit(TypedDict, Generic[RRMSA]):
@@ -59,106 +59,105 @@ ANSWERS = {
 
 ANSWERS_ERROR = 0.05
 
-raw_mszdir_case: dict[str, RawReadMSUnit[RawReadMSZdirAnswer]] = quickRead(FILE_LOCATION_MSZDIR)
+
+def raw_unfold_and_sorted(
+    case_set: dict[str, RawReadMSUnit[RRMSA]],
+) -> list[tuple[str, RRMSA, list[dict[str, int]]]]:
+    """Unfold and sort the raw read magnet square case set.
+    Args:
+        case_set (dict[str, RawReadMSUnit[RRMSA]]): The raw read magnet square case set.
+    Returns:
+        list[tuple[str, RRMSA, list[dict[str, int]]]]:
+            The sorted list of tuples containing case name, answer, and counts.
+    """
+    return sorted(((k, v["ans"], v["counts"]) for k, v in case_set.items()), key=lambda x: x[0])
+
+
+raw_mszdir_case: dict[str, RawReadMSUnit[RawReadMSZAnswer]] = quickRead(FILE_LOCATION_MSZDIR)
 raw_ms_case: dict[str, RawReadMSUnit[RawReadMSAnswer]] = quickRead(FILE_LOCATION_MS)
 
 
-def test_availability():
-    """Test the availability of the Rust backend for the entangled_entropy_core function."""
-
-    for availability_item in [magnet_square_availability]:
-        assert availability_item[1]["Rust"], (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
-
-
-@pytest.mark.parametrize("mszdir_case_item", sorted(raw_mszdir_case.items(), key=lambda x: x[0]))
-def test_magnet_square_zdir(mszdir_case_item: tuple[str, RawReadMSUnit[RawReadMSZdirAnswer]]):
+@pytest.mark.parametrize(["case_name", "answer", "counts"], raw_unfold_and_sorted(raw_mszdir_case))
+def test_magnet_square_zdir(case_name: str, answer: RawReadMSZAnswer, counts: list[dict[str, int]]):
     """Test the z_dir_magnetic_square_core function."""
 
-    case_name, msdir_case = mszdir_case_item
-    msdir_case_answer = msdir_case["ans"]
-    msdir_case_counts = msdir_case["counts"]
+    assert magnet_square_availability[1][
+        "Rust"
+    ], f"Rust is not available. Check the error: {magnet_square_availability[2]}"
 
     assert (
-        len(msdir_case_counts) == 1
+        len(counts) == 1
     ), "The counts should be a single item for the z_dir_magnetic_square_core function."
 
     py_result = z_dir_magnetic_square_core(
-        shots=msdir_case_answer["shots"],
-        single_counts=msdir_case_counts[0],
-        num_qubits=msdir_case_answer["num_qubits"],
+        shots=answer["shots"],
+        single_counts=counts[0],
+        num_qubits=answer["num_qubits"],
         backend="Python",
     )
     rust_result = z_dir_magnetic_square_core(
-        shots=msdir_case_answer["shots"],
-        single_counts=msdir_case_counts[0],
-        num_qubits=msdir_case_answer["num_qubits"],
+        shots=answer["shots"],
+        single_counts=counts[0],
+        num_qubits=answer["num_qubits"],
         backend="Rust",
     )
 
-    comparison_target: list[tuple[str, str, float]] = [
-        ("py", "Python", py_result[0]),
-        ("rust", "Rust", rust_result[0]),
-        ("ans", "Answer", msdir_case_answer["magnet_square"]),
+    comparison_target: list[tuple[str, float]] = [
+        ("Python", py_result[0]),
+        ("Rust", rust_result[0]),
+        ("Answer", answer["magnet_square"]),
     ]
-    for (name_01, desc_01, result_01), (name_02, desc_02, result_02) in combinations(
-        comparison_target, 2
-    ):
-        assert np.abs(result_01 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
-            f"{desc_01} and {desc_02} results are not equal in entangled_entropy_core: "
-            + f"{name_01}: {result_01}, {name_02}: {result_02} - "
-            + f"{name_01}:, {name_02}:"
+    for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
+        assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{name_1} and {name_02} results are not equal in entangled_entropy_core: "
+            f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
-    for name_01, desc_01, result_01 in comparison_target:
-        assert np.abs(result_01 - ANSWERS[case_name]) < ANSWERS_ERROR, (
-            f"Result by {desc_01} {result_01} is not close to expected "
+    for name_1, result_1 in comparison_target:
+        assert np.abs(result_1 - ANSWERS[case_name]) < ANSWERS_ERROR, (
+            f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )
 
 
-@pytest.mark.parametrize("ms_case_item", sorted(raw_ms_case.items(), key=lambda x: x[0]))
-def test_magnet_square(ms_case_item: tuple[str, RawReadMSUnit[RawReadMSAnswer]]):
+@pytest.mark.parametrize(["case_name", "answer", "counts"], raw_unfold_and_sorted(raw_ms_case))
+def test_magnet_square(case_name: str, answer: RawReadMSAnswer, counts: list[dict[str, int]]):
     """Test the z_dir_magnetic_square_core function."""
 
-    case_name, ms_case = ms_case_item
-    ms_case_answer = ms_case["ans"]
-    ms_case_counts = ms_case["counts"]
+    assert magnet_square_availability[1][
+        "Rust"
+    ], f"Rust is not available. Check the error: {magnet_square_availability[2]}"
 
-    predict_counts_num = ms_case_answer["num_qubits"] * (ms_case_answer["num_qubits"] - 1)
-    assert len(ms_case_counts) == predict_counts_num, (
+    predict_counts_num = answer["num_qubits"] * (answer["num_qubits"] - 1)
+    assert len(counts) == predict_counts_num, (
         f"The counts should have {predict_counts_num} items, "
-        f"but got {len(ms_case_counts)} for {case_name}"
+        f"but got {len(counts)} for {case_name}"
     )
 
     py_result = magnetic_square_core(
-        shots=ms_case_answer["shots"],
-        counts=ms_case_counts,
-        num_qubits=ms_case_answer["num_qubits"],
+        shots=answer["shots"],
+        counts=counts,
+        num_qubits=answer["num_qubits"],
         backend="Python",
     )
     rust_result = magnetic_square_core(
-        shots=ms_case_answer["shots"],
-        counts=ms_case_counts,
-        num_qubits=ms_case_answer["num_qubits"],
+        shots=answer["shots"],
+        counts=counts,
+        num_qubits=answer["num_qubits"],
         backend="Rust",
     )
 
-    comparison_target: list[tuple[str, str, float]] = [
-        ("py", "Python", py_result[0]),
-        ("rust", "Rust", rust_result[0]),
-        ("ans", "Answer", ms_case_answer["magnet_square"]),
+    comparison_target: list[tuple[str, float]] = [
+        ("Python", py_result[0]),
+        ("Rust", rust_result[0]),
+        ("Answer", answer["magnet_square"]),
     ]
-    for (name_01, desc_01, result_01), (name_02, desc_02, result_02) in combinations(
-        comparison_target, 2
-    ):
-        assert np.abs(result_01 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
-            f"{desc_01} and {desc_02} results are not equal in entangled_entropy_core: "
-            + f"{name_01}: {result_01}, {name_02}: {result_02} - "
-            + f"{name_01}:, {name_02}:"
+    for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
+        assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{name_1} and {name_02} results are not equal in entangled_entropy_core: "
+            f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
-    for name_01, desc_01, result_01 in comparison_target:
-        assert np.abs(result_01 - ANSWERS[case_name]) < ANSWERS_ERROR, (
-            f"Result by {desc_01} {result_01} is not close to expected "
+    for name_1, result_1 in comparison_target:
+        assert np.abs(result_1 - ANSWERS[case_name]) < ANSWERS_ERROR, (
+            f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )
