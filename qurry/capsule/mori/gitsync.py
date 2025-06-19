@@ -164,7 +164,7 @@ class GitSyncControl(list[str]):
         actual_file_path = save_location / ".gitignore"
 
         if not os.path.exists(actual_file_path):
-            raise FileNotFoundError(f"The .gitignore is not found on {save_location}.")
+            raise FileNotFoundError(f"The .gitignore is not found on '{save_location}'.")
 
         tmp_list = []
         with open(actual_file_path, encoding=encoding, **open_args) as ignore_list:
