@@ -20,6 +20,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_TOKEN }}
+          # For this workflow will trigger other workflows
+          # It requires to use different token with `contents: write` permission
+          # More info: https://github.com/orgs/community/discussions/27028
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
