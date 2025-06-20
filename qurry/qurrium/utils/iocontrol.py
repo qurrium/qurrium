@@ -40,7 +40,7 @@ def naming(
     save_location: Union[Path, str] = Path("./"),
     without_serial: bool = False,
     rjust_len: int = RJUST_LEN,
-    index_rename: int = 1,
+    index_rename: int = 0,
 ) -> IOComplex:
     """The process of naming.
 
@@ -59,7 +59,7 @@ def naming(
         rjust_len (int, optional):
             The length of the serial number. Defaults to 3.
         index_rename (int, optional):
-            The serial number. Defaults to 1.
+            The serial number. Defaults to 0.
 
     Raises:
         TypeError: The :arg:`save_location` is not a 'str' or 'Path'.
