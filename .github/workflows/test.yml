@@ -57,37 +57,16 @@ jobs:
           # exit-zero treats all errors as warnings
           python -m flake8 . --count --exit-zero --statistics --config tox.ini
 
-  test_py_latest_and_oldest:
-    if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
-    name: Test on Python Latest and Oldest
-    runs-on: [ubuntu-latest, self-hosted]
-    needs:
-      - check_version
-    strategy:
-      matrix:
-        qiskit-version: [v1, v2]
-        python-version: ["3.13", "3.9"]
-      fail-fast: false
-      max-parallel: 2
-
-    steps:
-      - name: Run Test Unit with Python ${{ matrix.python-version }} and Qiskit ${{ matrix.qiskit-version }}
-        uses: ./.github/actions/test-unit
-        with:
-          python-version: ${{ matrix.python-version }}
-          qiskit-version: ${{ matrix.qiskit-version }}
-
   test_py:
     if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
-    name: Test on Python Remaining Versions
+    name: Test
     runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
-      - test_py_latest_and_oldest
     strategy:
       matrix:
         qiskit-version: [v1, v2]
-        python-version: ["3.12", "3.11", "3.10"]
+        python-version: ["3.13", "3.9", "3.12", "3.11", "3.10"]
       fail-fast: false
       max-parallel: 2
 
