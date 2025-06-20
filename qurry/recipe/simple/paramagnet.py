@@ -69,11 +69,7 @@ class TrivialParamagnet(OneBody):
 
     """
 
-    def __init__(
-        self,
-        num_qubits: int,
-        name: str = "trivial_paramagnet",
-    ) -> None:
+    def __init__(self, num_qubits: int, name: str = "trivial_paramagnet") -> None:
         """Initializing the case.
 
         Args:
