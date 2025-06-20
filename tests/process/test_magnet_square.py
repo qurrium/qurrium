@@ -1,6 +1,6 @@
 """Test qurry.process.magnet_square module."""
 
-from typing import TypedDict, TypeVar, Generic, Literal, Union
+from typing import TypedDict, TypeVar, Literal, Union, overload
 import os
 from itertools import combinations
 import pytest
@@ -26,7 +26,7 @@ class RawReadMSAnswer(TypedDict):
     taking_time: float
 
 
-class RawReadMSZAnswer(TypedDict):
+class RawReadMSZDirAnswer(TypedDict):
     """TypedDict for magnet square answer from JSON."""
 
     magnet_square: float
@@ -36,13 +36,29 @@ class RawReadMSZAnswer(TypedDict):
     taking_time: float
 
 
-RRMSA = TypeVar("RRMSA", RawReadMSAnswer, RawReadMSZAnswer)
+RRMSA = TypeVar("RRMSA", RawReadMSAnswer, RawReadMSZDirAnswer)
 
 
-class RawReadMSUnit(TypedDict, Generic[RRMSA]):
+# This won;t work with TypedDicts berfore Python3.11,
+# so we use a regular TypedDict.
+# class RawReadMSUnit(TypedDict, Generic[RRMSA]):
+#     """TypedDict for magnet square unit from JSON."""
+
+#     ans: RRMSA
+#     counts: list[dict[str, int]]
+
+
+class RawReadMS(TypedDict):
     """TypedDict for magnet square unit from JSON."""
 
-    ans: RRMSA
+    ans: RawReadMSAnswer
+    counts: list[dict[str, int]]
+
+
+class RawReadMSZDir(TypedDict):
+    """TypedDict for magnet square unit from JSON."""
+
+    ans: RawReadMSZDirAnswer
     counts: list[dict[str, int]]
 
 
@@ -60,12 +76,22 @@ ANSWERS = {
 ANSWERS_ERROR = 0.05
 
 
+@overload
 def raw_unfold_and_sorted(
-    case_set: dict[str, RawReadMSUnit[RRMSA]],
-) -> list[tuple[str, RRMSA, list[dict[str, int]]]]:
+    case_set: dict[str, RawReadMSZDir],
+) -> list[tuple[str, RawReadMSZDirAnswer, list[dict[str, int]]]]: ...
+
+
+@overload
+def raw_unfold_and_sorted(
+    case_set: dict[str, RawReadMS],
+) -> list[tuple[str, RawReadMSAnswer, list[dict[str, int]]]]: ...
+
+
+def raw_unfold_and_sorted(case_set):
     """Unfold and sort the raw read magnet square case set.
     Args:
-        case_set (dict[str, RawReadMSUnit[RRMSA]]): The raw read magnet square case set.
+        case_set (dict[str, RawReadMSUnit]): The raw read magnet square case set.
     Returns:
         list[tuple[str, RRMSA, list[dict[str, int]]]]:
             The sorted list of tuples containing case name, answer, and counts.
@@ -73,12 +99,14 @@ def raw_unfold_and_sorted(
     return sorted(((k, v["ans"], v["counts"]) for k, v in case_set.items()), key=lambda x: x[0])
 
 
-raw_mszdir_case: dict[str, RawReadMSUnit[RawReadMSZAnswer]] = quickRead(FILE_LOCATION_MSZDIR)
-raw_ms_case: dict[str, RawReadMSUnit[RawReadMSAnswer]] = quickRead(FILE_LOCATION_MS)
+raw_mszdir_case: dict[str, RawReadMS] = quickRead(FILE_LOCATION_MSZDIR)
+raw_ms_case: dict[str, RawReadMSZDir] = quickRead(FILE_LOCATION_MS)
 
 
 @pytest.mark.parametrize(["case_name", "answer", "counts"], raw_unfold_and_sorted(raw_mszdir_case))
-def test_magnet_square_zdir(case_name: str, answer: RawReadMSZAnswer, counts: list[dict[str, int]]):
+def test_magnet_square_zdir(
+    case_name: str, answer: RawReadMSZDirAnswer, counts: list[dict[str, int]]
+):
     """Test the z_dir_magnetic_square_core function."""
 
     assert magnet_square_availability[1][
