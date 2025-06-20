@@ -175,6 +175,100 @@ def randomized_entangled_entropy_v1(
     return quantity
 
 
+def preparing_all_system(
+    shots: int,
+    counts: list[dict[str, int]],
+    measure: Optional[tuple[int, int]] = None,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    workers_num: Optional[int] = None,
+    existed_all_system: Optional[ExistingAllSystemSource] = None,
+) -> tuple[
+    Union[dict[int, float], dict[int, np.float64]],
+    Union[tuple[int, int], list[int]],
+    Union[tuple[int, int], list[int]],
+    float,
+    str,
+]:
+    """Prepare the all system source for entangled entropy calculation.
+
+    Args:
+        shots (int):
+            Shots of the counts.
+        counts (list[dict[str, int]]):
+            Counts from randomized measurement results.
+        measure (Optional[tuple[int, int]], optional):
+            The range that implemented the measuring gate.
+            If not specified, then use all qubits.
+            This will affect the range of partition
+            when you not implement the measuring gate on all qubit.
+            Defaults to None.
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the post-processing.
+            Defaults to DEFAULT_PROCESS_BACKEND.
+        workers_num (Optional[int], optional):
+            Number of multi-processing workers, it will be ignored if backend is Rust.
+            if sets to 1, then disable to using multi-processing;
+            if not specified, then use the number of all cpu counts by `os.cpu_count()`.
+            This only works for Python and Cython backend.
+            Defaults to None.
+        existed_all_system (Optional[ExistingAllSystemSource], optional):
+            Existing all system source.
+            If there is known all system result,
+            then you can put it here to save a lot of time on calculating all system
+            for not matter what partition you are using,
+            their all system result is the same.
+            All system source should contain
+            `purityCellsAllSys`, `bitStringRange`, `measureActually`, `source` for its name.
+            This can save a lot of time
+            Defaults to None.
+
+    Returns:
+        A tuple contains:
+            - purity_cell_list_allsys: list of purity of all system.
+            - bitstring_range_allsys: The range of partition on the bitstring of all system.
+            - measure_range_allsys: The range of partition refer to all qubits of all system.
+            - taken_allsys: The time taken to calculate all system.
+            - source: The source of all system,
+                it can be "independent" or the source of existed_all_system.
+    """
+
+    if isinstance(existed_all_system, dict):
+        if all(
+            k in existed_all_system
+            for k in ["purityCellsAllSys", "bitStringRange", "measureActually", "source"]
+        ):
+            return (
+                existed_all_system["purityCellsAllSys"],
+                existed_all_system["bitStringRange"],
+                existed_all_system["measureActually"],
+                0,
+                existed_all_system["source"],
+            )
+
+    (
+        purity_cell_dict_allsys,
+        bitstring_range_allsys,
+        measure_range_allsys,
+        _msg_allsys,
+        taken_allsys,
+    ) = entangled_entropy_core(
+        shots=shots,
+        counts=counts,
+        degree=None,
+        measure=measure,
+        backend=backend,
+        multiprocess_pool_size=workers_num,
+    )
+
+    return (
+        purity_cell_dict_allsys,
+        bitstring_range_allsys,
+        measure_range_allsys,
+        taken_allsys,
+        "independent",
+    )
+
+
 def randomized_entangled_entropy_mitigated_v1(
     shots: int,
     counts: list[dict[str, int]],
@@ -367,13 +461,7 @@ def randomized_entangled_entropy_mitigated_v1(
 
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description_str(f"Calculate specific degree {degree} by {backend}.")
-    (
-        purity_cell_dict,
-        bitstring_range,
-        measure_range,
-        msg,
-        taken,
-    ) = entangled_entropy_core(
+    (purity_cell_dict, bitstring_range, measure_range, msg, taken) = entangled_entropy_core(
         shots=shots,
         counts=counts,
         degree=degree,
@@ -381,81 +469,40 @@ def randomized_entangled_entropy_mitigated_v1(
         backend=backend,
         multiprocess_pool_size=workers_num,
     )
-    purity_cell_list: list[Union[float, np.float64]] = list(purity_cell_dict.values())
+    purity_cell_list = list(purity_cell_dict.values())
 
-    if existed_all_system is None:
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Calculate all system by {backend}.")
-        (
-            purity_cell_dict_allsys,
-            bitstring_range_allsys,
-            measure_range_allsys,
-            _msg_allsys,
-            taken_allsys,
-        ) = entangled_entropy_core(
-            shots=shots,
-            counts=counts,
-            degree=None,
-            measure=measure,
-            backend=backend,
-            multiprocess_pool_size=workers_num,
-        )
-        purity_cell_list_allsys: list[Union[float, np.float64]] = list(
-            purity_cell_dict_allsys.values()
-        )  # type: ignore
-        source = "independent"
-    else:
-        for k, msg in [
-            ("purityCellsAllSys", "purityCellsAllSys is not in existed_all_system."),
-            ("bitStringRange", "bitStringRange is not in existed_all_system."),
-            ("measureActually", "measureActually is not in existed_all_system."),
-            ("source", "source is not in existed_all_system."),
-        ]:
-            assert k in existed_all_system, msg
-
-        source = existed_all_system["source"]
-        if isinstance(pbar, tqdm.tqdm):
-            pbar.set_description_str(f"Using existing all system from '{source}'")
-        purity_cell_dict_allsys = existed_all_system["purityCellsAllSys"]
-
-        purity_cell_list_allsys = list(purity_cell_dict_allsys.values())
-        bitstring_range_allsys = existed_all_system["bitStringRange"]
-        measure_range_allsys = existed_all_system["measureActually"]
-        _msg_allsys = f"Use all system from {source}."
-        taken_allsys = 0
+    (
+        purity_cell_dict_allsys,
+        bitstring_range_allsys,
+        measure_range_allsys,
+        taken_allsys,
+        source,
+    ) = preparing_all_system(
+        shots=shots,
+        counts=counts,
+        measure=measure,
+        backend=backend,
+        workers_num=workers_num,
+        existed_all_system=existed_all_system,
+    )
+    purity_cell_list_allsys = list(purity_cell_dict_allsys.values())
 
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description_str(f"Preparing error mitigation of {bitstring_range} on {measure}")
 
     # pylance cannot recognize the type
-    purity: np.float64 = np.mean(purity_cell_list, dtype=np.float64)  # type: ignore
-    purity_allsys: np.float64 = np.mean(purity_cell_list_allsys, dtype=np.float64)  # type: ignore
-    purity_sd: np.float64 = np.std(purity_cell_list, dtype=np.float64)  # type: ignore
-    purity_sd_allsys: np.float64 = np.std(purity_cell_list_allsys, dtype=np.float64)  # type: ignore
-
-    entropy: np.float64 = -np.log2(purity, dtype=np.float64)
-    entropy_sd: np.float64 = purity_sd / np.log(2) / purity
-    entropy_allsys: np.float64 = -np.log2(purity_allsys, dtype=np.float64)
-    entropy_sd_allsys: np.float64 = purity_sd_allsys / np.log(2) / purity_allsys
-
-    if measure is None:
-        measure_info = ("not specified, use all qubits", measure_range)
-    else:
-        measure_info = ("measure range:", measure)
+    purity: np.float64 = np.mean(purity_cell_list, dtype=np.float64)
+    purity_allsys: np.float64 = np.mean(purity_cell_list_allsys, dtype=np.float64)
+    purity_sd: np.float64 = np.std(purity_cell_list, dtype=np.float64)
+    purity_sd_allsys: np.float64 = np.std(purity_cell_list_allsys, dtype=np.float64)
 
     num_qubits = len(list(counts[0].keys())[0])
     if degree is None:
         degree = num_qubits
-    if isinstance(degree, tuple):
-        subsystem = max(degree) - min(degree)
-    else:
-        subsystem = degree
+    subsystem = max(degree) - min(degree) if isinstance(degree, tuple) else degree
 
     error_mitgation_info = depolarizing_error_mitgation(
-        meas_system=purity,
-        all_system=purity_allsys,
-        n_a=subsystem,
-        system_size=num_qubits,
+        meas_system=purity, all_system=purity_allsys, n_a=subsystem, system_size=num_qubits
     )
 
     if isinstance(pbar, tqdm.tqdm):
@@ -464,18 +511,18 @@ def randomized_entangled_entropy_mitigated_v1(
     quantity: RandomizedEntangledEntropyMitigatedComplex = {
         # target system
         "purity": purity,
-        "entropy": entropy,
+        "entropy": -np.log2(purity, dtype=np.float64),
         "purityCells": purity_cell_dict,
         "puritySD": purity_sd,
-        "entropySD": entropy_sd,
+        "entropySD": purity_sd / np.log(2) / purity,
         "bitStringRange": bitstring_range,
         # all system
         "allSystemSource": source,  # 'independent' or 'header of analysis'
         "purityAllSys": purity_allsys,
-        "entropyAllSys": entropy_allsys,
+        "entropyAllSys": -np.log2(purity_allsys, dtype=np.float64),
         "purityCellsAllSys": purity_cell_dict_allsys,
         "puritySDAllSys": purity_sd_allsys,
-        "entropySDAllSys": entropy_sd_allsys,
+        "entropySDAllSys": purity_sd_allsys / np.log(2) / purity_allsys,
         "bitsStringRangeAllSys": bitstring_range_allsys,
         # mitigated
         "errorRate": error_mitgation_info["errorRate"],
@@ -484,7 +531,11 @@ def randomized_entangled_entropy_mitigated_v1(
         # info
         "degree": degree,
         "num_qubits": num_qubits,
-        "measure": measure_info,
+        "measure": (
+            ("not specified, use all qubits", measure_range)
+            if measure is None
+            else ("measure range:", measure)
+        ),
         "measureActually": measure_range,
         "measureActuallyAllSys": measure_range_allsys,
         "countsNum": len(counts),
