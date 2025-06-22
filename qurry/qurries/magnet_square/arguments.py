@@ -53,4 +53,4 @@ class MagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of the analyze method."""
 
 
-SHORT_NAME = "qurries_magnet_square"
+SHORT_NAME = "qurmagsq_magnet_square"
