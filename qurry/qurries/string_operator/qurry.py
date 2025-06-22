@@ -1,7 +1,4 @@
-"""StringOperator - Qurrium
-(:mod:`qurry.qurries.string_operator.qurry`)
-
-"""
+"""StringOperator - Qurrium (:mod:`qurry.qurries.string_operator.qurry`)"""
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal
@@ -11,7 +8,7 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .utils import AvailableStringOperatorTypes
+from .utils import StringOperatorLibType, StringOperatorDirection
 from .arguments import (
     SHORT_NAME,
     StringOperatorMeasureArgs,
@@ -22,10 +19,7 @@ from .experiment import StringOperatorExperiment
 from ...qurrium import QurriumPrototype
 from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
-from ...tools.except_decorator import unproven_feature
 
-
-@unproven_feature(message="The StringOperator is not proven, we can not guarantee the correctness.")
 class StringOperator(
     QurriumPrototype[
         StringOperatorExperiment,
@@ -73,7 +67,8 @@ class StringOperator(
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         i: Optional[int] = None,
         k: Optional[int] = None,
-        str_op: AvailableStringOperatorTypes = "i",
+        str_op: StringOperatorLibType = "i",
+        on_dir: StringOperatorDirection = "x",
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -96,8 +91,10 @@ class StringOperator(
                 The index of beginning qubits in the quantum circuit.
             k (Optional[int], optional):
                 The index of ending qubits in the quantum circuit.
-            str_op (AvailableStringOperatorTypes, optional):
-                The string operator.
+            str_op (StringOperatorLibType, optional):
+                The string operator. Defaults to "i".
+            on_dir (StringOperatorDirection, optional):
+                The direction of the string operator, either 'x' or 'y'. Defaults to "x".
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -138,6 +135,7 @@ class StringOperator(
             "i": i,
             "k": k,
             "str_op": str_op,
+            "on_dir": on_dir,
             "shots": shots,
             "backend": backend,
             "exp_name": exp_name,
@@ -157,7 +155,8 @@ class StringOperator(
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
         i: Optional[int] = None,
         k: Optional[int] = None,
-        str_op: AvailableStringOperatorTypes = "i",
+        str_op: StringOperatorLibType = "i",
+        on_dir: StringOperatorDirection = "x",
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -180,8 +179,10 @@ class StringOperator(
                 The index of beginning qubits in the quantum circuit.
             k (Optional[int], optional):
                 The index of ending qubits in the quantum circuit.
-            str_op (AvailableStringOperatorTypes, optional):
-                The string operator.
+            str_op (StringOperatorLibType, optional):
+                The string operator. Defaults to "i".
+            on_dir (StringOperatorDirection, optional):
+                The direction of the string operator, either 'x' or 'y'. Defaults to "x".
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -220,6 +221,7 @@ class StringOperator(
             i=i,
             k=k,
             str_op=str_op,
+            on_dir=on_dir,
             shots=shots,
             backend=backend,
             exp_name=exp_name,

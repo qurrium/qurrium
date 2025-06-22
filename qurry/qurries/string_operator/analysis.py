@@ -1,35 +1,33 @@
-"""StringOperator - Analysis
-(:mod:`qurry.qurries.string_operator.analysis`)
+"""StringOperator - Analysis (:mod:`qurry.qurries.string_operator.analysis`)"""
 
-"""
-
-from typing import Union, Optional, NamedTuple, Iterable, Type
+from typing import Union, NamedTuple, Iterable, Type
 import numpy as np
 
-from .utils import AvailableStringOperatorTypes
+from .utils import StringOperatorLibType, StringOperatorDirection
 from ...qurrium.analysis import AnalysisPrototype
 
 
 class SOAnalysisInput(NamedTuple):
     """To set the analysis."""
 
-    num_qubits: int
-    """The number of qubits."""
-    i: int
-    """The index of beginning qubits in the quantum circuit."""
-    k: int
-    """The index of ending qubits in the quantum circuit."""
-    str_op: AvailableStringOperatorTypes
-    """The string operator."""
-    shots: int
-    """The number of shots."""
-
 
 class SOAnalysisContent(NamedTuple):
     """The content of the analysis."""
 
-    order: Optional[Union[float, np.float64]] = None
+    order: Union[float, np.float64]
     """The order of the string operator."""
+    num_qubits: int
+    """The number of qubits."""
+    shots: int
+    """The number of shots."""
+    i: int
+    """The index of beginning qubits in the quantum circuit."""
+    k: int
+    """The index of ending qubits in the quantum circuit."""
+    str_op: StringOperatorLibType = "i"
+    """The string operator."""
+    on_dir: StringOperatorDirection = "x"
+    """The direction of the string operator, either 'x' or 'y'."""
 
 
 class StringOperatorAnalysis(AnalysisPrototype[SOAnalysisInput, SOAnalysisContent]):

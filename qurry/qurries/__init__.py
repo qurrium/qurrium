@@ -1,8 +1,5 @@
 """Qurries - Other Qurrium Modules (:mod:`qurry.qurries`)
 
-
-- StringOperator - String Operator (Not Test yet)
-    - Formerly known as `qurstrop`
 - TwistedOperator - Twisted Operator (Proposal)
     - Formerly known as `qurtwistop`
 """
