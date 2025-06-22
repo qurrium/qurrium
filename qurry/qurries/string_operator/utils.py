@@ -9,12 +9,14 @@ from qiskit import QuantumCircuit, ClassicalRegister
 StringOperatorUnits = Optional[tuple[Literal["rx", "ry", "rz"], float]]
 """Available string operator units.
 
-- "rx": Rotation around the x-axis.
-- "ry": Rotation around the y-axis.
-- "rz": Rotation around the z-axis.
-- float: The angle of rotation in radians.
+- tuple[Literal["rx", "ry", "rz"], float]: A tuple containing:
+    - "rx": Rotation around the x-axis.
+    - "ry": Rotation around the y-axis.
+    - "rz": Rotation around the z-axis.
+    - float: The angle of rotation in radians.
+    and do the measurement on the qubit.
 
-- None: No operation.
+- None: No operation and measurement is performed on the qubit.
 """
 
 
@@ -71,11 +73,11 @@ STRING_OPERATOR: dict[StringOperatorDirection, StringOperatorLib] = {
             -1: None,
         },
         "zy": {
-            0: None,
+            0: ("rz", 0),
             1: ("rx", np.pi / 2),
             "filling": ("ry", -np.pi / 2),
             -2: ("rx", np.pi / 2),
-            -1: None,
+            -1: ("rz", 0),
         },
     },
     "y": {
@@ -85,11 +87,11 @@ STRING_OPERATOR: dict[StringOperatorDirection, StringOperatorLib] = {
             -1: None,
         },
         "zy": {
-            0: None,
+            0: ("rz", 0),
             1: ("ry", -np.pi / 2),
             "filling": ("rx", np.pi / 2),
             -2: ("ry", -np.pi / 2),
-            -1: None,
+            -1: ("rz", 0),
         },
     },
 }
@@ -163,11 +165,11 @@ def circuit_method(
     for ci, (qi, move) in enumerate(operations.items()):
         if move is None:
             continue
+
         if move[0] == "rx":
             qc_exp1.rx(move[1], qi)
         elif move[0] == "ry":
             qc_exp1.ry(move[1], qi)
-
         qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])
 
     return qc_exp1
