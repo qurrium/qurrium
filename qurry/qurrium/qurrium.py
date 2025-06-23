@@ -334,9 +334,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         save_location: Union[Path, str] = Path("./"),
         jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
-        skip_build_write: bool = False,
+        skip_build_write: bool = True,
         multiprocess_build: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Build the multimanager.
 
@@ -371,12 +371,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 - pendingStrategy: "default", "onetime", "each", "tags"
                 Defaults to "tags".
             skip_build_write (bool, optional):
-                Whether to skip the file writing during the building.
-                Defaults to False.
+                Whether to skip the file writing during the building. Defaults to True.
             multiprocess_build (bool, optional):
                 Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
+                Whether use multiprocess for writing. Defaults to True.
         Returns:
             str: The summoner_id of multimanager.
         """
@@ -438,10 +437,10 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         tags: Optional[tuple[str, ...]] = None,
         manager_run_args: RunArgsType = None,
         save_location: Union[Path, str] = Path("./"),
-        skip_build_write: bool = False,
+        skip_build_write: bool = True,
         skip_output_write: bool = False,
         multiprocess_build: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Output the multiple experiments.
 
@@ -468,15 +467,13 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
             skip_build_write (bool, optional):
-                Whether to skip the file writing during the building.
-                Defaults to False.
+                Whether to skip the file writing during the building. Defaults to True.
             skip_output_write (bool, optional):
-                Whether to skip the file writing during the output.
-                Defaults to False.
+                Whether to skip the file writing during the output. Defaults to False.
             multiprocess_build (bool, optional):
                 Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
+                Whether use multiprocess for writing. Defaults to True.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -691,7 +688,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Write the multimanager to the file.
 
@@ -720,7 +717,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             skip_quantities (bool, optional):
                 Skip the quantities container. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
+                Whether to use multiprocess to write the file. Defaults to True.
 
         Raises:
             ValueError: summoner_id not in multimanagers.
