@@ -17,6 +17,10 @@ inputs:
     description: Whether to build for nightly or stable release
     required: true
     default: "nightly"
+  python-version:
+    description: The Python version to use for building the wheel
+    required: true
+    default: "3.12"
 outputs:
   call-publish:
     description: Whether need to call publish action
