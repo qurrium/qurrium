@@ -3,7 +3,6 @@
 
 """
 
-import warnings
 from typing import Union, Callable, Literal
 import numpy as np
 
@@ -12,10 +11,7 @@ from ..availability import (
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
-from ..exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-)
+from ..exceptions import PostProcessingRustImportError
 
 
 try:
