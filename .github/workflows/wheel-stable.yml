@@ -8,8 +8,8 @@ on:
 jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
-    name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}${{ matrix.self-hosted && ' (self-hosted)' || '' }}
-    runs-on: ${{ matrix.self-hosted == true && format('[{0}, self-hosted]', matrix.os) || matrix.os }}
+    name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}
+    runs-on: ${{ matrix.full-os }}
 
     strategy:
       fail-fast: false
@@ -18,19 +18,23 @@ jobs:
           - system-arch: linux-x86_64
             os: ubuntu-latest
             archs: X64
-            self-hosted: true
+            full-os: [ubuntu-24.04, self-hosted]
           # - system-arch: linux-aarch64
           #   os: ubuntu-24.04-arm
           #   archs: ARM64
+          #   full-os: [ubuntu-24.04-arm]
           # - system-arch: macOS-x86_64
           #   os: macos-13
           #   archs: X64
+          #   full-os: [macos-13]
           # - system-arch: macOS-arm64
           #   os: macos-14
           #   archs: ARM64
+          #   full-os: [macos-14]
           # - system-arch: windows-x86_64
           #   os: windows-latest
           #   archs: X64
+          #   full-os: [windows-latest]
 
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing
