@@ -43,12 +43,29 @@ jobs:
           release: nightly
           python-version: 3.12
 
-      - name: Clean up Docker Image of PyPI Publish
-        if: runner.environment == 'self-hosted'
+      - name: Whether need to upload wheelhouse from upload-artifact
+        id: upload_check
         run: |
-          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
-          # Prevent using outdated image
-          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
+          if [[ "${{ matrix.system-arch }}" == "linux-x86_64" ]]; then
+            echo "upload=false" >> $GITHUB_OUTPUT
+          else
+            echo "upload=true" >> $GITHUB_OUTPUT
+          fi
+
+      # Upload the wheelhouse as an artifact
+      - name: Wheelhouse Upload
+        if: matrix.system-arch != 'linux-x86_64'
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./wheelhouse/*.whl
+          name: shared-wheel-builds
+
+      - name: Early Publish distribution 📦 to TestPyPI for Linux X86_64
+        if: matrix.system-arch == 'linux-x86_64'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: wheelhouse
+          repository-url: https://test.pypi.org/legacy/
 
   publish-to-testpypi:
     if: github.repository == 'qurrium/qurry' && needs.build_wheels.outputs.call-publish == 'true'
@@ -64,7 +81,14 @@ jobs:
       url: https://test.pypi.org/p/qurry
 
     steps:
-      - uses: ./.github/actions/wheel-publish
-        id: publish_wheels
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
         with:
-          release: nightly
+          name: shared-wheel-builds
+          path: deploy
+
+      - name: Publish distribution 📦  to TestPyPI for Linux X86_64
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: deploy
+          repository-url: https://test.pypi.org/legacy/

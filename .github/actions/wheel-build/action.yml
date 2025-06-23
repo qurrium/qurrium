@@ -97,28 +97,3 @@ runs:
         else
           python -m cibuildwheel --output-dir wheelhouse
         fi
-
-    - name: Whether need to upload wheelhouse from upload-artifact
-      shell: bash
-      id: upload_check
-      run: |
-        if [[ "${{ inputs.system-arch }}" == "linux-x86_64" ]]; then
-          echo "upload=false" >> $GITHUB_OUTPUT
-        else
-          echo "upload=true" >> $GITHUB_OUTPUT
-        fi
-
-    # Upload the wheelhouse as an artifact
-    - name: Wheelhouse Upload
-      if: inputs.system-arch != 'linux-x86_64'
-      uses: actions/upload-artifact@v4
-      with:
-        path: ./wheelhouse/*.whl
-        name: shared-wheel-builds
-
-    - name: Early Publish distribution 📦 to ${{ inputs.release == 'nightly' && 'TestPyPI' || 'PyPI' }} for Linux X86_64
-      if: inputs.system-arch == 'linux-x86_64'
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        packages-dir: wheelhouse
-        repository-url: ${{ inputs.release == 'nightly' && 'https://test.pypi.org/legacy/' || 'https://upload.pypi.org/legacy/' }}
