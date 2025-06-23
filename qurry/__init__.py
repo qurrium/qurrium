@@ -34,9 +34,10 @@ try:
     sys.modules["qurry.boorust.randomized"] = qurry.boorust.randomized  # type: ignore
     sys.modules["qurry.boorust.hadamard"] = qurry.boorust.hadamard  # type: ignore
     sys.modules["qurry.boorust.magnet_square"] = qurry.boorust.magnet_square  # type: ignore
+    sys.modules["qurry.boorust.string_operator"] = qurry.boorust.string_operator  # type: ignore
     sys.modules["qurry.boorust.dummy"] = qurry.boorust.dummy  # type: ignore
     sys.modules["qurry.boorust.test"] = qurry.boorust.test  # type: ignore
-    # sys.modules["qurry.boorust.shadow"] = qurry.boorust.shadow  # type: ignore
+
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
 except ModuleNotFoundError as qurry_boorust_import_error:
