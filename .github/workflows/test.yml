@@ -21,6 +21,9 @@ jobs:
   check_version:
     name: Check Version and Lint Check
     runs-on: [ubuntu-latest, self-hosted]
+    outputs:
+      skip: ${{ steps.skip_test.outputs.skip }}
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -57,12 +60,21 @@ jobs:
           # exit-zero treats all errors as warnings
           python -m flake8 . --count --exit-zero --statistics --config tox.ini
 
+      - name: Whether to skip test
+        id: skip_test
+        run: |
+          if [[ ${{ contains(github.event.pull_request.title, 'skip-version:') }} ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
   test_py:
-    if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
     name: Test
     runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
+    if: needs.check_version.outputs.skip != 'true'
     strategy:
       matrix:
         qiskit-version: [v1, v2]
@@ -73,6 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Test Unit with Python ${{ matrix.python-version }} and Qiskit ${{ matrix.qiskit-version }}
+
         uses: ./.github/actions/test-unit
         with:
           python-version: ${{ matrix.python-version }}

@@ -9,7 +9,7 @@ jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
     name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}${{ matrix.self-hosted && ' (self-hosted)' || '' }}
-    runs-on: ${{ matrix.self-hosted == true && format('{0}, self-hosted', matrix.os) || matrix.os }}
+    runs-on: ${{ matrix.self-hosted == true && format('[{0}, self-hosted]', matrix.os) || matrix.os }}
 
     strategy:
       fail-fast: false
