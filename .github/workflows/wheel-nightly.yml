@@ -18,7 +18,7 @@ jobs:
           - system-arch: linux-x86_64
             os: ubuntu-latest
             archs: X64
-            full-os: [ubuntu-24.04, self-hosted]
+            full-os: [ubuntu-latest, self-hosted]
 
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing
