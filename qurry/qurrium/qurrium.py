@@ -27,6 +27,7 @@ from .multimanager.multimanager import (
 )
 from ..tools import qurry_progressbar
 from ..tools.backend import GeneralSimulator
+from ..tools.qiskit_version import qiskit_version_v0_check
 from ..declare import (
     RunArgsType,
     TranspileArgs,
@@ -129,6 +130,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         if hasattr(self, "__post_init__"):
             # Call the __post_init__ method if it exists
             getattr(self, "__post_init__")()
+
+        qiskit_version_v0_check()
 
     def build(
         self,

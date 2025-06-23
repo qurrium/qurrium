@@ -6,6 +6,7 @@ since 1.0.0.
 
 """
 
+import warnings
 from collections.abc import Mapping
 from importlib.metadata import distributions
 
@@ -136,3 +137,22 @@ def qiskit_version_statesheet() -> Hoshi:
 
 
 QISKIT_VERSION_STATESHEET = qiskit_version_statesheet()
+
+
+def qiskit_version_v0_check():
+    """Check the version of qiskit and its packages.
+
+    This function checks the version of qiskit and its packages,
+    and raises a warning if the version is lower than 1.0.0.
+    It is recommended to use the latest version of qiskit for compatibility with Qurrium.
+    """
+    qiskit_version_tuple = tuple(map(int, qiskit_version.split(".")))
+
+    if qiskit_version_tuple < (2, 0, 0):
+        warnings.warn(
+            "Qiskit version is lower than 1.0.0. "
+            "Qiskit v0 is deprecated since the end of 2023. "
+            "Qurrium is not garanteed to work with this version of Qiskit. "
+            "And it may not be compatible with the latest features of Qurrium. "
+            "Please update Qiskit to the latest version.",
+        )
