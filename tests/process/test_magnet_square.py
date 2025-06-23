@@ -137,7 +137,7 @@ def test_magnet_square_zdir(
     ]
     for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
         assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
-            f"{name_1} and {name_02} results are not equal in entangled_entropy_core: "
+            f"{name_1} and {name_02} results are not equal in z_dir_magnetic_square_core: "
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
@@ -181,7 +181,7 @@ def test_magnet_square(case_name: str, answer: RawReadMSAnswer, counts: list[dic
     ]
     for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
         assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
-            f"{name_1} and {name_02} results are not equal in entangled_entropy_core: "
+            f"{name_1} and {name_02} results are not equal in magnet_square_core: "
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
