@@ -41,6 +41,7 @@ jobs:
           system-arch: ${{ matrix.system-arch }}
           os: ${{ matrix.os }}
           release: nightly
+          python-version: 3.12
 
       - name: Clean up Docker Image of PyPI Publish
         if: runner.environment == 'self-hosted'
