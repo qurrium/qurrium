@@ -8,16 +8,17 @@ on:
 jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
-    name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}${{ matrix.self-hosted && ' (self-hosted)' || '' }}
+    runs-on: ${{ matrix.self-hosted == true && format('{0}, self-hosted', matrix.os) || matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - system-arch: linux-x86_64
-            os: [ubuntu-latest, self-hosted]
+            os: ubuntu-latest
             archs: X64
+            self-hosted: true
           # - system-arch: linux-aarch64
           #   os: ubuntu-24.04-arm
           #   archs: ARM64
@@ -42,7 +43,11 @@ jobs:
       url: https://pypi.org/p/qurrium
 
     steps:
-      - uses: ./.github/actions/wheel-build
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wheel Build
+        uses: ./.github/actions/wheel-build
         id: build_wheels
         with:
           system-arch: ${{ matrix.system-arch }}
