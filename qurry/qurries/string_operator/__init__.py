@@ -28,5 +28,6 @@ Reference:
 """
 
 from .analysis import StringOperatorAnalysis
+from .arguments import StringOperatorMeasureArgs
 from .experiment import StringOperatorExperiment
 from .qurry import StringOperator

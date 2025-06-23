@@ -27,6 +27,7 @@ from .multimanager.multimanager import (
 )
 from ..tools import qurry_progressbar
 from ..tools.backend import GeneralSimulator
+from ..tools.qiskit_version import qiskit_version_v0_check
 from ..declare import (
     RunArgsType,
     TranspileArgs,
@@ -129,6 +130,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         if hasattr(self, "__post_init__"):
             # Call the __post_init__ method if it exists
             getattr(self, "__post_init__")()
+
+        qiskit_version_v0_check()
 
     def build(
         self,
@@ -325,7 +328,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiBuild(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: str = short_name,
+        summoner_name: Optional[str] = None,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
@@ -334,17 +337,18 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         save_location: Union[Path, str] = Path("./"),
         jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
-        skip_build_write: bool = False,
+        skip_build_write: bool = True,
         multiprocess_build: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Build the multimanager.
 
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
+            summoner_name (Optional[str], optional):
+                Name for multimanager. Defaults to None.
+                When `None`, it will be set to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
@@ -370,12 +374,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 - pendingStrategy: "default", "onetime", "each", "tags"
                 Defaults to "tags".
             skip_build_write (bool, optional):
-                Whether to skip the file writing during the building.
-                Defaults to False.
+                Whether to skip the file writing during the building. Defaults to True.
             multiprocess_build (bool, optional):
                 Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
+                Whether use multiprocess for writing. Defaults to True.
         Returns:
             str: The summoner_id of multimanager.
         """
@@ -385,6 +388,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             return summoner_id
         if summoner_id is not None:
             raise ValueError("Unknow summoner_id in multimanagers.")
+        if summoner_name is None:
+            summoner_name = self.short_name
 
         ready_config_list: list[dict[str, Any]] = []
         for raw_config in config_list:
@@ -428,25 +433,26 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiOutput(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: str = short_name,
+        summoner_name: Optional[str] = None,
         summoner_id: Optional[str] = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
         tags: Optional[tuple[str, ...]] = None,
         manager_run_args: RunArgsType = None,
         save_location: Union[Path, str] = Path("./"),
-        skip_build_write: bool = False,
+        skip_build_write: bool = True,
         skip_output_write: bool = False,
         multiprocess_build: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Output the multiple experiments.
 
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
+            summoner_name (Optional[str], optional):
+                Name for multimanager. Defaults to None.
+                When `None`, it will be set to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
@@ -464,15 +470,13 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
             skip_build_write (bool, optional):
-                Whether to skip the file writing during the building.
-                Defaults to False.
+                Whether to skip the file writing during the building. Defaults to True.
             skip_output_write (bool, optional):
-                Whether to skip the file writing during the output.
-                Defaults to False.
+                Whether to skip the file writing during the output. Defaults to False.
             multiprocess_build (bool, optional):
                 Whether use multiprocess for building. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
+                Whether use multiprocess for writing. Defaults to True.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -503,6 +507,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         circ_serial: list[int] = []
         experiment_progress = qurry_progressbar(current_multimanager.exps.items())
 
+        is_call_auto_multianalysis = False
         for exp_id, exp_instance in experiment_progress:
             experiment_progress.set_description_str("Experiments running...")
 
@@ -514,6 +519,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 save_location=current_multimanager.multicommons.save_location,
             )
             assert current_id == exp_id, f"exps_id output: {current_id} != exp_id: {exp_id}"
+            is_call_auto_multianalysis = (
+                exp_instance.is_auto_analysis and exp_instance.is_hold_by_multimanager
+            )
 
             circ_serial_len = len(circ_serial)
             tmp_circ_serial = [
@@ -524,9 +532,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             current_multimanager.beforewards.pending_pool[exp_id] = tmp_circ_serial
             current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
             current_multimanager.beforewards.job_id.append((exp_id, "local"))
-
         current_multimanager.multicommons.datetimes.add_serial("output")
 
+        if is_call_auto_multianalysis:
+            print("| Auto analysis is called, running analysis...")
+            current_multimanager.analyze(analysis_name="auto_report", no_serialize=True)
         if not skip_output_write:
             bewritten = self.multiWrite(besummonned, multiprocess_write=multiprocess_write)
             assert bewritten == besummonned
@@ -681,7 +691,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
-        multiprocess_write: bool = False,
+        multiprocess_write: bool = True,
     ) -> str:
         """Write the multimanager to the file.
 
@@ -710,7 +720,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             skip_quantities (bool, optional):
                 Skip the quantities container. Defaults to False.
             multiprocess_write (bool, optional):
-                Whether to use multiprocess to write the file.
+                Whether to use multiprocess to write the file. Defaults to True.
 
         Raises:
             ValueError: summoner_id not in multimanagers.

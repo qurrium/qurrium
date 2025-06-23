@@ -3,20 +3,22 @@
 The container for quantities of analysis for multimanager.
 """
 
-from typing import Union, Literal
+from typing import Union, Literal, Any, TypeVar
 from collections.abc import Hashable
 from pathlib import Path
 
 from ...tools import qurry_progressbar
 from ...capsule.mori import TagList
 
+TagListKeyable = TypeVar("TagListKeyable", bound=Hashable)
 
-class QuantityContainer(dict[str, TagList[Hashable, dict[str, float]]]):
+
+class QuantityContainer(dict[str, TagList[TagListKeyable, dict[str, Any]]]):
     """The container for quantities of analysis for multimanager."""
 
     __name__ = "QuantityContainer"
 
-    def remove(self, name: str) -> TagList[Hashable, dict[str, float]]:
+    def remove(self, name: str) -> TagList[TagListKeyable, dict[str, Any]]:
         """Removes the analysis.
 
         Args:

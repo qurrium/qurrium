@@ -1,7 +1,4 @@
-"""MagnetSquare - Qurrium
-(:mod:`qurry.qurries.magnet_square.qurry`)
-
-"""
+"""MagnetSquare - Qurrium (:mod:`qurry.qurries.magnet_square.qurry`)"""
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal
@@ -9,6 +6,8 @@ from collections.abc import Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
+from qiskit.circuit import Gate
+from qiskit.quantum_info import Operator
 from qiskit.providers import Backend
 
 from .arguments import (
@@ -21,10 +20,7 @@ from .experiment import MagnetSquareExperiment
 from ...qurrium import QurriumPrototype
 from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
-from ...tools.except_decorator import unproven_feature
 
-
-@unproven_feature(message="Magnetic Square is not proven, we can not guarantee the correctness.")
 class MagnetSquare(
     QurriumPrototype[
         MagnetSquareExperiment,
@@ -33,7 +29,7 @@ class MagnetSquare(
         MagnetSquareAnalyzeArgs,
     ]
 ):
-    """Magnetic Square Qurry."""
+    """Magnetization Square Qurry."""
 
     __name__ = "MagnetSquare"
     short_name = SHORT_NAME
@@ -46,6 +42,7 @@ class MagnetSquare(
     def measure_to_output(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        unitary_operator: Optional[Union[Operator, Gate, Literal["x", "y", "z"]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -64,6 +61,11 @@ class MagnetSquare(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
+            unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
+                The unitary operator to apply.
+                It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
+                representing the axis of rotation ('x', 'y', or 'z').
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -98,9 +100,12 @@ class MagnetSquare(
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
+        if unitary_operator is None:
+            raise ValueError("The `unitary_operator` must be provided.")
 
         return {
             "circuits": [wave],
+            "unitary_operator": unitary_operator,
             "shots": shots,
             "backend": backend,
             "exp_name": exp_name,
@@ -118,6 +123,8 @@ class MagnetSquare(
     def measure(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        unitary_operator: Optional[Union[Operator, Gate, Literal["x", "y", "z"]]] = None,
+        # basic inputs
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -136,6 +143,11 @@ class MagnetSquare(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
+            unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
+                The unitary operator to apply.
+                It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
+                representing the axis of rotation ('x', 'y', or 'z').
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -172,6 +184,7 @@ class MagnetSquare(
         output_args = self.measure_to_output(
             wave=wave,
             shots=shots,
+            unitary_operator=unitary_operator,
             backend=backend,
             exp_name=exp_name,
             run_args=run_args,

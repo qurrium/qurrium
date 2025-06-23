@@ -16,10 +16,10 @@ from .arguments import MultiCommonparams, PendingStrategyLiteral, PendingTargetP
 from .beforewards import Before
 from .afterwards import After
 from .process import datetimedict_process
-from .utils import experiment_writer
+from .utils import experiment_writer, multimanager_report_naming
 from ..utils.chunk import very_easy_chunk_size
 from ..container import ExperimentContainer, QuantityContainer, _E
-from ..utils.iocontrol import naming, RJUST_LEN, IOComplex
+from ..utils.iocontrol import naming, IOComplex
 from ...tools import qurry_progressbar, GeneralSimulator, DatetimeDict, DEFAULT_POOL_SIZE
 from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_INDENT
 from ...capsule.mori import TagList, GitSyncControl
@@ -36,7 +36,7 @@ class MultiManager(Generic[_E]):
     beforewards: Before
     afterwards: After
 
-    quantity_container: QuantityContainer
+    quantity_container: QuantityContainer[tuple[str, ...]]
     """The container of quantity."""
     exps: ExperimentContainer[_E]
     """The experiments container."""
@@ -51,6 +51,13 @@ class MultiManager(Generic[_E]):
     """
     mute_auto_lock: bool = False
     """Whether mute the auto-lock message."""
+
+    qurryinfo: dict[str, dict[str, str]] = {}
+    """The qurryinfo of the multi-experiment.
+
+    This is a dictionary with experiment IDs as keys,
+    and the values are dictionaries containing the exported information.
+    """
 
     def reset_afterwards(
         self,
@@ -366,7 +373,6 @@ class MultiManager(Generic[_E]):
                 pending_pool=TagList(),
                 job_id=[],
                 job_taglist=TagList(),
-                files_taglist=TagList(),
                 index_taglist=TagList(),
             ),
             afterwards=After(
@@ -694,7 +700,6 @@ class MultiManager(Generic[_E]):
         Returns:
             dict[str, Any]: The dict of multiConfig.
         """
-        self.gitignore.load(self.multicommons.export_location)
         print("| Export multimanager...")
         if save_location is None:
             save_location = self.multicommons.save_location
@@ -716,8 +721,7 @@ class MultiManager(Generic[_E]):
         # pylint: enable=protected-access
 
         export_progress = qurry_progressbar(
-            [fname for fname in self.beforewards._fields if fname != "files_taglist"]
-            + list(self.afterwards._fields),
+            self.beforewards._fields + self.afterwards._fields,
             desc="Exporting MultiManager content...",
             bar_format="qurry-barless",
         )
@@ -775,13 +779,15 @@ class MultiManager(Generic[_E]):
 
         # experiments
         if not skip_exps:
-            experiment_writer(
-                experiment_container=self.exps,
-                beforewards=self.beforewards,
-                multicommons=self.multicommons,
-                taglist_name=exporting_name["files_taglist"],
-                export_transpiled_circuit=export_transpiled_circuit,
-                multiprocess=multiprocess,
+            self.qurryinfo.clear()
+            self.qurryinfo.update(
+                experiment_writer(
+                    experiment_container=self.exps,
+                    beforewards=self.beforewards,
+                    multicommons=self.multicommons,
+                    export_transpiled_circuit=export_transpiled_circuit,
+                    multiprocess=multiprocess,
+                )
             )
 
         return multiconfig
@@ -856,12 +862,7 @@ class MultiManager(Generic[_E]):
                 + f"please check them before analysis: {counts_check}."
             )
 
-        idx_tagmap_quantities = len(self.quantity_container)
-        name = (
-            analysis_name
-            if no_serialize
-            else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
-        )
+        name = multimanager_report_naming(analysis_name, no_serialize, self.quantity_container)
         self.quantity_container[name] = TagList()
 
         all_counts_progress = qurry_progressbar(

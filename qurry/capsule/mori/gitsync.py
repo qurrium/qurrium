@@ -1,7 +1,6 @@
 """GitSync - A quick way to create .gitignore (:mod:`qurry.capsule.mori.gitsync`)"""
 
 import os
-import warnings
 from pathlib import Path
 from typing import Union, Optional
 
@@ -11,11 +10,7 @@ from ..utils import OpenArgs, PrintArgs, create_open_args, create_print_args
 class GitSyncControl(list[str]):
     """A gitignore file generator. A quick way to create .gitignore"""
 
-    def sync(
-        self,
-        filename: str,
-        force: bool = False,
-    ) -> bool:
+    def sync(self, filename: str, force: bool = False) -> bool:
         """Add file to sync.
 
         Args:
@@ -39,16 +34,14 @@ class GitSyncControl(list[str]):
         self.append(line)
         return True
 
-    def ignore(
-        self,
-        filename: str,
-        force: bool = False,
-    ) -> bool:
+    def ignore(self, filename: str, force: bool = False) -> bool:
         """Add file to ignore from sync.
 
         Args:
             filename (str): Filename.
-
+            force (bool, optional): Force to add the file to ignore.
+                If the file is already added, then it will be added again.
+                Defaults to False.
 
         Returns:
             bool: The file is added to be ignored and return True.
@@ -63,6 +56,16 @@ class GitSyncControl(list[str]):
             return False
         self.append(line)
         return True
+
+    def comment(self, comment: str) -> None:
+        """Add comment to .gitignore.
+
+        Args:
+            comment (str): The comment to be added.
+        """
+        if not comment.startswith("#"):
+            comment = f"# {comment}"
+        self.append(comment)
 
     def export(
         self,
@@ -85,7 +88,6 @@ class GitSyncControl(list[str]):
                 The other arguments for :func:`print` function.
                 Defaults to DEFAULT_PRINT_ARGS, which is:
                 >>> {}
-
         """
 
         open_args = create_open_args(open_args=open_args)
@@ -124,17 +126,14 @@ class GitSyncControl(list[str]):
         self,
         save_location: Union[Path, str],
         take_duplicate: bool = False,
-        raise_not_found_error: bool = False,
         open_args: Optional[OpenArgs] = None,
-    ) -> bool:
+    ):
         """Read existed .gitignore
 
         Args:
             save_location (Path): The location of .gitignore.
             take_duplicate (bool, optional):
                 Take duplicate item in .gitignore. Defaults to False.
-            raise_not_found_error (bool, optional):
-                Raise error if .gitignore is not found. Defaults to False.
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
                 Defaults to DEFAULT_OPEN_ARGS, which is:
@@ -146,12 +145,8 @@ class GitSyncControl(list[str]):
         Raises:
             FileNotFoundError: The .gitignore is not found.
             TypeError: The save_location is not the type of 'str' or 'Path'.
-
-        Returns:
-            bool: The .gitignore is read successfully.
-
         """
-        open_args = create_open_args(open_args=open_args)
+        open_args = create_open_args(open_args=open_args, is_read_only=True)
 
         assert "encoding" in open_args, "encoding must be specified in open_args"
         encoding = open_args.pop("encoding")
@@ -165,25 +160,17 @@ class GitSyncControl(list[str]):
             raise ValueError("'save_location' needs to be the type of 'str' or 'Path'.")
 
         if not os.path.exists(save_location):
-            if raise_not_found_error:
-                raise FileNotFoundError(f"Such location not found: {save_location}")
-            warnings.warn(
-                f"Such location not found: {save_location}, " "the .gitignore will not be loaded.",
-                UserWarning,
-            )
-            return False
+            raise FileNotFoundError(f"Such location not found: {save_location}")
         actual_file_path = save_location / ".gitignore"
 
         if not os.path.exists(actual_file_path):
-            if raise_not_found_error:
-                raise FileNotFoundError(f"The .gitignore is not found on {save_location}.")
-            return False
+            raise FileNotFoundError(f"The .gitignore is not found on '{save_location}'.")
 
+        tmp_list = []
         with open(actual_file_path, encoding=encoding, **open_args) as ignore_list:
             for line in ignore_list.readlines():
-                new_line = line.strip()
-                if new_line not in self:
-                    self.append(new_line)
-                elif take_duplicate:
-                    self.append(new_line)
-        return True
+                tmp_list.append(line.strip())
+            if not take_duplicate:
+                tmp_list = list(set(tmp_list))
+
+        self += tmp_list

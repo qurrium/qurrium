@@ -16,6 +16,7 @@ And the set of unitary operators :math:`U_M` will represent by following diction
 
 from typing import Literal, Union
 import numpy as np
+import numpy.typing as npt
 
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import RXGate, RYGate, RZGate
@@ -39,33 +40,27 @@ The set of unitary operators :math:`U_M` will represent by following dictionary.
     }
 """
 
-# U_M_MATRIX: dict[int, npt.NDArray[np.complex128]] = {
-U_M_MATRIX: dict[
-    Union[Literal[0, 1, 2], int], np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]
-] = {
+U_M_MATRIX: dict[Union[Literal[0, 1, 2], int], npt.NDArray[np.complex128]] = {
     0: np.array(
         [
             [np.cos(np.pi / 4), -1j * np.sin(np.pi / 4)],
             [-1j * np.sin(np.pi / 4), np.cos(np.pi / 4)],
-        ],
-        dtype=np.complex128,
+        ]
     ),
     1: np.array(
         [
             [np.cos(-np.pi / 4), -np.sin(-np.pi / 4)],
             [np.sin(-np.pi / 4), np.cos(-np.pi / 4)],
         ],
-        dtype=np.complex128,
     ),
     2: np.array(
         [
             [np.exp(0), 0],
             [0, np.exp(0)],
-        ],
-        dtype=np.complex128,
+        ]
     ),
 }
-r"""The :class:`numpy.matrix` objects 
+r"""The :class:`NDArray[np.complex128]` objects 
 for the unitary operators :math:`U_M` in the classical shadow.
 
 The set of unitary operators :math:`U_M` will represent by following dictionary.:
@@ -80,25 +75,21 @@ The set of unitary operators :math:`U_M` will represent by following dictionary.
 """
 
 
-OUTER_PRODUCT: dict[
-    Union[Literal["0", "1"], str], np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.int32]]
-] = {
+OUTER_PRODUCT: dict[str, npt.NDArray[np.int32]] = {
     "0": np.array(
         [
             [1, 0],
             [0, 0],
-        ],
-        dtype=np.int32,
+        ]
     ),
     "1": np.array(
         [
             [0, 0],
             [0, 1],
-        ],
-        dtype=np.int32,
+        ]
     ),
 }
-r"""The :class:`numpy.ndarray` objects 
+r"""The :class:`NDArray[np.int32]` objects 
 for the outer product of :math:`|0\rangle` and :math:`|1\rangle`.
 
 .. math::
@@ -115,15 +106,13 @@ The set of outer product will represent by following dictionary.:
     }
 """
 
-IDENTITY = np.array(
+IDENTITY: npt.NDArray[np.int32] = np.array(
     [
         [1, 0],
         [0, 1],
     ],
-    dtype=np.int32,
 )
-r"""The :class:`numpy.ndarray` objects
-for the identity matrix.
+r"""The :class:`NDArray[np.int32]` objects for the identity matrix.
 
 It's just :math:`\mathbb{I} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}`.
 
@@ -131,9 +120,7 @@ What a simple matrix!
 """
 
 
-PRECOMPUTED_RHO_M_K_I: dict[
-    tuple[int, str], np.ndarray[tuple[Literal[2], Literal[2]], np.dtype[np.complex128]]
-] = {
+PRECOMPUTED_RHO_M_K_I = {
     (direction, s_q): (
         3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[s_q] @ U_M_MATRIX[direction]
     )
@@ -143,8 +130,9 @@ PRECOMPUTED_RHO_M_K_I: dict[
 }
 r"""Precomputed :math:`\rho_{mki}` matrix.
 
-This is suggested by GitHub Copilot with Claude 3.7 Sonnet Thinking,
-which I never thought of.
+.. note::
+    This is suggested by GitHub Copilot with Claude 3.7 Sonnet Thinking,
+    which I never thought of.
 """
 
 

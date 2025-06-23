@@ -7,11 +7,7 @@ import sys
 
 from .qurrech import EchoListen, WaveFunctionOverlap
 from .qurrent import EntropyMeasure, ShadowUnveil
-
-# from .qurmagsq import MagnetSquare
-# from .qurstrop import StringOperator
-
-from .qurrium import WavesExecuter, SamplingExecuter
+from .qurries import WavesExecuter, SamplingExecuter, MagnetSquare, ZDirMagnetSquare, StringOperator
 
 from .tools import (
     BackendWrapper,
@@ -37,9 +33,11 @@ try:
     sys.modules["qurry.boorust.bit_slice"] = qurry.boorust.bit_slice  # type: ignore
     sys.modules["qurry.boorust.randomized"] = qurry.boorust.randomized  # type: ignore
     sys.modules["qurry.boorust.hadamard"] = qurry.boorust.hadamard  # type: ignore
+    sys.modules["qurry.boorust.magnet_square"] = qurry.boorust.magnet_square  # type: ignore
+    sys.modules["qurry.boorust.string_operator"] = qurry.boorust.string_operator  # type: ignore
     sys.modules["qurry.boorust.dummy"] = qurry.boorust.dummy  # type: ignore
     sys.modules["qurry.boorust.test"] = qurry.boorust.test  # type: ignore
-    # sys.modules["qurry.boorust.shadow"] = qurry.boorust.shadow  # type: ignore
+
     RUST_AVAILABLE = True
     FAILED_RUST_IMPORT = None
 except ModuleNotFoundError as qurry_boorust_import_error:

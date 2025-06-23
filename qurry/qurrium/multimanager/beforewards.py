@@ -18,7 +18,6 @@ EXPORTING_NAME = {
     "circuits_map": "circuitsMap",
     "job_id": "jobID",
     "job_taglist": "job.tagList",
-    "files_taglist": "files.tagList",
     "index_taglist": "index.tagList",
 }
 
@@ -45,8 +44,9 @@ class Before(NamedTuple):
     """
 
     job_taglist: TagList[TagListKeyable, str]
-    files_taglist: TagList[TagListKeyable, str]
-    index_taglist: TagList[TagListKeyable, Union[str, int]]
+    """The list of job id but grouped by tags, which multiple experiments shared."""
+    index_taglist: TagList[TagListKeyable, int]
+    """The list of experiments index but grouped by tags, which multiple experiments shared."""
 
     @staticmethod
     def _exporting_name():
@@ -112,11 +112,6 @@ class Before(NamedTuple):
             job_taglist=TagList.read(
                 filename=real_file_location["job_taglist"],
                 taglist_name=("job.tagList" if version == "v7" else "tagMapExpsID"),
-                save_location=export_location,
-            ),
-            files_taglist=TagList.read(
-                filename=real_file_location["files_taglist"],
-                taglist_name=("files.tagList" if version == "v7" else "tagMapFiles"),
                 save_location=export_location,
             ),
             index_taglist=TagList.read(

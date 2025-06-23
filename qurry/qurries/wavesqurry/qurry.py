@@ -18,7 +18,7 @@ from .arguments import (
     WavesExecuterAnalyzeArgs,
 )
 from .experiment import WavesExecuterExperiment
-from ..qurrium import QurriumPrototype
+from ...qurrium import QurriumPrototype
 from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
 

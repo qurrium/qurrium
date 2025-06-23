@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "qurry"
 dynamic = ["version", "readme", "dependencies"]
-description = "Qurry 🍛 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
+description = "Qurrium 📏 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
 authors = [{ name = "Huai-Chung Chang", email = "harui2019@proton.me" }]
 classifiers = [
     "Intended Audience :: Science/Research",
@@ -31,6 +31,7 @@ requires-python = ">=3.9"
 [project.urls]
 Issues = "https://github.com/qurrium/qurrium/issues"
 Homepage = "https://github.com/qurrium/qurrium"
+Documentation = "https://docs.qurrium.org"
 
 [tool.setuptools.packages.find]
 include = ['qurry*', 'qurry.capsule*']
@@ -50,10 +51,10 @@ manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 skip = [
     "*-musllinux_i686", # rust tier 2 support, qiskit did not support musllinux
-    "pp*",              # Qiskit and Qurry are not pure python packages, See https://github.com/harui2019/qurry/issues/93#issuecomment-1801837481
+    "pp*",              # Qiskit and Qurrium are not pure python packages, See https://github.com/qurrium/qurry/issues/93#issuecomment-1801837481
     "cp38-*",           # Not support and won't support for we write type hint in 3.9 syntax.
     "*-musllinux_*",    # qiskit did not support musllinux
-    # "*-manylinux_i686", # scipy dependency issue, Check issue https://github.com/harui2019/qurry/issues/93 for details
+    # "*-manylinux_i686", # scipy dependency issue, Check issue https://github.com/qurrium/qurry/issues/93 for details
 ]
 test-skip = "*win32 *linux_i686"
 environment = { PATH = "$HOME/.cargo/bin:$PATH", RUSTUP_TOOLCHAIN = "stable" }
@@ -216,6 +217,6 @@ filterwarnings = ["ignore::DeprecationWarning"]
 # it can raise 100k+ warnings in a single test. WTF?
 
 [tool.coverage.run]
-# include = ["./qurry/*"]
-omit = ["./qurry/tests/*"]
+include = ["./qurry/*"]
+omit = ["./tests/*"]
 data_file = "./.coverage/.coverage"

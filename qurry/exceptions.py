@@ -22,6 +22,11 @@ class QurryExperimentCountsNotCompleted(QurryError):
     """Experiment is not completed."""
 
 
+class QurrySummonerInvalid(QurryError):
+    """Warning for summoner info incompletion.
+    The summoner is the instance of :cls:`MultiManager`."""
+
+
 class QurryExtraPackageRequired(QurryError, ImportError):
     """Extra package required for Qurry."""
 
@@ -99,11 +104,6 @@ class QurryResetAccomplished(QurryWarning):
 
 class QurryProtectContent(QurryWarning):
     "Warning for protect content."
-
-
-class QurrySummonerInfoIncompletion(QurryWarning):
-    """Warning for summoner info incompletion.
-    The summoner is the instance of :cls:`QurryMultiManager`."""
 
 
 class QurryDummyRunnerWarning(QurryWarning):

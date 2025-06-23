@@ -6,5 +6,6 @@ This is a deprecated version of the randomized measure module.
 """
 
 from .experiment import EntropyMeasureRandomizedV1Experiment
+from .arguments import EntropyMeasureRandomizedV1MeasureArgs
 from .analysis import EntropyMeasureRandomizedV1Analysis
 from .qurry import EntropyMeasureRandomizedV1

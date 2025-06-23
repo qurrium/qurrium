@@ -52,7 +52,7 @@ def randomized_entangled_entropy_complex_v1(
     """
 
     if all_system_source is not None:
-        source = str(all_system_source.header)
+        source = f"serial={all_system_source.serial}, datetime={all_system_source.datetime}"
         assert (
             all_system_source.content.purityCellsAllSys is not None
         ), f"purityCellsAllSys of {source} is None"

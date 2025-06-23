@@ -1,4 +1,4 @@
-"""SamplingExecuter - Arguments (:mod:`qurry.qurrium.samplingqurry.arguments`)
+"""WavesExecuter - Arguments (:mod:`qurry.qurrium.wavesqurry.arguments`)
 
 It is only for pendings and retrieve to remote backend.
 """
@@ -9,38 +9,29 @@ from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ..experiment import ArgumentsPrototype
+from ...qurrium import ArgumentsPrototype
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
 @dataclass(frozen=True)
-class QurryArguments(ArgumentsPrototype):
+class WavesExecuterArguments(ArgumentsPrototype):
     """Construct the experiment's parameters for specific options,
     which is overwritable by the inherition class."""
 
-    sampling: int = 1
-    """The number of sampling."""
 
-
-class QurryMeasureArgs(BasicArgs, total=False):
+class WavesExecuterMeasureArgs(BasicArgs, total=False):
     """Output arguments for :meth:`output`."""
 
-    wave: Optional[Union[QuantumCircuit, Hashable]]
-    """The key or the circuit to execute."""
-    sampling: int
-    """The number of sampling."""
+    waves: Optional[list[Union[QuantumCircuit, Hashable]]]
 
 
-class QurryOutputArgs(OutputArgs):
+class WavesExecuterOutputArgs(OutputArgs):
     """Output arguments for :meth:`output`."""
 
-    sampling: int
-    """The number of sampling."""
 
-
-class QurryAnalyzeArgs(AnalyzeArgs, total=False):
+class WavesExecuterAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of the analyze method."""
 
 
-SHORT_NAME = "sampling_executer"
+SHORT_NAME = "waves_executer"
 """The short name for this qurry instance."""

@@ -28,10 +28,10 @@
 
 from typing import Literal, Union, overload
 
-from .randomized_measure import EntropyMeasureRandomized
-from .randomized_measure_v1 import EntropyMeasureRandomizedV1
-from .hadamard_test import EntropyMeasureHadamard
-from .classical_shadow import ShadowUnveil
+from .randomized_measure import EntropyMeasureRandomized, EntropyMeasureRandomizedMeasureArgs
+from .randomized_measure_v1 import EntropyMeasureRandomizedV1, EntropyMeasureRandomizedV1MeasureArgs
+from .hadamard_test import EntropyMeasureHadamard, EntropyMeasureHadamardMeasureArgs
+from .classical_shadow import ShadowUnveil, ShadowUnveilMeasureArgs
 
 # from .classical_shadow import ShadowUnveil
 

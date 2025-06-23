@@ -8,29 +8,48 @@ on:
 jobs:
   build_wheels:
     if: github.repository == 'qurrium/qurry'
-    name: Build wheels on ${{ matrix.vers }} by ${{ matrix.os }}
-    runs-on:
-      - ${{ matrix.os }}
-      - self-hosted
+    name: Build wheels on ${{ matrix.system-arch }} by ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
         include:
-          - vers: linux-x86_64
-            os: ubuntu-latest
+          - system-arch: linux-x86_64
+            os: [ubuntu-latest, self-hosted]
             archs: X64
-          # - vers: linux-aarch64
-          #   os: ubuntu-24.04-arm
-          #   archs: ARM64
-          # - vers: macOS-x86_64
-          #   os: macos-13
-          #   archs: X64
-          # - vers: macOS-arm64
-          #   os: macos-14
-          #   archs: ARM64
-          # - vers: windows-x86_64
-          #   os: windows-latest
-          #   archs: X64
+
+    permissions:
+      id-token: write # IMPORTANT: mandatory for trusted publishing
+
+    outputs:
+      call-publish: ${{ steps.build_wheels.outputs.call-publish }}
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/qurry
+
+    steps:
+      - uses: ./.github/actions/wheel-build
+        id: build_wheels
+        with:
+          system-arch: ${{ matrix.system-arch }}
+          os: ${{ matrix.os }}
+          release: nightly
+
+      - name: Clean up Docker Image of PyPI Publish
+        if: runner.environment == 'self-hosted'
+        run: |
+          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
+          # Prevent using outdated image
+          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
+
+  publish-to-testpypi:
+    if: github.repository == 'qurrium/qurry' && needs.build_wheels.outputs.call-publish == 'true'
+    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    runs-on: ubuntu-latest
+    needs:
+      - build_wheels
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing
 
@@ -39,111 +58,7 @@ jobs:
       url: https://test.pypi.org/p/qurry
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/wheel-publish
+        id: publish_wheels
         with:
-          token: ${{ secrets.CI_TOKEN }}
-          submodules: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          architecture: ${{ matrix.os == 'macos-14' && 'arm64' || 'x64' }}
-      - name: MacOS Path Fix
-        if: runner.os == 'macOS'
-        run: export PATH="$pythonLocation:$PATH"
-
-      - name: Reversion Nightly
-        run: |
-          python -m pip install toml pep440
-          python ./tools/set_version.py --release nightly
-          python ./tools/set_pyproject_qurry.py --release nightly
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      # Set up
-      # - name: Set up QEMU
-      #   if: matrix.vers == 'linux-aarch64'
-      #   uses: docker/setup-qemu-action@v3
-      #   with:
-      #     platforms: all
-
-      - name: Prepare CIBW
-        run: |
-          python -m pip install cibuildwheel==2.21.3 --upgrade
-          echo "| $(python -m pip --version)"
-          echo "| $(python -m pip list | grep cibuildwheel)"
-      # Hint:
-      # > Since we have some self-hosted runners,
-      # > some of them may not work with the github actions workflow of cibuildwheel.
-      # > Due to actions/setup-python@v5 cannot configure
-      # > the environment of self-hosted runners properly in most of the cases.
-      # > It made pypa/cibuildwheel@v2.21.3 can not install itself.
-      # > So, we only use command line to build.
-
-      # Build wheels
-      - name: Build wheels
-        if: matrix.vers != 'linux-aarch64'
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse
-      - name: Build wheels (Linux aarch64)
-        if: matrix.vers == 'linux-aarch64'
-        run: |
-          python -m cibuildwheel --output-dir wheelhouse --platform linux --arch aarch64
-
-      # Upload the wheelhouse as an artifact
-      # - name: Wheelhouse Upload
-      #   if: matrix.vers != 'linux-x86_64'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     path: ./wheelhouse/*.whl
-      #     name: shared-wheel-builds
-
-      - name: Early Publish distribution 📦 to TestPyPI for Linux X86_64
-        if: matrix.vers == 'linux-x86_64'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: wheelhouse
-          repository-url: https://test.pypi.org/legacy/
-
-      - name: Clean up Docker Image of PyPI Publish
-        if: matrix.vers == 'linux-x86_64'
-        run: |
-          # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
-          # Prevent using outdated image
-          docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
-
-  # publish-to-testpypi:
-  #   if: github.repository == 'qurrium/qurry'
-  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - build_wheels
-  #   strategy:
-  #     fail-fast: false
-  #   permissions:
-  #     id-token: write # IMPORTANT: mandatory for trusted publishing
-
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/qurry
-
-  #   steps:
-  #     - name: Download all the dists
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: shared-wheel-builds
-  #         path: deploy
-  #     - name: Publish distribution 📦 to TestPyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         packages-dir: deploy
-  #         repository-url: https://test.pypi.org/legacy/
-
-  #     - name: Clean up Docker Image of PyPI Publish
-  #       run: |
-  #         # Remove the Docker image of ghcr.io/pypa/gh-action-pypi-publish:release-v1
-  #         # Prevent using outdated image
-  #         docker rmi -f $(docker images -q ghcr.io/pypa/gh-action-pypi-publish:release-v1) || echo "No image found"
-
+          release: nightly

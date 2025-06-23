@@ -1,4 +1,4 @@
-# Qurrium - The python package for measuring quantum entanglement entropy and wave function overlap.
+# Qurrium 📏 - The python package for measuring quantum entanglement entropy and wave function overlap.
 
 ## _The python package that makes the randomized measurement easy._
 
@@ -12,7 +12,7 @@ There are several additional features, such as measurement of magnetization and 
 
 ## Documentation
 
-More infomation can be found in [the documentation of Qurry 🍛](https://docs.qurrium.org).
+More infomation can be found in [the documentation of Qurrium 📏](https://docs.qurrium.org).
 
 ## Installation
 
@@ -49,7 +49,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 Then install `qurrium` by the following command:
 
 ```bash
-git clone https://github.com/harui2019/qurrium.git --recursive
+git clone https://github.com/qurrium/qurrium.git --recursive
 cd qurrium
 pip install -e .
 ```

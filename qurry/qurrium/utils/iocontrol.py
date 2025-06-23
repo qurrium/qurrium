@@ -10,6 +10,20 @@ RJUST_LEN = 3
 """The length of the string to be right-justified for serial number."""
 
 
+def serial_naming(name: str, index_rename: int, rjust_len: int = RJUST_LEN) -> str:
+    """Create a serial name with right-justified index.
+
+    Args:
+        name (str): The base name.
+        index_rename (int): The index to be right-justified.
+        rjust_len (int, optional): The length of the right-justified string. Defaults to 3.
+
+    Returns:
+        str: The formatted name with right-justified index.
+    """
+    return f"{name}." + str((index_rename + 1)).rjust(rjust_len, "0")
+
+
 class IOComplex(NamedTuple):
     """The complex of IO control."""
 
@@ -26,7 +40,7 @@ def naming(
     save_location: Union[Path, str] = Path("./"),
     without_serial: bool = False,
     rjust_len: int = RJUST_LEN,
-    index_rename: int = 1,
+    index_rename: int = 0,
 ) -> IOComplex:
     """The process of naming.
 
@@ -45,7 +59,7 @@ def naming(
         rjust_len (int, optional):
             The length of the serial number. Defaults to 3.
         index_rename (int, optional):
-            The serial number. Defaults to 1.
+            The serial number. Defaults to 0.
 
     Raises:
         TypeError: The :arg:`save_location` is not a 'str' or 'Path'.
@@ -81,15 +95,15 @@ def naming(
         export_location = save_location / immutable_name
 
     else:
-        _index_rename = index_rename
+        _counting = index_rename
 
-        immutable_name = f"{exps_name}.{str(_index_rename).rjust(rjust_len, '0')}"
+        immutable_name = serial_naming(exps_name, _counting, rjust_len)
         export_location = save_location / immutable_name
 
         while os.path.exists(export_location):
             print(f"| {export_location} is repeat location.")
-            _index_rename += 1
-            immutable_name = f"{exps_name}.{str(_index_rename).rjust(rjust_len, '0')}"
+            _counting += 1
+            immutable_name = serial_naming(exps_name, _counting, rjust_len)
             export_location = save_location / immutable_name
         print(f'| Write "{immutable_name}", at location "{export_location}"')
         os.makedirs(export_location)

@@ -13,7 +13,7 @@ from qiskit.providers import Backend
 
 from .arguments import SHORT_NAME, QurryMeasureArgs, QurryOutputArgs, QurryAnalyzeArgs
 from .experiment import QurryExperiment
-from ..qurrium import QurriumPrototype
+from ...qurrium import QurriumPrototype
 from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
 

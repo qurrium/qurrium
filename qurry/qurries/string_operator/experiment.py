@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit
 
 from .analysis import StringOperatorAnalysis
 from .arguments import StringOperatorArguments, SHORT_NAME
-from .utils import circuit_method, AvailableStringOperatorTypes, STRING_OPERATOR_LIB
+from .utils import circuit_method, StringOperatorLibType, StringOperatorDirection, STRING_OPERATOR
 
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.string_operator.string_operator import (
@@ -29,6 +29,7 @@ class StringOperatorExperiment(
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureRandomizedExperiment"
+    short_name = SHORT_NAME
 
     @property
     def arguments_instance(self) -> Type[StringOperatorArguments]:
@@ -47,7 +48,8 @@ class StringOperatorExperiment(
         exp_name: str = "exps",
         i: Optional[int] = None,
         k: Optional[int] = None,
-        str_op: AvailableStringOperatorTypes = "i",
+        str_op: StringOperatorLibType = "i",
+        on_dir: StringOperatorDirection = "x",
         **custom_kwargs: Any,
     ) -> tuple[StringOperatorArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -64,8 +66,10 @@ class StringOperatorExperiment(
                 The index of beginning qubits in the quantum circuit.
             k (Optional[int], optional):
                 The index of ending qubits in the quantum circuit.
-            str_op (AvailableStringOperatorTypes, optional):
-                The string operator.
+            str_op (StringOperatorLibType, optional):
+                The string operator. Defaults to "i".
+            on_dir (StringOperatorDirection, optional):
+                The direction of the string operator, either 'x' or 'y'. Defaults to "x".
             custom_kwargs (Any):
                 The custom parameters.
 
@@ -75,38 +79,30 @@ class StringOperatorExperiment(
         """
         if len(targets) > 1:
             raise ValueError("The number of target circuits should be only one.")
-
-        if str_op not in STRING_OPERATOR_LIB:
-            raise ValueError(
-                "The given string is not in the library, "
-                + f"please choose from {list(STRING_OPERATOR_LIB.keys())}."
-            )
-
         target_key, target_circuit = targets[0]
         num_qubits = target_circuit.num_qubits
-        if num_qubits < len(STRING_OPERATOR_LIB[str_op]):
-            raise ValueError(
-                f"The given wave function '{target_key}' only has {num_qubits} qubits less than "
-                + f"min length {len(STRING_OPERATOR_LIB[str_op])} of string operator {str_op}."
-            )
 
-        k = num_qubits - 2 if k is None else k
-        i = 0 if i is None else i
+        if on_dir not in STRING_OPERATOR:
+            raise ValueError("The `on_dir` must be either 'x' or 'y'.")
+        if str_op not in STRING_OPERATOR[on_dir]:
+            raise ValueError(f"The `str_op` must be one of {list(STRING_OPERATOR[on_dir])}.")
+
+        if k is None:
+            k = num_qubits - 1
+        if i is None:
+            i = 0
         if i >= k:
-            raise ValueError(f"'i ({i}) >= k ({k})' which is not allowed")
+            raise ValueError(f"i: {i} is not less than k: {k}.")
 
-        length = k - i + 1
-        if length < len(STRING_OPERATOR_LIB[str_op]):
+        if k - i + 1 < len(STRING_OPERATOR[on_dir][str_op]):
             raise ValueError(
-                f"The given qubit range i={i} to k={k} only has length={length} less than "
-                + f"min length={len(STRING_OPERATOR_LIB[str_op])} of string operator '{str_op}'."
+                f"The `k - i + 1` must be greater than or equal to "
+                f"{len(STRING_OPERATOR[on_dir][str_op])}. But got k: {k} - i: {i} = {k - i + 1}."
             )
-
-        exp_name = f"{exp_name}.{SHORT_NAME}"
 
         # pylint: disable=protected-access
         return StringOperatorArguments._filter(
-            exp_name=exp_name,
+            exp_name=f"{exp_name}.i_{i}_k_{k}.op_{str_op}_dir_{on_dir}.{SHORT_NAME}",
             target_keys=[target_key],
             num_qubits=num_qubits,
             str_op=str_op,
@@ -132,8 +128,7 @@ class StringOperatorExperiment(
             arguments (StringOperatorArguments):
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
 
@@ -146,25 +141,22 @@ class StringOperatorExperiment(
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
         assert arguments.i is not None and arguments.k is not None, (
-            f"i and k should be given, but got {arguments.i} and {arguments.k}."
-            + "Please check the arguments."
+            f"i and k should be given, but got {arguments.i} and {arguments.k}. "
+            "Please check the arguments."
         )
 
         return [
             circuit_method(
                 target_circuit,
                 target_key,
-                arguments.exp_name,
                 arguments.i,
                 arguments.k,
                 arguments.str_op,
+                arguments.on_dir,
             )
         ], {}
 
-    def analyze(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> StringOperatorAnalysis:
+    def analyze(self, pbar: Optional[tqdm.tqdm] = None) -> StringOperatorAnalysis:
         """Calculate magnet square with more information combined.
 
         Args:
@@ -175,21 +167,24 @@ class StringOperatorExperiment(
             StringOperatorAnalysis: The result of the analysis.
         """
 
-        qs = self.quantities(
-            shots=self.commons.shots,
-            counts=self.afterwards.counts,
-            pbar=pbar,
-        )
+        qs = self.quantities(shots=self.commons.shots, counts=self.afterwards.counts, pbar=pbar)
 
         serial = len(self.reports)
         analysis = self.analysis_instance(
             i=self.args.i,
             k=self.args.k,
+            length=self.args.k - self.args.i + 1,
             str_op=self.args.str_op,
+            on_dir=self.args.on_dir,
             num_qubits=self.args.num_qubits,
             shots=self.commons.shots,
             serial=serial,
             **qs,
+        )
+        assert analysis.content.k - analysis.content.i + 1 == analysis.content.length, (
+            f"Length of the string operator should be equal to k - i + 1, "
+            f"but got length: {analysis.content.length} != "
+            f"k - i + 1: {analysis.content.k - analysis.content.i + 1}."
         )
 
         self.reports[serial] = analysis
