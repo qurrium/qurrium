@@ -24,6 +24,8 @@ class SOAnalysisContent(NamedTuple):
     """The index of beginning qubits in the quantum circuit."""
     k: int
     """The index of ending qubits in the quantum circuit."""
+    length: int
+    """The length of the string operator, which is k - i + 1."""
     str_op: StringOperatorLibType = "i"
     """The string operator."""
     on_dir: StringOperatorDirection = "x"

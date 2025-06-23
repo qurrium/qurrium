@@ -173,12 +173,18 @@ class StringOperatorExperiment(
         analysis = self.analysis_instance(
             i=self.args.i,
             k=self.args.k,
+            length=self.args.k - self.args.i + 1,
             str_op=self.args.str_op,
             on_dir=self.args.on_dir,
             num_qubits=self.args.num_qubits,
             shots=self.commons.shots,
             serial=serial,
             **qs,
+        )
+        assert analysis.content.k - analysis.content.i + 1 == analysis.content.length, (
+            f"Length of the string operator should be equal to k - i + 1, "
+            f"but got length: {analysis.content.length} != "
+            f"k - i + 1: {analysis.content.k - analysis.content.i + 1}."
         )
 
         self.reports[serial] = analysis
