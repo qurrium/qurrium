@@ -123,5 +123,5 @@ def test_string_operator(case_tags: list[str], answer: RawReadAnswer, counts: li
     for name_1, result_1 in comparison_target:
         assert np.abs(result_1 - ANSWERS[answer["str_op"]][case_tags[-1]]) < ANSWERS_ERROR, (
             f"Result by {name_1} {result_1} is not close to expected "
-            f"{ANSWERS[answer["str_op"]][case_tags[-1]]} in error {ANSWERS_ERROR}."
+            f"{ANSWERS[answer['str_op']][case_tags[-1]]} in error {ANSWERS_ERROR}."
         )

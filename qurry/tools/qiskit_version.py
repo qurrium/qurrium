@@ -148,7 +148,7 @@ def qiskit_version_v0_check():
     """
     qiskit_version_tuple = tuple(map(int, qiskit_version.split(".")))
 
-    if qiskit_version_tuple < (2, 0, 0):
+    if qiskit_version_tuple < (1, 0, 0):
         warnings.warn(
             "Qiskit version is lower than 1.0.0. "
             "Qiskit v0 is deprecated since the end of 2023. "
