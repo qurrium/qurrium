@@ -22,7 +22,6 @@ jobs:
     name: Check Version and Lint Check
     runs-on: [ubuntu-latest, self-hosted]
     outputs:
-      skip: ${{ steps.skip_test.outputs.skip }}
       idle: ${{ steps.detect.outputs.idle }}
 
     steps:
@@ -47,12 +46,6 @@ jobs:
           echo "| Version: ${{ steps.check_version.outputs.VERSION }} in action"
           echo "| Tag exists: ${{ steps.check_version.outputs.exists }}"
 
-      - name: Whether Skip Test
-        run: |
-          if [[ "${{ github.event.pull_request.title }}" == skip-test:* ]]; then
-            echo "| Skip Test"
-          fi
-
       - name: Lint with flake8
         run: |
           python -m pip install flake8
@@ -60,16 +53,6 @@ jobs:
           python -m flake8 . --count --show-source --statistics --config tox.ini
           # exit-zero treats all errors as warnings
           python -m flake8 . --count --exit-zero --statistics --config tox.ini
-
-      - name: Whether to skip test
-        id: skip_test
-        run: |
-          if [[ ${{ contains(github.event.pull_request.title, 'skip-version:') }} ]]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Decide Idle Github Action Self-Hosted Runner Number
         id: detect
         env:
@@ -80,9 +63,9 @@ jobs:
 
           # Call GitHub API to get runners
           RESP_ORGS=$(curl -s -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/orgs/${OWNER}/actions/runners)
+            https://api.github.com/orgs/${ORGS}/actions/runners)
           RESP_REPO=$(curl -s -H "Authorization: token $GH_TOKEN" \
-            https://api.github.com/repos/${OWNER}/${REPO}/actions/runners)
+            https://api.github.com/repos/${ORGS}/${REPO}/actions/runners)
 
           RESP_ORGS_SUCCESS=$(echo "$RESP_ORGS" | jq -r '.message // empty')
           RESP_REPO_SUCCESS=$(echo "$RESP_REPO" | jq -r '.message // empty')
@@ -103,7 +86,7 @@ jobs:
           echo "| Detected idle runners in repo: $IDLE_REPO"
           TOTAL_IDLE=$((IDLE_ORGS + IDLE_REPO))
           echo "| Detected idle runners total: $TOTAL_IDLE"
-          DECIDE=$((TOTAL_IDLE > 0 ? TOTAL_IDLE : 2))
+          DECIDE=$((TOTAL_IDLE > 0 ? TOTAL_IDLE : 4))
           echo "| Decision: $DECIDE"
 
           echo "idle=$DECIDE" >> "$GITHUB_OUTPUT"
@@ -113,7 +96,7 @@ jobs:
     runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
-    if: needs.check_version.outputs.skip != 'true'
+    if: contains(github.event.pull_request.title, 'skip-test:')
     strategy:
       matrix:
         qiskit-version: [v1, v2]
