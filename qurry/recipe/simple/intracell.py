@@ -87,6 +87,8 @@ class Intracell(TwoBody):
         """
         if hasattr(self, "_state"):
             raise AttributeError("Attribute 'state' is read-only.")
+        if state not in ["singlet", "minus", "plus"]:
+            raise ValueError(f"Initial state is invalid: '{state}'.")
         self._state: Literal["singlet", "minus", "plus"] = state
 
     def __init__(
@@ -111,8 +113,6 @@ class Intracell(TwoBody):
         """
 
         super().__init__(name=name)
-        if state not in ["singlet", "minus", "plus"]:
-            raise ValueError(f"Initial state is invalid: '{state}'.")
         self.num_qubits = num_qubits
         self.state = state
 

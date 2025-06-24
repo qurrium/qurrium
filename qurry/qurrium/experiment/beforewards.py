@@ -8,13 +8,14 @@ from pathlib import Path
 from qiskit import QuantumCircuit
 
 from ..utils.qasm import qasm_loads
+from ...capsule import DEFAULT_ENCODING
 
 V5_TO_V7_FIELD = {
     "jobID": "job_id",
     "expName": "exp_name",
-    "figOriginal": "fig_original",
     "sideProduct": "side_product",
 }
+DEPRECATED_PROPERTIES = ["figTranspiled", "fig_original", "exp_name"]
 
 
 def v5_to_v7_field_transpose(advent: dict[str, Any]) -> dict[str, Any]:
@@ -53,14 +54,10 @@ class Before(NamedTuple):
     """The transpiled circuits of experiment."""
     circuit_qasm: list[str]
     """The OpenQASM of transpiled circuits."""
-    fig_original: list[str]
-    """Raw circuit figures which is the circuit before transpile."""
 
     # Export data
     job_id: list[str]
     """ID of job for pending on real machine (IBMQBackend)."""
-    exp_name: str
-    """Name of experiment which is also showed on IBM Quantum Computing quene."""
 
     # side product
     side_product: dict[str, Any]
@@ -75,8 +72,6 @@ class Before(NamedTuple):
             "circuit": [],
             "circuit_qasm": [],
             "job_id": [],
-            "exp_name": [],
-            "fig_original": [],
             "side_product": {},
         }
 
@@ -85,14 +80,12 @@ class Before(NamedTuple):
         cls,
         file_index: dict[str, str],
         save_location: Path,
-        encoding: str = "utf-8",
     ) -> "Before":
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            encoding (str, optional): The encoding of exported experiment file. Defaults to "utf-8".
 
         Returns:
             tuple[dict[str, Any], "Before", dict[str, Any]]:
@@ -101,10 +94,12 @@ class Before(NamedTuple):
                 and the experiment's side product.
         """
         raw_data = {}
-        with open(save_location / file_index["advent"], "r", encoding=encoding) as f:
+        with open(save_location / file_index["advent"], "r", encoding=DEFAULT_ENCODING) as f:
             raw_data = json.load(f)
 
         advent: dict[str, Any] = raw_data["adventures"]
+        for k in DEPRECATED_PROPERTIES:
+            advent.pop(k, None)
         advent = v5_to_v7_field_transpose(advent)
         advent = v7_to_v11_field_transpose(advent)
         for k, dv in cls.default_value().items():
@@ -116,23 +111,22 @@ class Before(NamedTuple):
         for filekey, filename in file_index.items():
             filekeydiv = filekey.split(".")
             if filekeydiv[0] == "tales":
-                with open(save_location / filename, "r", encoding=encoding) as f:
+                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
                     advent["side_product"][filekeydiv[1]] = json.load(f)
 
         return cls(**advent)
 
     def export(
         self,
-        unexports: Optional[list[str]] = None,
         export_transpiled_circuit: bool = False,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Export the experiment's data before executing.
 
         Args:
-            unexports (Optional[list[str]], optional): The list of unexported key. Defaults to None.
             export_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
-                When set to True, the transpiled circuit will be exported as txt.
+                for It's space-saving purpose and performance improvement.
+                When set to True, the transpiled circuit will be draw as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
 
         Returns:
@@ -141,24 +135,15 @@ class Before(NamedTuple):
                 and the experiment's side product.
         """
 
-        if unexports is None:
-            unexports = []
+        adventures = {
+            "target": self.target,
+            "target_qasm": self.target_qasm,
+            "circuit": self.circuit if export_transpiled_circuit else [],
+            "circuit_qasm": self.circuit_qasm,
+            "job_id": self.job_id,
+        }
 
-        tales: dict[str, str] = {}
-        adventures = {}
-        # pylint: disable=no-member
-        for k, v in self._asdict().items():
-            # pylint: enable=no-member
-            if k == "side_product":
-                tales = {**tales, **v}
-            elif k == "circuit":
-                adventures[k] = v if export_transpiled_circuit else []
-            elif k in unexports:
-                ...
-            else:
-                adventures[k] = v
-
-        return adventures, tales
+        return adventures, self.side_product
 
     def revive_circuit(self, replace_circuits: bool = False) -> list[QuantumCircuit]:
         """Revive the circuit from the qasm, return the revived circuits.
@@ -210,3 +195,30 @@ class Before(NamedTuple):
         for key, qasm in self.target_qasm:
             revived_target[key] = QuantumCircuit.from_qasm_str(qasm)
         return revived_target
+
+
+def create_beforewards(beforewards: Optional[Before]) -> Before:
+    """Create a Beforewards object.
+
+    Args:
+        beforewards (Optional[Before]):
+            The Beforewards object to create. Defaults to None.
+    Returns:
+        Before: The Beforewards object.
+    Raises:
+        TypeError: If 'beforewards' is not a Before object or None.
+    """
+
+    if beforewards is None:
+        return Before(
+            target=[],
+            target_qasm=[],
+            circuit=[],
+            circuit_qasm=[],
+            job_id=[],
+            side_product={},
+        )
+    if isinstance(beforewards, Before):
+        return beforewards
+
+    raise TypeError(f"beforewards must be a Before object or None, but got {type(beforewards)}.")

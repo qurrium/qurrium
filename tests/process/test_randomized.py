@@ -2,11 +2,12 @@
 
 from typing import Union
 import os
+from itertools import combinations
 import pytest
 import numpy as np
 
 from qurry.capsule import quickRead
-from qurry.process.utils import cycling_slice, randomized_availability
+from qurry.process.utils import cycling_slice, randomized_availability, NUMERICAL_ERROR_TOLERANCE
 from qurry.process.randomized_measure.entangled_entropy_v1.entangled_entropy import (
     entangled_entropy_core,
 )
@@ -69,189 +70,193 @@ def test_availability():
         )
 
 
-@pytest.mark.parametrize("test_items", test_setup_core)
+def selected_and_cycling_selected_making(
+    absolute_range: tuple[int, int],
+    selected_range: Union[int, tuple[int, int], None],
+) -> tuple[list[int], list[int]]:
+    """Make selected classical registers based on the range
+    and selected classical registers by cycling.
+
+    Args:
+        absolute_range (tuple[int, int]):
+            The absolute range of classical registers, where the first element is the start
+            and the second element is the end (exclusive).
+        selected_range (Union[int, tuple[int, int], None]):
+            The selected classical registers range or a single integer.
+            If None, all registers in the absolute range are selected.
+            If an integer, it selects that many registers from the end of the absolute range.
+            If a tuple, it selects registers in the specified range.
+
+    Returns:
+        tuple[list[int], list[int]]:
+            A tuple containing two lists:
+            - The first list contains the selected classical registers.
+            - The second list contains the selected classical registers by cycling.
+    """
+    return sorted(
+        list(range(*absolute_range))
+        if selected_range is None
+        else (
+            [
+                absolute_range[1] - i % absolute_range[1] - 1
+                for i in range(
+                    *(
+                        selected_range
+                        if selected_range[0] < selected_range[1]
+                        else tuple(ci % absolute_range[1] for ci in selected_range)
+                    )
+                )
+            ]
+            if isinstance(selected_range, tuple)
+            else list(range(selected_range))
+        )
+    ), sorted(
+        list(range(absolute_range[1] - 1, absolute_range[0] - 1, -1))
+        if selected_range is None
+        else (
+            cycling_slice(
+                list(range(absolute_range[1] - 1, absolute_range[0] - 1, -1)),
+                selected_range[0],
+                selected_range[1],
+            )
+            if isinstance(selected_range, tuple)
+            else list(range(selected_range))
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    ["shots", "counts", "selected_range", "absolute_range"],
+    test_setup_core,
+)
 def test_entangled_entropy_core(
-    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]],
+    shots: int,
+    counts: list[dict[str, int]],
+    selected_range: Union[int, tuple[int, int], None],
+    absolute_range: tuple[int, int],
 ):
     """Test the entangled_entropy_core function."""
 
-    selected_classical_registers = sorted(
-        list(range(*test_items[3]))
-        if test_items[2] is None
-        else (
-            [
-                test_items[3][1] - i % test_items[3][1] - 1
-                for i in range(
-                    *(
-                        test_items[2]
-                        if test_items[2][0] < test_items[2][1]
-                        else tuple(ci % test_items[3][1] for ci in test_items[2])
-                    )
-                )
-            ]
-            if isinstance(test_items[2], tuple)
-            else list(range(test_items[2]))
-        )
+    selected_classical_registers, cycling_selected = selected_and_cycling_selected_making(
+        absolute_range, selected_range
     )
-    selected_classical_registers_by_cycling = sorted(
-        list(range(test_items[3][1] - 1, test_items[3][0] - 1, -1))
-        if test_items[2] is None
-        else (
-            cycling_slice(
-                list(range(test_items[3][1] - 1, test_items[3][0] - 1, -1)),
-                test_items[2][0],
-                test_items[2][1],
-            )
-            if isinstance(test_items[2], tuple)
-            else list(range(test_items[2]))
-        )
-    )
-    py = entangled_entropy_core(*test_items, backend="Python")
-    py_2 = entangled_entropy_core_2(
-        test_items[0],
-        test_items[1],
+
+    core_returned: dict[
+        str,
+        Union[
+            tuple[
+                Union[dict[int, float], dict[int, np.float64]],
+                tuple[int, int],
+                tuple[int, int],
+            ],
+            tuple[dict[int, np.float64], list[int]],
+        ],
+    ] = {}
+    core_returned["Python V1"] = entangled_entropy_core(
+        shots, counts, selected_range, absolute_range, backend="Python"
+    )[:-2]
+    core_returned["Python"] = entangled_entropy_core_2(
+        shots,
+        counts,
         selected_classical_registers,
         backend="Python",
-    )
-    rust = entangled_entropy_core(*test_items, backend="Rust")
-    rust_2 = entangled_entropy_core_2(
-        test_items[0],
-        test_items[1],
+    )[:-2]
+    core_returned["Rust V1"] = entangled_entropy_core(
+        shots, counts, selected_range, absolute_range, backend="Rust"
+    )[:-2]
+    core_returned["Rust"] = entangled_entropy_core_2(
+        shots,
+        counts,
         selected_classical_registers,
         backend="Rust",
-    )
+    )[:-2]
 
-    py_result = np.average(np.array(list(py[0].values())))
-    py_2_result = np.average(np.array(list(py_2[0].values())))
-    rust_result = np.average(np.array(list(rust[0].values())))
-    rust_2_result = np.average(np.array(list(rust_2[0].values())))
+    comparison_target = [
+        (k, np.average(np.array(list(v[0].values()))), ", ".join(str(vv) for vv in v[1:]))
+        for k, v in core_returned.items()
+    ]
 
-    assert np.abs(py_result - py_2_result) < 1e-12, (
-        "New Python and Python results are not equal in entangled_entropy_core: "
-        + f"py_2: {py_2_result}, py: {py_result} - "
-        + f"py_2: {py_2[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_result - py_result) < 1e-12, (
-        "Rust and Python results are not equal in entangled_entropy_core: "
-        + f"rust: {rust_result}, py: {py_result} - "
-        + f"rust: {rust[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_2_result - py_2_result) < 1e-12, (
-        "New Rust and New Python results are not equal in entangled_entropy_core: "
-        + f"rust_2: {rust_2_result}, py_2: {py_2_result} - "
-        + f"rust_2: {rust_2[1]}, py_2: {py_2[1]}"
-    )
-    assert np.abs(rust_result - rust_2_result) < 1e-12, (
-        "Rust and New Rust results are not equal in entangled_entropy_core: "
-        + f"rust: {rust_result}, rust_2: {rust_2_result} - "
-        + f"rust: {rust[1]}, {rust[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_result - rust_2_result) < 1e-12, (
-        "Python and New Rust results are not equal in entangled_entropy_core: "
-        + f"py: {py_result}, rust_2: {rust_2_result} - "
-        + f"py: {py[1]}, {py[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_2_result - rust_result) < 1e-12, (
-        "New Python and Rust results are not equal in entangled_entropy_core: "
-        + f"py_2: {py_2_result}, rust: {rust_result} - "
-        + f"py_2: {py_2[1]}, rust: {rust[1]}, {rust[2]}"
-    )
-    assert selected_classical_registers == selected_classical_registers_by_cycling, (
+    for (desc_01, result_01, info_01), (desc_02, result_02, info_02) in combinations(
+        comparison_target, 2
+    ):
+        assert np.abs(result_01 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{desc_01} and {desc_02} results are not equal in entangled_entropy_core: "
+            + f"{desc_01}: {result_01}, {desc_02}: {result_02} - "
+            + f"{desc_01}: {info_01}, {desc_02}: {info_02}"
+        )
+
+    assert selected_classical_registers == cycling_selected, (
         f"selected_classical_registers: {selected_classical_registers} != "
-        + f"selected_classical_registers_by_cycling: {selected_classical_registers_by_cycling}"
+        + f"selected_classical_registers_by_cycling: {cycling_selected}"
     )
 
 
-@pytest.mark.parametrize("test_items", test_setup_core)
+@pytest.mark.parametrize(
+    ["shots", "counts", "selected_range", "absolute_range"],
+    test_setup_core,
+)
 def test_overlap_echo_core(
-    test_items: tuple[int, list[dict[str, int]], Union[int, tuple[int, int]], tuple[int, int]],
+    shots: int,
+    counts: list[dict[str, int]],
+    selected_range: Union[int, tuple[int, int], None],
+    absolute_range: tuple[int, int],
 ):
     """Test the overlap_echo_core function."""
 
-    selected_classical_registers = sorted(
-        list(range(*test_items[3]))
-        if test_items[2] is None
-        else (
-            [
-                test_items[3][1] - i % test_items[3][1] - 1
-                for i in range(
-                    *(
-                        test_items[2]
-                        if test_items[2][0] < test_items[2][1]
-                        else tuple(ci % test_items[3][1] for ci in test_items[2])
-                    )
-                )
-            ]
-            if isinstance(test_items[2], tuple)
-            else list(range(test_items[2]))
-        )
+    selected_classical_registers, cycling_selected = selected_and_cycling_selected_making(
+        absolute_range, selected_range
     )
-    selected_classical_registers_by_cycling = sorted(
-        list(range(test_items[3][1] - 1, test_items[3][0] - 1, -1))
-        if test_items[2] is None
-        else (
-            cycling_slice(
-                list(range(test_items[3][1] - 1, test_items[3][0] - 1, -1)),
-                test_items[2][0],
-                test_items[2][1],
-            )
-            if isinstance(test_items[2], tuple)
-            else list(range(test_items[2]))
-        )
-    )
-    py = overlap_echo_core(*test_items, backend="Python")
-    py_2 = overlap_echo_core_2(
-        test_items[0],
-        test_items[1],
-        test_items[1],
+
+    core_returned: dict[
+        str,
+        Union[
+            tuple[
+                Union[dict[int, float], dict[int, np.float64]],
+                tuple[int, int],
+                tuple[int, int],
+            ],
+            tuple[dict[int, np.float64], list[int]],
+        ],
+    ] = {}
+    core_returned["Python V1"] = overlap_echo_core(
+        shots,
+        counts,
+        selected_range,
+        absolute_range,
+        backend="Python",
+    )[:-2]
+    core_returned["Python"] = overlap_echo_core_2(
+        shots,
+        counts,
+        counts,
         selected_classical_registers,
         backend="Python",
-    )
-    rust = overlap_echo_core(*test_items, backend="Rust")
-    rust_2 = overlap_echo_core_2(
-        test_items[0],
-        test_items[1],
-        test_items[1],
+    )[:-2]
+    core_returned["Rust V1"] = overlap_echo_core(
+        shots, counts, selected_range, absolute_range, backend="Rust"
+    )[:-2]
+    core_returned["Rust"] = overlap_echo_core_2(
+        shots,
+        counts,
+        counts,
         selected_classical_registers,
         backend="Rust",
-    )
+    )[:-2]
 
-    py_result = np.average(np.array(list(py[0].values())))
-    rust_result = np.average(np.array(list(rust[0].values())))
-    py_2_result = np.average(np.array(list(py_2[0].values())))
-    rust_2_result = np.average(np.array(list(rust_2[0].values())))
+    comparison_target = [
+        (k, np.average(np.array(list(v[0].values()))), ", ".join(str(vv) for vv in v[1:]))
+        for k, v in core_returned.items()
+    ]
 
-    assert np.abs(py_result - py_2_result) < 1e-12, (
-        "New Python and Python results are not equal in overlap_echo_core: "
-        + f"py_2: {py_2_result}, py: {py_result} - "
-        + f"py_2: {py_2[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_result - py_result) < 1e-12, (
-        "Rust and Python results are not equal in overlap_echo_core: "
-        + f"rust: {rust_result}, py: {py_result} - "
-        + f"rust: {rust[1]}, py: {py[1]}, {py[2]}"
-    )
-    assert np.abs(rust_2_result - py_2_result) < 1e-12, (
-        "New Rust and New Python results are not equal in overlap_echo_core: "
-        + f"rust_2: {rust_2_result}, py_2: {py_2_result} - "
-        + f"rust_2: {rust_2[1]}, py_2: {py_2[1]}"
-    )
-    assert np.abs(rust_result - rust_2_result) < 1e-12, (
-        "Rust and New Rust results are not equal in overlap_echo_core: "
-        + f"rust: {rust_result}, rust_2: {rust_2_result} - "
-        + f"rust: {rust[1]}, {rust[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_result - rust_2_result) < 1e-12, (
-        "Python and New Rust results are not equal in overlap_echo_core: "
-        + f"py: {py_result}, rust_2: {rust_2_result} - "
-        + f"py: {py[1]}, {py[2]} rust_2: {rust_2[1]}"
-    )
-    assert np.abs(py_2_result - rust_result) < 1e-12, (
-        "New Python and Rust results are not equal in overlap_echo_core: "
-        + f"py_2: {py_2_result}, rust: {rust_result} - "
-        + f"py_2: {py_2[1]}, rust: {rust[1]}, {rust[2]}"
-    )
-    assert selected_classical_registers == selected_classical_registers_by_cycling, (
+    for (name_1, result_1, info_1), (name_2, result_2, info_2) in combinations(
+        comparison_target, 2
+    ):
+        assert np.abs(result_1 - result_2) < NUMERICAL_ERROR_TOLERANCE, (
+            f"{name_1} and {name_2} results are not equal in entangled_entropy_core: "
+            + f"{name_1}: {result_1}, {info_1}. {name_2}: {result_2}, {info_2}"
+        )
+
+    assert selected_classical_registers == cycling_selected, (
         f"selected_classical_registers: {selected_classical_registers} != "
-        + f"selected_classical_registers_by_cycling: {selected_classical_registers_by_cycling}"
+        + f"selected_classical_registers_by_cycling: {cycling_selected}"
     )

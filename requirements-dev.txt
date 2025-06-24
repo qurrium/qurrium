@@ -7,10 +7,12 @@ flake8
 pep440
 
 # Test tools
-matplotlib 
 pytest
 pytest-xdist
 pytest-order
+pytest-cov
+coverage
 
-# qiskit-aer
+# optional
+jax
 qiskit-aer

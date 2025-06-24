@@ -4,5 +4,6 @@
 """
 
 from .analysis import EntropyMeasureHadamardAnalysis
+from .arguments import EntropyMeasureHadamardMeasureArgs
 from .experiment import EntropyMeasureHadamardExperiment
 from .qurry import EntropyMeasureHadamard

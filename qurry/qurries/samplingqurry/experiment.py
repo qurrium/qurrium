@@ -11,16 +11,11 @@ from qiskit import QuantumCircuit
 
 from .arguments import QurryArguments, SHORT_NAME
 from .analysis import QurryAnalysis
-from ..experiment import ExperimentPrototype, Commonparams
+from ...qurrium import ExperimentPrototype, Commonparams
 from ...exceptions import QurryExperimentCountsNotCompleted
 
 
-class QurryExperiment(
-    ExperimentPrototype[
-        QurryArguments,
-        QurryAnalysis,
-    ]
-):
+class QurryExperiment(ExperimentPrototype[QurryArguments, QurryAnalysis]):
     """Experiment instance for QurryV9."""
 
     __name__ = "QurryExperiment"

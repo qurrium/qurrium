@@ -1,128 +1,118 @@
 """Analysis Instance (:mod:`qurry.qurrium.analysis`)"""
 
-from typing import Optional, NamedTuple, Iterable, Any
+from typing import Optional, NamedTuple, Iterable, Any, Generic, TypeVar, Type
 from abc import abstractmethod
 from pathlib import Path
 import json
-import gc
 
-from ...capsule import jsonablize
+
+from ...capsule import jsonablize, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
 from ...exceptions import QurryInvalidInherition
 from ...tools.datetime import current_time
 
 
-class AnalysisPrototype:
+_RI = TypeVar("_RI", bound=NamedTuple)
+"""The input type of the analysis."""
+_RC = TypeVar("_RC", bound=NamedTuple)
+"""The content type of the analysis."""
+
+
+class AnalysisPrototype(Generic[_RI, _RC]):
     """The instance for the analysis of :cls:`QurryExperiment`."""
 
     __name__ = "AnalysisPrototype"
 
-    class AnalysisHeader(NamedTuple):
-        """Construct the experiment's output.
-        A standard `analysis` namedtuple will contain
-        ['serial', 'time', 'summoner', 'run_log', 'side_product']
-        for more information storing.
-        If it does not contain will raise `QurryInvalidInherition`.
-        """
-
-        serial: int
-        """Serial Number of analysis."""
-        datetime: str
-        """Written time of analysis."""
-        summoner: Optional[tuple] = None
-        """Which multiManager makes this analysis. 
-        If it's an independent one, then usr the default 'None'."""
-        log: dict = {}
-        """Other info will be recorded."""
-
-    @abstractmethod
-    class AnalysisInput(NamedTuple):
-        """To set the analysis."""
-
-    @abstractmethod
-    class AnalysisContent(NamedTuple):
-        """To set the analysis."""
-
-        sampling: int
-        """Number of circuit been repeated."""
+    serial: int
+    """Serial Number of analysis."""
+    datetime: str
+    """Written time of analysis."""
+    log: dict[str, Any]
+    """Other info will be recorded."""
 
     @classmethod
-    def input_filter(cls, *args, **kwargs) -> tuple[AnalysisInput, dict[str, Any]]:
-        """Filter the input arguments for analysis.
+    @abstractmethod
+    def input_type(cls) -> Type[_RI]:
+        """The input type of the analysis."""
+        raise NotImplementedError("input_type must be implemented in subclass.")
 
-        Returns:
-            tuple[AnalysisInput, dict[str, Any]]: The filtered input and unused arguments.
-        """
-        if len(args) > 0:
-            raise ValueError("analysis filter can't be initialized with positional arguments.")
-        infields = {}
-        outfields = {}
-
-        for k, v in kwargs.items():
-            if k in cls.AnalysisInput._fields:
-                infields[k] = v
-            else:
-                outfields[k] = v
-
-        return cls.AnalysisInput(**infields), outfields
+    @property
+    def input_instance(self) -> Type[_RI]:
+        """The input instance of the analysis."""
+        return self.input_type()
 
     @classmethod
-    def content_filter(cls, *args, **kwargs) -> tuple[AnalysisContent, dict[str, Any]]:
-        """Filter the content arguments for analysis.
+    @abstractmethod
+    def content_type(cls) -> Type[_RC]:
+        """The content type of the analysis."""
+        raise NotImplementedError("content_type must be implemented in subclass.")
 
-        Returns:
-            tuple[AnalysisContent, dict[str, Any]]: The filtered content and unused arguments.
-        """
-        if len(args) > 0:
-            raise ValueError(
-                "analysis content filter can't be initialized with positional arguments."
-            )
-        infields = {}
-        outfields = {}
-        for k, v in kwargs.items():
-            if k in cls.AnalysisContent._fields:
-                infields[k] = v
-            else:
-                outfields[k] = v
+    @property
+    def content_instance(self) -> Type[_RC]:
+        """The content instance of the analysis."""
+        return self.content_type()
 
-        return cls.AnalysisContent(**infields), outfields
+    def __eq__(self, other) -> bool:
+        """Check if two analysis instances are equal."""
+        if isinstance(other, self.__class__):
+            return self.input == other.input
+        return False
 
     @property
     @abstractmethod
     def side_product_fields(self) -> Iterable[str]:
         """The fields that will be stored as side product."""
+        raise NotImplementedError("side_product_fields must be implemented in subclass.")
 
     def __init__(
         self,
+        *,
         serial: int,
-        summoner: Optional[tuple] = None,
         log: Optional[dict[str, Any]] = None,
-        **otherArgs,
+        datatime: Optional[str] = None,
+        **other_kwargs,
     ):
-        if log is None:
-            log = {}
-        self.header = self.AnalysisHeader(
-            serial=serial,
-            datetime=current_time(),
-            summoner=summoner,
-            log=log,
+        duplicate_fields = (
+            set(self.input_instance._fields)
+            & set(self.content_instance._fields)
+            & {"serial", "datetime", "log"}
         )
-        self.input, outfields = self.input_filter(**otherArgs)
-        self.content, self.outfields = self.content_filter(**outfields)
-
-        duplicate_fields = set(self.AnalysisInput._fields) & set(self.AnalysisContent._fields)
         if len(duplicate_fields) > 0:
             raise QurryInvalidInherition(
-                f"{self.__name__}.AnalysisInput and {self.__name__}"
-                + f".AnalysisContent should not have same fields: {duplicate_fields}."
+                f"{self.input_instance} and {self.content_instance} "
+                f"should not have same fields: {duplicate_fields} "
+                f"for {self.__name__}."
             )
+
+        self.serial = serial
+        self.datetime = current_time() if datatime is None else datatime
+        self.log = log if isinstance(log, dict) else {}
+
+        lost_fields = [
+            k
+            for k in self.input_instance._fields + self.content_instance._fields
+            if k not in other_kwargs
+        ]
+        if len(lost_fields) > 0:
+            raise QurryInvalidInherition(
+                f"{self.__name__} should have all fields in "
+                f"{self.input_instance.__name__} and {self.content_instance.__name__}, "
+                f"but lost fields: {lost_fields}."
+            )
+        self.input: _RI = self.input_instance._make(
+            other_kwargs.pop(k) for k in self.input_instance._fields
+        )
+        """The input of the analysis."""
+        self.content: _RC = self.content_instance._make(
+            other_kwargs.pop(k) for k in self.content_instance._fields
+        )
+        """The content of the analysis."""
+        self.outfields = other_kwargs
 
     def __repr__(self) -> str:
         return (
             f"<{self.__name__}("
-            + f"serial={self.header.serial}, "
-            + f"{self.input.__repr__()}, "
-            + f"{self.content.__repr__()}), "
+            + f"serial={self.serial}, {self.input}, {self.content}), "
             + f"unused_args_num={len(self.outfields)}>"
         )
 
@@ -130,15 +120,13 @@ class AnalysisPrototype:
         if cycle:
             p.text(
                 f"<{self.__name__}("
-                + f"serial={self.header.serial}, "
-                + f"{self.input}, "
-                + f"{self.content}), "
+                + f"serial={self.serial}, {self.input}, {self.content}), "
                 + f"unused_args_num={len(self.outfields)}>"
             )
         else:
-            with p.group(2, f"<{self.__name__}("):
+            with p.group(2, f"<{self.__name__}(", ")>"):
                 p.breakable()
-                p.text(f"serial={self.header.serial},")
+                p.text(f"serial={self.serial},")
                 p.breakable()
                 p.text(f"{self.input},")
                 p.breakable()
@@ -146,20 +134,8 @@ class AnalysisPrototype:
                 p.breakable()
                 p.text(f"unused_args_num={len(self.outfields)}")
                 p.breakable()
-                p.text(")>")
 
-    def __str__(self) -> str:
-        return (
-            f"{self.__name__} with serial={self.header.serial}, "
-            + f"{self.input.__str__()}, "
-            + f"{self.content.__str__()}, "
-            + f"{len(self.outfields)} unused arguments"
-        )
-
-    def statesheet(
-        self,
-        hoshi: bool = False,
-    ) -> Hoshi:
+    def statesheet(self, hoshi: bool = False) -> Hoshi:
         """Generate the state sheet of the analysis.
 
         Args:
@@ -170,41 +146,19 @@ class AnalysisPrototype:
         """
         info = Hoshi(
             [
-                ("h1", f"{self.__name__} with serial={self.header.serial}"),
+                ("h1", f"{self.__name__} with serial={self.serial}"),
             ],
             name="Hoshi" if hoshi else "QurryAnalysisSheet",
         )
-        info.newline(("itemize", "header"))
-        for k, v in self.header._asdict().items():
-            info.newline(("itemize", str(k), str(v), "", 2))
+        info.newline(("itemize", "serial", self.serial, "", 1))
+        info.newline(("itemize", "datetime", self.datetime, "", 1))
 
         info.newline(("itemize", "input"))
         for k, v in self.input._asdict().items():
-            info.newline(
-                (
-                    "itemize",
-                    str(k),
-                    str(v),
-                    (
-                        ""
-                        if k != "exp_id"
-                        else (
-                            "This is ID is generated by Qurry "
-                            + "which is different from 'job_id' for pending."
-                        )
-                    ),
-                    2,
-                )
-            )
+            info.newline(("itemize", str(k), str(v), (), 2))
 
         info.newline(
-            (
-                "itemize",
-                "outfields",
-                len(self.outfields),
-                "Number of unused arguments.",
-                1,
-            )
+            ("itemize", "outfields", len(self.outfields), "Number of unused arguments.", 1)
         )
         for k, v in self.outfields.items():
             info.newline(("itemize", str(k), str(v), "", 2))
@@ -213,17 +167,19 @@ class AnalysisPrototype:
         for k, v in self.content._asdict().items():
             info.newline(("itemize", str(k), str(v), "", 2))
 
+        info.newline(("itemize", "log"))
+        for k, v in self.log.items():
+            info.newline(("itemize", str(k), str(v), "", 2))
+
         return info
 
-    def export(
-        self,
-        jsonable: bool = True,
-    ) -> tuple[dict[str, Any], dict[str, Any]]:
+    def export(self, jsonable: bool = False) -> tuple[dict[str, Any], dict[str, Any]]:
         """Export the analysis as main and side product dict.
 
         Args:
-            jsonable (bool, optional): If True, export as jsonable dict. Defaults to True.
-            If False, export as normal dict.
+            jsonable (bool, optional):
+                If True, export as jsonable dict. Defaults to True.
+                If False, export as normal dict.
 
         .. code-block:: python
             main = { ...quantities, 'input': { ... }, 'header': { ... }, }
@@ -242,14 +198,37 @@ class AnalysisPrototype:
             else:
                 main[k] = v
         main["input"] = self.input._asdict()
-        main["header"] = self.header._asdict()
+        main["header"] = {
+            "serial": self.serial,
+            "datetime": self.datetime,
+            "log": self.log,
+        }
 
         if jsonable:
             return jsonablize(main), jsonablize(tales)
         return main, tales
 
     @classmethod
-    def load(cls, main: dict[str, Any], side: dict[str, Any]) -> "AnalysisPrototype":
+    def deprecated_fields_converts(
+        cls, main: dict[str, Any], side: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Convert deprecated fields to new fields.
+
+        This method should be implemented in the subclass if there are deprecated fields
+        that need to be converted.
+
+        Args:
+            main (dict[str, Any]): The main product dict.
+            side (dict[str, Any]): The side product dict.
+
+        Returns:
+            tuple[dict[str, Any], dict[str, Any]]:
+                The converted main and side product dicts.
+        """
+        return main, side
+
+    @classmethod
+    def load(cls, main: dict[str, Any], side: dict[str, Any]):
         """Read the analysis from main and side product dict.
 
         Args:
@@ -259,71 +238,50 @@ class AnalysisPrototype:
         Returns:
             AnalysisPrototype: The analysis instance.
         """
-        lost_key = []
-        for k in ("input", "header") + cls.AnalysisContent._fields:
-            if not (k in main or k in side):
-                lost_key.append(k)
-
+        main, side = cls.deprecated_fields_converts(main, side)
         content = {k: v for k, v in main.items() if k not in ("input", "header")}
-        instance = cls(**main["header"], **main["input"], **content, **side)
-        instance.header.log["lost_key"] = lost_key
+        serial = main["header"].get("serial", 0)
+        log = main["header"].get("log", {})
+        datetime = main["header"].get("datetime", current_time())
+        instance = cls(
+            serial=serial, log=log, datatime=datetime, **main["input"], **content, **side
+        )
         return instance
 
     @classmethod
-    def read(
-        cls,
-        file_index: dict[str, str],
-        save_location: Path,
-        encoding: str = "utf-8",
-    ):
+    def read(cls, file_index: dict[str, str], save_location: Path):
         """Read the analysis from file index.
 
         Args:
             file_index (dict[str, str]): The file index.
             save_location (Path): The save location.
-            encoding (str, optional): The encoding of the file. Defaults to "utf-8".
 
         Returns:
             dict[str, AnalysisPrototype]: The analysis instances in dictionary.
         """
 
-        export_material_set = {}
-        export_set = {}
+        export_material_set: dict[str, dict[str, dict[str, Any]]] = {
+            "reports": {},
+            "tales_report": {},
+        }
         for filekey, filename in file_index.items():
-            filekeydiv = filekey.split(".")
+            filekey_split = filekey.split(".")
             if filekey == "reports":
-                with open(save_location / filename, "r", encoding=encoding) as f:
-                    export_set["reports"] = json.load(f)
-                export_material_set["reports"] = export_set["reports"]["reports"]
+                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
+                    tmp = json.load(f)
+                    export_material_set["reports"] = tmp["reports"]
 
-            elif filekeydiv[0] == "reports" and filekeydiv[1] == "tales":
-                with open(save_location / filename, "r", encoding=encoding) as f:
-                    export_set[filekey] = json.load(f)
-                if "tales_report" not in export_material_set:
-                    export_material_set["tales_report"] = {}
-                export_material_set["tales_report"][filekeydiv[2]] = export_set[filekey]
+            elif filekey_split[0] == "reports" and filekey_split[1] == "tales":
+                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
+                    export_material_set["tales_report"][filekey_split[2]] = json.load(f)
 
-        del export_set
-        gc.collect()
+        mains = export_material_set["reports"]
+        sides = {rk: {} for rk in export_material_set["reports"]}
 
-        if "reports" in export_material_set:
-            mains = dict(export_material_set["reports"].items())
-            sides = {k: {} for k in export_material_set["reports"]}
-        else:
-            mains = {}
-            sides = {}
-        if "tales_report" in export_material_set:
-            for tk, tv in export_material_set["tales_report"].items():
-                for k, v in tv.items():
-                    if k not in sides:
-                        sides[k] = {}
-                        mains[k] = {}
-                    sides[k][tk] = v
-        del export_material_set
-        gc.collect()
+        for tk, tv in export_material_set["tales_report"].items():
+            for rk, rv in tv.items():
+                if rk not in sides:
+                    sides[rk] = {}
+                sides[rk][tk] = rv
 
-        analysis_dict = {}
-        for k, v in mains.items():
-            analysis_dict[k] = cls.load(v, sides[k])
-
-        return analysis_dict
+        return {int(k) if k.isdigit() else k: cls.load(v, sides[k]) for k, v in mains.items()}

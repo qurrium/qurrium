@@ -9,8 +9,8 @@ from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ..experiment import ArgumentsPrototype
-from ...declare import BasicArgs, OutputArgs
+from ...qurrium import ArgumentsPrototype
+from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
 @dataclass(frozen=True)
@@ -36,6 +36,10 @@ class QurryOutputArgs(OutputArgs):
 
     sampling: int
     """The number of sampling."""
+
+
+class QurryAnalyzeArgs(AnalyzeArgs, total=False):
+    """The input of the analyze method."""
 
 
 SHORT_NAME = "sampling_executer"

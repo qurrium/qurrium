@@ -8,6 +8,7 @@ import numpy as np
 
 from qurry.capsule import quickRead
 from qurry.qurrent.randomized_measure.utils import bitstring_mapping_getter
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
@@ -16,6 +17,11 @@ from qurry.process.classical_shadow import (
 from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 
 FILE_LOCATION = os.path.join(os.path.dirname(__file__), "shadow-case.json")
+
+RHO_METHODS = ["numpy", "numpy_precomputed", "numpy_flatten"]
+TRACE_METHODS = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
+    ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
+)
 
 
 class RawReadShadowCaseArguments(TypedDict):
@@ -49,27 +55,20 @@ class ShadowCaseArguments(TypedDict):
     unitary_located: list[int]
 
 
-class ShadowCase(TypedDict):
-    """TypedDict for shadow case."""
-
-    answer: dict[str, int]
-    arguments: ShadowCaseArguments
-    random_unitary_ids: dict[int, dict[int, int]]
-    counts: list[dict[str, int]]
-
-
 class ClassicalShadowComplexExtended(ClassicalShadowComplex):
     """Extended ClassicalShadowComplex with expect_rho trace."""
 
-    expect_rho_trace: np.complex128
+    mean_of_rho_trace: np.complex128
 
 
 raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
 raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01]
-shadow_cases: list[ShadowCase] = [
-    {
-        "answer": shadow_case_tmp["answer"],
-        "arguments": {
+shadow_cases: list[
+    tuple[dict[str, int], ShadowCaseArguments, dict[int, dict[int, int]], list[dict[str, int]]]
+] = [
+    (
+        shadow_case_tmp["answer"],
+        {
             "num_qubits": shadow_case_tmp["arguments"]["num_qubits"],
             "selected_qubits": shadow_case_tmp["arguments"]["selected_qubits"],
             "registers_mapping": {
@@ -81,12 +80,12 @@ shadow_cases: list[ShadowCase] = [
             "shots": shadow_case_tmp["arguments"]["shots"],
             "unitary_located": shadow_case_tmp["arguments"]["unitary_located"],
         },
-        "random_unitary_ids": {
+        {
             int(k): {int(k2): int(v2) for k2, v2 in v.items()}
             for k, v in shadow_case_tmp["random_unitary_ids"].items()
         },
-        "counts": shadow_case_tmp["counts"],
-    }
+        shadow_case_tmp["counts"],
+    )
     for shadow_case_tmp in raw_shadow_cases
 ]
 
@@ -100,78 +99,58 @@ def test_availability():
         )
 
 
-@pytest.mark.parametrize("shadow_case", shadow_cases)
-def test_shadow(shadow_case: ShadowCase):
+@pytest.mark.parametrize(["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases)
+def test_shadow(
+    answer: dict[str, int],
+    arguments: ShadowCaseArguments,
+    random_unitary_ids: dict[int, dict[int, int]],
+    counts: list[dict[str, int]],
+):
     """Test the classical_shadow_complex function."""
 
     _bitstring_mapping, final_mapping = bitstring_mapping_getter(
-        shadow_case["counts"], shadow_case["arguments"]["registers_mapping"]
+        counts, arguments["registers_mapping"]
     )
-    rho_methods = ["numpy", "numpy_precomputed", "numpy_flatten"] + (
-        ["jax_flatten"] if JAX_AVAILABLE else []
-    )
-    trace_methods = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
-        ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
-    )
-    result: dict[str, ClassicalShadowComplexExtended] = {}
+
+    results: dict[str, ClassicalShadowComplexExtended] = {}
 
     # Call the classical_shadow_complex function with the provided arguments
-    for rho_method in rho_methods:
-        for trace_method in trace_methods:
+    for rho_method in RHO_METHODS:
+        for trace_method in TRACE_METHODS:
             tmp = classical_shadow_complex(
-                shots=shadow_case["arguments"]["shots"],
-                counts=shadow_case["counts"],
-                random_unitary_um=shadow_case["random_unitary_ids"],
+                shots=arguments["shots"],
+                counts=counts,
+                random_unitary_um=random_unitary_ids,
                 selected_classical_registers=[
-                    final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
+                    final_mapping[qi] for qi in arguments["selected_qubits"]
                 ],
                 rho_method=rho_method,
                 trace_method=trace_method,
             )
-            result[rho_method + "." + trace_method] = {
-                "expect_rho_trace": np.trace(tmp["expect_rho"]),
+            results[rho_method + "." + trace_method] = {
+                "mean_of_rho_trace": np.trace(tmp["mean_of_rho"]),
                 **tmp,
             }
 
-    # result["rust"] = classical_shadow_complex(
-    #     shots=shadow_case["arguments"]["shots"],
-    #     counts=shadow_case["counts"],
-    #     random_unitary_um=shadow_case["random_unitary_ids"],
-    #     selected_classical_registers=[
-    #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
-    #     ],
-    #     backend="Rust",
-    # )
-    # result["rust_einsum_ij_ji"] = classical_shadow_complex(
-    #     shots=shadow_case["arguments"]["shots"],
-    #     counts=shadow_case["counts"],
-    #     random_unitary_um=shadow_case["random_unitary_ids"],
-    #     selected_classical_registers=[
-    #         final_mapping[qi] for qi in shadow_case["arguments"]["selected_qubits"]
-    #     ],
-    #     backend="Rust",
-    #     method="einsum_ij_ji",
-    # )
-
     # Compare the result with the expected answer
-    for name, result_tmp in result.items():
-        assert np.abs(result_tmp["purity"] - shadow_case["answer"]["purity"]) < 1e-12, (
+    for (name_1, result_1), (name_2, result_2) in combinations(results.items(), 2):
+        assert np.abs(result_1["purity"] - result_2["purity"]) < NUMERICAL_ERROR_TOLERANCE, (
             "The result is not correct,"
-            + f"{name}: {result_tmp['purity']} != "
-            + f"shadow_case['answer']: {shadow_case['answer']['purity']}"
-        )
-        assert np.abs(result_tmp["expect_rho_trace"] - 1) < 1e-12, (
-            "The trace of the expect_rho should be 1: " + f"{result_tmp['expect_rho_trace']}."
-        )
-
-    for (name_1, result_tmp_1), (name_2, result_tmp_2) in combinations(result.items(), 2):
-        assert np.abs(result_tmp_1["purity"] - result_tmp_2["purity"]) < 1e-12, (
-            "The result is not correct,"
-            + f"{name_1}: {result_tmp_1['purity']} != {name_2}: {result_tmp_2['purity']}"
+            + f"{name_1}: {result_1['purity']} != {name_2}: {result_2['purity']}"
         )
         assert (
-            np.abs(result_tmp_1["expect_rho_trace"] - result_tmp_2["expect_rho_trace"]) < 1e-12
+            np.abs(result_1["mean_of_rho_trace"] - result_2["mean_of_rho_trace"])
+            < NUMERICAL_ERROR_TOLERANCE
         ), (
             "The trace of the expect_rho should be equal: "
-            + f"{result_tmp_1['expect_rho_trace']} != {result_tmp_2['expect_rho_trace']}."
+            + f"{result_1['mean_of_rho_trace']} != {result_2['mean_of_rho_trace']}."
+        )
+
+    for name_1, result_1 in results.items():
+        assert np.abs(result_1["purity"] - answer["purity"]) < NUMERICAL_ERROR_TOLERANCE, (
+            "The result is not correct,"
+            f"{name_1}: {result_1['purity']} != answer: {answer['purity']}"
+        )
+        assert np.abs(result_1["mean_of_rho_trace"] - 1) < NUMERICAL_ERROR_TOLERANCE, (
+            "The trace of the expect_rho should be 1: " + f"{result_1['mean_of_rho_trace']}."
         )

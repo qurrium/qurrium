@@ -1,31 +1,21 @@
 """TagList (:mod:`qurry.capsule.mori.taglist`)"""
 
-from typing import (
-    Optional,
-    Literal,
-    Union,
-    TypeVar,
-    NamedTuple,
-    Any,
-    overload,
-)
+from typing import Optional, Union, NamedTuple, Any, TypeVar, overload
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from pathlib import Path
 import os
 import json
-import csv
 import warnings
 
-from .utils import defaultOpenArgs, defaultPrintArgs, defaultJsonDumpArgs
+from ..utils import OpenArgs, JSONDumpArgs, create_open_args, create_json_dump_args
 from ..jsonablize import parse
 from ..exception import TagListTakeNotIterableWarning
+
 
 _K = TypeVar("_K", bound=Hashable)
 _V = TypeVar("_V")
 _T = TypeVar("_T")
-
-AvailableFileType = Literal["json", "csv"]
 
 
 def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
@@ -38,21 +28,16 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
         Union[tuple[str, ...], str]: Result of tuplizing.
     """
     if k[0] == "(" and k[-1] == ")":
-        kt = list(k[1:-1].split(", "))
+        kt = list(k[1:-1].split(","))
         kt2 = []
         for ktsub in kt:
             if len(ktsub) > 0:
-                if ktsub[0] == "'":
-                    kt2.append(ktsub[1:-1])
-                elif ktsub[0] == '"':
-                    kt2.append(ktsub[1:-1])
+                if ktsub[0] == "'" or ktsub[0] == '"':
+                    kt2.append(ktsub[1:-1].strip())
                 elif ktsub.isdigit():
                     kt2.append(int(ktsub))
                 else:
                     kt2.append(ktsub)
-
-            else:
-                ...
 
         kt2 = tuple(kt2)
         return kt2
@@ -60,11 +45,11 @@ def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
 
 
 @overload
-def key_tuple_loads(
-    o: dict[Union[Hashable, _K], _T],
-) -> dict[Union[Hashable, tuple[Hashable, ...], _K], _T]: ...
-@overload
 def key_tuple_loads(o: _T) -> _T: ...
+@overload
+def key_tuple_loads(o: dict[_K, _T]) -> dict[_K, _T]: ...
+@overload
+def key_tuple_loads(o: dict[Hashable, _T]) -> dict[Hashable, _T]: ...
 
 
 def key_tuple_loads(o):
@@ -92,8 +77,8 @@ def key_tuple_loads(o):
     return o
 
 
-class TagList(defaultdict[_K, list[Union[_V, Any]]]):
-    """Specific data structures of :mod:`qurry` like `dict[str, list[any]]`.
+class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
+    """Specific data structures of :mod:`qurrium` like `dict[str, list[any]]`.
 
     >>> bla = TagList()
 
@@ -110,11 +95,10 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
 
     Args:
         name (str, optional):
-            The name of this `tagList`. Defaults to `TagList`.
+            The name of this :cls:`TagList`. Defaults to `TagList`.
 
     Raises:
         ValueError: When input is not a dict.
-
     """
 
     __name__ = "TagList"
@@ -159,124 +143,93 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
                 d += v
         return d
 
-    def guider(
-        self,
-        legacy_tag: Optional[_K] = None,
-        v: Any = None,
-    ) -> None:
-        """
+    def guider(self, proposal_tag: Optional[_K] = None, v: Any = None) -> None:
+        """Append a value to the :cls:`TagList` with a tag.
 
         Args:
-            legacyTag (any): The tag for legacy as key.
+            proposal_tag (any): The tag for this value.
             v (any): The value for legacy.
-
-        Returns:
-            dict: _description_
         """
         for k in self.protect_keys:
-            if legacy_tag == k:
-                warnings.warn(f"'{k}' is a reserved key for export data.")
+            if proposal_tag == k:
+                raise ValueError(f"'{k}' is a reserved key for export data.")
 
-        if legacy_tag is None:
+        if proposal_tag is None:
             self[()].append(v)  # type: ignore
-        elif legacy_tag in self:
-            self[legacy_tag].append(v)
+        elif proposal_tag in self:
+            self[proposal_tag].append(v)
         else:
-            self[legacy_tag] = [v]
-
-    availableFile = ["json", "csv"]
+            self[proposal_tag] = [v]
 
     class ParamsControl(NamedTuple):
-        """The type of arguments for :func:`params_control`."""
+        """The type of arguments for :func:`params_control`"""
 
-        open_args: dict[Union[Literal["encoding"], str], Any]
-        print_args: dict[str, Any]
-        json_dump_args: dict[str, Any]
+        open_args: OpenArgs
+        """ The arguments for :func:`open` function.
+        Defaults to DEFAULT_OPEN_ARGS, which is:
+        >>> {
+            'mode': 'w+',
+            'encoding': 'utf-8',
+        }
+        """
+        json_dump_args: JSONDumpArgs
+        """The arguments for :func:`json.dump` function.
+        Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
+        >>> {
+            'indent': 2,
+        }
+        """
         save_location: Path
+        """The exported location. Defaults to `Path('./')`."""
 
     @classmethod
     def params_control(
         cls,
-        open_args: Optional[dict[str, Any]] = None,
-        print_args: Optional[dict[str, Any]] = None,
-        json_dump_args: Optional[dict[str, Any]] = None,
+        open_args: Optional[OpenArgs] = None,
+        json_dump_args: Optional[JSONDumpArgs] = None,
         save_location: Union[Path, str] = Path("./"),
-        filetype: AvailableFileType = "json",
         is_read_only: bool = False,
     ) -> ParamsControl:
         """Handling all arguments.
 
         Args:
-            open_args (dict[str, Any], optional):
+            open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to :attr:`self.defaultOpenArgs`, which is:
+                Defaults to DEFAULT_OPEN_ARGS, which is:
                 >>> {
                     'mode': 'w+',
                     'encoding': 'utf-8',
                 }
-            print_args (dict[str, Any], optional):
-                The other arguments for :func:`print` function.
-                Defaults to :attr:`self.defaultPrintArgs`, which is:
-                >>> {}
-            json_dump_args (dict[str, Any], optional):
+            json_dump_args (Optional[JSONDumpArgs], optional):
                 The other arguments for :func:`json.dump` function.
-                Defaults to :attr:`self.defaultJsonDumpArgs`, which is:
+                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
                 >>> {
                     'indent': 2,
                 }
             save_location (Path, optional):
                 The exported location. Defaults to `Path('./')`.
-            filetype (Literal[&#39;json&#39;, &#39;csv&#39;], optional):
-                Export type of `tagList`. Defaults to 'json'.
-            isReadOnly (bool, optional):
-                Is reading a file of `tagList` exportation. Defaults to False.
-
+            is_read_only (bool, optional):
+                Whether to read a file of :cls:`TagList` exportation.
 
         Returns:
             ParamsControl: Current arguments.
         """
 
-        # working args
-        if print_args is None:
-            print_args = defaultPrintArgs.copy()
-        else:
-            print_args = {k: v for k, v in print_args.items() if k != "file"}
-            print_args = {**defaultPrintArgs.copy(), **print_args}
-        if open_args is None:
-            open_args = defaultOpenArgs.copy()
-        else:
-            open_args = {k: v for k, v in open_args.items() if k != "file"}
-            open_args = {**defaultOpenArgs.copy(), **open_args}
-        if is_read_only:
-            open_args["mode"] = "r"
-        if json_dump_args is None:
-            json_dump_args = defaultJsonDumpArgs.copy()
-        else:
-            json_dump_args = {k: v for k, v in json_dump_args.items() if k != "obj" or k != "fp"}
-            json_dump_args = {**defaultJsonDumpArgs.copy(), **json_dump_args}
+        open_args = create_open_args(open_args=open_args, is_read_only=is_read_only)
+        json_dump_args = create_json_dump_args(json_dump_args=json_dump_args)
 
-        # save_location
-        if isinstance(save_location, (Path, str)):
+        if isinstance(save_location, str):
             save_location = Path(save_location)
+        elif isinstance(save_location, Path):
+            ...
         else:
             raise ValueError("'save_location' needs to be the type of 'str' or 'Path'.")
 
         if not os.path.exists(save_location):
             raise FileNotFoundError(f"Such location not found: {save_location}")
 
-        # file type check
-        if filetype not in cls.availableFile:
-            raise ValueError(f"Instead of '{filetype}', Only {cls.availableFile} can be exported.")
-
-        # return {
-        #     "open_args": open_args,
-        #     "print_args": print_args,
-        #     "json_dump_args": json_dump_args,
-        #     "save_location": save_location,
-        # }
         return cls.ParamsControl(
             open_args=open_args,
-            print_args=print_args,
             json_dump_args=json_dump_args,
             save_location=save_location,
         )
@@ -285,44 +238,33 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
         self,
         name: Optional[str],
         save_location: Union[Path, str] = Path("./"),
-        filetype: AvailableFileType = "json",
         taglist_name: str = __name__,
-        open_args: Optional[dict[str, Any]] = None,
-        print_args: Optional[dict[str, Any]] = None,
-        json_dump_args: Optional[dict[str, Any]] = None,
+        open_args: Optional[OpenArgs] = None,
+        json_dump_args: Optional[JSONDumpArgs] = None,
     ) -> Path:
-        """Export `tagList`.
+        """Export :cls:`TagList` to a file.
 
         Args:
             name (Optional[str], optional):
-                File name for this `tagList`.
-                The file name should be something like:
-                    `f"{name}.{taglist_name}.{filetype}"`.
-                or
-                    `f"{taglist_name}.{filetype}"` when `name` is `None`.
-                For example, if `name` is `example`, `taglist_name` is `tagList`,
-                and `filetype` is `json`, the file name will be `example.tagList.json`.
-            save_location (Path): The location of file.
-            filetype (Literal[&#39;json&#39;, &#39;csv&#39;], optional):
-                Export type of `tagList`. Defaults to 'json'.
+                The file name should be something like
+                "{name}.{taglist_name}.json" or "{taglist_name}.json" when 'name' is None.
+            save_location (Path):
+                The location of file. Defaults to `Path('./')`.
             taglist_name (str, optional):
                 The suffix name for this `tagList`.
                 Defaults to `__name__`.
-                The file name will be: `f"{name}.{taglist_name}.{filetype}"`.
-            open_args (dict[str, Any], optional):
+                The file name will be
+                "{name}.{taglist_name}.json" or "{taglist_name}.json" when 'name' is None.
+            open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to :attr:`self.defaultOpenArgs`, which is:
+                Defaults to DEFAULT_OPEN_ARGS, which is:
                 >>> {
                     'mode': 'w+',
                     'encoding': 'utf-8',
                 }
-            print_args (dict[str, Any], optional):
-                The other arguments for :func:`print` function.
-                Defaults to :attr:`self.defaultPrintArgs`, which is:
-                >>> {}
-            json_dump_args (dict[str, Any], optional):
+            json_dump_args (Optional[JSONDumpArgs], optional):
                 The other arguments for :func:`json.dump` function.
-                Defaults to :attr:`self.defaultJsonDumpArgs`, which is:
+                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
                 >>> {
                     'indent': 2,
                 }
@@ -336,39 +278,18 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
 
         args = self.params_control(
             open_args=open_args,
-            print_args=print_args,
             json_dump_args=json_dump_args,
             save_location=save_location,
-            filetype=filetype,
         )
-
+        assert "encoding" in args.open_args, "encoding must be specified in open_args"
         encoding = args.open_args.pop("encoding")
-        assert isinstance(encoding, str), "encoding must be str"
+        filename = f"{taglist_name}.json" if name is None else f"{name}.{taglist_name}.json"
+        assert "encoding" not in args.open_args, "encoding must not be in open_args after pop"
 
-        filename = (
-            f"{taglist_name}.{filetype}" if name is None else f"{name}.{taglist_name}.{filetype}"
-        )
-
-        if filetype == "json":
-            with open(
-                args.save_location / filename, encoding=encoding, **args.open_args
-            ) as export_json:
-                json.dump(parse(self), export_json, **args.json_dump_args)
-
-        elif filetype == "csv":
-            with open(
-                args.save_location / filename,
-                encoding=encoding,
-                **args.open_args,
-                newline="",
-            ) as export_csv:
-                taglist_writer = csv.writer(export_csv, quotechar="|")
-                for k, vs in self.items():
-                    for v in vs:
-                        taglist_writer.writerow((k, v))
-
-        else:
-            warnings.warn("Exporting cancelled for no specified filetype.")
+        with open(
+            args.save_location / filename, encoding=encoding, **args.open_args
+        ) as export_json:
+            json.dump(parse(self), export_json, **args.json_dump_args)
 
         return args.save_location / filename
 
@@ -377,105 +298,62 @@ class TagList(defaultdict[_K, list[Union[_V, Any]]]):
         cls,
         filename: str,
         save_location: Union[Path, str] = Path("./"),
-        filetype: AvailableFileType = "json",
         taglist_name: str = __name__,
         tuple_str_auto_transplie: bool = True,
-        open_args: Optional[dict[str, Any]] = None,
-        print_args: Optional[dict[str, Any]] = None,
-        json_dump_args: Optional[dict[str, Any]] = None,
+        open_args: Optional[OpenArgs] = None,
+        json_dump_args: Optional[JSONDumpArgs] = None,
     ) -> "TagList":
-        """Export `tagList`.
+        """Read a :cls:`TagList` from a file.
 
         Args:
-            save_location (Path): The location of file.
-            filename (Optional[str], optional):
-                File name for this `tagList` with suffix name of `tagList`.
-                The file name should be something like:
-                    `f"{name}.{taglist_name}.{filetype}"`.
-                or
-                    `f"{taglist_name}.{filetype}"`.
-                For example, if `name` is `example`, `taglist_name` is `tagList`,
-                and `filetype` is `json`, the file name will be `example.tagList.json`.
-                You need put the `name` and `taglist_name` in the filename like:
-                >>> filename="example.tagList"
-                `tagList` is the suffix name of this `tagList`.
-                >>> taglist_name="tagList"
-                `filetype` is the file type of the file.
-                >>> filetype="json"
-            filetype (Literal[&#39;json&#39;, &#39;csv&#39;], optional):
-                Export type of `tagList`. Defaults to 'json'.
+            filename (str):
+                The file name of exported :cls:`TagList`.
+                The file name should be something like
+                "{name}.{taglist_name}.json" or "{taglist_name}.json" when 'name' is None.
+            save_location (Path):
+                The location of file. Defaults to `Path('./')`.
             taglist_name (str, optional):
-                The suffix name for this `tagList`.
+                The class name of :cls:`TagList`.
                 Defaults to `__name__`.
-                The file name will be: `f"{name}.{taglist_name}.{filetype}"`.
             tuple_str_auto_transplie (bool, optional):
-                Whether to transplie tuple string to tuple.
-            open_args (Optional[dict[str, Any]], optional):
+                Whether to transplie tuple string in the keys of the dict
+                to real tuple. Defaults to True.
+            open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to :attr:`self.defaultOpenArgs`, which is:
+                Defaults to DEFAULT_OPEN_ARGS, which is:
                 >>> {
                     'mode': 'w+',
                     'encoding': 'utf-8',
                 }
-            print_args (Optional[dict[str, Any]], optional):
-                The other arguments for :func:`print` function.
-                Defaults to :attr:`self.defaultPrintArgs`, which is:
-                >>> {}
-            json_dump_args (Optional[dict[str, Any]], optional):
+            json_dump_args (Optional[JSONDumpArgs], optional):
                 The other arguments for :func:`json.dump` function.
-                Defaults to :attr:`self.defaultJsonDumpArgs`, which is:
+                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
                 >>> {
                     'indent': 2,
                 }
 
         Raises:
             FileNotFoundError: When file not found.
-            ValueError: When filetype is not supported.
 
         Return:
             TagList: The path of exported file.
-
         """
+
         args = cls.params_control(
             open_args=open_args,
-            print_args=print_args,
             json_dump_args=json_dump_args,
             save_location=save_location,
-            filetype=filetype,
             is_read_only=True,
         )
+        assert "encoding" in args.open_args, "encoding must be specified in open_args"
         encoding = args.open_args.pop("encoding")
-        assert isinstance(encoding, str), "encoding must be str"
+        assert "encoding" not in args.open_args, "encoding must not be in open_args after pop"
 
-        assert taglist_name in filename, (
-            f"taglist_name: '{taglist_name}' must be a part of filename: '{filename}', "
-            + f"like 'example.{taglist_name}.{filetype}'."
-        )
-
-        if filetype == "json":
-            with open(
-                args.save_location / filename, encoding=encoding, **args.open_args
-            ) as read_json:
-                raw_data = json.load(read_json)
-                obj = cls(
-                    o=raw_data,
-                    name=taglist_name,
-                    tuple_str_auto_transplie=tuple_str_auto_transplie,
-                )
-            return obj
-
-        if filetype == "csv":
-            with open(
-                args.save_location / filename,
-                encoding=encoding,
-                **args.open_args,
-                newline="",
-            ) as read_csv:
-                taglist_reaper = csv.reader(read_csv, quotechar="|")
-                obj = cls(name=taglist_name)
-                for k, v in taglist_reaper:
-                    kt = tuple_str_parse(k) if tuple_str_auto_transplie else k
-                    obj[kt].append(v)  # type: ignore
-            return obj
-
-        raise ValueError(f"Instead of '{filetype}', Only {cls.availableFile} can be exported.")
+        with open(args.save_location / filename, encoding=encoding, **args.open_args) as read_json:
+            raw_data = json.load(read_json)
+            obj = cls(
+                o=raw_data,
+                name=taglist_name,
+                tuple_str_auto_transplie=tuple_str_auto_transplie,
+            )
+        return obj

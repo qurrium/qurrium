@@ -1,7 +1,9 @@
 mod bit_slice;
 mod counts_process;
 mod hadamard;
+mod magnet_square;
 mod randomized;
+mod string_operator;
 mod tool;
 
 use pyo3::prelude::*;
@@ -14,11 +16,13 @@ use crate::counts_process::{
     shot_counts_selected_clreg_checker, single_counts_recount_rust,
 };
 use crate::hadamard::purity_echo_core_rust;
+use crate::magnet_square::{magnetic_square_core_rust, z_dir_magnetic_square_core_rust};
 use crate::randomized::echo::v1::{echo_cell_rust, overlap_echo_core_rust};
 use crate::randomized::echo::v2::{echo_cell_2_rust, overlap_echo_core_2_rust};
 use crate::randomized::entropy::v1::{entangled_entropy_core_rust, purity_cell_rust};
 use crate::randomized::entropy::v2::{entangled_entropy_core_2_rust, purity_cell_2_rust};
 use crate::randomized::randomized::{ensemble_cell_rust, hamming_distance_rust};
+use crate::string_operator::string_operator_core_rust;
 use crate::tool::{make_dummy_case_32, make_two_bit_str_32, make_two_bit_str_unlimit};
 
 #[pymodule]
@@ -73,6 +77,19 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let hadamard = PyModule::new(parent_module.py(), "hadamard")?;
     hadamard.add_function(wrap_pyfunction!(purity_echo_core_rust, &hadamard)?)?;
 
+    let magnet_square = PyModule::new(parent_module.py(), "magnet_square")?;
+    magnet_square.add_function(wrap_pyfunction!(magnetic_square_core_rust, &magnet_square)?)?;
+    magnet_square.add_function(wrap_pyfunction!(
+        z_dir_magnetic_square_core_rust,
+        &magnet_square
+    )?)?;
+
+    let string_operator = PyModule::new(parent_module.py(), "string_operator")?;
+    string_operator.add_function(wrap_pyfunction!(
+        string_operator_core_rust,
+        &string_operator
+    )?)?;
+
     let dummy = PyModule::new(parent_module.py(), "dummy")?;
     dummy.add_function(wrap_pyfunction!(make_two_bit_str_32, &dummy)?)?;
     dummy.add_function(wrap_pyfunction!(make_dummy_case_32, &dummy)?)?;
@@ -85,6 +102,8 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     parent_module.add_submodule(&counts_process)?;
     parent_module.add_submodule(&bit_slice)?;
     parent_module.add_submodule(&hadamard)?;
+    parent_module.add_submodule(&magnet_square)?;
+    parent_module.add_submodule(&string_operator)?;
     parent_module.add_submodule(&dummy)?;
     parent_module.add_submodule(&test)?;
     Ok(())

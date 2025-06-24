@@ -2,7 +2,7 @@
 
 from .construct import decomposer, get_counts_and_exceptions
 from .qasm import qasm_dumps, qasm_version_detect, qasm_loads
-from .inputfixer import damerau_levenshtein_distance, outfields_check
+from .inputfixer import damerau_levenshtein_distance, outfields_check, outfields_hint
 from .iocontrol import (
     naming,
     IOComplex,

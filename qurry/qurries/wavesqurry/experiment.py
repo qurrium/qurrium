@@ -11,16 +11,11 @@ from qiskit import QuantumCircuit
 
 from .arguments import WavesExecuterArguments, SHORT_NAME
 from .analysis import WavesExecuterAnalysis
-from ..experiment import ExperimentPrototype, Commonparams
+from ...qurrium import ExperimentPrototype, Commonparams
 from ...exceptions import QurryExperimentCountsNotCompleted
 
 
-class WavesExecuterExperiment(
-    ExperimentPrototype[
-        WavesExecuterArguments,
-        WavesExecuterAnalysis,
-    ]
-):
+class WavesExecuterExperiment(ExperimentPrototype[WavesExecuterArguments, WavesExecuterAnalysis]):
     """The instance of experiment."""
 
     __name__ = "WavesExecuterExperiment"
@@ -118,7 +113,7 @@ class WavesExecuterExperiment(
             )
         if len(no_cregs) > 0:
             raise ValueError(
-                "| No classical register in the following circuits, counts will be empty."
+                "| No classical register in the following circuits, counts will be empty. "
                 + "Please add classical register to the circuit. "
                 + f"The index of circuit without classical register: {no_cregs}"
             )

@@ -1,13 +1,15 @@
 """Utility functions for testing qurry package."""
 
 import os
-from typing import TypedDict, Any, Optional
+from typing import TypedDict, Any, Optional, Iterable, NamedTuple
 import warnings
 import numpy as np
 
+from qurry.qurrium import QurriumPrototype
 from qurry.capsule import quickRead
+from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.tools.datetime import current_time
-from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIM_IMPORT_ERROR_INFOS
+from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIMULATOR_SOURCES
 from qurry.exceptions import QurryDependenciesNotWorking
 
 SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
@@ -25,7 +27,7 @@ def detect_simulator_source() -> str:
     if SIM_DEFAULT_SOURCE != "qiskit_aer":
         warnings.warn(
             f"Qiskit Aer is not used as the default simulator: {SIM_DEFAULT_SOURCE}. "
-            f"Current simulator source is: {SIM_IMPORT_ERROR_INFOS[SIM_DEFAULT_SOURCE]},"
+            f"Current simulator source is: {SIMULATOR_SOURCES[SIM_DEFAULT_SOURCE]},"
             "some test cases may be skipped.",
             category=QurryDependenciesNotWorking,
         )
@@ -61,32 +63,69 @@ def current_time_filename():
     return current_time().replace(":", "").replace("-", "").replace(" ", "_")
 
 
-class InputUnit(TypedDict):
-    """Test unit."""
+class InputUnitTuple(NamedTuple):
+    """Test unit.
 
-    measure: dict[str, Any]
+    This is a tuple containing:
+    - item_name: str: The name of the test item.
+    - measure_draft: dict[str, Any]: The measurement input.
+    - analyze: dict[str, Any]: The analysis input.
+    - answer: float: The expected answer.
+    """
+
+    tags: tuple[str, ...]
+    """The tags associated with the test item."""
+    measure_draft: dict[str, Any]
+    """The measurement input draft."""
     analyze: dict[str, Any]
+    """The analysis input."""
     answer: float
+    """The expected answer."""
+
+    @property
+    def measure(self) -> dict[str, Any]:
+        """Get the measurement input.
+
+        Returns:
+            dict[str, Any]: The measurement input.
+        """
+        return {**self.measure_draft, "tags": self.tags}
+
+    @property
+    def item_name(self) -> str:
+        """Get the item name from the tags.
+
+        Returns:
+            str: The item name.
+        """
+        return item_name_making_from_iter(self.tags)
 
 
-class ResultUnit(TypedDict):
+class ResultUnitDict(TypedDict):
     """Result unit."""
 
+    item_name: str
+    """The name of the test item."""
     answer: float
+    """The answer from the quantity."""
     diff: float
+    """The difference between the answer and the target quantity."""
     target_quantity: float
+    """The target quantity to compare against."""
     target_quantity_name: str
+    """The name of the target quantity."""
     is_correct: bool
+    """Whether the answer is correct or not."""
 
 
 def check_unit(
     quantity: dict[str, Any],
     target_quantity_name: str,
     answer: float,
-    threshold: float,
     test_item_name: str,
+    threshold: float = NUMERICAL_ERROR_TOLERANCE,
     other_quantity_names: Optional[list[str]] = None,
-) -> ResultUnit:
+) -> ResultUnitDict:
     """Check the unit of the test.
 
     Args:
@@ -96,10 +135,10 @@ def check_unit(
             The name of the target quantity.
         answer (float):
             The expected answer.
-        threshold (float):
-            The threshold for the check.
         test_item_name (str):
             The name of the test item.
+        threshold (float, optional):
+            The threshold for the check. Default is NUMERICAL_ERROR_TOLERANCE.
         other_quantity_names (Optional[list[str]]):
             Other quantities to check.
 
@@ -123,10 +162,137 @@ def check_unit(
         + f"{diff} !< {threshold}, {quantity[target_quantity_name]} != {answer}."
     )
 
-    return ResultUnit(
+    return ResultUnitDict(
+        item_name=test_item_name,
         answer=quantity[target_quantity_name],
         diff=diff,
         target_quantity=answer,
         target_quantity_name=target_quantity_name,
         is_correct=is_correct,
     )
+
+
+def item_name_making_from_iter(iterable: Iterable[str]) -> str:
+    """Make an item name from an iterable of strings.
+
+    Args:
+        iterable (Iterable[str]): The iterable of strings.
+
+    Returns:
+        str: The item name.
+    """
+    item_name = ".".join(iterable)
+    if item_name:
+        return item_name
+    raise ValueError("The iterable is empty, cannot create an item name.")
+
+
+def item_name_making(*iterable: str) -> str:
+    """Make an item name from a variable number of strings.
+
+    Args:
+        *iterable (str): The strings to join.
+
+    Returns:
+        str: The item name.
+    """
+    return item_name_making_from_iter(iterable)
+
+
+def quantity_units_conclusion(
+    exp_method_and_division_list: list[tuple[QurriumPrototype, str]],
+    input_items: dict[str, list[InputUnitTuple]],
+) -> list[tuple[QurriumPrototype, str, InputUnitTuple]]:
+    """Create a list of quantity units for testing.
+
+    Args:
+        exp_method_and_division_list (list[tuple[QurriumPrototype, str]]):
+            The list of experiment methods and divisions.
+        input_items (dict[str, list[InputUnitTuple]]):
+            The input items for each division.
+
+    Returns:
+        list[tuple[QurriumPrototype, str, InputUnitTuple]]:
+            The list of quantity units.
+    """
+    return [
+        (exp_method, division, input_item)
+        for exp_method, division in exp_method_and_division_list
+        for input_item in input_items[division]
+    ]
+
+
+def multi_output_all_conclusion(
+    exp_method_division_summoner_list: list[tuple[QurriumPrototype, str, str]],
+    input_items: dict[str, list[InputUnitTuple]],
+) -> list[
+    tuple[
+        QurriumPrototype,
+        str,
+        str,
+        list[dict[str, Any]],
+        dict[tuple[str, ...], dict[str, Any]],
+        dict[tuple[str, ...], float],
+    ]
+]:
+    """Create a list of multi-output all conclusions.
+
+    Args:
+        exp_method_division_summoner_list (list[tuple[QurriumPrototype, str, str]]):
+            The list of experiment methods, divisions, and summoner names.
+        input_items (dict[str, list[InputUnitTuple]]):
+            The input items for each division.
+
+    Returns:
+        list[tuple[QurriumPrototype, str, list[dict[str, Any]], str]]:
+            The list of multi-output all conclusions. Each tuple contains:
+            - QurriumPrototype: The experiment method.
+            - str: The division.
+            - str: The summoner name.
+            - list[dict[str, Any]]: The configuration list.
+            - dict[tuple[str, ...], dict[str, Any]]: The analysis arguments.
+            - dict[tuple[str, ...], float]: The answer dictionary.
+    """
+
+    result_list = []
+    for exp_method, division, summoner_name in exp_method_division_summoner_list:
+        config_list, analysis_args, answer_dict = [], {}, {}
+        for input_item in input_items[division]:
+            config_list.append(input_item.measure)
+            analysis_args[input_item.tags] = input_item.analyze
+            answer_dict[input_item.tags] = input_item.answer
+
+        result_list.append(
+            (
+                exp_method,
+                division,
+                summoner_name,
+                config_list,
+                analysis_args,
+                answer_dict,
+            )
+        )
+    return result_list
+
+
+def specific_analysis_args_making(
+    exp_method: QurriumPrototype,
+    summoner_id: str,
+    analysis_args: dict[tuple[str, ...], dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Create specific analysis arguments for a given experiment method and summoner ID.
+
+    Args:
+        exp_method (QurriumPrototype): The experiment method.
+        summoner_id (str): The ID of the summoner.
+        analysis_args (dict[tuple[str, ...], dict[str, Any]]): The analysis arguments.
+
+    Returns:
+        dict[str, dict[str, Any]]:
+            A dictionary mapping experiment IDs to their specific analysis arguments.
+    """
+
+    return {
+        exp_id: analysis_args[config["tags"]]
+        for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
+    }

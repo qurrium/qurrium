@@ -56,7 +56,7 @@ def randomized_entangled_entropy_complex(
         checked_input: ExistedAllSystemInfoInput = {}
         for k in ExistedAllSystemInfo._fields:
             checked_input[k] = (
-                str(all_system_source.header)
+                f"serial={all_system_source.serial}, datetime={all_system_source.datetime}"
                 if k == "source"
                 else getattr(all_system_source.content, k)
             )

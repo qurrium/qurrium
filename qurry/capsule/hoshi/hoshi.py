@@ -3,11 +3,11 @@
 - Before:
 
 >>> print(" ### Qiskit version outdated warning")
->>> print("Please keep mind on your qiskit version, 
+>>> print("Please keep mind on your qiskit version,
 an very outdated version may cause some problems.")
 >>> print(" - Local Qiskit version ".ljust(40, '-')+f" {__qiskit_version__['qiskit']}")
 >>> print(" - Latest Qiskit version ".ljust(40, '-')+f" {latest_version}")
-```     
+```
 ### Qiskit version outdated warning
 Please keep mind on your qiskit version, an very outdated version may cause some problems.
 - Local Qiskit version ---------------- 0.39.0
@@ -48,14 +48,14 @@ Please keep mind on your qiskit version, an very outdated version may cause some
 Hoshi - A process content printer ?
 
 ## Why this name?
-    I made it when I was listening the songs made by Hoshimachi Suisei, 
-    a VTuber in Hololive. I was inspired by her songs, and I made this tool. 
-    I named it Hoshi, which means star in Japanese. 
+    I made it when I was listening the songs made by Hoshimachi Suisei,
+    a VTuber in Hololive. I was inspired by her songs, and I made this tool.
+    I named it Hoshi, which means star in Japanese.
     I hope this tool can help you to make your code more beautiful.
 
-    (Hint: The last sentence is auto-complete by Github Copilot from 'Hoshimachi' to the end. 
-    That's meaning that Github Copilot knows VTuber, Hololive, even Suisei, 
-    who trains it with such content and how. 
+    (Hint: The last sentence is auto-complete by Github Copilot from 'Hoshimachi' to the end.
+    That's meaning that Github Copilot knows VTuber, Hololive, even Suisei,
+    who trains it with such content and how.
     "Does Skynet subscribe to Virtual Youtuber?")
 """
 
@@ -148,8 +148,7 @@ def _ljust_filling(
         length = 5 * (int(length / 5) + 2)
 
     new_str = (previous + " ").ljust(length, filler)
-    if len(new_str) > length:
-        length = len(new_str)
+    length = max(length, len(new_str))
 
     return new_str + " ", length
 

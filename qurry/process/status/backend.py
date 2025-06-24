@@ -15,6 +15,7 @@ from ..randomized_measure import (
 from ..hadamard_test import purity_echo_core_availability
 from ..magnet_square import magnet_square_availability
 from ..classical_shadow import classical_shadow_core_availability
+from ..string_operator import string_operator_availability
 
 from ..utils import (
     counts_process_availability,
@@ -58,6 +59,8 @@ def availability_status_print() -> tuple[
         purity_echo_core_availability,
         # magnet_square
         magnet_square_availability,
+        # string_operator
+        string_operator_availability,
         # classical_shadow
         classical_shadow_core_availability,
         # utils
@@ -68,9 +71,9 @@ def availability_status_print() -> tuple[
         test_availability,
     ]
     pre_hoshi = [
-        ("txt", f"| Qurry version: {__version__}"),
+        ("txt", f"| Qurrium version: {__version__}"),
         ("divider", 75),
-        ("h3", "Qurry Post-Processing"),
+        ("h3", "Qurrium Post-Processing"),
         {
             "type": "itemize",
             "description": "Backend Availability",

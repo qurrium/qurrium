@@ -3,33 +3,41 @@
 
 """
 
-from typing import NamedTuple, Iterable
+from typing import NamedTuple, Iterable, Type
 
 from ...qurrium.analysis import AnalysisPrototype
 
 
-class EntropyMeasureHadamardAnalysis(AnalysisPrototype):
+class EMHAnalysisInput(NamedTuple):
+    """To set the analysis."""
+
+
+class EMHAnalysisContent(NamedTuple):
+    """The content of the analysis."""
+
+    purity: float
+    """The purity of the system."""
+    entropy: float
+    """The entanglement entropy of the system."""
+
+    def __repr__(self):
+        return f"EMHAnalysisContent(purity={self.purity}, entropy={self.entropy})"
+
+
+class EntropyMeasureHadamardAnalysis(AnalysisPrototype[EMHAnalysisInput, EMHAnalysisContent]):
     """The instance for the analysis of :cls:`EntropyHadamardExperiment`."""
 
-    __name__ = "EntropyMeasureHadamardAnalysis"
+    __name__ = "EMHAnalysis"
 
-    class AnalysisInput(NamedTuple):
-        """To set the analysis."""
+    @classmethod
+    def input_type(cls) -> Type[EMHAnalysisInput]:
+        """The input instance type."""
+        return EMHAnalysisInput
 
-    input: AnalysisInput
-
-    class AnalysisContent(NamedTuple):
-        """The content of the analysis."""
-
-        purity: float
-        """The purity of the system."""
-        entropy: float
-        """The entanglement entropy of the system."""
-
-        def __repr__(self):
-            return f"AnalysisContent(purity={self.purity}, entropy={self.entropy}, and others)"
-
-    content: AnalysisContent
+    @classmethod
+    def content_type(cls) -> Type[EMHAnalysisContent]:
+        """The content instance type."""
+        return EMHAnalysisContent
 
     @property
     def side_product_fields(self) -> Iterable[str]:

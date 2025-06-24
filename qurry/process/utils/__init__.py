@@ -10,6 +10,7 @@ from .counts_process import (
     counts_list_vectorize_pyrust,
     rho_m_flatten_counts_list_vectorize_pyrust,
 )
+from .other import NUMERICAL_ERROR_TOLERANCE
 from .bit_slice import (
     qubit_selector,
     cycling_slice,

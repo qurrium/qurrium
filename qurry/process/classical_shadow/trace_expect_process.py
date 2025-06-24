@@ -17,7 +17,7 @@ from .matrix_calcution import (
 )
 
 
-def expectation_rho_core(
+def mean_rho_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     selected_classical_registers_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
@@ -166,10 +166,10 @@ def trace_rho_square_core(
         trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
             - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2)) 
+                Use np.trace(np.matmul(rho_m1, rho_m2))
                 to calculate the each summation item in `rho_m_list`.
             - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2) 
+                Use np.einsum("ij,ji", rho_m1, rho_m2)
                 to calculate the each summation item in `rho_m_list`.
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.

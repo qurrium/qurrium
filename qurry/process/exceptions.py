@@ -1,4 +1,4 @@
-"""Qurry Post Processing Exceptions (:mod:`qurry.process.exceptions`)"""
+"""Qurrium Post Processing Exceptions (:mod:`qurry.process.exceptions`)"""
 
 
 class QurryPostProcessingError(Exception):
@@ -24,6 +24,14 @@ class PostProcessingRustImportError(QurryPostProcessingError, ImportError):
 
 class PostProcessingThirdPartyImportError(QurryPostProcessingError, ImportError):
     """Third party import error."""
+
+
+class ClassicalShadowError(QurryPostProcessingError):
+    """Base class for errors raised by Classical Shadow post-processing."""
+
+
+class AccuracyProbabilityCalculationError(ClassicalShadowError, ValueError):
+    """Invalid accuracy probability component delta for Classical Shadow post-processing."""
 
 
 # General Warning
@@ -54,3 +62,12 @@ class PostProcessingThirdPartyUnavailableWarning(QurryPostProcessingWarning):
 
 class PostProcessingBackendDeprecatedWarning(QurryPostProcessingWarning, DeprecationWarning):
     """Post-processing backend is deprecated."""
+
+
+class ClassicalShadowWarning(QurryPostProcessingWarning):
+    """Base class for warning raised by Classical Shadow post-processing."""
+
+
+class AccuracyProbabilityWarning(ClassicalShadowWarning):
+    """Warning for invalid accuracy probability component delta in
+    Classical Shadow post-processing."""

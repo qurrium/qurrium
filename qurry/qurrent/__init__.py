@@ -3,35 +3,35 @@
 
 .. tip::
     1.  The name "qurrent" was the second proposed name for this package.
-        It’s not simply "current" with a "q" replacing the "c", 
-        but rather a combination of "qurr" and "ent", where "ent" abbreviates "entropy", 
+        It’s not simply "current" with a "q" replacing the "c",
+        but rather a combination of "qurr" and "ent", where "ent" abbreviates "entropy",
         and "qurr" is a coined prefix beginning with "qu" to imply "quantum".
 
     2.  The initial proposed name for the package was "xproc", short for "experimental process".
 
-    3.  Another module, "qurrech", combines "qurr" with "ech", 
-        where "ech" is short for "echo", 
+    3.  Another module, "qurrech", combines "qurr" with "ech",
+        where "ech" is short for "echo",
         the Loschmidt echo being a key concept in quantum information theory.
-        This inspired us to adopt "qurry", derived from "qurr" and the suffix "ry", 
+        This inspired us to adopt "qurry", derived from "qurr" and the suffix "ry",
         to resemble words like "query" or "curry".
 
-    4.  Since a package named "qurry" already exists on PyPI, 
-        and many projects on GitHub also use this name, 
+    4.  Since a package named "qurry" already exists on PyPI,
+        and many projects on GitHub also use this name,
         we changed the suffix from "y" to "ium", creating "qurrium".
-        "Qurrium" is unique and easily searchable, 
+        "Qurrium" is unique and easily searchable,
         with no prior use on PyPI or in general web searches.
 
-    5.  So there is the evolution of the package name: 
+    5.  So there is the evolution of the package name:
         `xproc -> qurrent -> qurry -> qurrium`
 
 """
 
 from typing import Literal, Union, overload
 
-from .randomized_measure import EntropyMeasureRandomized
-from .randomized_measure_v1 import EntropyMeasureRandomizedV1
-from .hadamard_test import EntropyMeasureHadamard
-from .classical_shadow import ShadowUnveil
+from .randomized_measure import EntropyMeasureRandomized, EntropyMeasureRandomizedMeasureArgs
+from .randomized_measure_v1 import EntropyMeasureRandomizedV1, EntropyMeasureRandomizedV1MeasureArgs
+from .hadamard_test import EntropyMeasureHadamard, EntropyMeasureHadamardMeasureArgs
+from .classical_shadow import ShadowUnveil, ShadowUnveilMeasureArgs
 
 # from .classical_shadow import ShadowUnveil
 

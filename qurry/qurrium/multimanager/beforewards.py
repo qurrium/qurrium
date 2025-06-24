@@ -4,7 +4,6 @@ from pathlib import Path
 from collections.abc import Hashable
 from typing import Literal, Union, Optional, NamedTuple, Any
 
-from .arguments import DEFAULT_EXPORT_FILETYPE, ExportFiletypeLiteral
 from ...capsule import quickRead
 from ...capsule.mori import TagList
 
@@ -19,7 +18,6 @@ EXPORTING_NAME = {
     "circuits_map": "circuitsMap",
     "job_id": "jobID",
     "job_taglist": "job.tagList",
-    "files_taglist": "files.tagList",
     "index_taglist": "index.tagList",
 }
 
@@ -46,8 +44,9 @@ class Before(NamedTuple):
     """
 
     job_taglist: TagList[TagListKeyable, str]
-    files_taglist: TagList[TagListKeyable, str]
-    index_taglist: TagList[TagListKeyable, Union[str, int]]
+    """The list of job id but grouped by tags, which multiple experiments shared."""
+    index_taglist: TagList[TagListKeyable, int]
+    """The list of experiments index but grouped by tags, which multiple experiments shared."""
 
     @staticmethod
     def _exporting_name():
@@ -60,7 +59,6 @@ class Before(NamedTuple):
         export_location: Path,
         file_location: Optional[dict[str, Union[str, dict[str, str]]]] = None,
         version: Literal["v5", "v7"] = "v5",
-        filetype: ExportFiletypeLiteral = DEFAULT_EXPORT_FILETYPE,
     ):
         """Reads the data of :cls:`Before` from the file.
 
@@ -77,7 +75,7 @@ class Before(NamedTuple):
             file_location = {}
 
         if version == "v7":
-            real_file_location = {k: f"{v}.{filetype}" for k, v in EXPORTING_NAME.items()}
+            real_file_location = {k: f"{v}.json" for k, v in EXPORTING_NAME.items()}
         else:
             assert isinstance(file_location["exps_config"], str), "ExpsConfig must be Path"
             assert isinstance(file_location["circuits_num"], str), "circuitsNum must be Path"
@@ -114,11 +112,6 @@ class Before(NamedTuple):
             job_taglist=TagList.read(
                 filename=real_file_location["job_taglist"],
                 taglist_name=("job.tagList" if version == "v7" else "tagMapExpsID"),
-                save_location=export_location,
-            ),
-            files_taglist=TagList.read(
-                filename=real_file_location["files_taglist"],
-                taglist_name=("files.tagList" if version == "v7" else "tagMapFiles"),
                 save_location=export_location,
             ),
             index_taglist=TagList.read(

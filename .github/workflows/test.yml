@@ -5,6 +5,10 @@ name: Test
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
     branches:
       - pre-release
       - pre-release-*
@@ -17,11 +21,11 @@ jobs:
   check_version:
     name: Check Version and Lint Check
     runs-on: [ubuntu-latest, self-hosted]
+    outputs:
+      idle: ${{ steps.detect.outputs.idle }}
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ secrets.CI_TOKEN }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -42,121 +46,69 @@ jobs:
           echo "| Version: ${{ steps.check_version.outputs.VERSION }} in action"
           echo "| Tag exists: ${{ steps.check_version.outputs.exists }}"
 
-      - name: Whether Skip Test
-        run: |
-          if [[ "${{ github.event.pull_request.title }}" == skip-test:* ]]; then
-            echo "| Skip Test"
-          fi
-
       - name: Lint with flake8
         run: |
           python -m pip install flake8
           # stop the build if there are Python syntax errors or undefined names
-          python -m flake8 . --count --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          python -m flake8 . --count --exit-zero --statistics
-
-  test_py_latest_and_oldest:
-    if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
-    name: Test on Python Latest and Oldest
-    runs-on: [ubuntu-latest, self-hosted]
-    needs:
-      - check_version
-    strategy:
-      matrix:
-        include:
-          - step: python-latest
-            depends_on: []
-            python-version: "3.13"
-            qiskit-v1: "no"
-          - step: python-oldest
-            depends_on: [python-latest]
-            python-version: "3.9"
-            qiskit-v1: "no"
-          - step: python-latest-qiskit-v1
-            depends_on: [python-oldest]
-            python-version: "3.13"
-            qiskit-v1: "yes"
-          - step: python-oldest-qiskit-v1
-            depends_on: [python-latest-qiskit-v1]
-            python-version: "3.9"
-            qiskit-v1: "yes"
-      fail-fast: false
-      max-parallel: 2
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Is Qiskit v1
+          python -m flake8 . --count --show-source --statistics --config tox.ini
+          # exit-zero treats all errors as warnings
+          python -m flake8 . --count --exit-zero --statistics --config tox.ini
+      - name: Decide Idle Github Action Self-Hosted Runner Number
+        id: detect
+        env:
+          GH_TOKEN: ${{ secrets.ACTIONS_MANAGER_TOKEN }}
         run: |
-          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
-            echo "Qiskit v1"
+          ORGS=${{ github.repository_owner }}
+          REPO=${{ github.event.repository.name }}
+
+          # Call GitHub API to get runners
+          RESP_ORGS=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/orgs/${ORGS}/actions/runners)
+          RESP_REPO=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/repos/${ORGS}/${REPO}/actions/runners)
+
+          RESP_ORGS_SUCCESS=$(echo "$RESP_ORGS" | jq -r '.message // empty')
+          RESP_REPO_SUCCESS=$(echo "$RESP_REPO" | jq -r '.message // empty')
+
+          if [ -n "$RESP_ORGS_SUCCESS" ] || [ -n "$RESP_REPO_SUCCESS" ]; then
+              echo "| Error fetching repository runners: $RESP_REPO"
+              echo "| Error fetching organization runners: $RESP_ORGS"
+              IDLE_ORGS=0
+              IDLE_REPO=0
           else
-            echo "Qiskit v2"
+              echo "| Successfully fetched runners for organization and repository."
+              # Parse number of idle runners (online)
+              IDLE_ORGS=$(echo "$RESP_ORGS" | jq '[.runners[] | select(.status == "online" and .busy == false)] | length' || echo 0)
+              IDLE_REPO=$(echo "$RESP_REPO" | jq '[.runners[] | select(.status == "online" and .busy == false)] | length' || echo 0)
           fi
 
-      - name: Run Test Unit
-        uses: ./.github/actions/test-unit
-        with:
-          qiskit-v1: ${{ matrix.qiskit-v1 }}
+          echo "| Detected idle runners in org: $IDLE_ORGS"
+          echo "| Detected idle runners in repo: $IDLE_REPO"
+          TOTAL_IDLE=$((IDLE_ORGS + IDLE_REPO))
+          echo "| Detected idle runners total: $TOTAL_IDLE"
+          DECIDE=$((TOTAL_IDLE > 0 ? TOTAL_IDLE : 4))
+          echo "| Decision: $DECIDE"
+
+          echo "idle=$DECIDE" >> "$GITHUB_OUTPUT"
 
   test_py:
-    if: ${{ !startsWith(github.event.pull_request.title, 'skip-test:') }}
-    name: Test on Python
+    name: Test
     runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
-      - test_py_latest_and_oldest
+    if: ${{ !contains(github.event.pull_request.title, 'skip-test:') }}
     strategy:
       matrix:
-        include:
-          - step: py-other-310
-            depends_on: []
-            python-version: "3.10"
-            qiskit-v1: "no"
-          - step: py-other-311
-            depends_on: [py-other-310]
-            python-version: "3.11"
-            qiskit-v1: "no"
-          - step: py-other-312
-            depends_on: [py-other-311]
-            python-version: "3.12"
-            qiskit-v1: "no"
-          - step: py-other-310-qiskit-v1
-            depends_on: [py-other-312]
-            python-version: "3.10"
-            qiskit-v1: "yes"
-          - step: py-other-311-qiskit-v1
-            depends_on: [py-other-310-qiskit-v1]
-            python-version: "3.11"
-            qiskit-v1: "yes"
-          - step: py-other-312-qiskit-v1
-            depends_on: [py-other-311-qiskit-v1]
-            python-version: "3.12"
-            qiskit-v1: "yes"
+        qiskit-version: [v1, v2]
+        python-version: ["3.13", "3.9", "3.12", "3.11", "3.10"]
       fail-fast: false
-      max-parallel: 2
+      max-parallel: ${{ fromJSON(needs.check_version.outputs.idle || '4') }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Run Test Unit with Python ${{ matrix.python-version }} and Qiskit ${{ matrix.qiskit-version }}
 
-      - name: Is Qiskit v1
-        run: |
-          if [[ "${{ matrix.qiskit-v1 }}" == "yes" ]]; then
-            echo "Qiskit v1"
-          else
-            echo "Qiskit v2"
-          fi
-
-      - name: Run Test Unit
         uses: ./.github/actions/test-unit
         with:
-          qiskit-v1: ${{ matrix.qiskit-v1 }}
+          python-version: ${{ matrix.python-version }}
+          qiskit-version: ${{ matrix.qiskit-version }}

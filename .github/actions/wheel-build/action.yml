@@ -1,0 +1,99 @@
+name: Wheel Build
+author: Harui (Huai-Chun Chang)
+description: Build Python 🐍 distribution 📦 wheels for Qurrium
+branding:
+  icon: "check"
+  color: "blue"
+inputs:
+  system-arch:
+    description: The system architecture to build the wheel for
+    required: true
+    default: "linux-x86_64"
+  os:
+    description: The operating system to build the wheel for
+    required: true
+    default: "ubuntu-latest"
+  release:
+    description: Whether to build for nightly or stable release
+    required: true
+    default: "nightly"
+  python-version:
+    description: The Python version to use for building the wheel
+    required: true
+    default: "3.12"
+outputs:
+  call-publish:
+    description: Whether need to call publish action
+    value: ${{ inputs.system-arch == 'linux-x86_64' && 'true' || 'false' }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        architecture: ${{ inputs.os == 'macos-14' && 'arm64' || 'x64' }}
+
+    - name: Check OS
+      shell: bash
+      run: |
+        echo "======================================================================"
+        echo "### Test ............................................................."
+        echo "======================================================================"
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          echo "| This action is not yet proved to work on Windows"
+        else
+          echo "| This action is proved to work on UNIX-like $RUNNER_OS"
+        fi
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pipenv wheel pip urllib3
+        if [[ -f requirements-dev.txt ]]; then
+          echo "| Installing dependencies"
+          python -m pip install -r requirements-dev.txt
+        else
+          echo "| No requirements-dev.txt found, installing default dependencies"
+          echo "| This may lose some dependencies"
+          python -m pip install --upgrade --user setuptools setuptools_rust
+          python -m pip install pep440 flake8
+          python -m pip install pytest pytest-xdist pytest-order pytest-cov
+          echo "| Installing Optional Third Party Dependencies"
+          python -m pip install jax qiskit-aer
+        fi
+        echo "| Installing toml and pep440 for version management"
+        python -m pip install toml pep440
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Prepare CIBW
+      shell: bash
+      run: |
+        python -m pip install cibuildwheel --upgrade
+        echo "| $(python -m pip list | grep cibuildwheel)"
+
+    - name: Reversion ${{ inputs.release }}
+      shell: bash
+      run: |
+        if [[ "${{ inputs.release }}" == "stable" ]]; then
+          python ./tools/set_version.py --release stable
+          python ./tools/set_pyproject_qurry.py --release stable
+        elif [[ "${{ inputs.release }}" == "nightly" ]]; then
+          python ./tools/set_version.py --release nightly
+          python ./tools/set_pyproject_qurry.py --release nightly
+        else
+          echo "| Invalid release type specified: ${{ inputs.release }}"
+          exit 1
+        fi
+
+    - name: Build wheels
+      shell: bash
+      run: |
+        if [[ "${{ inputs.system-arch }}" == "linux-aarch64" ]]; then
+          python -m cibuildwheel --output-dir wheelhouse --platform linux --arch aarch64
+        else
+          python -m cibuildwheel --output-dir wheelhouse
+        fi

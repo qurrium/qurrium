@@ -81,9 +81,9 @@ class EntropyMeasureRandomizedExperiment(
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
-                Defaults to `None`.
+                Defaults to None.
             unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator. Defaults to `None`.
+                The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
@@ -181,7 +181,7 @@ class EntropyMeasureRandomizedExperiment(
                 The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
-                Defaults to `None`.
+                Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
 
@@ -274,15 +274,15 @@ class EntropyMeasureRandomizedExperiment(
 
         Args:
             selected_qubits (Optional[Iterable[int]], optional):
-                The selected qubits. Defaults to `None`.
+                The selected qubits. Defaults to None.
             independent_all_system (bool, optional):
                 If True, then calculate the all system independently. Defaults to False.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
-                The index of the counts used. Defaults to `None`.
+                The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to `None`.
+                The progress bar. Defaults to None.
 
         Returns:
             EntropyMeasureRandomizedAnalysis: The result of the analysis.
@@ -369,13 +369,13 @@ class EntropyMeasureRandomizedExperiment(
             counts (list[dict[str, int]]):
                 The counts of the experiment.
             selected_classical_registers (Optional[Iterable[int]], optional):
-                The selected classical registers. Defaults to `None`.
+                The selected classical registers. Defaults to None.
             all_system_source (Optional[EntropyRandomizedAnalysis], optional):
-                The source of all system. Defaults to `None`.
+                The source of all system. Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to `None`.
+                The progress bar. Defaults to None.
 
         Returns:
             EntangledEntropyResultMitigated: The result of the entangled entropy.
