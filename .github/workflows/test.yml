@@ -75,18 +75,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          OWNER=${{ github.repository_owner }}
+          ORGS=${{ github.repository_owner }}
           REPO=${{ github.event.repository.name }}
 
           # Call GitHub API to get runners
-          RESP=$(curl -s -H "Authorization: token $GH_TOKEN" \
+          RESP_ORGS=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/orgs/${OWNER}/actions/runners)
+          RESP_REPO=$(curl -s -H "Authorization: token $GH_TOKEN" \
             https://api.github.com/repos/${OWNER}/${REPO}/actions/runners)
 
-          # Parse number of idle runners (online + not busy)
-          IDLE=$(echo "$RESP" | jq '[.runners[] | select(.status == "online")] | length')
+          # Parse number of idle runners (online)
+          IDLE_ORGS=$(echo "$RESP_ORGS" | jq '[.runners[] | select(.status == "online")] | length' || echo 0)
+          IDLE_REPO=$(echo "$RESP_REPO" | jq '[.runners[] | select(.status == "online")] | length' || echo 0)
 
-          echo "Detected idle runners: $IDLE"
-          echo "idle=$IDLE" >> "$GITHUB_OUTPUT"
+          echo "| Org idle runners: $IDLE_ORGS"
+          echo "| Repo idle runners: $IDLE_REPO"
+          echo "| Total idle runners: $((IDLE_ORGS + IDLE_REPO))"
+          echo "idle=$((IDLE_ORGS + IDLE_REPO))" >> "$GITHUB_OUTPUT"
 
   test_py:
     name: Test
