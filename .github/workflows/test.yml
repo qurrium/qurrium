@@ -96,7 +96,7 @@ jobs:
     runs-on: [ubuntu-latest, self-hosted]
     needs:
       - check_version
-    if: contains(github.event.pull_request.title, 'skip-test:')
+    if: ${{ !contains(github.event.pull_request.title, 'skip-test:') }}
     strategy:
       matrix:
         qiskit-version: [v1, v2]
