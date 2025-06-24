@@ -15,6 +15,7 @@ from ..randomized_measure import (
 from ..hadamard_test import purity_echo_core_availability
 from ..magnet_square import magnet_square_availability
 from ..classical_shadow import classical_shadow_core_availability
+from ..string_operator import string_operator_availability
 
 from ..utils import (
     counts_process_availability,
@@ -58,6 +59,8 @@ def availability_status_print() -> tuple[
         purity_echo_core_availability,
         # magnet_square
         magnet_square_availability,
+        # string_operator
+        string_operator_availability,
         # classical_shadow
         classical_shadow_core_availability,
         # utils
