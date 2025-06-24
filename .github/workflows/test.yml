@@ -78,8 +78,8 @@ jobs:
           else
               echo "| Successfully fetched runners for organization and repository."
               # Parse number of idle runners (online)
-              IDLE_ORGS=$(echo "$RESP_ORGS" | jq '[.runners[] | select(.status == "online")] | length' || echo 0)
-              IDLE_REPO=$(echo "$RESP_REPO" | jq '[.runners[] | select(.status == "online")] | length' || echo 0)
+              IDLE_ORGS=$(echo "$RESP_ORGS" | jq '[.runners[] | select(.status == "online" and .busy == false)] | length' || echo 0)
+              IDLE_REPO=$(echo "$RESP_REPO" | jq '[.runners[] | select(.status == "online" and .busy == false)] | length' || echo 0)
           fi
 
           echo "| Detected idle runners in org: $IDLE_ORGS"
