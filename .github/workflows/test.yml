@@ -72,6 +72,8 @@ jobs:
 
       - name: Decide Idle Github Action Self-Hosted Runner Number
         id: detect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           OWNER=${{ github.repository_owner }}
           REPO=${{ github.event.repository.name }}
