@@ -17,7 +17,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
     For :cls:`BasicSimulator` from :mod:`qiskit.providers.basic_provider`:
 
-    - For qiskit>=2.0, the signature of :meth:`backend.run` is:
+    For qiskit>=2.0, the signature of :meth:`backend.run` is:
 
     .. code-block:: python
 
@@ -39,7 +39,8 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
                 seed_simulator=None,
             )
 
-    - For qiskit<2.0, the signature of :meth:`backend.run` is:
+    For qiskit<2.0, the signature of :meth:`backend.run` is:
+
     .. code-block:: python
 
         def run(
