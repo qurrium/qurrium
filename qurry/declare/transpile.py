@@ -18,6 +18,7 @@ class TranspileArgs(TypedDict, total=False):
     - :mod:`qiskit` 2.0.0
 
     .. code-block:: python
+
         _CircuitT = TypeVar("_CircuitT", bound=Union[QuantumCircuit, list[QuantumCircuit]])
 
         def transpile(  # pylint: disable=too-many-return-statements

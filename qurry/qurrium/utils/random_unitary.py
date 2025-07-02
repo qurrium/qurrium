@@ -191,6 +191,7 @@ def check_input_for_experiment(
             The second key is the index for the qubit.
 
             .. code-block:: python
+
                 {
                     0: {0: 1234, 1: 5678},
                     1: {0: 2345, 1: 6789},

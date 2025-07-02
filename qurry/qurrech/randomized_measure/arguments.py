@@ -40,6 +40,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     for the first quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -55,6 +56,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     for the second quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -73,6 +75,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     """The range of the unitary operator for the first quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is used for the unitary operator 0.
             1: 1, # The quantum register 1 is used for the unitary operator 1.
@@ -87,6 +90,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     """The range of the unitary operator for the second quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is used for the unitary operator 0.
             1: 1, # The quantum register 1 is used for the unitary operator 1.
@@ -113,6 +117,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -124,6 +129,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -204,6 +210,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -215,6 +222,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -250,6 +258,7 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -261,6 +270,7 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)

@@ -20,6 +20,8 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     - For qiskit>=2.0, the signature of :meth:`backend.run` is:
 
     .. code-block:: python
+
+
         def run(
             self, run_input: QuantumCircuit | list[QuantumCircuit], **run_options
         ) -> BasicProviderJob:
@@ -27,6 +29,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls) -> Options:
             return Options(
@@ -38,6 +41,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
 
     - For qiskit<2.0, the signature of :meth:`backend.run` is:
     .. code-block:: python
+
         def run(
             self, run_input: QuantumCircuit | list[QuantumCircuit], **backend_options
         ) -> BasicProviderJob:
@@ -45,6 +49,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls) -> Options:
             return Options(
@@ -60,6 +65,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     or ?
 
     .. code-block:: python
+
         def _assemble(
             experiments: Union[
                 QuantumCircuit,
@@ -116,6 +122,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     the old import path.:
 
     .. code-block:: python
+
         def run(self, circuits, parameter_binds=None, **run_options):
             if isinstance(circuits, (QuantumCircuit, Schedule, ScheduleBlock)):
             circuits = [circuits]
@@ -125,6 +132,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         def _run_circuits(self, circuits, parameter_binds, **run_options):
             # Submit job
             job_id = str(uuid.uuid4())
@@ -143,6 +151,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         def set_option(self, key, value):
             if hasattr(self._configuration, key):
                 self._set_configuration_option(key, value)
@@ -165,6 +174,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     the default options are:
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls):
             return Options(
@@ -309,6 +319,7 @@ class BasicAerBackendRunArgs(BaseRunArgs, total=False):
     For :cls:`QasmSimulatorPy` from :mod:`qiskit.providers.basicaer`:
 
     .. code-block:: python
+
         def run(self, qobj, **backend_options):
             ...
             self._set_options(qobj_config=qobj_options, backend_options=backend_options)

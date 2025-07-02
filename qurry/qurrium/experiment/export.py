@@ -45,6 +45,7 @@ class Export(NamedTuple):
     respecting to `adventure`, `legacy`, `tales`, and `reports` like:
 
     .. code-block:: python
+
         files = {
             'folder': './bla_exp/',
             'qurryinfo': './bla_exp/qurryinfo.json',
@@ -71,6 +72,7 @@ class Export(NamedTuple):
     then the it will be named after `summoner_name` as known as the name of :cls:`MultiManager`.
 
     .. code-block:: python
+
         files = {
             'folder': './BLABLA_project/',
             'qurryinfo': './BLABLA_project/qurryinfo.json',
@@ -122,6 +124,7 @@ class Export(NamedTuple):
     ### Reports format:
 
     .. code-block:: python
+
         reports = {
             1: { ...quantities, 'input': { ... }, 'header': { ... }, },
             2: { ...quantities, 'input': { ... }, 'header': { ... }, },
@@ -137,6 +140,7 @@ class Export(NamedTuple):
     ### Tales Reports format:
 
     .. code-block:: python
+
         tales_reports = {
             'dummyz1': {
                 1: { ... },

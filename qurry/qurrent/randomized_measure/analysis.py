@@ -19,6 +19,7 @@ class EMRAnalysisInput(NamedTuple):
     """The mapping of the classical registers with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -37,6 +38,7 @@ class EMRAnalysisInput(NamedTuple):
     which the first six bits are for the randomized measurement.
 
     .. code-block:: python
+
         {'010000 0100 0001': 1024}
         # The bitstring is '010000 0100 0001'.
         # The last four bits are the first classical register.
@@ -46,6 +48,7 @@ class EMRAnalysisInput(NamedTuple):
     So, the mapping will be like this.
 
     .. code-block:: python
+
 
         {
             0: 10, # The classical register 0 is mapped to the bitstring on the index 0.
@@ -60,11 +63,13 @@ class EMRAnalysisInput(NamedTuple):
     the bitstring will map to the classical register directly.
 
     .. code-block:: python
+
         {'010000': 1024}
 
     Will be like this.
 
     .. code-block:: python
+
         {
             0: 0, # The classical register 0 is mapped to the bitstring on the index 0.
             1: 1, # The classical register 0 is mapped to the bitstring on the index 1.

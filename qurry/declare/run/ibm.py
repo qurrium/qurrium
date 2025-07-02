@@ -12,6 +12,7 @@ class IBMRuntimeBackendRunArgs(BaseRunArgs, total=False):
     For :cls:`IBMBackend` from :mod:`qiskit_ibm_runtime.ibm_backend`:
 
     .. code-block:: python
+
         def run(
             self,
             circuits: Union[QuantumCircuit, str, List[Union[QuantumCircuit, str]]],
@@ -58,6 +59,7 @@ class IBMProviderBackendRunArgs(BaseRunArgs, total=False):
     For :cls:`IBMBackend` from :mod:`qiskit_ibm_provider.ibm_backend`:
 
     .. code-block:: python
+
         def run(
             self,
             circuits: Union[QuantumCircuit, str, List[Union[QuantumCircuit, str]]],
@@ -102,6 +104,7 @@ class IBMQBackendRunArgs(BaseRunArgs, total=False):
     For :cls:`IBMQBackend` from :mod:`qiskit.providers.ibmq`:
 
     .. code-block:: python
+
         def run(
             self,
             circuits: Union[QasmQobj, PulseQobj, QuantumCircuit, Schedule,

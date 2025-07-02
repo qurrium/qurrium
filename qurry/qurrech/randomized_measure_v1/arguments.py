@@ -42,6 +42,7 @@ class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -53,6 +54,7 @@ class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -87,6 +89,7 @@ class EchoListenRandomizedV1MeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -98,6 +101,7 @@ class EchoListenRandomizedV1MeasureArgs(BasicArgs, total=False):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -120,6 +124,7 @@ class EchoListenRandomizedV1OutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -131,6 +136,7 @@ class EchoListenRandomizedV1OutputArgs(OutputArgs):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """

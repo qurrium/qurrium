@@ -34,6 +34,7 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     """The mapping of the classical registers with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -55,6 +56,7 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -66,6 +68,7 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -103,6 +106,7 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -114,6 +118,7 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -138,6 +143,7 @@ class ShadowUnveilOutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -149,6 +155,7 @@ class ShadowUnveilOutputArgs(OutputArgs):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """

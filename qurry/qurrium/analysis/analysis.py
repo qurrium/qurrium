@@ -182,6 +182,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
                 If False, export as normal dict.
 
         .. code-block:: python
+
             main = { ...quantities, 'input': { ... }, 'header': { ... }, }
             side = { 'dummyz1': ..., 'dummyz2': ..., ..., 'dummyzm': ... }
 
