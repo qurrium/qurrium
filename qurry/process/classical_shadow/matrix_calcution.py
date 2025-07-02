@@ -63,6 +63,7 @@ try:
         Returns:
             tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
                 A tuple containing:
+
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
@@ -130,6 +131,7 @@ except ImportError as err:
         Returns:
             tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
                 A tuple containing:
+
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
@@ -156,13 +158,14 @@ BACKEND_AVAILABLE = availablility(
 ClassicalShadowPythonMethod = Literal["jax", "numpy"]
 """The method to use for the calculation of classical shadow.
 It can be either "jax" or "numpy".
+
 - "jax": Use JAX to calculate the Kronecker product.
 - "numpy": Use Numpy to calculate the Kronecker product.
 """
 DEFAULT_PYTHON_METHOD: ClassicalShadowPythonMethod = "jax" if JAX_AVAILABLE else "numpy"
 """The default backend to use for the calculation of classical shadow.
-
 It can be either "jax" or "numpy".
+
 - "jax": Use JAX to calculate the Kronecker product.
 - "numpy": Use Numpy to calculate the Kronecker product.
 """
@@ -349,10 +352,12 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
         method (AllTraceRhoMethod, optional):
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
             It can be either "einsum_aij_bji_to_ab_numpy" or "einsum_aij_bji_to_ab_jax".
+
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             This is the fastest implementation to calculate the trace of Rho.
 
     Returns:
@@ -386,6 +391,7 @@ def prediction_einsum_aij_bji_to_ab_numpy(
     Returns:
         tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
             A tuple containing:
+
             - A list of median values for each given operator.
             - A list of the corresponding median estimators for each given operator.
     """

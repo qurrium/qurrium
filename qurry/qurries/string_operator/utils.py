@@ -10,10 +10,12 @@ StringOperatorUnits = Optional[tuple[Literal["rx", "ry", "rz"], float]]
 """Available string operator units.
 
 - tuple[Literal["rx", "ry", "rz"], float]: A tuple containing:
+
     - "rx": Rotation around the x-axis.
     - "ry": Rotation around the y-axis.
     - "rz": Rotation around the z-axis.
     - float: The angle of rotation in radians.
+
     and do the measurement on the qubit.
 
 - None: No operation and measurement is performed on the qubit.
@@ -54,12 +56,14 @@ class StringOperatorLib(TypedDict):
 
 StringOperatorLibType = Literal["i", "zy"]
 """Available string operator types. 
+
 - "i": Identity string operator.
 - "zy": ZY string operator.
 """
 
 StringOperatorDirection = Literal["x", "y"]
 """Available string operator directions.
+
 - "x": String operator in the X direction.
 - "y": String operator in the Y direction.
 """

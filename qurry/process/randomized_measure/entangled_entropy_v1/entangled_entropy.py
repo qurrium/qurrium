@@ -224,6 +224,7 @@ def preparing_all_system(
 
     Returns:
         A tuple contains:
+
             - purity_cell_list_allsys: list of purity of all system.
             - bitstring_range_allsys: The range of partition on the bitstring of all system.
             - measure_range_allsys: The range of partition refer to all qubits of all system.

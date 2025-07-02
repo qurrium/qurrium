@@ -52,6 +52,7 @@ def rho_m_core_py(
             The list of **the index of the selected_classical_registers**.
         rho_method (RhoMKCellMethod, optional):
             The method to use for the calculation. Defaults to "Python_precomputed".
+
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
 
@@ -114,9 +115,11 @@ def rho_m_core_py(
 RhoMCoreMethod = Union[RhoMKCellMethod, Literal["numpy_flatten", "jax_flatten"], str]
 """Type for rho_m_core method.
 It can be either "numpy", "numpy_precomputed" or "numpy_flatten".
+
 - "numpy": Use Numpy to calculate the rho_m.
 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
 Currently, "numpy_precomputed" is the best option for performance.
 """
 # pylint: enable=invalid-name
@@ -143,12 +146,14 @@ def rho_m_core(
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+
             - "numpy":
                 Use Numpy to calculate the rho_m.
             - "numpy_precomputed":
                 Use Numpy to calculate the rho_m with precomputed values.
             - "numpy_flatten":
                 Use Numpy to calculate the rho_m with a flattening workflow.
+
             Currently, "numpy_precomputed" is the best option for performance.
 
     Returns:

@@ -367,11 +367,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to Path('./').
             jobstype (Union[Literal['local'], PendingTargetProviderLiteral], optional):
                 Type of jobs to run multiple experiments.
-                - jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
+                jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
                 Defaults to "local".
             pending_strategy (PendingStrategyLiteral, optional):
                 Type of pending strategy.
-                - pendingStrategy: "default", "onetime", "each", "tags"
+                pendingStrategy: "default", "onetime", "each", "tags"
                 Defaults to "tags".
             skip_build_write (bool, optional):
                 Whether to skip the file writing during the building. Defaults to True.
@@ -584,11 +584,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to Path('./').
             jobstype (PendingTargetProviderLiteral, optional):
                 Type of jobs to run multiple experiments.
-                - jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
+                jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
                 Defaults to "IBM".
             pending_strategy (PendingStrategyLiteral, optional):
                 Type of pending strategy.
-                - pendingStrategy: "default", "onetime", "each", "tags"
+                pendingStrategy: "default", "onetime", "each", "tags"
                 Defaults to "tags".
 
         Returns:

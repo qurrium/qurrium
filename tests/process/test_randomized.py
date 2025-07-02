@@ -90,6 +90,7 @@ def selected_and_cycling_selected_making(
     Returns:
         tuple[list[int], list[int]]:
             A tuple containing two lists:
+
             - The first list contains the selected classical registers.
             - The second list contains the selected classical registers by cycling.
     """

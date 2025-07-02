@@ -436,12 +436,15 @@ class ShadowUnveil(
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "numpy_flatten".
+
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
+
                 - "trace_of_matmul":
                     Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
                 - "quick_trace_of_matmul" or "einsum_ij_ji":
@@ -452,6 +455,7 @@ class ShadowUnveil(
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 

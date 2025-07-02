@@ -35,7 +35,7 @@ from ..n_body import OneBody
 
 
 class GHZ(OneBody):
-    """The entangled circuit :cls:`GHZ`.
+    r"""The entangled circuit :cls:`GHZ`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
@@ -58,6 +58,11 @@ class GHZ(OneBody):
                                           └───┘┌─┴─┐
         q7: ───────────────────────────────────┤ X ├
                                                └───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): The number of qubits for constructing the example circuit.
@@ -83,7 +88,7 @@ class GHZ(OneBody):
 
 
 class Cat(GHZ):
-    """:cls:`Cat`, the anthor name of entangled circuit :cls:`GHZ`.
+    r""":cls:`Cat`, the anthor name of entangled circuit :cls:`GHZ`.
 
     .. code-block:: text
 
@@ -105,6 +110,11 @@ class Cat(GHZ):
                                           └───┘┌─┴─┐
         q7: ───────────────────────────────────┤ X ├
                                                └───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): The number of qubits for constructing the example circuit.

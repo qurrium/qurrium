@@ -35,6 +35,7 @@ def create_config(
     Returns:
         tuple[dict[int, int], list[int], dict[int, int], list[int]]:
             A tuple containing:
+
             - registers_mapping:
                 The mapping of the index of selected qubits to the index of the classical register.
             - qubits_measured:

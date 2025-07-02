@@ -91,6 +91,7 @@ def magsq_cell_wrapper(arguments: tuple[int, dict[str, int], int]) -> tuple[int,
     Args:
         arguments (tuple[int, dict[str, int], int, PostProcessingBackendLabel]):
             The arguments for the magnetic square cell.
+
             - idx (int): Index of the cell (counts).
             - single_counts (dict[str, int]): Single counts of the cell.
             - shots (int): Shots of the experiment on quantum machine.

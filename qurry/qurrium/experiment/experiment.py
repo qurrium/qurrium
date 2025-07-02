@@ -935,6 +935,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Args:
             all_arugments (tuple[str, dict[str, str], Union[Path, str], str]):
                 The arguments of the experiment to be read.
+
                 - exp_id (str): The id of the experiment to be read.
                 - file_index (dict[str, str]): The index of the experiment to be read.
                 - save_location (Union[Path, str]): The location of the experiment to be read.

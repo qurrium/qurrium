@@ -278,12 +278,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
                 The method to calculate the trace of Rho square.
+
                 - "trace_of_matmul":
                     Use np.trace(np.matmul(rho_m1, rho_m2))
                     to calculate the each summation item in `rho_m_list`.
@@ -294,12 +297,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             estimate_trace_method (AllTraceRhoMethod, optional):
                 The method to calculate the trace for searching esitmator.
+
                 - "einsum_aij_bji_to_ab_numpy":
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
@@ -432,12 +438,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
+
                 - "trace_of_matmul":
                     Use np.trace(np.matmul(rho_m1, rho_m2))
                     to calculate the each summation item in `rho_m_list`.
@@ -448,12 +457,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             estimate_trace_method (AllTraceRhoMethod, optional):
                 The method to calculate the trace for searching esitmator.
+
                 - "einsum_aij_bji_to_ab_numpy":
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
 
@@ -569,12 +581,15 @@ def quantities_input_collecter(
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
             The method to calculate the trace of Rho square.
+
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2))
                 to calculate the each summation item in `rho_m_list`.
@@ -585,12 +600,15 @@ def quantities_input_collecter(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
         estimate_trace_method (AllTraceRhoMethod, optional):
             The method to calculate the trace for searching esitmator.
+
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
         counts_used (Optional[Iterable[int]], optional):
             The index of the counts used. Defaults to None.
 
@@ -731,12 +749,15 @@ def outside_analyze(
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
             It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+
             - "numpy": Use Numpy to calculate the rho_m.
             - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
             - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
             Currently, "numpy_precomputed" is the best option for performance.
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
+
             - "trace_of_matmul":
                 Use np.trace(np.matmul(rho_m1, rho_m2))
                 to calculate the each summation item in `rho_m_list`.
@@ -747,12 +768,15 @@ def outside_analyze(
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
         estimate_trace_method (AllTraceRhoMethod, optional):
             The method to calculate the trace for searching esitmator.
+
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
         backend (PostProcessingBackend, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         counts_used (Optional[Iterable[int]], optional):
