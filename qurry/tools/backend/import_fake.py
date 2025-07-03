@@ -37,6 +37,12 @@ QISKIT_IBM_RUNTIME_ISSUE_1318 = (
     "https://github.com/Qiskit/qiskit-ibm-runtime/issues/1318."
     "You need to change the version of 'qiskit-ibm-runtime' to access FakeBackend"
 )
+"""Qiskit IBM Runtime Issue 1318
+
+This is a warning message for the issue 
+that FakeBackend is not working in qiskit-ibm-runtime 0.18.0.
+It is caused by the issue: https://github.com/Qiskit/qiskit-ibm-runtime/issues/1318.
+"""
 
 try:
     from qiskit_ibm_runtime import __version__ as qiskit_ibm_runtime_version  # type: ignore
@@ -113,6 +119,7 @@ Many of the fake backends are not available in qiskit-ibm-runtime.
 """.replace(
     "\n", " "
 ).strip()
+"""A warning message for the fake backend not available. """
 
 
 @overload
@@ -128,7 +135,7 @@ def fack_backend_loader():
 
     Args:
         version (str, optional): The version of fake backend. Defaults to None.
-        "v1" for FakeProvider, "v2" for FakeProviderForBackendV2.
+            "v1" for FakeProvider, "v2" for FakeProviderForBackendV2.
 
     Returns:
         tuple[dict[str, str], dict[str, Backend]]:
