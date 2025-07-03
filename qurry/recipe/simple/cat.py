@@ -1,6 +1,7 @@
 """GHZ state (:mod:`qurry.recipe.simple.cat`)
 
-The entangled circuit :cls:`GHZ` a.k.a. :cls:`Cat`.
+The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`
+as known as :class:`~qurry.recipe.simple.cat.Cat`.
 
 Reference:
     .. note::
@@ -37,7 +38,7 @@ from ..n_body import OneBody
 
 
 class GHZ(OneBody):
-    r"""The entangled circuit :cls:`GHZ`.
+    r"""The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
@@ -90,7 +91,8 @@ class GHZ(OneBody):
 
 
 class Cat(GHZ):
-    r""":cls:`Cat`, the anthor name of entangled circuit :cls:`GHZ`.
+    r""":class:`~qurry.recipe.simple.cat.Cat`,
+    the anthor name of entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`.
 
     .. code-block:: text
 

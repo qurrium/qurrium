@@ -74,7 +74,7 @@ def randomized_overlap_echo_v1(
             This only works for Python and Cython backend.
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
             This function will update the progress bar description.
             Defaults to None.
 

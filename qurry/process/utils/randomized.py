@@ -1,7 +1,4 @@
-"""Post Processing - Utils - Randomized
-(:mod:`qurry.process.utils.randomized`)
-
-"""
+"""Post Processing - Utils - Randomized (:mod:`qurry.process.utils.randomized`)"""
 
 import warnings
 from typing import Union
@@ -93,12 +90,6 @@ def ensemble_cell(
     shots: int,
 ) -> np.float64:
     """Calculate the value of two counts from qubits in ensemble average.
-
-    - about `diff = hamming_distance(sAi, sAj)`:
-
-        It is `hamming_distance` from `qiskit.visualization.count_visualization`.
-        Due to frequently update of Qiskit and it's a simple function,
-        I decide not to use source code instead of calling from `qiskit`.
 
     Args:
         s_i (str): First count's qubits arrange.

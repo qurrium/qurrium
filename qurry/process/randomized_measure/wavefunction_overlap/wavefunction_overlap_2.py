@@ -86,10 +86,9 @@ def randomized_overlap_echo(
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
             This function will update the progress bar description.
             Defaults to None.
-
 
     Returns:
         WaveFuctionOverlapResult: A dictionary contains purity, entropy,

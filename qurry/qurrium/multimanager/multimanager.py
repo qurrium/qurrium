@@ -1,4 +1,5 @@
-"""MultiManager - The manager of multiple experiments. (:mod:`qurry.qurrium.multimanager`)"""
+"""MultiManager - The manager of multiple experiments.
+(:mod:`qurry.qurrium.multimanager.multimanager`)"""
 
 import os
 import gc

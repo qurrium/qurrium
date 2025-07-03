@@ -38,7 +38,6 @@ def randomized_entangled_entropy(
 
     .. code-block:: bibtex
 
-
         @article{doi:10.1126/science.aau4963,
             author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                 and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -88,7 +87,7 @@ def randomized_entangled_entropy(
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -171,7 +170,7 @@ def preparing_all_system(
         backend (PostProcessingBackendLabel):
             Backend for the process.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -327,7 +326,7 @@ def randomized_entangled_entropy_mitigated(
             This can save a lot of time
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
             This function will update the progress bar description.
             Defaults to None.
 

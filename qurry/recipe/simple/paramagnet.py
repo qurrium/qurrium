@@ -1,6 +1,7 @@
 """Paramagnet (:mod:`qurry.recipe.simple.paramagnet`)
 
-The circuits :cls:`TrivialParamagnet` and :cls:`TopologicalParamagnet`.
+The circuits :class:`~qurry.recipe.simple.paramagnet.TrivialParamagnet` and
+:class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
 
 Reference:
     .. note::
@@ -29,7 +30,7 @@ Reference:
             publisher = {American Physical Society},
             doi = {10.1103/PhysRevLett.121.086808},
             url = {https://link.aps.org/doi/10.1103/PhysRevLett.121.086808}
-}
+        }
 
 """
 
@@ -39,7 +40,7 @@ from ..n_body import OneBody
 
 
 class TrivialParamagnet(OneBody):
-    r"""The product state circuit :cls:`TrivialParamagnet`.
+    r"""The product state circuit :class:`~qurry.recipe.simple.paramagnet.TrivialParamagnet`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
@@ -95,7 +96,7 @@ class TrivialParamagnet(OneBody):
 
 
 class TopologicalParamagnet(OneBody):
-    """The entangled circuit :cls:`Topological paramagnet`.
+    """The entangled circuit :class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
@@ -235,7 +236,8 @@ class TopologicalParamagnet(OneBody):
 
 
 class Cluster(TopologicalParamagnet):
-    """:cls:`Cluster`, another name of The entangled circuit :cls:`Topological paramagnet`.
+    """:class:`~qurry.recipe.simple.paramagnet.Cluster`, another name of the entangled circuit
+    :class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
     Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text

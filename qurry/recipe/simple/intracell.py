@@ -6,7 +6,7 @@ from ..n_body import TwoBody
 
 
 class Intracell(TwoBody):
-    r"""The entangled circuit :cls:`Intracell`.
+    r"""The entangled circuit :class:`~qurry.recipe.simple.intracell.Intracell`.
 
     .. code-block:: text
 
@@ -134,7 +134,8 @@ class Intracell(TwoBody):
 
 
 class Singlet(Intracell):
-    r""":cls:`Siglet`, the entangled circuit :cls:`Intracell` with `singlet` state.
+    r""":class:`~qurry.recipe.simple.intracell.Singlet`,
+    the entangled circuit :class:`~qurry.recipe.simple.intracell.Intracell` with `singlet` state.
 
     .. code-block:: text
 

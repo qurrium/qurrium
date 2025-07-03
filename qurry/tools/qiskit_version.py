@@ -1,7 +1,7 @@
 """Qiskit Version (:mod:`qurry.tools.qiskit_version`)
 
 - This module is for checking the version of qiskit and its packages.
-- For remaking the deprecated :cls:`QiskitVersion` in :mod:`qiskit.version` since 1.0.0.
+- For remaking the deprecated `QiskitVersion` in :mod:`qiskit.version` since 1.0.0.
 
 """
 
@@ -45,7 +45,7 @@ KNOWN_CORE_PACKAGE = {
 class QiskitVersion(Mapping):
     """Get the version of qiskit and its packages.
 
-    The replacement of deprecated :cls:`QiskitVersion` in :mod:`qiskit.version`.
+    The replacement of deprecated `QiskitVersion` in :mod:`qiskit.version`.
     This class is a mapping of package names to their versions.
     """
 
@@ -93,7 +93,7 @@ class QiskitVersion(Mapping):
 
 QISKIT_VERSION = QiskitVersion()
 """A mapping of package names to their versions in Qiskit.
-This is an instance of :class:`QiskitVersion`.
+This is an instance of :class:`~qurry.tools.qiskit_version.QiskitVersion`.
 It contains the versions of the main, deprecated, and into-community packages of Qiskit.
 """
 

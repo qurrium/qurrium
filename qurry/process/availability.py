@@ -1,7 +1,4 @@
-"""Availability for the post-processing module.
-(:mod:`qurry.process.availability`)
-
-"""
+"""Availability for the post-processing module. (:mod:`qurry.process.availability`)"""
 
 from typing import Union, Literal, Optional, Callable
 
@@ -10,6 +7,7 @@ PostProcessingBackendLabel = Union[Literal["Cython", "Rust", "Python"], str]
 
 BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "JAX"]
 """The backend types for post-processing.
+
 - Python: The default backend for post-processing.
 - Cython: The Cython backend for post-processing.
 - Rust: The Rust backend for post-processing.
@@ -31,9 +29,9 @@ def availablility(
 
     Args:
         module_location (str): The location of the module.
-        import_statement (
-            list[tuple[PostProcessingBackendLabel, bool, Optional[QurryPostProcessingError]]]
-        ):
+        import_statement (list[tuple[
+            PostProcessingBackendLabel, bool, Optional[QurryPostProcessingError]
+        ]]):
             The import statement for the post-processing backend.
 
     Returns:

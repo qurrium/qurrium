@@ -1,6 +1,6 @@
 """Declaration - Transpile (:mod:`qurry.declare.transpile`)
 
-Arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+Arguments for :func:`~qiskit.compiler.transpiler.transpile`
 """
 
 from typing import Union, Callable, Any, Optional, TypedDict
@@ -13,7 +13,7 @@ from qiskit.transpiler.target import Target
 
 
 class TranspileArgs(TypedDict, total=False):
-    """Transpile arguments for :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+    """Transpile arguments for :func:`~qiskit.compiler.transpiler.transpile`
 
     - :mod:`qiskit` 2.0.0
 
