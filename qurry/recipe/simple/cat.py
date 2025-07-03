@@ -1,9 +1,10 @@
-"""GHZ state (:mod:`qurry.recipe.library.simple.cat`)
+"""GHZ state (:mod:`qurry.recipe.simple.cat`)
 
 The entangled circuit :cls:`GHZ` a.k.a. :cls:`Cat`.
 
 Reference:
     .. note::
+
         - Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
         Using the IBM Quantum Computer - Choo, Kenny and von Keyserlingk, Curt W. and
         Regnault, Nicolas and Neupert, Titus
