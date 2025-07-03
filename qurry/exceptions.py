@@ -1,4 +1,4 @@
-"""Exceptions (:mod:`Qurrium.exceptions`)"""
+"""Exceptions (:mod:`qurry.exceptions`)"""
 
 
 class QurryError(Exception):
