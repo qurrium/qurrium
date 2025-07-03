@@ -8,6 +8,7 @@ Reference:
         [PhysRevResearch.4.L022020](https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020)
 
     .. code-block:: bibtex
+
         @article{PhysRevResearch.4.L022020,
             title = {Crossing a topological phase transition with a quantum computer},
             author = {Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank},

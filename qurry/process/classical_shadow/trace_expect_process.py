@@ -81,6 +81,7 @@ def trace_rho_square_core(
                 https://doi.org/10.1038/s42254-022-00535-2)
 
         .. code-block:: bibtex
+
             @article{cite-key,
                 abstract = {
                     Predicting the properties of complex,

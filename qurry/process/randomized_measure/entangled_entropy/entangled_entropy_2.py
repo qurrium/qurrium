@@ -38,6 +38,7 @@ def randomized_entangled_entropy(
 
     .. code-block:: bibtex
 
+
         @article{doi:10.1126/science.aau4963,
             author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                 and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -251,6 +252,7 @@ def randomized_entangled_entropy_mitigated(
             https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
 
     .. code-block:: bibtex
+
 
         @article{doi:10.1126/science.aau4963,
             author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic

@@ -51,6 +51,7 @@ def mean_of_rho(
                 https://doi.org/10.1038/s42254-022-00535-2)
 
         .. code-block:: bibtex
+
             @article{cite-key,
                 abstract = {
                     Predicting the properties of complex,
@@ -440,6 +441,7 @@ def classical_shadow_complex(
                 https://doi.org/10.1038/s42254-022-00535-2)
 
         .. code-block:: bibtex
+
             @article{cite-key,
                 abstract = {
                     Predicting the properties of complex,

@@ -57,6 +57,7 @@ def randomized_overlap_echo(
             )
 
         .. code-block:: bibtex
+
             @article{PhysRevA.99.052323,
                 title = {Statistical correlations between locally randomized measurements:
                 A toolbox for probing entanglement in many-body quantum states},
