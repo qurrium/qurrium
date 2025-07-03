@@ -2,10 +2,12 @@
 
 This module provides the default simulator for Qurry.
 For the simulator, the following sources are considered:
-    * qiskit_aer
-    * qiskit.providers.aer
-    * qiskit.providers.basicaer
-    * qiskit.providers.basic_provider
+
+- qiskit_aer
+- qiskit.providers.aer
+- qiskit.providers.basicaer
+- qiskit.providers.basic_provider
+
 which are used in different qiskit, qiskit-aer version,
 and ordered by priority.
 """
