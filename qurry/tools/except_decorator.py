@@ -1,4 +1,4 @@
-"""Eception Decorator (:mod:`qurry.tools.except_decorator`)"""
+"""Exception Decorator (:mod:`qurry.tools.except_decorator`)"""
 
 import functools
 import warnings
@@ -13,25 +13,28 @@ U = TypeVar("U", bound=Union[Type, Callable])
 def unproven_feature(message=None):
     """The decorator to mark a function or class as an unproven feature.
 
+    .. code-block:: python
+
+        @unproven_feature
+        def my_experimental_function():
+            pass
+
+        @unproven_feature(message="This is a custom message.")
+        class MyExperimentalClass:
+            pass
+
     Args:
         message (Optional[str]):
             The warning message to be displayed.
             If not provided, a default message will be used.
             The default message is:
-            "This feature is unproven and may be unstable or behave inconsistently.
-            Use with caution."
+
+            .. code-block:: python
+
+                f"This feature '{name}' is unproven, we can not guarantee the correctness."
 
     Returns:
-        Union[Callable, Type]:
-
-    Examples:
-        >>> @unproven_feature
-        ... def my_experimental_function():
-        ...     pass
-
-        >>> @unproven_feature(message="This is a custom message.")
-        ... class MyExperimentalClass:
-        ...     pass
+        The decorated function or class, which will issue a warning when called or instantiated.
     """
 
     def decorator(func_or_cls: U) -> U:
@@ -39,8 +42,11 @@ def unproven_feature(message=None):
         Args:
             func_or_cls (Union[Callable, Type]):
                 The function or class to be marked.
+
         Returns:
             Union[Callable, Type]:
+                The decorated function or class,
+                which will issue a warning when called or instantiated.
         """
 
         name = func_or_cls.__qualname__

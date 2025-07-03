@@ -10,6 +10,15 @@ DEFAULT_BAR_FORMAT = {
     + " - {desc} - {elapsed} < {remaining}",
     "qurry-barless": "| {n_fmt}/{total_fmt} - {desc} - {elapsed} < {remaining}",
 }
+"""Default bar format for progress bar.
+
+- "simple":
+    A simple format with description, elapsed time, and remaining time.
+- "qurry-full":
+    A full format with count, percentage, bar, description, elapsed time, and remaining time.
+- "qurry-barless":
+    A format without the bar, showing count, description, elapsed time, and remaining time.
+"""
 PROGRESSBAR_ASCII = {
     "4squares": " ▖▘▝▗▚▞█",
     "standard": " ▏▎▍▌▋▊▉█",
@@ -17,6 +26,19 @@ PROGRESSBAR_ASCII = {
     "braille": " ⠏⠛⠹⠼⠶⠧⠿",
     "boolen-eq": " =",
 }
+"""Default ASCII characters for progress bar.
+
+- "4squares":
+    A 4-squares ASCII style.
+- "standard":
+    A standard ASCII style with 8 segments.
+- "decimal":
+    A decimal ASCII style with numbers 1-9 and a hash.
+- "braille":
+    A braille ASCII style with 7 segments.
+- "boolen-eq":
+    A boolean equal sign ASCII style with just an equal sign.
+"""
 
 T = TypeVar("T")
 _T = TypeVar("_T")

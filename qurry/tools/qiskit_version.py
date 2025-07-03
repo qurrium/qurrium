@@ -1,8 +1,7 @@
 """Qiskit Version (:mod:`qurry.tools.qiskit_version`)
 
 - This module is for checking the version of qiskit and its packages.
-- For remaking the deprecated :cls:`QiskitVersion` in :mod:`qiskit.version`
-since 1.0.0.
+- For remaking the deprecated :cls:`QiskitVersion` in :mod:`qiskit.version` since 1.0.0.
 
 """
 
@@ -35,12 +34,19 @@ KNOWN_CORE_PACKAGE = {
         "qiskit-machine-learning",
     ],
 }
+"""A dictionary of known core packages in Qiskit.
+
+- "main": The main packages of Qiskit.
+- "deprecated": The deprecated packages of Qiskit.
+- "into-community": The packages that are into the community.
+"""
 
 
 class QiskitVersion(Mapping):
     """Get the version of qiskit and its packages.
 
     The replacement of deprecated :cls:`QiskitVersion` in :mod:`qiskit.version`.
+    This class is a mapping of package names to their versions.
     """
 
     __slots__ = ["_version_dict", "_loaded"]
@@ -86,6 +92,10 @@ class QiskitVersion(Mapping):
 
 
 QISKIT_VERSION = QiskitVersion()
+"""A mapping of package names to their versions in Qiskit.
+This is an instance of :class:`QiskitVersion`.
+It contains the versions of the main, deprecated, and into-community packages of Qiskit.
+"""
 
 
 def qiskit_version_statesheet() -> Hoshi:
