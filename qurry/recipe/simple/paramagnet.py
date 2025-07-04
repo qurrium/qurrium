@@ -1,15 +1,14 @@
 """Paramagnet (:mod:`qurry.recipe.simple.paramagnet`)
 
 The circuits :class:`~qurry.recipe.simple.paramagnet.TrivialParamagnet` and
-:class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
+:class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`,
+which has been mentioned in the following reference.
 
 Reference:
-    .. note::
-
-        - Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
+    -   Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
         Using the IBM Quantum Computer - Choo, Kenny and von Keyserlingk, Curt W. and
         Regnault, Nicolas and Neupert, Titus
-        [doi:10.1103/PhysRevLett.121.086808](https://doi.org/10.1103/PhysRevLett.121.086808)
+        `doi:10.1103/PhysRevLett.121.086808 <https://doi.org/10.1103/PhysRevLett.121.086808>`_
 
     .. code-block:: bibtex
 
@@ -40,7 +39,6 @@ from ..n_body import OneBody
 
 class TrivialParamagnet(OneBody):
     r"""The product state circuit :class:`~qurry.recipe.simple.paramagnet.TrivialParamagnet`.
-    Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
 
@@ -96,7 +94,6 @@ class TrivialParamagnet(OneBody):
 
 class TopologicalParamagnet(OneBody):
     """The entangled circuit :class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
-    Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
 
@@ -237,7 +234,6 @@ class TopologicalParamagnet(OneBody):
 class Cluster(TopologicalParamagnet):
     """:class:`~qurry.recipe.simple.paramagnet.Cluster`, another name of the entangled circuit
     :class:`~qurry.recipe.simple.paramagnet.TopologicalParamagnet`.
-    Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
 

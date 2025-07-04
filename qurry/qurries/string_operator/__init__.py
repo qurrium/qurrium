@@ -4,10 +4,9 @@
 Formerly known as `qurstrop`
 
 Reference:
-    .. note::
-        - Crossing a topological phase transition with a quantum computer -
+    -   Crossing a topological phase transition with a quantum computer -
         Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank,
-        [PhysRevResearch.4.L022020](https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020)
+        `PhysRevResearch.4.L022020 <https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020>`_
 
     .. code-block:: bibtex
 
@@ -25,6 +24,7 @@ Reference:
             doi = {10.1103/PhysRevResearch.4.L022020},
             url = {https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020}
         }
+
 
 """
 

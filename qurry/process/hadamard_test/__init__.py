@@ -1,7 +1,4 @@
-"""Post Processing - Hadamard Test
-(:mod:`qurry.process.hadamard_test`)
-
-"""
+"""Post Processing - Hadamard Test (:mod:`qurry.process.hadamard_test`)"""
 
 from .purity_echo_core import BACKEND_AVAILABLE as purity_echo_core_availability
 

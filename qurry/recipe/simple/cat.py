@@ -1,12 +1,11 @@
 """GHZ state (:mod:`qurry.recipe.simple.cat`)
 
 The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`
-as known as :class:`~qurry.recipe.simple.cat.Cat`.
+as known as :class:`~qurry.recipe.simple.cat.Cat`,
+which has been mentioned in the following reference.
 
 Reference:
-    .. note::
-
-        - Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
+    -   Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
         Using the IBM Quantum Computer - Choo, Kenny and von Keyserlingk, Curt W. and
         Regnault, Nicolas and Neupert, Titus
         [doi:10.1103/PhysRevLett.121.086808](https://doi.org/10.1103/PhysRevLett.121.086808)
@@ -29,7 +28,7 @@ Reference:
             publisher = {American Physical Society},
             doi = {10.1103/PhysRevLett.121.086808},
             url = {https://link.aps.org/doi/10.1103/PhysRevLett.121.086808}
-}
+        }
 
 """
 
@@ -38,7 +37,6 @@ from ..n_body import OneBody
 
 class GHZ(OneBody):
     r"""The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`.
-    Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
 
     .. code-block:: text
 

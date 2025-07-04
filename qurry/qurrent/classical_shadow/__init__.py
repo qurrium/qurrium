@@ -1,17 +1,15 @@
 r"""ShadowUnveil - Classical Shadow with The Results of Second Order Renyi Entropy
 (:mod:`qurry.qurrent.classical_shadow`)
 
-References:
-    .. note::
-
-        - Predicting many properties of a quantum system from very few measurements -
+Reference:
+    -   Predicting many properties of a quantum system from very few measurements -
         Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-        [doi:10.1038/s41567-020-0932-7](https://doi.org/10.1038/s41567-020-0932-7)
+        `doi:10.1038/s41567-020-0932-7 <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-        - The randomized measurement toolbox -
+    -   The randomized measurement toolbox -
         Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
         Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-        [doi:10.1038/s42254-022-00535-2](https://doi.org/10.1038/s42254-022-00535-2)
+        `doi:10.1038/s42254-022-00535-2 <https://doi.org/10.1038/s42254-022-00535-2>`_
 
     .. code-block:: bibtex
 
@@ -26,8 +24,7 @@ References:
                 measurements suffice to accurately predict M different functions of the state
                 with high success probability. The number of measurements is independent of
                 the system size and saturates information-theoretic lower bounds. Moreover,
-                target properties to predict can be
-                selected after the measurements are completed.
+                target properties to predict can be selected after the measurements are completed.
                 We support our theoretical findings with extensive numerical experiments.
                 We apply classical shadows to predict quantum fidelities,
                 entanglement entropies, two-point correlation functions,
@@ -66,11 +63,10 @@ References:
                 desired property. The randomization of the measurement procedure has distinct
                 advantages. For example, a single data set can be used multiple times to pursue
                 a variety of applications, and imperfections in the measurements are mapped to
-                a simplified noise model that can more easily be mitigated.
-                We discuss a range of cases that have already been realized in quantum devices,
-                including Hamiltonian simulation tasks, probes of quantum chaos,
-                measurements of non-local order parameters,
-                and comparison of quantum states produced in distantly separated
+                a simplified noise model that can more easily be mitigated. We discuss a range of
+                cases that have already been realized in quantum devices, including Hamiltonian
+                simulation tasks, probes of quantum chaos, measurements of non-local order
+                parameters, and comparison of quantum states produced in distantly separated
                 laboratories. By providing a workable method for translating a complex quantum
                 state into a succinct classical representation that preserves a rich variety of
                 relevant physical properties, the randomized measurement toolbox strengthens our
