@@ -832,7 +832,8 @@ class EchoListenRandomizedExperiment(
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API, you can use put a :cls:`tqdm` object here.
+                The progress bar API,
+                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
                 This function will update the progress bar description.
                 Defaults to None.
 
@@ -970,7 +971,8 @@ class EchoListenRandomizedExperiment(
             backend (ExistingProcessBackendLabel, optional):
                 Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API, you can use put a :cls:`tqdm` object here.
+                The progress bar API,
+                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
                 This function will update the progress bar description.
                 Defaults to None.
 

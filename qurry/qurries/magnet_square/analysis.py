@@ -37,7 +37,8 @@ class MSAnalysisContent(NamedTuple):
 
 
 class MagnetSquareAnalysis(AnalysisPrototype[MSAnalysisInput, MSAnalysisContent]):
-    """The container for the analysis of :cls:`MagnetSquareExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`."""
 
     __name__ = "MSAnalysis"
 

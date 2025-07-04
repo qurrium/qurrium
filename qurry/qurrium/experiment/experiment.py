@@ -214,23 +214,29 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
                 Given the experiment multiple tags to make a dictionary for recongnizing it.
                 Defaults to None.
             serial (Optional[int], optional):
-                Index of experiment in a multiOutput.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Index of experiment in
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                ID of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
-                _description_. Defaults to None.
+                Name of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
+                Defaults to None.
             mute_outfields_warning (bool, optional):
                 Mute the warning when there are unused arguments detected and stored in outfields.
                 Defaults to False.
@@ -350,7 +356,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
@@ -359,17 +365,23 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Defaults to None.
 
             serial (Optional[int], optional):
-                Index of experiment in a multiOutput.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Index of experiment in
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                ID of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
-                _description_. Defaults to None.
+                Name of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
+                Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
@@ -698,7 +710,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         If the analysis requires additional parameters,
         they should be passed as arguments to this method.
-        Also, they should be defined in the :meth:`input_type` in the :cls:`AnalysisPrototype`
+        Also, they should be defined in the
+        :meth:`~qurry.qurrium.analysis.AnalysisPrototype.input_type`
         for :meth:`result` will count the input fields from the analysis to determine
         whether to call this method for no input required.
 
@@ -849,8 +862,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 When set to True, the transpiled circuit will be exported as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
             qurryinfo_hold_access (str, optional):
-                Whether to hold the I/O of `qurryinfo`, then export by :cls:`MultiManager`,
-                it should be control by :cls:`MultiManager`. Defaults to None.
+                Whether to hold the I/O of `qurryinfo`,
+                then export by :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                It should be ONLY control by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
             pbar (Optional[tqdm.tqdm], optional):

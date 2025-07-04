@@ -168,7 +168,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -253,7 +253,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -347,7 +347,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
             summoner_name (Optional[str], optional):
-                Name for multimanager. Defaults to None.
+                Name of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 When `None`, it will be set to their coresponding :attr:`short_name`.
             summoner_id (Optional[str], optional):
                 Id for multimanager. Defaults to None.
@@ -356,11 +357,14 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             backend (Backend, optional):
                 The backend to run. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of :cls:`MultiManager`. Defaults to None.
+                Tags of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                The extra arguments for running the job,
-                but for all experiments in the multimanager.
-                For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
+                The extra arguments for running the job, but for all experiments
+                in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
+                for :meth:`~qiskit.providers.backend.BackendV2.run`.
+                Defaults to None.
             save_location (Union[Path, str], optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
@@ -460,11 +464,14 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             backend (Backend, optional):
                 The backend to run. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of :cls:`MultiManager`. Defaults to None.
+                Tags of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                Defaults to None.
             manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                The extra arguments for running the job,
-                but for all experiments in the multimanager.
-                For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
+                The extra arguments for running the job, but for all experiments
+                in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
+                for :meth:`~qiskit.providers.backend.BackendV2.run`.
+                Defaults to None.
             save_location (Union[Path, str], optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
@@ -573,11 +580,14 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             provider (Optional[Any], optional):
                 The provider. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of :cls:`MultiManager`. Defaults to None.
-            manager_run_args (Optional[dict[str, Any]], optional):
-                The extra arguments for running the job,
-                but for all experiments in the multimanager.
-                For :meth:`backend.run()` from :cls:`qiskit.providers.backend`. Defaults to `{}`.
+                Tags of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                Defaults to None.
+            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+                The extra arguments for running the job, but for all experiments
+                in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
+                for :meth:`~qiskit.providers.backend.BackendV2.run`.
+                Defaults to None.
             save_location (Union[Path, str], optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.

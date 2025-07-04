@@ -44,10 +44,10 @@ def v5_to_v7_field_transpose(rawread_multiconfig: dict[str, Any]) -> dict[str, A
 
     Args:
         rawread_multiconfig (dict[str, Any]):
-            The field name of :cls:`MultiCommonparams` in V5 format.
+            The field name of :class:`MultiCommonparams` in V5 format.
 
     Returns:
-        dict[str, Any]: The field name of :cls:`MultiCommonparams` in V7 format.
+        dict[str, Any]: The field name of :class:`MultiCommonparams` in V7 format.
     """
     for k, nk in V5_TO_V7_FIELD.items():
         if k in rawread_multiconfig:

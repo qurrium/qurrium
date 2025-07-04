@@ -47,7 +47,7 @@ class MultiManager(Generic[_E]):
     _not_sync = ["allCounts", "retrievedResult"]
     """The content would not be synchronized."""
     after_lock: bool = False
-    """Protect the :cls:`afterward` content to be overwritten. 
+    """Protect the :prop:`afterward` content to be overwritten. 
     When setitem is called and completed, it will be setted as `False` automatically.
     """
     mute_auto_lock: bool = False
@@ -305,8 +305,8 @@ class MultiManager(Generic[_E]):
                 The list of config of experiments.
                 This config is used to build the experiments.
             experiment_instance (ExperimentPrototype): The instance of experiment.
-            summoner_name (Optional[str], optional): Name of experiment of the MultiManager.
-                Defaults to None.
+            summoner_name (Optional[str], optional):
+                Name of experiment of the :class:`MultiManager`. Defaults to None.
             shots (Optional[int], optional): The shots of experiments. Defaults to None.
             backend (Backend, optional): The backend of experiments. Defaults to GeneralSimulator().
             tags (Optional[tuple[str, ...]], optional): The tags of experiments. Defaults to None.
@@ -470,7 +470,7 @@ class MultiManager(Generic[_E]):
             experiment_instance (ExperimentPrototype):
                 The instance of experiment.
             summoner_name (Optional[str], optional):
-                Name of experiment of the MultiManager. Defaults to None.
+                Name of experiment of the :class:`MultiManager`. Defaults to None.
             save_location (Union[Path, str], optional):
                 Location of saving experiment. Defaults to Path("./").
             is_read_or_retrieve (bool, optional):

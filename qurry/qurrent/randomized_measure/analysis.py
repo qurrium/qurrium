@@ -1,7 +1,4 @@
-"""EntropyMeasureRandomized - Analysis
-(:mod:`qurry.qurrent.randomized_measure.analysis`)
-
-"""
+"""EntropyMeasureRandomized - Analysis (:mod:`qurry.qurrent.randomized_measure.analysis`)"""
 
 from typing import Union, Optional, NamedTuple, Iterable, Literal, Type
 
@@ -156,7 +153,8 @@ class EMRAnalysisContent(NamedTuple):
 
 
 class EntropyMeasureRandomizedAnalysis(AnalysisPrototype[EMRAnalysisInput, EMRAnalysisContent]):
-    """The container for the analysis of :cls:`EntropyRandomizedExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurrent.randomized_measure.experiment.EntropyRandomizedExperiment`."""
 
     __name__ = "EMRAnalysis"
 

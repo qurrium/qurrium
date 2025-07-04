@@ -130,7 +130,7 @@ def local_unitary_op_to_list(
 
     Returns:
         dict[int, list[list[complex]]]:
-            The dictionary of unitary operators in :cls:`list[list[complex]]`.
+            The dictionary of unitary operators in :class:`list[list[complex]]`.
     """
     return {i: np.array(op).tolist() for i, op in single_unitary_op_dict.items()}
 

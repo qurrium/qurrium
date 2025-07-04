@@ -19,7 +19,8 @@ _RC = TypeVar("_RC", bound=NamedTuple)
 
 
 class AnalysisPrototype(Generic[_RI, _RC]):
-    """The instance for the analysis of :cls:`QurryExperiment`."""
+    """The base instance for the analysis of
+    :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
     __name__ = "AnalysisPrototype"
 

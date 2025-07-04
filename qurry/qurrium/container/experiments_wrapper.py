@@ -7,10 +7,9 @@ from .experiments import ExperimentContainer, _E
 
 
 class ExperimentContainerWrapper(Generic[_E]):
-    """A wrapper for :cls:`ExperimentContainer` from :cls:`QurriumPrototype`
-    and its corresponding :cls:`MultiManager`.
-
-    """
+    """A wrapper for :class:`~qurry.qurrium.container.experiments.ExperimentContainer`
+    for :class:~qurry.qurrium.qurrium.QurriumPrototype.`.
+    and its corresponding :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     __name__ = "ExperimentContainerWrapper"
     __slots__ = ("_orphan_exps", "_multimanagers", "_all_exps_container")

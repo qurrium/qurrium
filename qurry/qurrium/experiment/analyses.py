@@ -6,11 +6,12 @@ from collections.abc import Hashable
 from ..analysis import AnalysisPrototype
 
 _R = TypeVar("_R", bound=AnalysisPrototype)
-"""Type variable for :cls:`AnalysisPrototype`."""
+"""Type variable for :class:`~qurry.qurrium.analysis.AnalysisPrototype`."""
 
 
 class AnalysesContainer(dict[Hashable, _R]):
-    """A customized dictionary for storing `AnalysisPrototype` objects."""
+    """A customized dictionary for storing
+    :class:`~qurry.qurrium.analysis.AnalysisPrototype`objects."""
 
     __name__ = "AnalysisContainer"
 
