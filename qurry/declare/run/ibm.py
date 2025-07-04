@@ -8,9 +8,9 @@ from .base_run import BaseRunArgs
 
 
 class IBMRuntimeBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for:meth:`~qiskit.providers.backend.Backend.run`.
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
 
-    For `IBMBackend` from :mod:`qiskit_ibm_runtime.ibm_backend`:
+    For `IBMBackend` from :mod:`~qiskit_ibm_runtime.ibm_backend`:
 
     .. code-block:: python
 
@@ -56,9 +56,9 @@ class IBMRuntimeBackendRunArgs(BaseRunArgs, total=False):
 
 
 class IBMProviderBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for:meth:`~qiskit.providers.backend.Backend.run`.
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
 
-    For `IBMBackend` from :mod:`qiskit_ibm_provider.ibm_backend`:
+    For `IBMBackend` from :mod:`~qiskit_ibm_provider.ibm_backend`:
 
     .. code-block:: python
 
@@ -102,9 +102,9 @@ class IBMProviderBackendRunArgs(BaseRunArgs, total=False):
 
 
 class IBMQBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for:meth:`~qiskit.providers.backend.Backend.run`.
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
 
-    For `IBMQBackend` from :mod:`qiskit.providers.ibmq`:
+    For `IBMQBackend` from :mod:`~qiskit.providers.ibmq`:
 
     .. code-block:: python
 

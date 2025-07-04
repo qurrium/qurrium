@@ -1,6 +1,6 @@
 """Declaration - Types (:mod:`qurry.declare.type`)
 
-Type declarations for Qurry
+Type declarations for Qurrium
 """
 
 from typing import Union, Sequence

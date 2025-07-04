@@ -15,7 +15,7 @@ from qiskit.transpiler.target import Target
 class TranspileArgs(TypedDict, total=False):
     """Transpile arguments for :func:`~qiskit.compiler.transpiler.transpile`
 
-    - :mod:`qiskit` 2.0.0
+    - :mod:`~qiskit` 2.0.0
 
     .. code-block:: python
 

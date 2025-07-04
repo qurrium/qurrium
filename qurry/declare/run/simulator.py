@@ -1,6 +1,6 @@
 """Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
 
-This module reveals the full arguments of :meth:`~qiskit.providers.backend.Backend.run`
+This module reveals the full arguments of :meth:`~qiskit.providers.backend.BackendV2.run`
 for the simulator backends to avoid the UNnEcEsSaRy and PAINFUL finding of
 how many arguments and what types of arguments you can pass to the method.
 
@@ -16,7 +16,7 @@ from .base_run import BaseRunArgs
 class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     """For `BasicSimulator` from :mod:`qiskit.providers.basic_provider`:
 
-    For qiskit>=2.0, the signature of :meth:`~qiskit.providers.backend.Backend.run` is:
+    For qiskit>=2.0, the signature of :meth:`~qiskit.providers.backend.BackendV2.run` is:
 
     .. code-block:: python
 
@@ -115,7 +115,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
 
 
 class AerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`~qiskit.providers.backend.Backend.run`.
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
 
     For `AerBackend` from :mod:`qiskit_aer.backends.aerbackend`
     or `AerBackend` from :mod:`qiskit.providers.aer.backends.aerbackend`,
@@ -315,7 +315,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
 
 
 class BasicAerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`~qiskit.providers.backend.Backend.run`.
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
 
     For `QasmSimulatorPy` from :mod:`qiskit.providers.basicaer`:
 
