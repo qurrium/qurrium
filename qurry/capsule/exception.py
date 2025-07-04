@@ -2,7 +2,7 @@
 
 
 class CapSuleError(Exception):
-    """Base class for errors raised by :mod:`capsule`."""
+    """Base class for errors raised by :mod:`~qurry.capsule`."""
 
     def __init__(self, *message):
         """Set the error message."""
@@ -15,12 +15,12 @@ class CapSuleError(Exception):
 
 
 class CapSuleValuedError(CapSuleError, ValueError):
-    """ValueErrors raised by :mod:`capsule."""
+    """ValueErrors raised by :mod:`~qurry.capsule."""
 
 
 # General Warning
 class CapSuleWarning(Warning):
-    """Base class for warning raised by :mod:`capsule."""
+    """Base class for warning raised by :mod:`~qurry.capsule."""
 
     def __init__(self, *message):
         """Set the error message."""
@@ -33,4 +33,6 @@ class CapSuleWarning(Warning):
 
 
 class TagListTakeNotIterableWarning(CapSuleWarning):
-    """Warning raised when the input of `TagList.take` is not iterable."""
+    """Warning raised when the input of
+    :meth:`~qurry.capsule.mori.taglist.TagList.take` is not iterable.
+    """

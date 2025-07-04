@@ -1,6 +1,6 @@
 """Mori 💀 (:mod:`qurry.capsule.mori`)
 
-## Why Mori?
+## Why names Mori?
 
     There are many dedicated data structures for Qurrium
     If we say one of them like a tree in forest,

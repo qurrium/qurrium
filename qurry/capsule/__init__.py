@@ -1,6 +1,6 @@
 """CapSule - Qurrium Data Structure Complex
 
-## Why CapSule?
+## Why names CapSule?
 
 - Mori
     There are many dedicated data structures for Qurrium
@@ -45,10 +45,9 @@ def feeling_sad_then_call_this_function():
     """Don't look back, look forward
 
     Find something you can move toward
-
     Don't look back, look forward
-
     Don't look back
+
     """
     webbrowser.open("https://www.youtube.com/watch?v=X_4pIzwShRw")
 

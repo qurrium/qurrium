@@ -1,53 +1,59 @@
-"""Hoshi - A process content printer ?
+"""Hoshi - An Organized Printing (:mod:`qurry.capsule.hoshi`)
 
 - Before:
 
->>> print(" ### Qiskit version outdated warning")
->>> print("Please keep mind on your qiskit version,
-an very outdated version may cause some problems.")
->>> print(" - Local Qiskit version ".ljust(40, '-')+f" {__qiskit_version__['qiskit']}")
->>> print(" - Latest Qiskit version ".ljust(40, '-')+f" {latest_version}")
-```
-### Qiskit version outdated warning
-Please keep mind on your qiskit version, an very outdated version may cause some problems.
-- Local Qiskit version ---------------- 0.39.0
-- Latest Qiskit version --------------- 0.39.0
-```
+    .. code-block:: python
+
+        print(" ### Qiskit version outdated warning")
+        print(
+            "Please keep mind on your qiskit version, "
+            "an very outdated version may cause some problems."
+        )
+        print(" - Local Qiskit version ".ljust(40, '-')+f" {__qiskit_version__['qiskit']}")
+        print(" - Latest Qiskit version ".ljust(40, '-')+f" {latest_version}")
+
+    .. code-block:: text
+
+        ### Qiskit version outdated warning
+        Please keep mind on your qiskit version, an very outdated version may cause some problems.
+        - Local Qiskit version ---------------- 0.39.0
+        - Latest Qiskit version --------------- 0.39.0
+
 
 - After:
 
->>> check_msg = Hoshi(
-        [
-            ("divider", 60),
-            ("h3", "Qiskit version outdated warning"),
-            (
-                "txt",
-                "Please keep mind on your qiskit version,"
-                + " an very outdated version may cause some problems.",
-            ),
-            ("itemize", "Local Qiskit version", 3),
-            {
-                "type": "itemize",
-                "description": "Latest Qiskit version",
-                "value": 3,
-            },
-        ],
-        ljust_description_len=40,
-    )
->>> print(check_msg)
+    .. code-block:: python
 
-```
+        check_msg = Hoshi(
+            [
+                ("divider", 60),
+                ("h3", "Qiskit version outdated warning"),
+                (
+                    "txt",
+                    "Please keep mind on your qiskit version,"
+                    + " an very outdated version may cause some problems.",
+                ),
+                ("itemize", "Local Qiskit version", 3),
+                {
+                    "type": "itemize",
+                    "description": "Latest Qiskit version",
+                    "value": 3,
+                },
+            ],
+            ljust_description_len=40,
+        )
+        print(check_msg)
 
-------------------------------------------------------------
- ### Qiskit version outdated warning
- Please keep mind on your qiskit version, an very outdated version may cause some problems.
- - Local Qiskit version ------------------- 0.39.0
- - Latest Qiskit version ------------------ 0.39.0
-```
+    .. code-block:: text
 
-Hoshi - A process content printer ?
+        ------------------------------------------------------------
+        ### Qiskit version outdated warning
+        Please keep mind on your qiskit version, an very outdated version may cause some problems.
+        - Local Qiskit version ------------------- 0.39.0
+        - Latest Qiskit version ------------------ 0.39.0
 
 ## Why this name?
+
     I made it when I was listening the songs made by Hoshimachi Suisei,
     a VTuber in Hololive. I was inspired by her songs, and I made this tool.
     I named it Hoshi, which means star in Japanese.
@@ -244,7 +250,7 @@ def itemize(
 
 
 class Hoshi:
-    """Hoshi - A process content printer ?"""
+    """Hoshi - An Organized Printer"""
 
     _availablePrint = ["h1", "h2", "h3", "h4", "h5", "h6", "txt", "itemize", "divider"]
     __name__ = "Hoshi"
@@ -292,41 +298,14 @@ class Hoshi:
         name: str = "Hoshi",
         **kwargs,
     ):
-        """
+        """Initialize the Hoshi printer.
 
-        - Before:
-
-        >>> print(" ### Qiskit version outdated warning")
-        >>> print("Please keep mind on your qiskit version,
-        an very outdated version may cause some problems.")
-        >>> print(" - Local Qiskit version ".ljust(40, '-')+f" {__qiskit_version__['qiskit']}")
-        >>> print(" - Latest Qiskit version ".ljust(40, '-')+f" {latest_version}")
-        ```
-        ### Qiskit version outdated warning
-        Please keep mind on your qiskit version, an very outdated version may cause some problems.
-        - Local Qiskit version ---------------- 0.39.0
-        - Latest Qiskit version --------------- 0.39.0
-        ```
-
-        - After:
-
-        >>> check_msg = Hoshi([
-                ('divider', 60),
-                ('h3', 'Qiskit version outdated warning'),
-                ('txt', "Please keep mind on your qiskit version,
-                an very outdated version may cause some problems."),
-                ('itemize', 'Local Qiskit version', __qiskit_version__['qiskit']),
-                {
-                    'type': 'itemize',
-                    'description': 'Latest Qiskit version',
-                    'value': latest_version,
-                }
-                ],
-                ljust_describe_len=40,
-            )
-        >>> print(check_msg)
-
-        ```
+        Args:
+            raw (Optional[list[Union[tuple[Any, ...], dict[str, Any]]]], optional):
+                Raw items to print.
+                Defaults to None, which means an empty list.
+            name (str, optional):
+                Name of the printer. Defaults to "Hoshi".
         """
 
         self.__name__ = name
