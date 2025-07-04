@@ -235,7 +235,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -351,7 +351,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.

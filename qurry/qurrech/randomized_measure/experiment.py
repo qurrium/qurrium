@@ -414,7 +414,7 @@ class EchoListenRandomizedExperiment(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`
                 Defaults to None.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
@@ -423,17 +423,23 @@ class EchoListenRandomizedExperiment(
                 Defaults to None.
 
             serial (Optional[int], optional):
-                Index of experiment in a multiOutput.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Index of experiment in
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                ID of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
-                _description_. Defaults to None.
+                Name of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
+                Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.

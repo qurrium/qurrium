@@ -106,8 +106,8 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     If None, then use the same backend as the first quantum circuit.
     """
     second_transpile_args: Optional[TranspileArgs] = None
-    """Arguments of :func:`qiskit.compiler.transpile` 
-    or :cls:`qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
+    """Arguments of :func:`~qiskit.compiler.transpile` 
+    or :class:`~qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
     And it only works when the second backend is given.
     """
     random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
