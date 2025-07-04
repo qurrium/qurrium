@@ -31,18 +31,16 @@ def randomized_entangled_entropy_v1(
 
     Reference:
         .. note::
+
             - Probing Rényi entanglement entropy via randomized measurements -
             Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
             Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-            [doi:10.1126/science.aau4963](
-                https://www.science.org/doi/abs/10.1126/science.aau4963)
+            [doi:10.1126/science.aau4963](https://www.science.org/doi/abs/10.1126/science.aau4963)
 
             - Statistical correlations between locally randomized measurements:
             A toolbox for probing entanglement in many-body quantum states -
             A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            [PhysRevA.99.052323](https://doi.org/10.1103/PhysRevA.99.052323)
 
         .. code-block:: bibtex
 
@@ -125,7 +123,8 @@ def randomized_entangled_entropy_v1(
             This only works for Python and Cython backend.
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -288,18 +287,16 @@ def randomized_entangled_entropy_mitigated_v1(
         - Randomized Measure - Entangled Entropy
 
         .. note::
+
             - Probing Rényi entanglement entropy via randomized measurements -
             Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
             Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-            [doi:10.1126/science.aau4963](
-                https://www.science.org/doi/abs/10.1126/science.aau4963)
+            [doi:10.1126/science.aau4963](https://www.science.org/doi/abs/10.1126/science.aau4963)
 
             - Statistical correlations between locally randomized measurements:
             A toolbox for probing entanglement in many-body quantum states -
             A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            [PhysRevA.99.052323](https://doi.org/10.1103/PhysRevA.99.052323)
 
         .. code-block:: bibtex
 
@@ -362,11 +359,11 @@ def randomized_entangled_entropy_mitigated_v1(
         - Error Mitigation
 
         .. note::
+
             - Simple mitigation of global depolarizing errors in quantum simulations -
             Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
             Christopher and Kim, M. S. and Knolle, Johannes,
-            [PhysRevE.104.035309](
-                https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+            [PhysRevE.104.035309](https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
 
         .. code-block:: bibtex
 
@@ -419,7 +416,8 @@ def randomized_entangled_entropy_mitigated_v1(
             This can save a lot of time
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 

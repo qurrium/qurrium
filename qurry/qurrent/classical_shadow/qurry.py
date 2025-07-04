@@ -44,19 +44,17 @@ class ShadowUnveil(
 
     References:
         .. note::
+
             - Predicting many properties of a quantum system from very few measurements -
             Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-            [doi:10.1038/s41567-020-0932-7](
-                https://doi.org/10.1038/s41567-020-0932-7)
+            [doi:10.1038/s41567-020-0932-7](https://doi.org/10.1038/s41567-020-0932-7)
 
             - The randomized measurement toolbox -
             Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
             Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-            [doi:10.1038/s42254-022-00535-2](
-                https://doi.org/10.1038/s42254-022-00535-2)
+            [doi:10.1038/s42254-022-00535-2](https://doi.org/10.1038/s42254-022-00535-2)
 
         .. code-block:: bibtex
-
 
             @article{cite-key,
                 abstract = {

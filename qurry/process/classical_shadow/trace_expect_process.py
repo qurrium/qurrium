@@ -48,6 +48,7 @@ def mean_rho_core(
 
 TraceRhoMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
 """The method to calculate the trace of Rho square.
+
 - "trace_of_matmul":
     Use np.trace(np.matmul(rho_m1, rho_m2)) 
     to calculate the each summation item in `rho_m_list`.
@@ -69,16 +70,15 @@ def trace_rho_square_core(
 
     Reference:
         .. note::
+
             - Predicting many properties of a quantum system from very few measurements -
             Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-            [doi:10.1038/s41567-020-0932-7](
-                https://doi.org/10.1038/s41567-020-0932-7)
+            [doi:10.1038/s41567-020-0932-7](https://doi.org/10.1038/s41567-020-0932-7)
 
             - The randomized measurement toolbox -
             Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
             Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-            [doi:10.1038/s42254-022-00535-2](
-                https://doi.org/10.1038/s42254-022-00535-2)
+            [doi:10.1038/s42254-022-00535-2](https://doi.org/10.1038/s42254-022-00535-2)
 
         .. code-block:: bibtex
 

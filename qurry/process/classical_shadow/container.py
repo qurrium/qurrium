@@ -13,8 +13,8 @@ class ClassicalShadowBasic(TypedDict):
     average_classical_snapshots_rho: dict[int, np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
     """The dictionary of average classical snapshots, 
     which uses the notation rho in 
-    [Predicting many properties of a quantum system from very few measurements](
-        https://doi.org/10.1038/s41567-020-0932-7).
+    :ref:`Predicting many properties of a quantum system from very few measurements<
+        https://doi.org/10.1038/s41567-020-0932-7>`
 
     The numpy.array shape is `(2, 2)`.
     """

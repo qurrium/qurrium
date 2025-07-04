@@ -7,18 +7,16 @@ Reference:
     - Randomized Measure - Entangled Entropy/Wavefunction Overlap
 
     .. note::
+
         - Probing Rényi entanglement entropy via randomized measurements -
         Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
         Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-        [doi:10.1126/science.aau4963](
-            https://www.science.org/doi/abs/10.1126/science.aau4963)
+        [doi:10.1126/science.aau4963](https://www.science.org/doi/abs/10.1126/science.aau4963)
 
         - Statistical correlations between locally randomized measurements:
         A toolbox for probing entanglement in many-body quantum states -
         A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-        [PhysRevA.99.052323](
-            https://doi.org/10.1103/PhysRevA.99.052323
-        )
+        [PhysRevA.99.052323](https://doi.org/10.1103/PhysRevA.99.052323)
 
     .. code-block:: bibtex
 
@@ -84,8 +82,7 @@ Reference:
         - Simple mitigation of global depolarizing errors in quantum simulations -
         Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
         Christopher and Kim, M. S. and Knolle, Johannes,
-        [PhysRevE.104.035309](
-            https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+        [PhysRevE.104.035309](https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
 
     .. code-block:: bibtex
 

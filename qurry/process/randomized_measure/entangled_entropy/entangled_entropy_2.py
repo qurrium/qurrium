@@ -33,8 +33,7 @@ def randomized_entangled_entropy(
         - Probing Rényi entanglement entropy via randomized measurements -
         Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
         Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-        [doi:10.1126/science.aau4963](
-            https://www.science.org/doi/abs/10.1126/science.aau4963)
+        [doi:10.1126/science.aau4963](https://www.science.org/doi/abs/10.1126/science.aau4963)
 
     .. code-block:: bibtex
 
@@ -87,7 +86,8 @@ def randomized_entangled_entropy(
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -170,7 +170,8 @@ def preparing_all_system(
         backend (PostProcessingBackendLabel):
             Backend for the process.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -238,17 +239,16 @@ def randomized_entangled_entropy_mitigated(
     The entropy we compute is the Second Order Rényi Entropy.
 
     .. note::
+
         - Probing Rényi entanglement entropy via randomized measurements -
         Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
         Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-        [doi:10.1126/science.aau4963](
-            https://www.science.org/doi/abs/10.1126/science.aau4963)
+        [doi:10.1126/science.aau4963](https://www.science.org/doi/abs/10.1126/science.aau4963)
 
         - Simple mitigation of global depolarizing errors in quantum simulations -
         Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
         Christopher and Kim, M. S. and Knolle, Johannes,
-        [PhysRevE.104.035309](
-            https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+        [PhysRevE.104.035309](https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
 
     .. code-block:: bibtex
 
@@ -326,7 +326,8 @@ def randomized_entangled_entropy_mitigated(
             This can save a lot of time
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :class:`~tqdm.tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
