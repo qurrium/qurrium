@@ -1,4 +1,35 @@
-"""Progress Bar for Qurrium (:mod:`qurry.tools.progressbar`)"""
+'''Progress Bar for Qurrium (:mod:`qurry.tools.progressbar`)
+
+For the followings GitHub issues on [tqdm](https://tqdm.github.io/)
+
+- [tqdm/tqdm#260: Generic type hint](https://github.com/tqdm/tqdm/issues/260)
+    We do some improvement in our package.
+    We make a fake tqdm class :class:`tqdm` for type hint.
+
+- [tqdm/tqdm#705: No intersphinx available](https://github.com/tqdm/tqdm/issues/705)
+    The intersphinx usage in docstring like:
+
+    .. code-block:: python
+
+        """Dummy docstring.
+
+        Hey, it's a :class:`~tqdm.tqdm`
+        """
+
+    It's not available, so we replace them by:
+
+    .. code-block:: python
+
+        """Dummy docstring.
+
+        Hey, it's a `tqdm.tqdm <https://tqdm.github.io/>`
+        """
+
+    by the external link to the `tqdm` documentation,
+    which follows [Links to External Web Pages](https://sublime-and-sphinx-guide.readthedocs.io/\
+en/latest/references.html#links-to-external-web-pages)
+
+'''
 
 from typing import TypeVar, Iterable, Iterator, Optional
 import tqdm as real_tqdm
@@ -14,10 +45,24 @@ DEFAULT_BAR_FORMAT = {
 
 - "simple":
     A simple format with description, elapsed time, and remaining time.
+
+    .. code-block:: python
+
+        "| {desc} - {elapsed} < {remaining}"
+
 - "qurry-full":
     A full format with count, percentage, bar, description, elapsed time, and remaining time.
+
+    .. code-block:: python
+
+        "| {n_fmt}/{total_fmt} {percentage:3.0f}%|{bar}| - {desc} - {elapsed} < {remaining}"
+
 - "qurry-barless":
     A format without the bar, showing count, description, elapsed time, and remaining time.
+
+    .. code-block:: python
+
+        "| {n_fmt}/{total_fmt} - {desc} - {elapsed} < {remaining}"
 """
 PROGRESSBAR_ASCII = {
     "4squares": " ▖▘▝▗▚▞█",
@@ -38,6 +83,16 @@ PROGRESSBAR_ASCII = {
     A braille ASCII style with 7 segments.
 - "boolen-eq":
     A boolean equal sign ASCII style with just an equal sign.
+
+.. code-block:: python
+
+    {
+        "4squares": " ▖▘▝▗▚▞█",
+        "standard": " ▏▎▍▌▋▊▉█",
+        "decimal": " 123456789#",
+        "braille": " ⠏⠛⠹⠼⠶⠧⠿",
+        "boolen-eq": " =",
+    }    
 """
 
 T = TypeVar("T")
@@ -71,12 +126,16 @@ class tqdm(Iterator[_T], real_tqdm_instance):
     """A fake tqdm class for type hint.
 
     For tqdm not yet implemented their type hint by subscript like:
-    >>> some_tqdm: tqdm[int] = tqdm(range(10))
+
+    .. code-block:: python
+
+        some_tqdm: tqdm[int] = tqdm(range(10))
 
     So, we make a fake tqdm class to make it work.
-    And it should be tracked by this issue: https://github.com/tqdm/tqdm/issues/260
-    To avoid the conflict,
-    you **SHOULD NOT IMPORT** this class and keep it only working
+    And it should be tracked by this issue:
+    https://github.com/tqdm/tqdm/issues/260 to avoid the conflict.
+
+    You **SHOULD NOT IMPORT** this class and keep it only working
     for :func:`qurry_progressbar` as type hint.
 
     """
@@ -85,8 +144,8 @@ class tqdm(Iterator[_T], real_tqdm_instance):
         super().__init__(*args, **kwargs)
         raise NotImplementedError(
             "This is not real tqdm class, "
-            + "but a type hint inherit from `Iterator` "
-            + "for function `qurry_progressbar`, you imported the wrong one."
+            "but a type hint inherit from 'Iterator' "
+            "for function 'qurry_progressbar', you imported the wrong one."
         )
 
 
