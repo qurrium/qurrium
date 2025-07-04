@@ -1,4 +1,4 @@
-"""Qurrium - A Qiskit Macro (:mod:`qurry.qurrium.qurrium`)"""
+"""Qurrium (:mod:`qurry.qurrium.qurrium`)"""
 
 import warnings
 from abc import abstractmethod, ABC
