@@ -24,7 +24,7 @@
 
 - CapSule
     It's also not possible I named this for there is a song
-    called [CapSule](https://youtu.be/M85xU-tbQ6c?si=Ysk7pJu1eKIMOCBv)
+    called `CapSule <https://youtu.be/M85xU-tbQ6c?si=Ysk7pJu1eKIMOCBv>`_
     by Mori Calliope and Hoshimachi Suisei.
     It must be a coincidence. :3
 

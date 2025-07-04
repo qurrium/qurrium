@@ -1,12 +1,12 @@
 '''Progress Bar for Qurrium (:mod:`qurry.tools.progressbar`)
 
-For the followings GitHub issues on [tqdm](https://tqdm.github.io/)
+For the followings GitHub issues on https://tqdm.github.io/
 
-- [tqdm/tqdm#260: Generic type hint](https://github.com/tqdm/tqdm/issues/260)
+-   https://github.com/tqdm/tqdm/issues/260
     We do some improvement in our package.
     We make a fake tqdm class :class:`tqdm` for type hint.
 
-- [tqdm/tqdm#705: No intersphinx available](https://github.com/tqdm/tqdm/issues/705)
+-   https://github.com/tqdm/tqdm/issues/705
     The intersphinx usage in docstring like:
 
     .. code-block:: python
@@ -25,9 +25,10 @@ For the followings GitHub issues on [tqdm](https://tqdm.github.io/)
         Hey, it's a `tqdm.tqdm <https://tqdm.github.io/>`
         """
 
-    by the external link to the `tqdm` documentation,
-    which follows [Links to External Web Pages](https://sublime-and-sphinx-guide.readthedocs.io/\
-en/latest/references.html#links-to-external-web-pages)
+    by the external link to the `tqdm <https://tqdm.github.io/>`_ documentation,
+    which follows `Links to External Web Pages
+    <https://sublime-and-sphinx-guide.readthedocs.io/\
+        en/latest/references.html#links-to-external-web-pages>`_
 
 '''
 
@@ -132,6 +133,7 @@ class tqdm(Iterator[_T], real_tqdm_instance):
         some_tqdm: tqdm[int] = tqdm(range(10))
 
     So, we make a fake tqdm class to make it work.
+
     And it should be tracked by this issue:
     https://github.com/tqdm/tqdm/issues/260 to avoid the conflict.
 
