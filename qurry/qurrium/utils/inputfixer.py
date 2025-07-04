@@ -1,9 +1,8 @@
 """Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)
 
-.. _RapidFuzz:
-    If you want to compare long strings,
-    we recommend using `RapidFuzz <https://github.com/maxbachmann/RapidFuzz>`_
-    instead of our implementation.
+If you want to compare long strings,
+we recommend using `RapidFuzz <https://github.com/maxbachmann/RapidFuzz>`_
+instead of our implementation.
 
 The reference implementation of Damerau-Levenshtein distance:
 
@@ -56,7 +55,7 @@ http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/>`_,
     a Cython implementation of same algorithm.
 
     For more powerful string comparison, including Levenshtein distance,
-    We recommend using :ref:`RapidFuzz`,
+    We recommend using `RapidFuzz <https://github.com/maxbachmann/RapidFuzz>`_,
     It's a library that wraps the C++ Levenshtein algorithm and other string processing functions.
     The most efficient Python implementation (using Cython) currently.
 
