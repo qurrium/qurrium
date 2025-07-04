@@ -1,4 +1,20 @@
-"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)"""
+"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)
+
+.. _RapidFuzz:
+    If you want to compare long strings,
+    we recommend using `RapidFuzz <https://github.com/maxbachmann/RapidFuzz>`_
+    instead of our implementation.
+
+The reference implementation of Damerau-Levenshtein distance:
+
+- The very original implementation by Michael Homer:
+    https://web.archive.org/web/20150909134357/\
+http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance
+
+- A Cython implementation of the same algorithm, where our implementation is based on:
+    https://github.com/lanl/pyxDamerauLevenshtein
+
+"""
 
 import warnings
 from typing import Any, Sequence
@@ -29,17 +45,18 @@ def damerau_levenshtein_distance_py(
     2
 
     It works with arbitrary sequences too:
+
     >>> dameraulevenshtein('abcd', ['b', 'a', 'c', 'd', 'e'])
     2
 
-    This implementation is based on Michael Homer's implementation
-    (https://web.archive.org/web/20150909134357/\
+    This implementation is based on [Michael Homer's implementation
+](https://web.archive.org/web/20150909134357/\
 http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/)
-    and inspired by https://github.com/lanl/pyxDamerauLevenshtein,
+    and based on [pyxDamerauLevenshtein](https://github.com/lanl/pyxDamerauLevenshtein),
     a Cython implementation of same algorithm.
 
     For more powerful string comparison, including Levenshtein distance,
-    We recommend using the https://github.com/maxbachmann/RapidFuzz,
+    We recommend using :ref:`RapidFuzz`,
     It's a library that wraps the C++ Levenshtein algorithm and other string processing functions.
     The most efficient Python implementation (using Cython) currently.
 
@@ -50,7 +67,7 @@ http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/)
     Returns:
         int: The distance between the two sequences.
     """
-    # pylint: enable=line-too-long
+
     if seq1 is None:
         return len(seq2)
     if seq2 is None:
@@ -101,7 +118,7 @@ def damerau_levenshtein_distance(
     This distance is the number of additions, deletions, substitutions,
 
     If you want to compare long strings,
-    we recommend using `RapidFuzz` instead of this function.
+    we recommend using :ref:`RapidFuzz` instead of this function.
     This function is designed for input suggestion for short string.
     which is hard to handle very long string.
 
@@ -116,9 +133,9 @@ def damerau_levenshtein_distance(
     if len(seq1) > 100 or len(seq2) > 100:
         warnings.warn(
             "If you want to compare long strings, "
-            + "we recommend using `RapidFuzz` instead of this function."
-            + "This function is designed for input suggestion for short string."
-            + "which is hard to handle very long string. ",
+            "we recommend using other package like 'RapidFuzz' instead of this function."
+            "This function is designed for input suggestion for short string."
+            "which is hard to handle very long string. ",
             QurryWarning,
         )
 
