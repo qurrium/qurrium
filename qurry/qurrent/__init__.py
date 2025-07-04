@@ -1,7 +1,7 @@
-"""Qurrent/Qurshady - Second Renyi Entropy Measurement/Classical Shadow
-(:mod:`qurry.qurrent`)
+"""Qurrent/Qurshady - Second Renyi Entropy Measurement/Classical Shadow (:mod:`qurry.qurrent`)
 
 .. tip::
+
     1.  The name "qurrent" was the second proposed name for this package.
         It’s not simply "current" with a "q" replacing the "c",
         but rather a combination of "qurr" and "ent", where "ent" abbreviates "entropy",
@@ -22,7 +22,9 @@
         with no prior use on PyPI or in general web searches.
 
     5.  So there is the evolution of the package name:
-        `xproc -> qurrent -> qurry -> qurrium`
+        xproc -> qurrent -> qurry -> qurrium
+
+    6. Emoji: Qurry 🍛 / Qurrium 📏
 
 """
 
@@ -62,18 +64,19 @@ def EntropyMeasure(
     method="randomized",
     **kwargs,
 ):
-    """Call `EntropyMeasure` methods.
+    """Call :func:`EntropyMeasure` methods.
 
     Args:
-        method (Literal[&#39;randomized&#39;, &#39;hadamard&#39;, &#39;base&#39;], optional):
+        method (Literal[
+            "randomized", "randomized_v1", "hadamard", "classical_shadow", str
+        ], optional):
+            The method to use for entropy measurement.
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.
-            - base: the base of `EntropyMeasure`.
-            Defaults to 'randomized'.
+            - base: the base of :class:`EntropyMeasure`.
 
-    Returns:
-        Union[EntropyMeasureBase, EntropyMeasureV2Base]: method.
+            Defaults to 'randomized'.
     """
     if method in ("randomized", "haar"):
         return EntropyMeasureRandomized(*args, **kwargs)

@@ -175,7 +175,7 @@ def create_json_dump_args(
 
     If `json_dump_args` is not provided or a null dictionary,
     it will return :const:`DEFAULT_JSON_DUMP_ARGS`.
-    Otherwise, it will merge the provided `json_dump_args` with :const:`DEFAULT_JSON
+    Otherwise, it will merge the provided `json_dump_args` with :const:`DEFAULT_JSON_DUMP_ARGS`.
 
     Args:
         json_dump_args (Union[dict[str, Any], JSONDumpArgs]): Arguments for json.dump function.
