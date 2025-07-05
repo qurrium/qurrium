@@ -117,7 +117,8 @@ def damerau_levenshtein_distance(
     This distance is the number of additions, deletions, substitutions,
 
     If you want to compare long strings,
-    we recommend using :ref:`RapidFuzz` instead of this function.
+    we recommend using `RapidFuzz <https://github.com/maxbachmann/RapidFuzz>`_
+    instead of this function.
     This function is designed for input suggestion for short string.
     which is hard to handle very long string.
 

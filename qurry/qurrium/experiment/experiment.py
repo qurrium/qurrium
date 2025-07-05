@@ -101,7 +101,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     The memory usage is estimated by the number of instructions in the circuits and
     the number of shots. The factor is calculated by the formula:
 
-    .. code-block:: txt
+    .. code-block:: text
 
         factor = target_circuit_instructions_num + sqrt(shots) * target_circuit_instructions_num
 
