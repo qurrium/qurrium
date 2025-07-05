@@ -30,10 +30,11 @@ def EchoListen(
     method="randomized",
     **kwargs,
 ):
-    """Call `EchoListen` methods.
+    """Call :func:`EchoListen` methods.
 
     Args:
-        method (Literal[&#39;randomized&#39;, &#39;hadamard&#39], optional):
+        method (Literal["randomized", "hadamard"], optional):
+            The method to use for wave function overlap measurement.
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.
@@ -71,10 +72,11 @@ def WaveFunctionOverlap(
     method="randomized",
     **kwargs,
 ):
-    """Call `WaveFunctionOverlap` methods, another name of `EchoListen`.
+    """Call :func:`WaveFunctionOverlap` methods, another name of :func:`EchoListen`.
 
     Args:
-        method (Literal[&#39;randomized&#39;, &#39;hadamard&#39], optional):
+        method (Literal["randomized", "hadamard"], optional):
+            The method to use for wave function overlap measurement.
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.

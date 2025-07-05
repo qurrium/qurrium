@@ -67,9 +67,7 @@ def EntropyMeasure(
     """Call :func:`EntropyMeasure` methods.
 
     Args:
-        method (Literal[
-            "randomized", "randomized_v1", "hadamard", "classical_shadow", str
-        ], optional):
+        method (Literal["randomized", "randomized_v1", "hadamard", "classical_shadow"], optional):
             The method to use for entropy measurement.
 
             - randomized: running by haar randomized measure.
