@@ -1,4 +1,4 @@
-"""SamplingExecuter - Arguments (:mod:`qurry.qurrium.samplingqurry.arguments`)"""
+"""SamplingExecuter - Arguments (:mod:`qurry.qurries.samplingqurry.arguments`)"""
 
 from typing import Optional, Union
 from collections.abc import Hashable
@@ -13,7 +13,7 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 @dataclass(frozen=True)
 class QurryArguments(ArgumentsPrototype):
     """Arguments for
-    :class:`~qurry.qurrium.samplingqurry.experiment.QurryExperiment`."""
+    :class:`~qurry.qurries.samplingqurry.experiment.QurryExperiment`."""
 
     sampling: int = 1
     """The number of sampling."""
@@ -21,7 +21,7 @@ class QurryArguments(ArgumentsPrototype):
 
 class QurryMeasureArgs(BasicArgs, total=False):
     """Input fields for
-    :meth:`~qurry.qurrium.samplingqurry.qurry.QurryV9.measure`
+    :meth:`~qurry.qurries.samplingqurry.qurry.QurryV9.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
@@ -32,7 +32,7 @@ class QurryMeasureArgs(BasicArgs, total=False):
 
 class QurryOutputArgs(OutputArgs):
     """Output arguments for
-    :meth:`~qurry.qurrium.samplingqurry.qurry.QurryV9.output`."""
+    :meth:`~qurry.qurries.samplingqurry.qurry.QurryV9.output`."""
 
     sampling: int
     """The number of sampling."""
@@ -40,10 +40,10 @@ class QurryOutputArgs(OutputArgs):
 
 class QurryAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrium.samplingqurry.experiment.QurryExperiment.analyze`.
+    :meth:`~qurry.qurries.samplingqurry.experiment.QurryExperiment.analyze`.
     """
 
 
 SHORT_NAME = "sampling_executer"
 """The short name of
-:class:`~qurry.qurrium.samplingqurry.experiment.QurryExperiment`"""
+:class:`~qurry.qurries.samplingqurry.experiment.QurryExperiment`"""

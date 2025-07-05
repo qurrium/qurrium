@@ -1,5 +1,4 @@
-"""StringOperator - String Operator
-(:mod:`qurry.qurries.string_operator`)
+"""StringOperator - String Operator (:mod:`qurry.qurries.string_operator`)
 
 Formerly known as `qurstrop`
 

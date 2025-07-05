@@ -1,4 +1,4 @@
-"""The module of exporting the experiment data. (:mod:`qurry.qurrium.container.export`)"""
+"""The module of exporting the experiment data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
 from typing import Optional, NamedTuple, Union, Any

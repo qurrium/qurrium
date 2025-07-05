@@ -1,4 +1,4 @@
-"""QurryV9 (:mod:`qurry.qurrium.samplingqurry.qurry`)
+"""QurryV9 (:mod:`qurry.qurries.samplingqurry.qurry`)
 
 It is only for pendings and retrieve to remote backend.
 """

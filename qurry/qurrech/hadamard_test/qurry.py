@@ -1,7 +1,4 @@
-"""EchoListenHadamard - Qurrium
-(:mod:`qurry.qurrech.hadamard_test.qurry`)
-
-"""
+"""EchoListenHadamard - Qurrium (:mod:`qurry.qurrech.hadamard_test.qurry`)"""
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal

@@ -1,4 +1,4 @@
-"""ExperimentContainer (:mod:`qurry.qurrium.container.experiments`)"""
+"""ExperimentContainerWrapper (:mod:`qurry.qurrium.container.experiments_wrapper`)"""
 
 from typing import Generic, Any
 

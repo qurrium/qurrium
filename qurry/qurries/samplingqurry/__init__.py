@@ -1,4 +1,4 @@
-"""SamplingExecuter (:mod:`qurry.qurrium.samplingqurry`)
+"""SamplingExecuter (:mod:`qurry.qurries.samplingqurry`)
 
 It is only for pendings and retrieve to remote backend.
 """

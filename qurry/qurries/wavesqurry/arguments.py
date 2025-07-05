@@ -1,4 +1,4 @@
-"""WavesExecuter - Arguments (:mod:`qurry.qurrium.wavesqurry.arguments`)
+"""WavesExecuter - Arguments (:mod:`qurry.qurries.wavesqurry.arguments`)
 
 It is only for pendings and retrieve to remote backend.
 """
@@ -16,12 +16,12 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 @dataclass(frozen=True)
 class WavesExecuterArguments(ArgumentsPrototype):
     """Arguments for
-    :class:`~qurry.qurrium.wavesqurry.experiment.WavesExecuterExperiment`."""
+    :class:`~qurry.qurries.wavesqurry.experiment.WavesExecuterExperiment`."""
 
 
 class WavesExecuterMeasureArgs(BasicArgs, total=False):
     """Input fields for
-    :meth:`~qurry.qurrium.wavesqurry.qurry.WavesExecuter.measure`
+    :meth:`~qurry.qurries.wavesqurry.qurry.WavesExecuter.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     waves: Optional[list[Union[QuantumCircuit, Hashable]]]
@@ -29,12 +29,12 @@ class WavesExecuterMeasureArgs(BasicArgs, total=False):
 
 class WavesExecuterOutputArgs(OutputArgs):
     """Output arguments for
-    :meth:`qurry.qurrium.wavesqurry.qurry.WavesExecuter.output`."""
+    :meth:`qurry.qurries.wavesqurry.qurry.WavesExecuter.output`."""
 
 
 class WavesExecuterAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrium.wavesqurry.experiment.WavesExecuterExperiment.analyze`.
+    :meth:`~qurry.qurries.wavesqurry.experiment.WavesExecuterExperiment.analyze`.
     """
 
 

@@ -1,7 +1,4 @@
-"""EchoListenHadamard - Arguments
-(:mod:`qurry.qurrech.randomized_measure.arguments`)
-
-"""
+"""EchoListenHadamard - Arguments (:mod:`qurry.qurrech.hadamard_test.arguments`)"""
 
 from typing import Optional, Union
 from collections.abc import Hashable

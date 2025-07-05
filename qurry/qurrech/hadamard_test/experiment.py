@@ -1,7 +1,4 @@
-"""EchoListenHadamard - Experiment
-(:mod:`qurry.qurrech.hadamard_test.experiment`)
-
-"""
+"""EchoListenHadamard - Experiment (:mod:`qurry.qurrech.hadamard_test.experiment`)"""
 
 from typing import Optional, Type, Any
 from collections.abc import Hashable

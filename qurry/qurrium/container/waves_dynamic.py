@@ -1,4 +1,4 @@
-"""Dynamic Wave Container - A experimental feature of Qurry
+"""Dynamic Wave Container - A experimental feature of Qurrium
 (:mod:`qurry.qurrium.container.waves_dynamic`)
 
 """
