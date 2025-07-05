@@ -1,7 +1,4 @@
-"""EchoListenHadamard - Analysis
-(:mod:`qurry.qurrech.hadamard_test.analysis`)
-
-"""
+"""EchoListenHadamard - Analysis (:mod:`qurry.qurrech.hadamard_test.analysis`)"""
 
 from typing import NamedTuple, Iterable, Type
 

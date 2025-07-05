@@ -79,15 +79,12 @@ class GitSyncControl(list[str]):
             save_location (Path): The location of .gitignore.
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to DEFAULT_OPEN_ARGS, which is:
-                >>> {
-                    'mode': 'w+',
-                    'encoding': 'utf-8',
-                }
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_OPEN_ARGS`.
             print_args (Optional[PrintArgs], optional):
                 The other arguments for :func:`print` function.
-                Defaults to DEFAULT_PRINT_ARGS, which is:
-                >>> {}
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_PRINT_ARGS`.
         """
 
         open_args = create_open_args(open_args=open_args)
@@ -136,11 +133,17 @@ class GitSyncControl(list[str]):
                 Take duplicate item in .gitignore. Defaults to False.
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to DEFAULT_OPEN_ARGS, which is:
-                >>> {
-                    'mode': 'w+',
-                    'encoding': 'utf-8',
-                }
+                Defaults to None,
+                it will be set to the returned valuse of
+                :func:`~qurry.capsule.utils.create_open_args`
+                with `is_read_only` set to True. It will be like:
+
+                .. code-block:: python
+
+                    {
+                        "mode": "r",
+                        "encoding": "utf-8",
+                    }
 
         Raises:
             FileNotFoundError: The .gitignore is not found.

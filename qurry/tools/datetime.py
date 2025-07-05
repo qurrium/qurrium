@@ -1,4 +1,4 @@
-"""Datetime (:mod:`qurry.qurrium.utils.datetime`)"""
+"""Datetime (:mod:`qurry.tools.datetime`)"""
 
 from datetime import datetime
 

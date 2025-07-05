@@ -246,6 +246,7 @@ def multi_output_all_conclusion(
     Returns:
         list[tuple[QurriumPrototype, str, list[dict[str, Any]], str]]:
             The list of multi-output all conclusions. Each tuple contains:
+
             - QurriumPrototype: The experiment method.
             - str: The division.
             - str: The summoner name.

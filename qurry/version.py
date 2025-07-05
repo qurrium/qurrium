@@ -15,3 +15,4 @@ version_info = {
     "version": VERSION,
     "is_nightly": "dev" in __version__,
 }
+"""Version information of Qurrium."""

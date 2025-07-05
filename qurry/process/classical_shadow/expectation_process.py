@@ -21,8 +21,10 @@ def dim_check(
     r"""Check the dimension of the operator.
 
     The dimension of the operator is defined as follows,
+
     .. math::
         \text{dim}(X) = 2^n
+
     where :math:`X` is the operator, and :math:`n` is the number of qubits.
 
     Args:
@@ -52,12 +54,13 @@ def inverted_quantum_channel(
     r"""Inverted quantum channel.
 
     The inverted quantum channel is defined as follows,
+
     .. math::
         \mathcal{M}_{n}^{-1}(X) = (2^n + 1)X - \mathbb{I}
-    where :math:`\mathcal{M}_{n}^{-1}` is the inverted quantum channel,
-    which mentioned in the paper before Algorithm 1.
 
-    where :math:`X` is the operator, and :math:`n` is the number of qubits.
+    where :math:`\mathcal{M}_{n}^{-1}` is the inverted quantum channel,
+    which mentioned in the paper before Algorithm 1,
+    :math:`X` is the operator, and :math:`n` is the number of qubits.
 
     Args:
         op (np.ndarray[tuple[int, int], np.dtype[np.complex128]]):
@@ -81,8 +84,10 @@ def traceless(
     r"""Make the operator traceless.
 
     The traceless operator is defined as follows,
+
     .. math::
         \text{traceless}(O) = O - \frac{\text{tr}(O)}{2^n} \mathbb{I}
+
     where :math:`O` is the operator, and :math:`n` is the number of qubits,
     which mentioned in the supplementary material Lemma S1.
 
@@ -104,8 +109,10 @@ def largest_shadow_norm_squared_upperbound(
     r"""Calculate the largest shadow norm upper bound.
 
     The largest shadow norm upper bound is defined as follows,
+
     .. math::
         || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+
     where :math:`O` is the operator, and :math:`n` is the number of qubits,
     which mentioned in the paper at Theorem 1 (informal version).
 
@@ -134,6 +141,7 @@ def accuracy_predict_epsilon_calc(
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M}
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -145,6 +153,7 @@ def accuracy_predict_epsilon_calc(
 
     Due to maximum shadow norm is complex, we suppose 1 for it should be under the order of 1.
     Thus, we can simplify the equation to:
+
     .. math::
         N = \frac{34}{\epsilon^2}
 
@@ -174,6 +183,7 @@ def worst_accuracy_predict_epsilon_calc(
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M}
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -184,20 +194,27 @@ def worst_accuracy_predict_epsilon_calc(
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
 
     And we also know the largest upper bound of the shadow norm is
+
     .. math::
         || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+
     where :math:`O` is the any operator, and :math:`n` is the number of qubits,
 
     So we set the shadow norm as follows,
+
     .. math::
         \chi = || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}} \\
         \chi_{\infty} = 4^n || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\infty}^2 \\
         \chi^2 \leq \chi_{\infty}
+
     and we can simplify the equation to:
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi^2 
             \leq \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi_{\infty}^2
+
     Then get:
+
     .. math::
         \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
 
@@ -231,6 +248,7 @@ def accuracy_prob_comp_delta_calc(
     r"""Calculate the accuracy probability component delta.
 
     The accuracy probability component delta is calculated by the following equation,
+
     .. math::
         K = 2 \log(2M / \delta) \Rightarrow \delta = 2M \exp(-K / 2)
 
@@ -275,6 +293,7 @@ def num_of_esitmator_calc(
     r"""Calculate the number of estimators.
 
     The number of estimators is calculated by the following equation,
+
     .. math::
         K = 2 \log(2M / \delta)
 
@@ -382,6 +401,7 @@ def prediction_algorithm(
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
         trace_method (AllTraceRhoMethod, optional):
             The method to calculate the trace for searching esitmator.
+
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":

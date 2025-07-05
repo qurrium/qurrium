@@ -39,15 +39,13 @@ class EchoListenRandomized(
     a.k.a. loschmidt echo when processes time evolution system.
 
     Reference:
-        .. note::
-            - Statistical correlations between locally randomized measurements:
+        -   Statistical correlations between locally randomized measurements:
             A toolbox for probing entanglement in many-body quantum states -
             A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
         .. code-block:: bibtex
+
             @article{PhysRevA.99.052323,
                 title = {Statistical correlations between locally randomized measurements:
                 A toolbox for probing entanglement in many-body quantum states},
@@ -110,7 +108,7 @@ class EchoListenRandomized(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the first quantum circuit.
@@ -153,6 +151,7 @@ class EchoListenRandomized(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -160,12 +159,15 @@ class EchoListenRandomized(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -178,7 +180,7 @@ class EchoListenRandomized(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
@@ -273,7 +275,7 @@ class EchoListenRandomized(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the first quantum circuit.
@@ -316,6 +318,7 @@ class EchoListenRandomized(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -323,12 +326,15 @@ class EchoListenRandomized(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -342,7 +348,7 @@ class EchoListenRandomized(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.

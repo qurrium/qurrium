@@ -10,10 +10,12 @@ StringOperatorUnits = Optional[tuple[Literal["rx", "ry", "rz"], float]]
 """Available string operator units.
 
 - tuple[Literal["rx", "ry", "rz"], float]: A tuple containing:
+
     - "rx": Rotation around the x-axis.
     - "ry": Rotation around the y-axis.
     - "rz": Rotation around the z-axis.
     - float: The angle of rotation in radians.
+
     and do the measurement on the qubit.
 
 - None: No operation and measurement is performed on the qubit.
@@ -26,21 +28,23 @@ class StringOperatorLib(TypedDict):
     Which is defined by following the equation:
 
     .. math::
+
         S^O(g) = \langle\psi|\hat{O_i}
             \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 
-    - i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
-    denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
+    -   i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
+        denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
 
-    - zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
-    :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
-    denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
+    -   zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
+        :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
+        denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
     """
 
     i: dict[Union[int, Literal["filling"]], StringOperatorUnits]
     r"""Identity string operator.
 
     .. math::
+
         \hat{O_i} = \hat{O'_k} = \mathbb{1}
     """
     zy: dict[Union[int, Literal["filling"]], StringOperatorUnits]
@@ -54,12 +58,14 @@ class StringOperatorLib(TypedDict):
 
 StringOperatorLibType = Literal["i", "zy"]
 """Available string operator types. 
+
 - "i": Identity string operator.
 - "zy": ZY string operator.
 """
 
 StringOperatorDirection = Literal["x", "y"]
 """Available string operator directions.
+
 - "x": String operator in the X direction.
 - "y": String operator in the Y direction.
 """
@@ -101,15 +107,16 @@ r"""Available string operator library.
 - "y": Available string operator library for the Y direction.
 
 .. math::
+
     S^O(g) = \langle\psi|\hat{O_i}
         \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 
-- i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
-denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
+-   i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
+    denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
 
-- zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
-:math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
-denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
+-   zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
+    :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
+    denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
 """
 
 

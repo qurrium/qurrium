@@ -55,12 +55,14 @@ def memory_usage_factor_expect(
     circuits: list[QuantumCircuit],
     commonparams: Commonparams,
 ) -> int:
-    """Estimate the memory usage of :cls:`ExperimentPrototype` by the circuits.
+    """Estimate the memory usage of
+    :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype` by the circuits.
 
     The memory usage is estimated by the number of instructions in the circuits and
     the number of shots. The factor is calculated by the formula:
 
-    .. code-block:: txt
+    .. code-block:: text
+
         factor = target_circuit_instructions_num + sqrt(shots) * target_circuit_instructions_num
 
     where `target_circuit_instructions_num` is the number of instructions in the target circuits,

@@ -1,11 +1,13 @@
 """Import Simulator (:mod:`qurry.tools.backend.import_simulator`)
 
-This module provides the default simulator for Qurry.
+This module provides the default simulator for Qurrium.
 For the simulator, the following sources are considered:
-    * qiskit_aer
-    * qiskit.providers.aer
-    * qiskit.providers.basicaer
-    * qiskit.providers.basic_provider
+
+- qiskit_aer
+- qiskit.providers.aer
+- qiskit.providers.basicaer
+- qiskit.providers.basic_provider
+
 which are used in different qiskit, qiskit-aer version,
 and ordered by priority.
 """

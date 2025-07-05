@@ -25,15 +25,13 @@ def randomized_overlap_echo_v1(
     a.k.a. loschmidt echo when processes time evolution system.
 
     Reference:
-        .. note::
-            - Statistical correlations between locally randomized measurements:
+        -   Statistical correlations between locally randomized measurements:
             A toolbox for probing entanglement in many-body quantum states -
             A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
         .. code-block:: bibtex
+
             @article{PhysRevA.99.052323,
                 title = {Statistical correlations between locally randomized measurements:
                 A toolbox for probing entanglement in many-body quantum states},
@@ -73,7 +71,8 @@ def randomized_overlap_echo_v1(
             This only works for Python and Cython backend.
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 

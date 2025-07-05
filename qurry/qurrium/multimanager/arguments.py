@@ -44,10 +44,10 @@ def v5_to_v7_field_transpose(rawread_multiconfig: dict[str, Any]) -> dict[str, A
 
     Args:
         rawread_multiconfig (dict[str, Any]):
-            The field name of :cls:`MultiCommonparams` in V5 format.
+            The field name of :class:`MultiCommonparams` in V5 format.
 
     Returns:
-        dict[str, Any]: The field name of :cls:`MultiCommonparams` in V7 format.
+        dict[str, Any]: The field name of :class:`MultiCommonparams` in V7 format.
     """
     for k, nk in V5_TO_V7_FIELD.items():
         if k in rawread_multiconfig:
@@ -56,7 +56,7 @@ def v5_to_v7_field_transpose(rawread_multiconfig: dict[str, Any]) -> dict[str, A
 
 
 class MultiCommonparamsRawdDict(TypedDict):
-    """Default values for `MultiCommonparamsRawread`."""
+    """Rawread dictionary of :class:`MultiCommonparams`."""
 
     summoner_id: str
     summoner_name: str
@@ -74,7 +74,7 @@ class MultiCommonparamsRawdDict(TypedDict):
 
 
 class MultiCommonparamsDict(TypedDict):
-    """Default values for `MultiCommonparams`."""
+    """Dictionary format of :class:`MultiCommonparams`."""
 
     summoner_id: str
     summoner_name: str
@@ -152,7 +152,7 @@ class MultiCommonparams(NamedTuple):
         save_location: Union[Path, str],
         export_location: Union[Path, str],
     ) -> Union[MultiCommonparamsRawdDict, dict[str, Any]]:
-        """Build `MultiCommonparams` from rawread file.
+        """Build :class:`MultiCommonparams` from rawread file.
 
         Args:
             mutlticonfig_name (Union[Path, str]):
@@ -163,10 +163,8 @@ class MultiCommonparams(NamedTuple):
                 The location of exporting experiment.
 
         Returns:
-            Union[
-                MultiCommonparamsRawreadDict,
-                dict[str, Any]
-            ]: The `MultiCommonparams` in dictionary format.
+            Union[MultiCommonparamsRawreadDict, dict[str, Any]]:
+                The :class:`MultiCommonparams` in dictionary format.
         """
 
         rawread_multiconfig = {}

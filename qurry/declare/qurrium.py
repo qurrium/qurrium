@@ -1,7 +1,4 @@
-"""Declaration - Arguments (:mod:`qurry.declare.qurrium`)
-
-Arguments for :meth:`output` from :cls:`QurriumPrototype`
-"""
+"""Declaration - Arguments (:mod:`qurry.declare.qurrium`)"""
 
 from typing import Optional, Union, TypedDict, Any, Literal, TypeVar
 from collections.abc import Hashable
@@ -17,11 +14,14 @@ from .transpile import TranspileArgs
 
 
 PassManagerType = Optional[Union[str, PassManager, tuple[str, PassManager]]]
-"""The type hint for passmanager argument in :meth:`output` from :cls:`QurriumPrototype`."""
+"""The type hint for passmanager argument in 
+:meth:`~qurry.qurrium.qurrium.QurriumPrototype.output`."""
 
 
 class BasicArgs(TypedDict, total=False):
-    """Basic output arguments for :meth:`output`."""
+    """Basic input fields for
+    :meth:`~qurry.qurrium.qurrium.QurriumPrototype.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     shots: int
     backend: Optional[Backend]
@@ -43,23 +43,31 @@ class BasicArgs(TypedDict, total=False):
 
 
 _MA = TypeVar("_MA", bound=BasicArgs)
+"""The type var of :class:`BasicArgs` for
+:meth:`~qurry.qurrium.qurrium.QurriumPrototype.measure`
+and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput"""
+
 ConfigListType = Union[list[dict[str, Any]], list[_MA], list[Union[_MA, dict[str, Any]]]]
-"""The type hint for :cls:`MultiManager` and 
-:meth:`multiBulid`, :meth:`multiOutput` from :cls:`QurriumPrototype`.
+"""The generic type hint for the input of
+:meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiBulid`
+and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`.
 """
 
 
 class OutputArgs(BasicArgs):
-    """Basic output arguments for :meth:`output`."""
+    """Basic output arguments for
+    :meth:`~qurry.qurrium.qurrium.QurriumPrototype.output`."""
 
     circuits: list[Union[QuantumCircuit, Hashable]]
 
 
 _OA = TypeVar("_OA", bound=OutputArgs)
-"""The type hint for :meth:`measure_to_output` from :cls:`QurriumPrototype`.
-OutputArgs is used for passing arguments in an standard format to
-:meth:`output` from :cls:`QurriumPrototype` and 
-:meth:`multiOutput` from :cls:`MultiManager`.
+"""The type var of :class:`OutputArgs` 
+for :meth:`~qurry.qurrium.qurrium.QurriumPrototype.output` 
+
+:class:`OutputArgs` is also used for passing arguments in an standard format to
+:meth:`~qurry.qurrium.qurrium.QurriumPrototype.output` 
+and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`.
 """
 
 
@@ -68,7 +76,12 @@ class AnalyzeArgs(TypedDict):
 
 
 _RA = TypeVar("_RA", bound=AnalyzeArgs)
+"""The type var of :class:`AnalyzeArgs` for
+:meth:`~qurry.qurrium.qurrium.QurriumPrototype.analyze`
+and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
+"""
+
 SpecificAnalsisArgs = Optional[dict[Hashable, Union[_RA, dict[str, Any], bool]]]
-"""The type hint for :meth:`analyze` from :cls:`MultiManager`
-and :meth:`multiAnalsis` from :cls:`QurriumPrototype`.
+"""The type hint for :meth:`~qurry.qurrium.multimanager.multimanager.analyze` 
+and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """

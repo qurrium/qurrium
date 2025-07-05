@@ -22,7 +22,7 @@ def rho_m_flatten_core(
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: list[int],
 ) -> tuple[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]], list[int], float]:
-    """Rho M Cell Core calculation and directly return :cls:`ClassicalShadowComplex`.
+    """Rho M Cell Core calculation.
 
     Args:
         shots (int):

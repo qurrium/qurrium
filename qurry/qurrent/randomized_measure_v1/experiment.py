@@ -73,7 +73,7 @@ class EntropyMeasureRandomizedV1Experiment(
                 Defaults to `'experiment'`.
             times (int):
                 The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
             measure (Optional[Union[tuple[int, int], int]]):
                 The measure range. Defaults to None.
             unitary_loc (Optional[Union[tuple[int, int], int]]):
@@ -85,6 +85,7 @@ class EntropyMeasureRandomizedV1Experiment(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -92,12 +93,15 @@ class EntropyMeasureRandomizedV1Experiment(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             custom_kwargs (Any):
                 The custom parameters.
 

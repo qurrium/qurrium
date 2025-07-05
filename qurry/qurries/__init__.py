@@ -1,8 +1,4 @@
-"""Qurries - Other Qurrium Modules (:mod:`qurry.qurries`)
-
-- TwistedOperator - Twisted Operator (Proposal)
-    - Formerly known as `qurtwistop`
-"""
+"""Qurries - Other Qurrium Modules (:mod:`qurry.qurries`)"""
 
 from .samplingqurry import SamplingExecuter, SamplingExecuterMeasureArgs
 from .wavesqurry import WavesExecuter, WavesExecuterMeasureArgs

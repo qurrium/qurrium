@@ -39,6 +39,7 @@ def cnot_dyn(
     k = int(n/2) : Number of Bell pairs created
 
     .. code-block:: bibtex
+
         @article{B_umer_2024,
             title={Efficient Long-Range Entanglement Using Dynamic Circuits},
             volume={5},

@@ -1,4 +1,4 @@
-"""The parallel tools for Qurry. (:mod:`qurry.tools.parallelmanager`)"""
+"""The parallel tools for Qurrium. (:mod:`qurry.tools.parallelmanager`)"""
 
 import warnings
 from typing import Optional, Iterable, Callable, TypeVar, Any, Literal

@@ -1,7 +1,4 @@
-"""EchoListenRandomized - Utility
-(:mod:`qurry.qurrech.randomized_measure.utils`)
-
-"""
+"""EchoListenRandomized - Utility (:mod:`qurry.qurrech.randomized_measure.utils`)"""
 
 from typing import Union, Optional, Literal
 
@@ -35,6 +32,7 @@ def create_config(
     Returns:
         tuple[dict[int, int], list[int], dict[int, int], list[int]]:
             A tuple containing:
+
             - registers_mapping:
                 The mapping of the index of selected qubits to the index of the classical register.
             - qubits_measured:
@@ -82,26 +80,26 @@ def overlapping_given_check(
     Args:
         actual_qubits_1 (int): The number of qubits in the first circuit.
         actual_qubits_2 (int): The number of qubits in the second circuit.
-            measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The selected qubits for the measurement for the first quantum circuit.
-                If it is None, then it will return the mapping of all qubits.
-                If it is int, then it will return the mapping of the last n qubits.
-                If it is tuple, then it will return the mapping of the qubits in the range.
-                If it is list, then it will return the mapping of the selected qubits.
-                Defaults to None.
-            measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The selected qubits for the measurement for the second quantum circuit.
-                If it is None, then it will return the mapping of all qubits.
-                If it is int, then it will return the mapping of the last n qubits.
-                If it is tuple, then it will return the mapping of the qubits in the range.
-                If it is list, then it will return the mapping of the selected qubits.
-                Defaults to None.
-            unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator for the first quantum circuit.
-                Defaults to None.
-            unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator for the second quantum circuit.
-                Defaults to None.
+        measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The selected qubits for the measurement for the first quantum circuit.
+            If it is None, then it will return the mapping of all qubits.
+            If it is int, then it will return the mapping of the last n qubits.
+            If it is tuple, then it will return the mapping of the qubits in the range.
+            If it is list, then it will return the mapping of the selected qubits.
+            Defaults to None.
+        measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The selected qubits for the measurement for the second quantum circuit.
+            If it is None, then it will return the mapping of all qubits.
+            If it is int, then it will return the mapping of the last n qubits.
+            If it is tuple, then it will return the mapping of the qubits in the range.
+            If it is list, then it will return the mapping of the selected qubits.
+            Defaults to None.
+        unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The range of the unitary operator for the first quantum circuit.
+            Defaults to None.
+        unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The range of the unitary operator for the second quantum circuit.
+            Defaults to None.
 
     Raises:
         ValueError: If the number of qubits in the two circuits is not the same
@@ -119,6 +117,9 @@ NSG_OVERLAPPING_SIZE = (
     + "but got different number of qubits measured."
     + "Got circuit 1: {} {} and circuit 2: {} {}."
 )
+"""Message for checking the size of qubits measured and unitary located mapping.
+This message is used in the function :func:`overlapping_size_check` to raise an exception
+if the size of the qubits measured or unitary located mapping in the two circuits are different"""
 
 
 def overlapping_size_check(
@@ -172,6 +173,10 @@ MSG_FULL_COVER = (
     + "you can set `unitary_loc_not_cover_measure=True` "
     + "to close this warning."
 )
+"""Message for checking whether the unitary operator covers the measurement.
+This message is used in the function :func:`unitary_full_cover_check` to raise an exception
+if the unitary operator does not cover the measurement 
+and `unitary_loc_not_cover_measure` is False."""
 
 
 def unitary_full_cover_check(

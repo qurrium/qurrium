@@ -1,6 +1,6 @@
 """Declaration - Run - Simulator (:mod:`qurry.declare.run.simulator`)
 
-This module reveals the full arguments of the :meth:`backend.run` method
+This module reveals the full arguments of :meth:`~qiskit.providers.backend.BackendV2.run`
 for the simulator backends to avoid the UNnEcEsSaRy and PAINFUL finding of
 how many arguments and what types of arguments you can pass to the method.
 
@@ -14,12 +14,12 @@ from .base_run import BaseRunArgs
 
 
 class BasicSimulatorRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
-    For :cls:`BasicSimulator` from :mod:`qiskit.providers.basic_provider`:
+    """For `BasicSimulator` from :mod:`qiskit.providers.basic_provider`:
 
-    - For qiskit>=2.0, the signature of :meth:`backend.run` is:
+    For qiskit>=2.0, the signature of :meth:`~qiskit.providers.backend.BackendV2.run` is:
 
     .. code-block:: python
+
         def run(
             self, run_input: QuantumCircuit | list[QuantumCircuit], **run_options
         ) -> BasicProviderJob:
@@ -27,6 +27,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls) -> Options:
             return Options(
@@ -36,8 +37,10 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
                 seed_simulator=None,
             )
 
-    - For qiskit<2.0, the signature of :meth:`backend.run` is:
+    For qiskit<2.0, the signature of :meth:`backend.run` is:
+
     .. code-block:: python
+
         def run(
             self, run_input: QuantumCircuit | list[QuantumCircuit], **backend_options
         ) -> BasicProviderJob:
@@ -45,6 +48,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls) -> Options:
             return Options(
@@ -60,6 +64,7 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
     or ?
 
     .. code-block:: python
+
         def _assemble(
             experiments: Union[
                 QuantumCircuit,
@@ -110,12 +115,14 @@ class BasicSimulatorRunArgs(BaseRunArgs, total=False):
 
 
 class AerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
-    For :cls:`AerBackend` from :mod:`qiskit_aer.backends.aerbackend`
-    or :cls:`AerBackend` from :mod:`qiskit.providers.aer.backends.aerbackend`,
-    the old import path.:
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
+
+    For `AerBackend` from :mod:`qiskit_aer.backends.aerbackend`
+    or `AerBackend` from :mod:`qiskit.providers.aer.backends.aerbackend`,
+    the old import path:
 
     .. code-block:: python
+
         def run(self, circuits, parameter_binds=None, **run_options):
             if isinstance(circuits, (QuantumCircuit, Schedule, ScheduleBlock)):
             circuits = [circuits]
@@ -125,6 +132,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         def _run_circuits(self, circuits, parameter_binds, **run_options):
             # Submit job
             job_id = str(uuid.uuid4())
@@ -143,6 +151,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     ->
 
     .. code-block:: python
+
         def set_option(self, key, value):
             if hasattr(self._configuration, key):
                 self._set_configuration_option(key, value)
@@ -165,6 +174,7 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
     the default options are:
 
     .. code-block:: python
+
         @classmethod
         def _default_options(cls):
             return Options(
@@ -305,10 +315,12 @@ class AerBackendRunArgs(BaseRunArgs, total=False):
 
 
 class BasicAerBackendRunArgs(BaseRunArgs, total=False):
-    """Arguments for :meth:`backend.run` from :mod:`qiskit.providers.backend`.
-    For :cls:`QasmSimulatorPy` from :mod:`qiskit.providers.basicaer`:
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`.
+
+    For `QasmSimulatorPy` from :mod:`qiskit.providers.basicaer`:
 
     .. code-block:: python
+
         def run(self, qobj, **backend_options):
             ...
             self._set_options(qobj_config=qobj_options, backend_options=backend_options)

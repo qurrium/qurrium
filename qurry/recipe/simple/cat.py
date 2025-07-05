@@ -1,16 +1,17 @@
-"""GHZ state (:mod:`qurry.recipe.library.simple.cat`)
+"""GHZ state (:mod:`qurry.recipe.simple.cat`)
 
-The entangled circuit :cls:`GHZ` a.k.a. :cls:`Cat`.
+The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`
+as known as :class:`~qurry.recipe.simple.cat.Cat`,
+which has been mentioned in the following reference.
 
 Reference:
-    .. note::
-        - Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
+    -   Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
         Using the IBM Quantum Computer - Choo, Kenny and von Keyserlingk, Curt W. and
         Regnault, Nicolas and Neupert, Titus
-        [doi:10.1103/PhysRevLett.121.086808](
-            https://doi.org/10.1103/PhysRevLett.121.086808)
+        `doi:10.1103/PhysRevLett.121.086808 <https://doi.org/10.1103/PhysRevLett.121.086808>`_
 
     .. code-block:: bibtex
+
         @article{PhysRevLett.121.086808,
             title = {
                 Measurement of the Entanglement Spectrum of a Symmetry-Protected Topological State
@@ -27,7 +28,7 @@ Reference:
             publisher = {American Physical Society},
             doi = {10.1103/PhysRevLett.121.086808},
             url = {https://link.aps.org/doi/10.1103/PhysRevLett.121.086808}
-}
+        }
 
 """
 
@@ -35,8 +36,7 @@ from ..n_body import OneBody
 
 
 class GHZ(OneBody):
-    """The entangled circuit :cls:`GHZ`.
-    Introduce in https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.086808 .
+    r"""The entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`.
 
     .. code-block:: text
 
@@ -58,6 +58,11 @@ class GHZ(OneBody):
                                           └───┘┌─┴─┐
         q7: ───────────────────────────────────┤ X ├
                                                └───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): The number of qubits for constructing the example circuit.
@@ -83,7 +88,8 @@ class GHZ(OneBody):
 
 
 class Cat(GHZ):
-    """:cls:`Cat`, the anthor name of entangled circuit :cls:`GHZ`.
+    r""":class:`~qurry.recipe.simple.cat.Cat`,
+    the anthor name of entangled circuit :class:`~qurry.recipe.simple.cat.GHZ`.
 
     .. code-block:: text
 
@@ -105,6 +111,11 @@ class Cat(GHZ):
                                           └───┘┌─┴─┐
         q7: ───────────────────────────────────┤ X ├
                                                └───┘
+
+    .. math::
+
+        \frac{1}{\sqrt{2}}
+            \left({|01\rangle} - {|10\rangle} \right)^{\otimes N/2}, N = 8
 
     Args:
         num_qubits (int): The number of qubits for constructing the example circuit.

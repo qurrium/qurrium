@@ -8,7 +8,8 @@ _E = TypeVar("_E", bound=ExperimentPrototype)
 
 
 class ExperimentContainer(dict[str, _E]):
-    """A customized dictionary for storing `ExperimentPrototype` objects."""
+    """A customized dictionary for storing
+    :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
     __name__ = "ExperimentContainer"
 

@@ -13,9 +13,11 @@ from ..utils import single_counts_recount_pyrust
 # pylint: disable=invalid-name
 RhoMKCellMethod = Union[Literal["numpy", "numpy_precomputed"], str]
 """Type for rho_mk_cell method.
-It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+It can be either "numpy", "numpy_precomputed".
+
 - "numpy": Use Numpy to calculate the rho_m.
 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
+
 Currently, "numpy_precomputed" is the best option for performance.
 """
 # pylint: enable=invalid-name
@@ -33,14 +35,14 @@ def rho_mk_cell_py(
 ]:
     r""":math:`\rho_{mk}` calculation for single cell.
 
-    The matrix :math:`\rho_{mk}^{i} is calculated by the following equation,
-    .. math::
+    The matrix :math:`\rho_{mk}^{i}` is calculated by the following equation,
 
+    .. math::
         \rho_{mk}^{i} = \frac{3} U_{mi}^{\dagger} |b_k \rangle\langle b_k | U_{mi} - \mathbb{1}
 
     The matrix :math:`\rho_{mk}` is calculated by the following equation,
-    .. math::
 
+    .. math::
         \rho_{mk} = \bigotimes_{i=1}^{N_q} \rho_{mk}^{i}
 
     where :math:`N_q` is the number of qubits,
@@ -106,14 +108,14 @@ def rho_mk_cell_py_precomputed(
 ]:
     r""":math:`\rho_{mk}` calculation for single cell.
 
-    The matrix :math:`\rho_{mk}^{i} is calculated by the following equation,
-    .. math::
+    The matrix :math:`\rho_{mk}^{i}` is calculated by the following equation,
 
+    .. math::
         \rho_{mk}^{i} = \frac{3} U_{mi}^{\dagger} |b_k \rangle\langle b_k | U_{mi} - \mathbb{1}
 
     The matrix :math:`\rho_{mk}` is calculated by the following equation,
-    .. math::
 
+    .. math::
         \rho_{mk} = \bigotimes_{i=1}^{N_q} \rho_{mk}^{i}
 
     where :math:`N_q` is the number of qubits,

@@ -78,10 +78,9 @@ def key_tuple_loads(o):
 
 
 class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
-    """Specific data structures of :mod:`qurrium` like `dict[str, list[any]]`.
+    """Specific data structures of Qurrium like :class:`dict[str, list[any]]`.
 
     >>> bla = TagList()
-
     >>> bla.guider('strTag1', [...])
     >>> bla.guider(('tupleTag1', ), [...])
     >>> # other adding of key and value via `.guider()`
@@ -95,14 +94,16 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
 
     Args:
         name (str, optional):
-            The name of this :cls:`TagList`. Defaults to `TagList`.
+            The name of this :class:`TagList`. Defaults to `TagList`.
 
     Raises:
         ValueError: When input is not a dict.
     """
 
     __name__ = "TagList"
+    """The name of this :class:`TagList`. Defaults to `TagList`."""
     protect_keys = ["_all", ()]
+    """Reserved keys for :class:`TagList`."""
 
     def __init__(
         self,
@@ -132,10 +133,10 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
             )
 
     def all(self) -> list[_V]:
-        """Export all values in `tagList`.
+        """Export all values in :class:`TagList`.
 
         Returns:
-            list: All values in `tagList`.
+            list: All values in :class:`TagList`.
         """
         d = []
         for v in self.values():
@@ -144,7 +145,7 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
         return d
 
     def guider(self, proposal_tag: Optional[_K] = None, v: Any = None) -> None:
-        """Append a value to the :cls:`TagList` with a tag.
+        """Append a value to the :class:`TagList` with a tag.
 
         Args:
             proposal_tag (any): The tag for this value.
@@ -162,25 +163,14 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
             self[proposal_tag] = [v]
 
     class ParamsControl(NamedTuple):
-        """The type of arguments for :func:`params_control`"""
+        """The type of arguments for :meth:`~TagList.params_control`"""
 
         open_args: OpenArgs
-        """ The arguments for :func:`open` function.
-        Defaults to DEFAULT_OPEN_ARGS, which is:
-        >>> {
-            'mode': 'w+',
-            'encoding': 'utf-8',
-        }
-        """
+        """ The arguments for :func:`open` function."""
         json_dump_args: JSONDumpArgs
-        """The arguments for :func:`json.dump` function.
-        Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
-        >>> {
-            'indent': 2,
-        }
-        """
-        save_location: Path
-        """The exported location. Defaults to `Path('./')`."""
+        """The arguments for :func:`~json.dump` function."""
+        save_location: Path = Path("./")
+        """The exported location."""
 
     @classmethod
     def params_control(
@@ -195,21 +185,16 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
         Args:
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to DEFAULT_OPEN_ARGS, which is:
-                >>> {
-                    'mode': 'w+',
-                    'encoding': 'utf-8',
-                }
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_OPEN_ARGS`.
             json_dump_args (Optional[JSONDumpArgs], optional):
-                The other arguments for :func:`json.dump` function.
-                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
-                >>> {
-                    'indent': 2,
-                }
+                The other arguments for :func:`~json.dump` function.
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_JSON_DUMP_ARGS`.
             save_location (Path, optional):
                 The exported location. Defaults to `Path('./')`.
             is_read_only (bool, optional):
-                Whether to read a file of :cls:`TagList` exportation.
+                Whether to read a file of :class:`TagList` exportation.
 
         Returns:
             ParamsControl: Current arguments.
@@ -242,7 +227,7 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
         open_args: Optional[OpenArgs] = None,
         json_dump_args: Optional[JSONDumpArgs] = None,
     ) -> Path:
-        """Export :cls:`TagList` to a file.
+        """Export :class:`TagList` to a file.
 
         Args:
             name (Optional[str], optional):
@@ -251,23 +236,29 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
             save_location (Path):
                 The location of file. Defaults to `Path('./')`.
             taglist_name (str, optional):
-                The suffix name for this `tagList`.
-                Defaults to `__name__`.
+                The suffix name for this :class:`TagList`.
+                Defaults to :attr:`__name__`.
                 The file name will be
-                "{name}.{taglist_name}.json" or "{taglist_name}.json" when 'name' is None.
+
+                .. code-block:: python
+
+                    f"{name}.{taglist_name}.json"
+
+                or
+
+                .. code-block:: python
+
+                    f"{taglist_name}.json"
+
+                when `name` is None.
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to DEFAULT_OPEN_ARGS, which is:
-                >>> {
-                    'mode': 'w+',
-                    'encoding': 'utf-8',
-                }
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_OPEN_ARGS`.
             json_dump_args (Optional[JSONDumpArgs], optional):
-                The other arguments for :func:`json.dump` function.
-                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
-                >>> {
-                    'indent': 2,
-                }
+                The other arguments for :func:`~json.dump` function.
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_JSON_DUMP_ARGS`.
 
         Raises:
             ValueError: When filetype is not supported.
@@ -303,34 +294,38 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
         open_args: Optional[OpenArgs] = None,
         json_dump_args: Optional[JSONDumpArgs] = None,
     ) -> "TagList":
-        """Read a :cls:`TagList` from a file.
+        """Read a :class:`TagList` from a file.
 
         Args:
             filename (str):
-                The file name of exported :cls:`TagList`.
+                The file name of exported :class:`TagList`.
                 The file name should be something like
                 "{name}.{taglist_name}.json" or "{taglist_name}.json" when 'name' is None.
             save_location (Path):
                 The location of file. Defaults to `Path('./')`.
             taglist_name (str, optional):
-                The class name of :cls:`TagList`.
+                The class name of ::class:`TagList`.
                 Defaults to `__name__`.
             tuple_str_auto_transplie (bool, optional):
                 Whether to transplie tuple string in the keys of the dict
                 to real tuple. Defaults to True.
             open_args (Optional[OpenArgs], optional):
                 The other arguments for :func:`open` function.
-                Defaults to DEFAULT_OPEN_ARGS, which is:
-                >>> {
-                    'mode': 'w+',
-                    'encoding': 'utf-8',
-                }
+                Defaults to None,
+                it will be set to the returned valuse of
+                :func:`~qurry.capsule.utils.create_open_args`
+                with `is_read_only` set to True. It will be like:
+
+                .. code-block:: python
+
+                    {
+                        "mode": "r",
+                        "encoding": "utf-8",
+                    }
             json_dump_args (Optional[JSONDumpArgs], optional):
-                The other arguments for :func:`json.dump` function.
-                Defaults to DEFAULT_JSON_DUMP_ARGS, which is:
-                >>> {
-                    'indent': 2,
-                }
+                The other arguments for :func:`~json.dump` function.
+                Defaults to None,
+                it will be set to :const:`~qurry.capsule.utils.DEFAULT_JSON_DUMP_ARGS`.
 
         Raises:
             FileNotFoundError: When file not found.

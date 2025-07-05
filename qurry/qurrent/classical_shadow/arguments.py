@@ -18,7 +18,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class ShadowUnveilArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -27,13 +28,14 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     times: int = 100
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     qubits_measured: Optional[list[int]] = None
     """The measure range."""
     registers_mapping: Optional[dict[int, int]] = None
     """The mapping of the classical registers with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -55,6 +57,7 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -62,11 +65,13 @@ class ShadowUnveilArguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_unitary_seeds` 
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
@@ -83,13 +88,15 @@ class ShadowUnveilArguments(ArgumentsPrototype):
 
 
 class ShadowUnveilMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""
     unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
@@ -103,6 +110,7 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -110,21 +118,24 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_unitary_seeds` 
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
 
 class ShadowUnveilOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.output`."""
 
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""
     unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
@@ -138,6 +149,7 @@ class ShadowUnveilOutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -149,13 +161,16 @@ class ShadowUnveilOutputArgs(OutputArgs):
     in `qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
 
 class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment.analyze`.
+    """
 
     selected_qubits: Optional[list[int]]
     """The selected qubits."""
@@ -166,3 +181,5 @@ class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 SHORT_NAME = "qurshady_entropy"
+"""The short name of
+:class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""

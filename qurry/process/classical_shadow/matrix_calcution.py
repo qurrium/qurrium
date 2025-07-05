@@ -36,6 +36,7 @@ try:
         Args:
             rho_m_array (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
                 The Rho M array.
+
         Returns:
             np.complex128: The trace of Rho.
         """
@@ -54,15 +55,16 @@ try:
     ) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
         """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
 
-            Args:
-                given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
-                    The given operators.
-                estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
-                    The estimators.
+        Args:
+            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The given operators.
+            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                The estimators.
 
         Returns:
             tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
                 A tuple containing:
+
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
@@ -106,6 +108,7 @@ except ImportError as err:
         Args:
             rho_m_array (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
                 The Rho M array.
+
         Returns:
             np.complex128: The trace of Rho.
         """
@@ -130,6 +133,7 @@ except ImportError as err:
         Returns:
             tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
                 A tuple containing:
+
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
@@ -156,15 +160,20 @@ BACKEND_AVAILABLE = availablility(
 ClassicalShadowPythonMethod = Literal["jax", "numpy"]
 """The method to use for the calculation of classical shadow.
 It can be either "jax" or "numpy".
-- "jax": Use JAX to calculate the Kronecker product.
-- "numpy": Use Numpy to calculate the Kronecker product.
+
+- "jax": 
+    Use JAX to calculate the Kronecker product.
+- "numpy": 
+    Use Numpy to calculate the Kronecker product.
 """
 DEFAULT_PYTHON_METHOD: ClassicalShadowPythonMethod = "jax" if JAX_AVAILABLE else "numpy"
 """The default backend to use for the calculation of classical shadow.
-
 It can be either "jax" or "numpy".
-- "jax": Use JAX to calculate the Kronecker product.
-- "numpy": Use Numpy to calculate the Kronecker product.
+
+- "jax": 
+    Use JAX to calculate the Kronecker product.
+- "numpy": 
+    Use Numpy to calculate the Kronecker product.
 """
 
 
@@ -236,9 +245,9 @@ def single_trace_rho_by_einsum_ij_ji(
 
     Args:
         rho_m1_and_rho_m2 (tupletuple[
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-    ]):
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
+        ]):
             The tuple of rho_m1 and rho_m2.
 
     Returns:
@@ -258,8 +267,8 @@ SingleTraceRhoMethod = Union[
 ]
 """The method to calculate the trace of single Rho square.
 
-- "trace_of_matmul": Use 
-    np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+- "trace_of_matmul":
+    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
 - "quick_trace_of_matmul" or "einsum_ij_ji": 
     Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
 """
@@ -348,11 +357,12 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
     Args:
         method (AllTraceRhoMethod, optional):
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
-            It can be either "einsum_aij_bji_to_ab_numpy" or "einsum_aij_bji_to_ab_jax".
+
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             This is the fastest implementation to calculate the trace of Rho.
 
     Returns:
@@ -386,6 +396,7 @@ def prediction_einsum_aij_bji_to_ab_numpy(
     Returns:
         tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
             A tuple containing:
+
             - A list of median values for each given operator.
             - A list of the corresponding median estimators for each given operator.
     """

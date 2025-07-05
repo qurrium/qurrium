@@ -14,7 +14,8 @@ TagListKeyable = TypeVar("TagListKeyable", bound=Hashable)
 
 
 class QuantityContainer(dict[str, TagList[TagListKeyable, dict[str, Any]]]):
-    """The container for quantities of analysis for multimanager."""
+    """The container for quantities of analysis for
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     __name__ = "QuantityContainer"
 

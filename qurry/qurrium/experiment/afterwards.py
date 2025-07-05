@@ -101,7 +101,7 @@ class After(NamedTuple):
 def create_afterwards(
     after: Union[After, None] = None,
 ) -> After:
-    """Create an Afterwards object.
+    """Create an :class:`After` object.
 
     Args:
         after (Union[After, None], optional):

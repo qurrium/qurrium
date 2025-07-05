@@ -15,13 +15,12 @@ def generate_seeds_for_single_circ(
     """Generate the seed for single circuit.
 
     Args:
-        seed_for_single_circ (Optional[SeedType]):
-            The seed for single circuit.
-        num_qubits (int):
-            The number of qubits.
+        seed_for_single_circ (Optional[SeedType]): The seed for single circuit.
+        num_qubits (int): The number of qubits.
+
     Raises:
-        ValueError:
-            If the seed is not int, np.random.Generator
+        ValueError: If the seed is not int, np.random.Generator
+
     Returns:
         dict[int, int]:
             The seed for single circuit.
@@ -42,7 +41,7 @@ def check_and_generate_for_single_circ(
     seed_for_single_circ: Optional[Union[SeedType, Sequence[SeedType], dict[int, SeedType]]],
     num_qubits: int,
 ) -> dict[int, int]:
-    """Check the input of generate_random_unitary_seeds.
+    """Check the input of :func:`generate_random_unitary_seeds`.
 
     Args:
         seed_for_single_circ (Optional[Union[SeedType, Sequence[SeedType], dict[int, SeedType]]]):
@@ -52,10 +51,11 @@ def check_and_generate_for_single_circ(
 
     Raises:
         TypeError:
-            If the seed is not int, np.random.Generator, Sequence, or dict.
+            If the seed is not int, :class:`~numpy.random.Generator`,
+            :class:`~typing.Sequence`, or :class:`dict`.
         ValueError:
             If the seed for one qubit is not found.
-            If the seed is not int or np.random.Generator.
+            If the seed is not int or :class:`~numpy.random.Generator`.
             If the length of seed is not equal to num_qubits.
 
     Returns:
@@ -67,7 +67,7 @@ def check_and_generate_for_single_circ(
 
     if not isinstance(seed_for_single_circ, (Sequence, dict)):
         raise TypeError(
-            "The seed must be int, np.random.Generator, Sequence, or dict, "
+            "The seed must be int, numpy.random.Generator, Sequence, or dict, "
             + f"not {type(seed_for_single_circ)}"
         )
     if len(seed_for_single_circ) != num_qubits:
@@ -93,7 +93,7 @@ def check_and_generate_for_single_circ(
             invalids[j] = (seed_for_one_qubit, type(seed_for_one_qubit))
     if invalids:
         raise TypeError(
-            "The seed must be int or np.random.Generator, " + f"but some of them are: {invalids}."
+            f"The seed must be int or np.random.Generator, but some of them are: {invalids}."
         )
     if len(single_seed) != num_qubits:
         raise ValueError(
@@ -119,20 +119,15 @@ def generate_random_unitary_seeds(
     Args:
         times (int): The number of random unitary operator.
         num_qubits (int): The number of qubits.
-        seed (Union[
-            int,
-            np.random.Generator,
-            Sequence[Union[
-                int, np.random.Generator,
-                Sequence[Union[int, np.random.Generator]],
-                dict[int, Union[int, np.random.Generator]]
-            ]],
-            dict[int, Union[
-                int, np.random.Generator,
-                Sequence[Union[int, np.random.Generator]],
-                dict[int, Union[int, np.random.Generator]]
-            ]]
-        ], optional):
+        seed (Union[int, np.random.Generator, \
+Sequence[Union[\
+int, np.random.Generator, Sequence[Union[int, np.random.Generator]], \
+dict[int, Union[int, np.random.Generator]]\
+]], \
+dict[int, Union[\
+int, np.random.Generator, Sequence[Union[int, np.random.Generator]], \
+dict[int, Union[int, np.random.Generator]]\
+]]], optional):
             The seed of random generator.
 
     Raises:
@@ -142,8 +137,7 @@ def generate_random_unitary_seeds(
             If the length of seed is not equal to times.
 
     Returns:
-        dict[int, dict[int, int]]]:
-            The random unitary seeds.
+        dict[int, dict[int, int]]]: The random unitary seeds.
     """
     if seed is None or isinstance(seed, (int, np.random.Generator)):
         return {i: generate_seeds_for_single_circ(seed, num_qubits) for i in range(times)}
@@ -178,19 +172,20 @@ def check_input_for_experiment(
 ) -> None:
     """Check the input of the experiment.
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds`
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_unitary_seeds`
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     Args:
         times (int): The number of random unitary operator.
         num_qubits (int): The number of qubits.
         random_unitary_seeds (Optional[dict[int, dict[int, int]]]):
             The seeds for all random unitary operator.
-            This argument only takes input as type of `dict[int, dict[int, int]]`.
+            This argument only takes input as type of :class:`dict[int, dict[int, int]]`.
             The first key is the index for the random unitary operator.
             The second key is the index for the qubit.
 
             .. code-block:: python
+
                 {
                     0: {0: 1234, 1: 5678},
                     1: {0: 2345, 1: 6789},
@@ -198,11 +193,11 @@ def check_input_for_experiment(
                 }
 
     Raises:
-        TypeError: If the random_unitary_seeds is not dict.
-        ValueError: If the length of random_unitary_seeds is not equal to times.
-        TypeError: If the random_unitary_seeds[i] is not dict.
-        ValueError: If the length of random_unitary_seeds[i] is not equal to num_qubits.
-        TypeError: If the random_unitary_seeds[i][j] is not int.
+        TypeError: If the `random_unitary_seeds` is not dict.
+        ValueError: If the length of `random_unitary_seeds` is not equal to times.
+        TypeError: If the `random_unitary_seeds[i]` is not dict.
+        ValueError: If the length of `random_unitary_seeds[i]` is not equal to `num_qubits`.
+        TypeError: If the `random_unitary_seeds[i][j]` is not int.
 
     """
     if random_unitary_seeds is None:

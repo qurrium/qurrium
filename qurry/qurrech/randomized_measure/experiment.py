@@ -87,7 +87,7 @@ class EchoListenRandomizedExperiment(
                 Defaults to `'exps'`.
             times (int):
                 The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
             measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the first quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
@@ -123,6 +123,7 @@ class EchoListenRandomizedExperiment(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -134,6 +135,7 @@ class EchoListenRandomizedExperiment(
                 in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -412,7 +414,7 @@ class EchoListenRandomizedExperiment(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`
                 Defaults to None.
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
@@ -421,17 +423,23 @@ class EchoListenRandomizedExperiment(
                 Defaults to None.
 
             serial (Optional[int], optional):
-                Index of experiment in a multiOutput.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                Index of experiment in
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_id (Optional[Hashable], optional):
-                ID of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
+                ID of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
             summoner_name (Optional[str], optional):
-                Name of experiment of :cls:`MultiManager`.
-                **!!ATTENTION, this should only be used by `Multimanager`!!**
-                _description_. Defaults to None.
+                Name of experiment of
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
+                **!!ATTENTION, this should only be used by
+                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
+                Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
@@ -824,7 +832,8 @@ class EchoListenRandomizedExperiment(
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API, you can use put a :cls:`tqdm` object here.
+                The progress bar API,
+                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
                 This function will update the progress bar description.
                 Defaults to None.
 
@@ -962,7 +971,8 @@ class EchoListenRandomizedExperiment(
             backend (ExistingProcessBackendLabel, optional):
                 Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API, you can use put a :cls:`tqdm` object here.
+                The progress bar API,
+                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
                 This function will update the progress bar description.
                 Defaults to None.
 

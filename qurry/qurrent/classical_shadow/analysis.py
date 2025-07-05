@@ -1,7 +1,4 @@
-"""ShadowUnveil - Analysis
-(:mod:`qurry.qurrent.classical_shadow.analysis`)
-
-"""
+"""ShadowUnveil - Analysis (:mod:`qurry.qurrent.classical_shadow.analysis`)"""
 
 from typing import Optional, NamedTuple, Iterable, Any, Type
 import numpy as np
@@ -22,6 +19,7 @@ class SUAnalysisInput(NamedTuple):
     """The mapping of the classical registers with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -40,6 +38,7 @@ class SUAnalysisInput(NamedTuple):
     which the first six bits are for the randomized measurement.
 
     .. code-block:: python
+
         {'010000 0100 0001': 1024}
         # The bitstring is '010000 0100 0001'.
         # The last four bits are the first classical register.
@@ -63,11 +62,13 @@ class SUAnalysisInput(NamedTuple):
     the bitstring will map to the classical register directly.
 
     .. code-block:: python
+
         {'010000': 1024}
 
     Will be like this.
 
     .. code-block:: python
+
         {
             0: 0, # The classical register 0 is mapped to the bitstring on the index 0.
             1: 1, # The classical register 0 is mapped to the bitstring on the index 1.
@@ -132,6 +133,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the number of esitmator K from the equation (S13) 
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         K = 2 \log(2M / \delta)
 
@@ -150,6 +152,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -168,6 +171,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -182,6 +186,7 @@ class SUAnalysisContent(NamedTuple):
     we suppose we have the worst case scenario,
     where the maximum shadow norm is 1 as default.
     Thus, we can simplify the equation to:
+
     .. math::
         N = \frac{34}{\epsilon^2}
     """
@@ -194,6 +199,10 @@ FIELDS_REMAPPING = {
     "rho_m_dict": "average_classical_snapshots_rho",
     "expect_rho": "mean_of_rho",
 }
+"""Remapping of fields from old in 0.12 to new names since 0.13.
+The keys are the old field names and the values are the new field names.
+"""
+
 NEW_FIELDS_DEFAULTS = {
     "average_classical_snapshots_rho": {},
     "mean_of_rho": np.zeros((1, 1), dtype=np.complex128),
@@ -208,10 +217,12 @@ NEW_FIELDS_DEFAULTS = {
     "accuracy_predict_epsilon": np.nan,
     "maximum_shadow_norm": np.nan,
 }
+"""Default values for new fields introduced in 0.13."""
 
 
 class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]):
-    """The container for the analysis of :cls:`EntropyRandomizedExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""
 
     __name__ = "SUAnalysis"
 

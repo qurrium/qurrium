@@ -42,18 +42,15 @@ class ShadowUnveil(
 ):
     r"""Classical Shadow with The Results of Second Order Renyi Entropy.
 
-    References:
-        .. note::
-            - Predicting many properties of a quantum system from very few measurements -
+    Reference:
+        -   Predicting many properties of a quantum system from very few measurements -
             Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-            [doi:10.1038/s41567-020-0932-7](
-                https://doi.org/10.1038/s41567-020-0932-7)
+            `doi:10.1038/s41567-020-0932-7 <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-            - The randomized measurement toolbox -
+        -   The randomized measurement toolbox -
             Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
             Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-            [doi:10.1038/s42254-022-00535-2](
-                https://doi.org/10.1038/s42254-022-00535-2)
+            `doi:10.1038/s42254-022-00535-2 <https://doi.org/10.1038/s42254-022-00535-2>`_
 
         .. code-block:: bibtex
 
@@ -108,11 +105,11 @@ class ShadowUnveil(
                     desired property. The randomization of the measurement procedure has distinct
                     advantages. For example, a single data set can be used multiple times to pursue
                     a variety of applications, and imperfections in the measurements are mapped to
-                    a simplified noise model that can more easily be mitigated.
-                    We discuss a range of cases that have already been realized in quantum devices,
-                    including Hamiltonian simulation tasks, probes of quantum chaos,
-                    measurements of non-local order parameters,
-                    and comparison of quantum states produced in distantly separated
+                    a simplified noise model that can more
+                    easily be mitigated. We discuss a range of
+                    cases that have already been realized in quantum devices, including Hamiltonian
+                    simulation tasks, probes of quantum chaos, measurements of non-local order
+                    parameters, and comparison of quantum states produced in distantly separated
                     laboratories. By providing a workable method for translating a complex quantum
                     state into a succinct classical representation that preserves a rich variety of
                     relevant physical properties, the randomized measurement toolbox strengthens our
@@ -195,7 +192,7 @@ class ShadowUnveil(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to None.
@@ -211,6 +208,7 @@ class ShadowUnveil(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -218,12 +216,15 @@ class ShadowUnveil(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -236,7 +237,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -309,7 +310,7 @@ class ShadowUnveil(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to None.
@@ -325,6 +326,7 @@ class ShadowUnveil(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -332,12 +334,15 @@ class ShadowUnveil(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
+
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -350,7 +355,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -436,12 +441,15 @@ class ShadowUnveil(
             rho_method (RhoMCoreMethod, optional):
                 The method to use for the calculation. Defaults to "numpy_precomputed".
                 It can be either "numpy", "numpy_precomputed", "numpy_flatten".
+
                 - "numpy": Use Numpy to calculate the rho_m.
                 - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
                 - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+
                 Currently, "numpy_precomputed" is the best option for performance.
             trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
+
                 - "trace_of_matmul":
                     Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
                 - "quick_trace_of_matmul" or "einsum_ij_ji":
@@ -452,6 +460,7 @@ class ShadowUnveil(
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 

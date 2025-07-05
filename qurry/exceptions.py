@@ -2,7 +2,7 @@
 
 
 class QurryError(Exception):
-    """Base class for errors raised by Qurry."""
+    """Base class for errors raised by Qurrium."""
 
     def __init__(self, *message):
         """Set the error message."""
@@ -15,7 +15,7 @@ class QurryError(Exception):
 
 
 class QurryInvalidInherition(QurryError):
-    """Invalid inherition class making by Qurry."""
+    """Invalid inherition class making by Qurrium."""
 
 
 class QurryExperimentCountsNotCompleted(QurryError):
@@ -24,15 +24,16 @@ class QurryExperimentCountsNotCompleted(QurryError):
 
 class QurrySummonerInvalid(QurryError):
     """Warning for summoner info incompletion.
-    The summoner is the instance of :cls:`MultiManager`."""
+    The summoner is the instance of
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
 
 class QurryExtraPackageRequired(QurryError, ImportError):
-    """Extra package required for Qurry."""
+    """Extra package required for Qurrium."""
 
 
 class QurryInvalidArgument(QurryError, ValueError):
-    """Invalid argument for Qurry."""
+    """Invalid argument for Qurrium."""
 
 
 class QurryPositionalArgumentNotSupported(QurryError, ValueError):
@@ -62,7 +63,7 @@ class OverlapComparisonSizeDifferent(RandomizedMeasureError, ValueError):
 
 # General Warning
 class QurryWarning(Warning):
-    """Base class for warning raised by Qurry."""
+    """Base class for warning raised by Qurrium."""
 
     def __init__(self, *message):
         """Set the error message."""

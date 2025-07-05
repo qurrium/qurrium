@@ -17,6 +17,10 @@ def quickRead(
 
     Args:
         filename (Union[str, Path]): Filename.
+        save_location (Union[Path, str], optional): Location of files. Defaults to Path('./').
+        filetype (Literal["json", "txt"], optional): Type of the file. Defaults to "json".
+            If "json", it will read the file as JSON.
+            If "txt", it will read the file as plain text.
         encoding (str, optional): Encoding method. Defaults to 'utf-8'.
 
     Returns:

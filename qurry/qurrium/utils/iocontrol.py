@@ -62,8 +62,8 @@ def naming(
             The serial number. Defaults to 0.
 
     Raises:
-        TypeError: The :arg:`save_location` is not a 'str' or 'Path'.
-        FileNotFoundError: The :arg:`save_location` is not existed.
+        TypeError: The `save_location` is not a 'str' or 'Path'.
+        FileNotFoundError: The `save_location` is not existed.
         FileNotFoundError: Can not find the exportation data which will be readed.
 
     Returns:

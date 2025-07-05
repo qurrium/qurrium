@@ -13,7 +13,8 @@ from ...exceptions import QurryUnknownExportOption
 
 
 class WaveContainer(dict[Hashable, QuantumCircuit]):
-    """WaveContainer is a customized dictionary for storing waves."""
+    """WaveContainer is a customized dictionary for storing
+    :class:`~qiskit.circuit.QuantumCircuit`."""
 
     __name__ = "WaveContainer"
 
@@ -97,26 +98,25 @@ class WaveContainer(dict[Hashable, QuantumCircuit]):
     ) -> QuantumCircuit: ...
 
     def get_wave(self, wave=None, run_by=None):
-        """Parse wave Circuit into `Instruction` as `Gate` or `Operator` on `QuantumCircuit`.
+        """Parse wave Circuit into
+        :class:`~qiskit.circuit.Instruction`, :class:`~qiskit.circuit.Gate`, or
+        `~qiskit.quantum_info.Operator` on :class:`~qiskit.circuit.QuantumCircuit`.
 
         Args:
             wave (Optional[Hashable], optional):
-                The key of wave in 'fict' `.waves`.
+                The key of wave in `wave`.
                 Defaults to None.
             run_by (Optional[str], optional):
-                Export as `Gate`, `Operator`, `Instruction` or a copy when input is None.
+                Export as :class:`~qiskit.circuit.Instruction`, :class:`~qiskit.circuit.Gate`, or
+                `~qiskit.quantum_info.Operator` or a copy when input is None.
                 Defaults to None.
-
 
         Raises:
             ValueError: If `wave is None`.
             KeyError: If `wave` not in `self`.
 
         Returns:
-            Union[
-                list[Union[Gate, Operator, Instruction, QuantumCircuit]],
-                Union[Gate, Operator, Instruction, QuantumCircuit]
-            ]: The result of the wave as `Gate` or `Operator`.
+            The result of the wave.
         """
 
         if wave is None:
@@ -153,7 +153,7 @@ class WaveContainer(dict[Hashable, QuantumCircuit]):
     def call(self, wave: Hashable) -> QuantumCircuit: ...
 
     def call(self, wave):
-        """Export wave function as `QuantumCircuit`.
+        """Export wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
         Args:
             wave (Union[list[Hashable], Hashable]):
@@ -208,7 +208,7 @@ class WaveContainer(dict[Hashable, QuantumCircuit]):
     def copy_circuit(
         self, wave: Union[list[Hashable], Hashable]
     ) -> Union[list[QuantumCircuit], QuantumCircuit]:
-        """Export a copy of wave function as `QuantumCircuit`.
+        """Export a copy of wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
         Args:
             wave (Union[list[Hashable], Hashable]):

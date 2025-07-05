@@ -13,10 +13,10 @@ class ClassicalShadowBasic(TypedDict):
     average_classical_snapshots_rho: dict[int, np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
     """The dictionary of average classical snapshots, 
     which uses the notation rho in 
-    [Predicting many properties of a quantum system from very few measurements](
-        https://doi.org/10.1038/s41567-020-0932-7).
+    `Predicting many properties of a quantum system from very few measurements
+    <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-    The numpy.array shape is (2, 2).
+    The numpy.array shape is `(2, 2)`.
     """
     classical_registers_actually: list[int]
     """The list of the selected_classical_registers."""
@@ -28,8 +28,8 @@ class ClassicalShadowMeanRho(ClassicalShadowBasic):
     """The esitimations of the classical shadow from classical snapshots.
 
     Here, we use the notations that use in the supplementary material of
-    [Predicting many properties of a quantum system from very few measurements](
-        https://doi.org/10.1038/s41567-020-0932-7),
+    `Predicting many properties of a quantum system from very few measurements
+    <https://doi.org/10.1038/s41567-020-0932-7>`_
 
     """
 
@@ -41,8 +41,8 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     """The esitimations of the classical shadow from classical snapshots.
 
     Here, we use the notations that use in the supplementary material of
-    [Predicting many properties of a quantum system from very few measurements](
-        https://doi.org/10.1038/s41567-020-0932-7),
+    `Predicting many properties of a quantum system from very few measurements
+    <https://doi.org/10.1038/s41567-020-0932-7>`
 
     """
 
@@ -79,6 +79,7 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     We can calculate the number of esitmator K from the equation (S13) 
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         K = 2 \log(2M / \delta)
 
@@ -97,6 +98,7 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -114,6 +116,7 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -134,25 +137,33 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     .. math::
         || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
-    where :math:`O` is the any operator, and :math:`n` is the number of qubits,
 
+    where :math:`O` is the any operator, and :math:`n` is the number of qubits.
     So we set the shadow norm as follows,
+
     .. math::
         \chi = || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}} \\
         \chi_{\infty} = 4^n || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\infty}^2 \\
         \chi^2 \leq \chi_{\infty}
+
     and we can simplify the equation to:
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi^2 
             \leq \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi_{\infty}^2
+
     Then get:
+
     .. math::
         \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
+
     """
     shadow_norm_upperbound: float
     r"""The largest shadow norm upper bound is defined as follows,
+
     .. math::
         || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+
     where :math:`O` is the operator, and :math:`n` is the number of qubits,
     which mentioned in the paper at Theorem 1 (informal version).
 

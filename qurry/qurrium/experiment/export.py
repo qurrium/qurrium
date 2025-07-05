@@ -1,4 +1,4 @@
-"""The module of exporting the experiment data. (:mod:`qurry.qurrium.container.export`)"""
+"""The module of exporting the experiment data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
 from typing import Optional, NamedTuple, Union, Any
@@ -24,27 +24,29 @@ class Export(NamedTuple):
     then this name will never apply as filename."""
     # Arguments for multi-experiment
     serial: Optional[int]
-    """Index of experiment in a multiOutput, which will be packed into `.args.json`."""
+    """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
+    which will be packed into `.args.json`."""
     summoner_id: Optional[str]
-    """ID of experiment of the multiManager, which will be packed into `.args.json`."""
+    """ID of experiment of the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
+    which will be packed into `.args.json`."""
     summoner_name: Optional[str]
-    """Name of experiment of the multiManager, which will be packed into `.args.json`."""
+    """Name of experiment of the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
+    which will be packed into `.args.json`."""
 
     filename: str
-    """The name of file to be exported, 
-    it will be decided by the :meth:`.export` when it's called.
-    More info in the pydoc of :prop:`files` or :meth:`.export`, 
-    which will be packed into `.args.json`.
+    """The name of file to be exported, it will be decided by
+    :meth:`~qurry.qurrium.experiment.experiment.ExperimentPrototype.export` when it's called.
     """
     files: dict[str, str]
     """The list of file to be exported.
 
     ### Single experiment:
 
-    For the :meth:`.write` function actually exports 4 different files
+    For the :meth:`write` function actually exports 4 different files
     respecting to `adventure`, `legacy`, `tales`, and `reports` like:
 
     .. code-block:: python
+
         files = {
             'folder': './bla_exp/',
             'qurryinfo': './bla_exp/qurryinfo.json',
@@ -67,10 +69,13 @@ class Export(NamedTuple):
 
     ### Multi-experiment:
 
-    If this experiment is called by :cls:`MultiManager`, 
-    then the it will be named after `summoner_name` as known as the name of :cls:`MultiManager`.
+    If this experiment is called by
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
+    then the it will be named after `summoner_name` as known as the name of
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
 
     .. code-block:: python
+
         files = {
             'folder': './BLABLA_project/',
             'qurryinfo': './BLABLA_project/qurryinfo.json',
@@ -92,9 +97,11 @@ class Export(NamedTuple):
                 './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
         }
 
-    which `BLBLA_project` is the example :cls:`MultiManager` name 
-    stored at :prop:`commonparams.summoner_name`.
-    At this senerio, the :prop:`exp_name` will never apply as filename.
+    which `BLBLA_project` is the example 
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager` name 
+    stored at `summoner_name` in 
+    :class:`~qurry.qurrium.experiment.arguments.Commonparams.summoner_name`.
+    At this senerio, the `exp_name` will never apply as filename.
 
     """
 
@@ -122,6 +129,7 @@ class Export(NamedTuple):
     ### Reports format:
 
     .. code-block:: python
+
         reports = {
             1: { ...quantities, 'input': { ... }, 'header': { ... }, },
             2: { ...quantities, 'input': { ... }, 'header': { ... }, },
@@ -137,6 +145,7 @@ class Export(NamedTuple):
     ### Tales Reports format:
 
     .. code-block:: python
+
         tales_reports = {
             'dummyz1': {
                 1: { ... },

@@ -26,7 +26,7 @@ U_M_GATES: dict[Union[Literal[0, 1, 2], int], Gate] = {
     1: RYGate(-np.pi / 2),
     2: RZGate(0),
 }
-r"""The :class:`qiskit.circuit.library.Gate` objects 
+r"""The :class:`~qiskit.circuit.library.Gate` objects 
 for the unitary operators :math:`U_M` in the classical shadow.
 
 The set of unitary operators :math:`U_M` will represent by following dictionary.:

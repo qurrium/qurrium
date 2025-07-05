@@ -21,7 +21,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs, TranspileArgs
 
 @dataclass(frozen=True)
 class EchoListenRandomizedArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -30,7 +31,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     times: int = 100
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     qubits_measured_1: Optional[list[int]] = None
     """The measure range for the first quantum circuit."""
     qubits_measured_2: Optional[list[int]] = None
@@ -40,6 +41,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     for the first quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -55,6 +57,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     for the second quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -73,6 +76,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     """The range of the unitary operator for the first quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is used for the unitary operator 0.
             1: 1, # The quantum register 1 is used for the unitary operator 1.
@@ -87,6 +91,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     """The range of the unitary operator for the second quantum circuit.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is used for the unitary operator 0.
             1: 1, # The quantum register 1 is used for the unitary operator 1.
@@ -102,8 +107,8 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     If None, then use the same backend as the first quantum circuit.
     """
     second_transpile_args: Optional[TranspileArgs] = None
-    """Arguments of :func:`qiskit.compiler.transpile` 
-    or :cls:`qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
+    """Arguments of :func:`~qiskit.compiler.transpile` 
+    or :class:`~qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
     And it only works when the second backend is given.
     """
     random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
@@ -113,6 +118,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -120,10 +126,12 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -170,7 +178,9 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
 
 
 class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave1: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -178,7 +188,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure_1: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range for the first quantum circuit."""
     measure_2: Optional[Union[tuple[int, int], int, list[int]]]
@@ -204,6 +214,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -211,10 +222,12 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -222,11 +235,12 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
 
 
 class EchoListenRandomizedOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.output`."""
 
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure_1: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range for the first quantum circuit."""
     measure_2: Optional[Union[tuple[int, int], int, list[int]]]
@@ -250,6 +264,7 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -261,6 +276,7 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -270,7 +286,9 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
 
 
 class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment.analyze`.
+    """
 
     selected_classical_registers: Optional[Iterable[int]]
     """The list of **the index of the selected_classical_registers**.
@@ -283,3 +301,5 @@ class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 SHORT_NAME = "qurrech_randomized"
+"""The short name of
+:class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""

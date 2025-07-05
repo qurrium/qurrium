@@ -43,6 +43,7 @@ def multiprocess_exporter_wrapper(
     Args:
         all_arguments (tuple[str, Export, str, int, str, bool]):
             The arguments for exporter.
+
             - id_exec (str): ID of experiment.
             - exps_export (Export): The export of experiment.
 
@@ -91,6 +92,7 @@ def multiprocess_writer_wrapper(
     Args:
         all_arguments (tuple[str, ExperimentPrototype, Path, bool]):
             The arguments for exporter.
+
             - id_exec (str): ID of experiment.
             - exps (ExperimentPrototype): The export of experiment.
             - save_location (Path): The location of saving.

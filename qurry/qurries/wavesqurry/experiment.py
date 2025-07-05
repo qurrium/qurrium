@@ -1,4 +1,4 @@
-"""WavesExecuter - Experiment (:mod:`qurry.qurrium.wavesqurry.experiment`)
+"""WavesExecuter - Experiment (:mod:`qurry.qurries.wavesqurry.experiment`)
 
 It is only for pendings and retrieve to remote backend.
 """

@@ -33,7 +33,8 @@ class SOAnalysisContent(NamedTuple):
 
 
 class StringOperatorAnalysis(AnalysisPrototype[SOAnalysisInput, SOAnalysisContent]):
-    """The container for the analysis of :cls:`StringOperatorExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurries.string_operator.experiment.StringOperatorExperiment`."""
 
     __name__ = "SOAnalysis"
 

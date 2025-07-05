@@ -18,7 +18,9 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Input fields for
+    :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -27,13 +29,14 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     times: int = 100
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     qubits_measured: Optional[list[int]] = None
     """The measure range."""
     registers_mapping: Optional[dict[int, int]] = None
     """The mapping of the classical registers of measurement with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -55,6 +58,7 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -62,10 +66,12 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -84,13 +90,15 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
 
 
 class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""
     unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
@@ -104,6 +112,7 @@ class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -111,10 +120,12 @@ class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -122,11 +133,12 @@ class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
 
 
 class EntropyMeasureRandomizedOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.output`."""
 
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""
     unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
@@ -140,6 +152,7 @@ class EntropyMeasureRandomizedOutputArgs(OutputArgs):
     The second key is the index for the qubit.
 
     .. code-block:: python
+
         {
             0: {0: 1234, 1: 5678},
             1: {0: 2345, 1: 6789},
@@ -151,6 +164,7 @@ class EntropyMeasureRandomizedOutputArgs(OutputArgs):
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
+
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
@@ -158,7 +172,10 @@ class EntropyMeasureRandomizedOutputArgs(OutputArgs):
 
 
 class EntropyMeasureRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrent.randomized_measure.experiment.\
+EntropyMeasureRandomizedExperiment.analyze`.
+    """
 
     selected_qubits: Optional[list[int]]
     """The selected qubits."""
@@ -171,3 +188,5 @@ class EntropyMeasureRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 SHORT_NAME = "qurrent_randomized"
+"""The short name of
+:class:`~qurry.qurrent.randomized_measure.experiment.EntropyMeasureRandomizedExperiment`."""

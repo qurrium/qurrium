@@ -135,11 +135,11 @@ class ArgumentsPrototype:
 
 
 _A = TypeVar("_A", bound=ArgumentsPrototype)
-"""Type variable for :cls:`ArgumentsPrototype`."""
+"""Type variable for :class:`ArgumentsPrototype`."""
 
 
 class CommonparamsDict(TypedDict):
-    """The export dictionary of :cls:`Commonparams`."""
+    """The export dictionary of :class:`Commonparams`."""
 
     exp_name: str
     exp_id: str
@@ -179,11 +179,11 @@ class Commonparams(NamedTuple):
     backend: Union[Backend, str]
     """Backend to execute the circuits on, or the backend used."""
     run_args: Union[BaseRunArgs, dict[str, Any]]
-    """Arguments of `execute`."""
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`"""
 
     # Single job dedicated
     transpile_args: TranspileArgs
-    """Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`."""
+    """Arguments of :func:`~qiskit.compiler.transpile`."""
 
     tags: tuple[str, ...]
     """Tags of experiment."""
@@ -191,19 +191,22 @@ class Commonparams(NamedTuple):
     # Arguments for exportation
     save_location: Union[Path, str]
     """Location of saving experiment. 
-    If this experiment is called by :cls:`QurryMultiManager`,
+    If this experiment is called by
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
     then `adventure`, `legacy`, `tales`, and `reports` will be exported 
     to their dedicated folders in this location respectively.
     This location is the default location for it's not specific 
-    where to save when call :meth:`.write()`, if does, then will be overwriten and update."""
+    where to save when call 
+    :meth:`~qurry.qurrium.experiment.experiment.ExperimentPrototype.write`, 
+    if does, then will be overwriten and update."""
 
     # Arguments for multi-experiment
     serial: Optional[int]
-    """Index of experiment in a multiOutput."""
+    """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
     summoner_id: Optional[str]
-    """ID of experiment of :cls:`MultiManager`."""
+    """ID of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
     summoner_name: Optional[str]
-    """Name of experiment of :cls:`MultiManager`."""
+    """Name of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     # header
     datetimes: DatetimeDict

@@ -14,7 +14,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class MagnetSquareArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -25,32 +26,49 @@ class MagnetSquareArguments(ArgumentsPrototype):
     """The number of qubits."""
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z"
     """The unitary operator to apply.
-    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
-    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
+    It can be a :class:`~qiskit.quantum_info.Operator`,
+    a :class:`~qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). 
+    Defaults to 'z'."""
 
 
 class MagnetSquareMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
     """The unitary operator to apply.
-    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
-    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
+    It can be a :class:`~qiskit.quantum_info.Operator`,
+    a :class:`~qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). 
+    Defaults to 'z'."""
 
 
 class MagnetSquareOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.output`."""
 
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
     """The unitary operator to apply.
-    It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
-    representing the axis of rotation ('x', 'y', or 'z'). Defaults to 'z'."""
+    It can be a :class:`~qiskit.quantum_info.Operator`,
+    a :class:`~qiskit.circuit.Gate`, or a string
+    representing the axis of rotation ('x', 'y', or 'z'). 
+    Defaults to 'z'."""
 
 
 class MagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment.analyze`.
+
+    The post-processing of
+    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`
+    does not need any input.
+    """
 
 
 SHORT_NAME = "qurmagsq_magnet_square"
+"""The short name of
+:class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`."""
