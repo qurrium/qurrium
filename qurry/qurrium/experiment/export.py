@@ -99,8 +99,9 @@ class Export(NamedTuple):
 
     which `BLBLA_project` is the example 
     :class:`~qurry.qurrium.multimanager.multimanager.MultiManager` name 
-    stored at :prop:`~qurry.qurrium.experiment.arguments.Commonparams.summoner_name`.
-    At this senerio, the :prop:`exp_name` will never apply as filename.
+    stored at `summoner_name` in 
+    :class:`~qurry.qurrium.experiment.arguments.Commonparams.summoner_name`.
+    At this senerio, the `exp_name` will never apply as filename.
 
     """
 

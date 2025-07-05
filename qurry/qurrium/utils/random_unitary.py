@@ -119,20 +119,15 @@ def generate_random_unitary_seeds(
     Args:
         times (int): The number of random unitary operator.
         num_qubits (int): The number of qubits.
-        seed (Union[
-            int,
-            np.random.Generator,
-            Sequence[Union[
-                int, np.random.Generator,
-                Sequence[Union[int, np.random.Generator]],
-                dict[int, Union[int, np.random.Generator]]
-            ]],
-            dict[int, Union[
-                int, np.random.Generator,
-                Sequence[Union[int, np.random.Generator]],
-                dict[int, Union[int, np.random.Generator]]
-            ]]
-        ], optional):
+        seed (Union[int, np.random.Generator, \
+Sequence[Union[\
+int, np.random.Generator, Sequence[Union[int, np.random.Generator]], \
+dict[int, Union[int, np.random.Generator]]\
+]], \
+dict[int, Union[\
+int, np.random.Generator, Sequence[Union[int, np.random.Generator]], \
+dict[int, Union[int, np.random.Generator]]\
+]]], optional):
             The seed of random generator.
 
     Raises:
@@ -142,8 +137,7 @@ def generate_random_unitary_seeds(
             If the length of seed is not equal to times.
 
     Returns:
-        dict[int, dict[int, int]]]:
-            The random unitary seeds.
+        dict[int, dict[int, int]]]: The random unitary seeds.
     """
     if seed is None or isinstance(seed, (int, np.random.Generator)):
         return {i: generate_seeds_for_single_circ(seed, num_qubits) for i in range(times)}

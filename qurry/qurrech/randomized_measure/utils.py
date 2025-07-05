@@ -80,26 +80,26 @@ def overlapping_given_check(
     Args:
         actual_qubits_1 (int): The number of qubits in the first circuit.
         actual_qubits_2 (int): The number of qubits in the second circuit.
-            measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The selected qubits for the measurement for the first quantum circuit.
-                If it is None, then it will return the mapping of all qubits.
-                If it is int, then it will return the mapping of the last n qubits.
-                If it is tuple, then it will return the mapping of the qubits in the range.
-                If it is list, then it will return the mapping of the selected qubits.
-                Defaults to None.
-            measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The selected qubits for the measurement for the second quantum circuit.
-                If it is None, then it will return the mapping of all qubits.
-                If it is int, then it will return the mapping of the last n qubits.
-                If it is tuple, then it will return the mapping of the qubits in the range.
-                If it is list, then it will return the mapping of the selected qubits.
-                Defaults to None.
-            unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator for the first quantum circuit.
-                Defaults to None.
-            unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
-                The range of the unitary operator for the second quantum circuit.
-                Defaults to None.
+        measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The selected qubits for the measurement for the first quantum circuit.
+            If it is None, then it will return the mapping of all qubits.
+            If it is int, then it will return the mapping of the last n qubits.
+            If it is tuple, then it will return the mapping of the qubits in the range.
+            If it is list, then it will return the mapping of the selected qubits.
+            Defaults to None.
+        measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The selected qubits for the measurement for the second quantum circuit.
+            If it is None, then it will return the mapping of all qubits.
+            If it is int, then it will return the mapping of the last n qubits.
+            If it is tuple, then it will return the mapping of the qubits in the range.
+            If it is list, then it will return the mapping of the selected qubits.
+            Defaults to None.
+        unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The range of the unitary operator for the first quantum circuit.
+            Defaults to None.
+        unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            The range of the unitary operator for the second quantum circuit.
+            Defaults to None.
 
     Raises:
         ValueError: If the number of qubits in the two circuits is not the same

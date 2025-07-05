@@ -47,7 +47,7 @@ class MultiManager(Generic[_E]):
     _not_sync = ["allCounts", "retrievedResult"]
     """The content would not be synchronized."""
     after_lock: bool = False
-    """Protect the :prop:`afterward` content to be overwritten. 
+    """Protect the `afterward` content to be overwritten. 
     When setitem is called and completed, it will be setted as `False` automatically.
     """
     mute_auto_lock: bool = False

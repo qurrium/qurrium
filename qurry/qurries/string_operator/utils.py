@@ -32,12 +32,12 @@ class StringOperatorLib(TypedDict):
         S^O(g) = \langle\psi|\hat{O_i}
             \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 
-    - i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
-    denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
+    -   i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
+        denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
 
-    - zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
-    :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
-    denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
+    -   zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
+        :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
+        denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
     """
 
     i: dict[Union[int, Literal["filling"]], StringOperatorUnits]
@@ -111,12 +111,12 @@ r"""Available string operator library.
     S^O(g) = \langle\psi|\hat{O_i}
         \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 
-- i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
-denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
+-   i: When :math:`\hat{O_i} = \hat{O'_k} = \mathbb{1}`,
+    denoted as :math:`S^{\mathbb{1}}(g)`, i for identity operator.
 
-- zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
-:math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
-denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
+-   zy: When :math:`\hat{O_i} = \hat{\sigma}_i^z\hat{\sigma}_{i+1}^y` and
+    :math:`\hat{O'_i} = \hat{\sigma}_{k-1}^y\hat{\sigma}_k^y`,
+    denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
 """
 
 
