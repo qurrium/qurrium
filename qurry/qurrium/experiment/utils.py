@@ -62,6 +62,7 @@ def memory_usage_factor_expect(
     the number of shots. The factor is calculated by the formula:
 
     .. code-block:: txt
+
         factor = target_circuit_instructions_num + sqrt(shots) * target_circuit_instructions_num
 
     where `target_circuit_instructions_num` is the number of instructions in the target circuits,

@@ -11,7 +11,7 @@ _R = TypeVar("_R", bound=AnalysisPrototype)
 
 class AnalysesContainer(dict[Hashable, _R]):
     """A customized dictionary for storing
-    :class:`~qurry.qurrium.analysis.AnalysisPrototype`objects."""
+    :class:`~qurry.qurrium.analysis.AnalysisPrototype` objects."""
 
     __name__ = "AnalysisContainer"
 

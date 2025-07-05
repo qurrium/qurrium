@@ -20,6 +20,7 @@ EXPORTING_NAME = {
     "job_taglist": "job.tagList",
     "index_taglist": "index.tagList",
 }
+"""The exporting name of :class:`Before` in V7 format."""
 
 
 class Before(NamedTuple):

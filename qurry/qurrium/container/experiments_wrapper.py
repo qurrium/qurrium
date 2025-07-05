@@ -8,7 +8,7 @@ from .experiments import ExperimentContainer, _E
 
 class ExperimentContainerWrapper(Generic[_E]):
     """A wrapper for :class:`~qurry.qurrium.container.experiments.ExperimentContainer`
-    for :class:~qurry.qurrium.qurrium.QurriumPrototype.`.
+    for :class:`~qurry.qurrium.qurrium.QurriumPrototype.`.
     and its corresponding :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     __name__ = "ExperimentContainerWrapper"

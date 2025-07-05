@@ -4,7 +4,8 @@ from qiskit.transpiler.passmanager import PassManager
 
 
 class PassManagerContainer(dict[str, PassManager]):
-    """A customized dictionary for storing `PassManager` objects."""
+    """A customized dictionary for storing
+    :class:`~qiskit.transpiler.passmanager.PassManager` objects."""
 
     __name__ = "PassManagerContainer"
 

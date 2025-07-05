@@ -41,7 +41,8 @@ from ..declare import (
 
 
 class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
-    """Qurrium, A qiskit Macro.
+    """Qurrium
+
     *~ Create countless adventure, legacy and tales. ~*
     """
 
