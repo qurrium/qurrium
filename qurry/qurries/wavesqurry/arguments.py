@@ -15,23 +15,28 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class WavesExecuterArguments(ArgumentsPrototype):
-    """Construct the experiment's parameters for specific options,
-    which is overwritable by the inherition class."""
+    """Arguments for
+    :class:`~qurry.qurrium.wavesqurry.experiment.WavesExecuterExperiment`."""
 
 
 class WavesExecuterMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrium.wavesqurry.qurry.WavesExecuter.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     waves: Optional[list[Union[QuantumCircuit, Hashable]]]
 
 
 class WavesExecuterOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`qurry.qurrium.wavesqurry.qurry.WavesExecuter.output`."""
 
 
 class WavesExecuterAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrium.wavesqurry.experiment.WavesExecuterExperiment.analyze`.
+    """
 
 
 SHORT_NAME = "waves_executer"
-"""The short name for this qurry instance."""
+"""The short name of the experiment. """

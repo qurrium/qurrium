@@ -148,7 +148,7 @@ class EntropyMeasureRandomizedV1(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Union[int, tuple[int, int], None], optional):
                 The measure range. Defaults to None.
@@ -169,13 +169,15 @@ class EntropyMeasureRandomizedV1(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
 
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -259,7 +261,7 @@ class EntropyMeasureRandomizedV1(
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Union[int, tuple[int, int], None], optional):
                 The measure range. Defaults to None.
@@ -280,13 +282,15 @@ class EntropyMeasureRandomizedV1(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds` 
+                in :mod:`qurry.qurrium.utils.random_unitary`.
 
                 .. code-block:: python
 
                     from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):

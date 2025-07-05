@@ -1,7 +1,4 @@
-"""EchoListenRandomized - Utility
-(:mod:`qurry.qurrech.randomized_measure.utils`)
-
-"""
+"""EchoListenRandomized - Utility (:mod:`qurry.qurrech.randomized_measure.utils`)"""
 
 from typing import Union, Optional, Literal
 
@@ -120,6 +117,9 @@ NSG_OVERLAPPING_SIZE = (
     + "but got different number of qubits measured."
     + "Got circuit 1: {} {} and circuit 2: {} {}."
 )
+"""Message for checking the size of qubits measured and unitary located mapping.
+This message is used in the function :func:`overlapping_size_check` to raise an exception
+if the size of the qubits measured or unitary located mapping in the two circuits are different"""
 
 
 def overlapping_size_check(
@@ -173,6 +173,10 @@ MSG_FULL_COVER = (
     + "you can set `unitary_loc_not_cover_measure=True` "
     + "to close this warning."
 )
+"""Message for checking whether the unitary operator covers the measurement.
+This message is used in the function :func:`unitary_full_cover_check` to raise an exception
+if the unitary operator does not cover the measurement 
+and `unitary_loc_not_cover_measure` is False."""
 
 
 def unitary_full_cover_check(

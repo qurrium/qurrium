@@ -28,6 +28,7 @@ class StringOperatorLib(TypedDict):
     Which is defined by following the equation:
 
     .. math::
+
         S^O(g) = \langle\psi|\hat{O_i}
             \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 
@@ -43,6 +44,7 @@ class StringOperatorLib(TypedDict):
     r"""Identity string operator.
 
     .. math::
+
         \hat{O_i} = \hat{O'_k} = \mathbb{1}
     """
     zy: dict[Union[int, Literal["filling"]], StringOperatorUnits]
@@ -105,6 +107,7 @@ r"""Available string operator library.
 - "y": Available string operator library for the Y direction.
 
 .. math::
+
     S^O(g) = \langle\psi|\hat{O_i}
         \left(\prod_{j = i+2}^{k-2} \hat{\sigma}_j^x \right) \hat{O_i}|\psi\rangle
 

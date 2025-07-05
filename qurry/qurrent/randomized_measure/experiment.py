@@ -74,7 +74,7 @@ class EntropyMeasureRandomizedExperiment(
                 Defaults to `'exps'`.
             times (int, optional):
                 The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement.
                 If it is None, then it will return the mapping of all qubits.

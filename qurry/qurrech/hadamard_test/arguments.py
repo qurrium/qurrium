@@ -15,7 +15,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class EchoListenHadamardArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -27,7 +28,9 @@ class EchoListenHadamardArguments(ArgumentsPrototype):
 
 
 class EchoListenHadamardMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave1: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -38,17 +41,21 @@ class EchoListenHadamardMeasureArgs(BasicArgs, total=False):
 
 
 class EchoListenHadamardOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard.output`."""
 
     degree: Union[int, tuple[int, int], None]
     """The degree range."""
 
 
 class EchoListenHadamardAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method.
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
+    and :meth:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment.analyze`.
 
     The post-processing of Hadamard test does not need any input.
     """
 
 
 SHORT_NAME = "qurrech_hadamard"
+"""The short name of 
+:class:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment`."""

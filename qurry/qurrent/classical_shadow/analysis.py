@@ -199,6 +199,10 @@ FIELDS_REMAPPING = {
     "rho_m_dict": "average_classical_snapshots_rho",
     "expect_rho": "mean_of_rho",
 }
+"""Remapping of fields from old in 0.12 to new names since 0.13.
+The keys are the old field names and the values are the new field names.
+"""
+
 NEW_FIELDS_DEFAULTS = {
     "average_classical_snapshots_rho": {},
     "mean_of_rho": np.zeros((1, 1), dtype=np.complex128),
@@ -213,6 +217,7 @@ NEW_FIELDS_DEFAULTS = {
     "accuracy_predict_epsilon": np.nan,
     "maximum_shadow_norm": np.nan,
 }
+"""Default values for new fields introduced in 0.13."""
 
 
 class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]):

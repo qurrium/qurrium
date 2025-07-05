@@ -21,7 +21,8 @@ from ...tools import DEFAULT_POOL_SIZE
 
 @dataclass(frozen=True)
 class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrech.randomized_measure_v1.experiment.EchoListenRandomizedV1Experiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -30,7 +31,7 @@ class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     times: int = 100
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[tuple[int, int]] = None
     """The measure range."""
     unitary_loc: Optional[tuple[int, int]] = None
@@ -50,12 +51,14 @@ class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
 
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
     workers_num: int = DEFAULT_POOL_SIZE
@@ -69,7 +72,9 @@ class EchoListenRandomizedV1Arguments(ArgumentsPrototype):
 
 
 class EchoListenRandomizedV1MeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrech.randomized_measure_v1.qurry.EchoListenRandomizedV1.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave1: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -77,7 +82,7 @@ class EchoListenRandomizedV1MeasureArgs(BasicArgs, total=False):
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Union[int, tuple[int, int], None]
     """The measure range."""
     unitary_loc: Union[int, tuple[int, int], None]
@@ -97,22 +102,25 @@ class EchoListenRandomizedV1MeasureArgs(BasicArgs, total=False):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
 
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
 
 class EchoListenRandomizedV1OutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrech.randomized_measure_v1.qurry.EchoListenRandomizedV1.output`."""
 
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure: Union[int, tuple[int, int], None]
     """The measure range."""
     unitary_loc: Union[int, tuple[int, int], None]
@@ -132,18 +140,22 @@ class EchoListenRandomizedV1OutputArgs(OutputArgs):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
+    in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
 
         from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
 
 class EchoListenRandomizedV1AnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrech.randomized_measure_v1.experiment.EchoListenRandomizedV1Experiment.analyze`.
+    """
 
     degree: Optional[Union[tuple[int, int], int]]
     """The degree range."""
@@ -158,3 +170,5 @@ class EchoListenRandomizedV1AnalyzeArgs(AnalyzeArgs, total=False):
 
 
 SHORT_NAME = "qurrech_randomized_v1"
+"""The short name of
+:class:`~qurry.qurrech.randomized_measure_v1.experiment.EchoListenRandomizedV1Experiment`."""

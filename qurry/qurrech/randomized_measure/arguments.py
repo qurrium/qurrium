@@ -21,7 +21,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs, TranspileArgs
 
 @dataclass(frozen=True)
 class EchoListenRandomizedArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -30,7 +31,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     Defaults to `'experiment'`."""
     times: int = 100
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     qubits_measured_1: Optional[list[int]] = None
     """The measure range for the first quantum circuit."""
     qubits_measured_2: Optional[list[int]] = None
@@ -125,7 +126,8 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
@@ -176,7 +178,9 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
 
 
 class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave1: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -184,7 +188,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure_1: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range for the first quantum circuit."""
     measure_2: Optional[Union[tuple[int, int], int, list[int]]]
@@ -218,7 +222,8 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
     in :mod:`qurry.qurrium.utils.random_unitary`.
 
     .. code-block:: python
@@ -230,11 +235,12 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
 
 
 class EchoListenRandomizedOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.output`."""
 
     times: int
     """The number of random unitary operator. 
-    It will denote as `N_U` in the experiment name."""
+    It will denote as :math:`N_U` in the experiment name."""
     measure_1: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range for the first quantum circuit."""
     measure_2: Optional[Union[tuple[int, int], int, list[int]]]
@@ -280,7 +286,9 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
 
 
 class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment.analyze`.
+    """
 
     selected_classical_registers: Optional[Iterable[int]]
     """The list of **the index of the selected_classical_registers**.
@@ -293,3 +301,5 @@ class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 SHORT_NAME = "qurrech_randomized"
+"""The short name of
+:class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""

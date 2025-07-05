@@ -87,7 +87,7 @@ class EchoListenRandomizedExperiment(
                 Defaults to `'exps'`.
             times (int):
                 The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
             measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The selected qubits for the measurement for the first quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
