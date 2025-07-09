@@ -1,13 +1,16 @@
 """JSONablize (:mod:`qurry.capsule.jsonablize`)"""
 
 import os
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, TypeVar
 from collections import OrderedDict
 from collections.abc import Iterable, Hashable
 import json
 from pathlib import Path
 
 from .utils import DEFAULT_ENCODING, DEFAULT_INDENT
+
+_K = TypeVar("_K")
+_V = TypeVar("_V")
 
 
 def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
@@ -53,7 +56,7 @@ def parse(o: Any) -> Any:
     """Make a Python object JSON-allowable.
 
     Args:
-        o (any): Python object.
+        o (Any): Python object.
 
     Returns:
         Any: JSON-allowable object.
@@ -71,7 +74,7 @@ def parse(o: Any) -> Any:
     return parsed
 
 
-def sort_hashable_ahead(o: dict) -> dict:
+def sort_hashable_ahead(o: dict[_K, _V]) -> dict[_K, _V]:
     """Make hashable values be the ahead in dictionary."
 
     Args:
