@@ -2,10 +2,26 @@
 
 from datetime import datetime
 
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+"""Default datetime format for the tools in this module.
 
-def current_time():
-    """Returns the current time in the format of ``YYYY-MM-DD HH:MM:SS``."""
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+The default format is `"%Y-%m-%d %H:%M:%S"`.
+For example, it will return a string like "2019-10-01 12:34:56".
+"""
+
+
+def current_time(time_format: str = DEFAULT_DATETIME_FORMAT) -> str:
+    """Returns the current time in the specified format.
+
+    Args:
+        time_format (str): The format of the time. Defaults to `DEFAULT_DATETIME_FORMAT`.
+
+    Returns:
+        str: The current time formatted as a string.
+    """
+    if not isinstance(time_format, str):
+        raise TypeError(f"Expected a string for time_format, got {type(time_format).__name__}")
+    return datetime.now().strftime(time_format)
 
 
 class DatetimeDict(dict[str, str]):
