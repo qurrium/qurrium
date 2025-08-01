@@ -78,7 +78,8 @@ def key_tuple_loads(o):
 
 
 class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
-    """Specific data structures of Qurrium like :class:`dict[str, list[any]]`.
+    """Specific data structures of Qurrium like :class:`dict[_K, list[_V]]`,
+    where `_K` is a hashable type and `_V` is any type.
 
     >>> bla = TagList()
     >>> bla.guider('strTag1', [...])
