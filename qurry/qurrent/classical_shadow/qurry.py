@@ -135,7 +135,7 @@ class ShadowUnveil(
 
     """
 
-    __name__ = "EntropyRandomizedMeasure"
+    __name__ = "ShadowUnveil"
     short_name = SHORT_NAME
 
     def __post_init__(self):
