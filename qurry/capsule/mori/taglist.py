@@ -18,30 +18,54 @@ _V = TypeVar("_V")
 _T = TypeVar("_T")
 
 
-def tuple_str_parse(k: str) -> Union[tuple[str, ...], str]:
-    """Convert tuple strings to real tuple.
+def tuple_str_parse(kstring: str) -> Union[tuple[str, ...], str]:
+    r"""Convert tuple strings to real tuple.
+
+    >>> tuple_str_parse("hello_world")
+    'hello_world'
+
+    >>> tuple_str_parse("(1, 2, 3)")
+    (1, 2, 3)
+
+    >>> tuple_str_parse("('a', 'b', 'c')")
+    ('a', 'b', 'c')
+
+    >>> tuple_str_parse("('delay', '1.60e+01_ns', 'excited')")
+    ('delay', '1.60e+01_ns', 'excited')
+
+    >>> tuple_str_parse(
+        '(\'normalstr\', \'alsostr\', \'"power"str\', "p\'aw\'a", 42, \'114514\', \'\')'
+    )
+    ('normalstr', 'alsostr', '"power"str', "p'aw'a", 42, '114514', '')
 
     Args:
-        k (str): Tuplizing available string.
+        kstring (str): Tuplizing available string.
 
     Returns:
         Union[tuple[str, ...], str]: Result of tuplizing.
     """
-    if k[0] == "(" and k[-1] == ")":
-        kt = list(k[1:-1].split(","))
-        kt2 = []
-        for ktsub in kt:
-            if len(ktsub) > 0:
-                if ktsub[0] == "'" or ktsub[0] == '"':
-                    kt2.append(ktsub[1:-1].strip())
-                elif ktsub.isdigit():
-                    kt2.append(int(ktsub))
-                else:
-                    kt2.append(ktsub)
+    if not isinstance(kstring, str):
+        raise ValueError("Input must be a string")
 
-        kt2 = tuple(kt2)
-        return kt2
-    return k
+    if kstring[0] != "(" or kstring[-1] != ")":
+        return kstring
+
+    kt = list(kstring[1:-1].split(", "))
+    # ", " is the acutal divider of the tuple elements
+    # Not just comma alone
+    # Otherwise it will make some really bad result...
+    kt2 = []
+    for ktelt in kt:
+        if len(ktelt) > 0:
+            continue
+        elif ktelt[0] == "'" or ktelt[0] == '"':
+            kt2.append(ktelt[1:-1].strip())
+        elif ktelt.isdigit():
+            kt2.append(int(ktelt))
+        else:
+            kt2.append(ktelt)
+
+    return tuple(kt2)
 
 
 @overload
