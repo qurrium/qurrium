@@ -56,9 +56,9 @@ def tuple_str_parse(kstring: str) -> Union[tuple[str, ...], str]:
     # Otherwise it will make some really bad result...
     kt2 = []
     for ktelt in kt:
-        if len(ktelt) > 0:
+        if len(ktelt) <= 0:
             continue
-        elif ktelt[0] == "'" or ktelt[0] == '"':
+        if ktelt[0] == "'" or ktelt[0] == '"':
             kt2.append(ktelt[1:-1].strip())
         elif ktelt.isdigit():
             kt2.append(int(ktelt))
