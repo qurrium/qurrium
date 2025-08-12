@@ -3,3 +3,4 @@ qiskit>=0.45.0
 # other dependencies
 requests
 tqdm
+pyxDamerauLevenshtein
