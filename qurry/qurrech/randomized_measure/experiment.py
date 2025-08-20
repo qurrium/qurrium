@@ -19,8 +19,7 @@ from .utils import (
     create_config,
 )
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...qurrium.experiment.utils import memory_usage_factor_expect
+from ...qurrium.experiment import ExperimentPrototype, Commonparams, memory_usage_factor_expect
 from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.utils.randomized import (
     random_unitary,
