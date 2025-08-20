@@ -1,4 +1,7 @@
-"""ToolKits for Random Unitary Operator (:mod:`qurry.qurrium.utils.random_unitary`)"""
+"""Post Processing - Randomized Measure - Utilities
+(:mod:`qurry.process.randomized_measure.utils`)
+
+"""
 
 from typing import Union, Optional
 from collections.abc import Sequence
@@ -173,7 +176,7 @@ def check_random_unitary_seeds(
     """Check the input of the experiment.
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_unitary_seeds`
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    in :mod:`qurry.process.randomized_measure.utils`.
 
     Args:
         times (int): The number of random unitary operator.

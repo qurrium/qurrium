@@ -67,12 +67,12 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function 
-    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    :func:`~qurry.process.randomized_measure.utils.generate_random_unitary_seeds`
+    in :mod:`qurry.process.randomized_measure.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+        from qurry import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -121,12 +121,12 @@ class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function 
-    :func:`~qurry.qurrium.utils.random_unitary.generate_random_unitary_seeds`
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    :func:`~qurry.process.randomized_measure.utils.generate_random_unitary_seeds`
+    in :mod:`qurry.process.randomized_measure.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+        from qurry import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
@@ -161,11 +161,11 @@ class EntropyMeasureRandomizedOutputArgs(OutputArgs):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_unitary_seeds` 
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    in :mod:`qurry.process.randomized_measure.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+        from qurry import generate_random_unitary_seeds
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """

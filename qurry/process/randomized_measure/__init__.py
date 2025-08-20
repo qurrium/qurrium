@@ -127,3 +127,4 @@ from .wavefunction_overlap import randomized_overlap_echo
 from .wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
 )
+from .utils import generate_random_unitary_seeds, check_random_unitary_seeds
