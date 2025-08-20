@@ -27,7 +27,7 @@ from ...qurrium.utils.randomized import (
     local_unitary_op_to_list,
     local_unitary_op_to_pauli_coeff,
 )
-from ...qurrium.utils.random_unitary import check_input_for_experiment
+from ...qurrium.utils.random_unitary import check_random_unitary_seeds
 from ...process.utils import single_counts_recount_pyrust
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure.wavefunction_overlap import (
@@ -197,8 +197,8 @@ class EchoListenRandomizedExperiment(
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, len(unitary_located_mapping_1), random_unitary_seeds)
-        check_input_for_experiment(times, len(unitary_located_mapping_2), random_unitary_seeds)
+        check_random_unitary_seeds(times, len(unitary_located_mapping_1), random_unitary_seeds)
+        check_random_unitary_seeds(times, len(unitary_located_mapping_2), random_unitary_seeds)
 
         if not any([isinstance(second_backend, Backend), second_backend is None]):
             raise TypeError(

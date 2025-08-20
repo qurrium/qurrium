@@ -20,7 +20,7 @@ from ...qurrium.utils.randomized import (
     local_random_unitary_pauli_coeff,
     random_unitary,
 )
-from ...qurrium.utils.random_unitary import check_input_for_experiment
+from ...qurrium.utils.random_unitary import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
     DEFAULT_PROCESS_BACKEND,
@@ -136,7 +136,7 @@ class EchoListenRandomizedV1Experiment(
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, num_qubits_01, random_unitary_seeds)
+        check_random_unitary_seeds(times, num_qubits_01, random_unitary_seeds)
 
         # pylint: disable=protected-access
         return EchoListenRandomizedV1Arguments._filter(
