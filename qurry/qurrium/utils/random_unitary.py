@@ -165,7 +165,7 @@ dict[int, Union[int, np.random.Generator]]\
     return single_seed
 
 
-def check_input_for_experiment(
+def check_random_unitary_seeds(
     times: int,
     num_qubits: int,
     random_unitary_seeds: Optional[dict[int, dict[int, int]]],

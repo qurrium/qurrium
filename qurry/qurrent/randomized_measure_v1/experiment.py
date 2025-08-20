@@ -19,7 +19,7 @@ from ...qurrium.utils.randomized import (
     local_random_unitary_pauli_coeff,
     random_unitary,
 )
-from ...qurrium.utils.random_unitary import check_input_for_experiment
+from ...qurrium.utils.random_unitary import check_random_unitary_seeds
 from ...process.utils import qubit_selector
 from ...process.randomized_measure.entangled_entropy_v1 import (
     RandomizedEntangledEntropyMitigatedComplex,
@@ -140,7 +140,7 @@ class EntropyMeasureRandomizedV1Experiment(
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, num_qubits, random_unitary_seeds)
+        check_random_unitary_seeds(times, num_qubits, random_unitary_seeds)
 
         # pylint: disable=protected-access
         return EntropyMeasureRandomizedV1Arguments._filter(
