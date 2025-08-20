@@ -26,8 +26,8 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    times: int = 100
-    """The number of random unitary operator. 
+    snapshots: int = 100
+    """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
     qubits_measured: Optional[list[int]] = None
     """The measure range."""
@@ -50,29 +50,30 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     """The actual number of qubits."""
     unitary_located: Optional[list[int]] = None
     """The range of the unitary operator."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
-    """The seeds for all random unitary operator.
+    random_basis: Optional[dict[int, dict[int, int]]] = None
+    """The random basis for classical shadow.
+
     This argument only takes input as type of `dict[int, dict[int, int]]`.
-    The first key is the index for the random unitary operator.
+    The first key is the index if snapshots.
     The second key is the index for the qubit.
 
     .. code-block:: python
 
         {
-            0: {0: 1234, 1: 5678},
-            1: {0: 2345, 1: 6789},
-            2: {0: 3456, 1: 7890},
+            0: {0: 1, 1: 0},
+            1: {0: 2, 1: 1},
+            2: {0: 0, 1: 2},
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_basis` 
+    in :mod:`qurry.qurrent.classical_shadow.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+        from qurry import generate_random_basis
 
-        random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+        random_basis = generate_random_basis(100, [0, 1])
     """
 
     def __post_init__(self):
@@ -81,9 +82,13 @@ class ShadowUnveilArguments(ArgumentsPrototype):
                 "registers_mapping", {int(k): int(v) for k, v in self.registers_mapping.items()}
             )
 
-        if self.random_unitary_seeds is not None:
+        if self.random_basis is not None:
             super().__setattr__(
-                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
+                "random_basis",
+                {
+                    int(k): {int(k2): int(v2) for k2, v2 in v.items()}
+                    for k, v in self.random_basis.items()
+                },
             )
 
 
@@ -94,8 +99,8 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
-    times: int
-    """The number of random unitary operator. 
+    snapshots: int
+    """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""
@@ -103,29 +108,30 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
-    """The seeds for all random unitary operator.
+    random_basis: Optional[dict[int, dict[int, int]]]
+    """The random basis for classical shadow.
+
     This argument only takes input as type of `dict[int, dict[int, int]]`.
-    The first key is the index for the random unitary operator.
+    The first key is the index if snapshots.
     The second key is the index for the qubit.
 
     .. code-block:: python
 
         {
-            0: {0: 1234, 1: 5678},
-            1: {0: 2345, 1: 6789},
-            2: {0: 3456, 1: 7890},
+            0: {0: 1, 1: 0},
+            1: {0: 2, 1: 1},
+            2: {0: 0, 1: 2},
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_basis` 
+    in :mod:`qurry.qurrent.classical_shadow.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+        from qurry import generate_random_basis
 
-        random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+        random_basis = generate_random_basis(100, [0, 1])
     """
 
 
@@ -142,28 +148,30 @@ class ShadowUnveilOutputArgs(OutputArgs):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
-    """The seeds for all random unitary operator.
+    random_basis: Optional[dict[int, dict[int, int]]]
+    """The random basis for classical shadow.
+
     This argument only takes input as type of `dict[int, dict[int, int]]`.
-    The first key is the index for the random unitary operator.
+    The first key is the index if snapshots.
     The second key is the index for the qubit.
 
     .. code-block:: python
 
         {
-            0: {0: 1234, 1: 5678},
-            1: {0: 2345, 1: 6789},
-            2: {0: 3456, 1: 7890},
+            0: {0: 1, 1: 0},
+            1: {0: 2, 1: 1},
+            2: {0: 0, 1: 2},
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function `generate_random_unitary_seeds` 
-    in `qurry.qurrium.utils.random_unitary`.
+    you can use the function :func:`generate_random_basis` 
+    in :mod:`qurry.qurrent.classical_shadow.utils`.
 
     .. code-block:: python
 
-        from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
-        random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+        from qurry import generate_random_basis
+
+        random_basis = generate_random_basis(100, [0, 1])
     """
 
 

@@ -166,11 +166,11 @@ class ShadowUnveil(
     def measure_to_output(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
-        times: int = 100,
+        snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -190,8 +190,8 @@ class ShadowUnveil(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
-            times (int, optional):
-                The number of random unitary operator.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
@@ -201,29 +201,30 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
-                The seeds for all random unitary operator.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow.
+
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
-                The first key is the index for the random unitary operator.
+                The first key is the index if snapshots.
                 The second key is the index for the qubit.
 
                 .. code-block:: python
 
                     {
-                        0: {0: 1234, 1: 5678},
-                        1: {0: 2345, 1: 6789},
-                        2: {0: 3456, 1: 7890},
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function :func:`generate_random_unitary_seeds` 
-                in :mod:`qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.qurrent.classical_shadow.utils`.
 
                 .. code-block:: python
 
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+                    from qurry import generate_random_basis
 
-                    random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+                    random_basis = generate_random_basis(100, [0, 1])
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -262,11 +263,11 @@ class ShadowUnveil(
 
         return {
             "circuits": [wave],
-            "times": times,
+            "times": snapshots,
             "measure": measure,
             "unitary_loc": unitary_loc,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
-            "random_unitary_seeds": random_unitary_seeds,
+            "random_basis": random_basis,
             "shots": shots,
             "backend": backend,
             "exp_name": exp_name,
@@ -284,11 +285,11 @@ class ShadowUnveil(
     def measure(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
-        times: int = 100,
+        snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -308,8 +309,8 @@ class ShadowUnveil(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
-            times (int, optional):
-                The number of random unitary operator.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
@@ -319,29 +320,30 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
-                The seeds for all random unitary operator.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow.
+
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
-                The first key is the index for the random unitary operator.
+                The first key is the index if snapshots.
                 The second key is the index for the qubit.
 
                 .. code-block:: python
 
                     {
-                        0: {0: 1234, 1: 5678},
-                        1: {0: 2345, 1: 6789},
-                        2: {0: 3456, 1: 7890},
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function :func:`generate_random_unitary_seeds` 
-                in :mod:`qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.qurrent.classical_shadow.utils`.
 
                 .. code-block:: python
 
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+                    from qurry import generate_random_basis
 
-                    random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+                    random_basis = generate_random_basis(100, [0, 1])
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -378,11 +380,11 @@ class ShadowUnveil(
 
         output_args = self.measure_to_output(
             wave=wave,
-            times=times,
+            snapshots=snapshots,
             measure=measure,
             unitary_loc=unitary_loc,
             unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
-            random_unitary_seeds=random_unitary_seeds,
+            random_basis=random_basis,
             shots=shots,
             backend=backend,
             exp_name=exp_name,
