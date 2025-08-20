@@ -139,8 +139,8 @@ class ShadowUnveilOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.output`."""
 
-    times: int
-    """The number of random unitary operator. 
+    snapshots: int
+    """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
     measure: Optional[Union[tuple[int, int], int, list[int]]]
     """The measure range."""

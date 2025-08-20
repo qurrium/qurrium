@@ -263,7 +263,7 @@ class ShadowUnveil(
 
         return {
             "circuits": [wave],
-            "times": snapshots,
+            "snapshots": snapshots,
             "measure": measure,
             "unitary_loc": unitary_loc,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
