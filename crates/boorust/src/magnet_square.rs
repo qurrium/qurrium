@@ -4,7 +4,21 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::counts_process::single_counts_recount_prototype;
+use crate::counts_process::{check_invalid_counts, single_counts_recount_prototype};
+
+pub fn check_invalid_counts_magsq(counts: Vec<HashMap<String, i32>>) {
+    let invalid_counts = counts
+        .iter()
+        .enumerate()
+        .filter(|(i, single_counts)| single_counts.keys().all(|bits| bits.len() != 2))
+        .map(|(i, _)| i)
+        .collect::<Vec<_>>();
+    if invalid_counts {
+        panic!(
+            "The counts must be equal to the number of shots, but following counts are invalid, index: {}", invalid_counts
+        );
+    }
+}
 
 pub fn magsq_cell_rust(idx: i32, single_counts: &HashMap<String, i32>, shots: i32) -> (i32, f64) {
     let mut magnetsq_cell: f64 = 0.0;
@@ -28,17 +42,8 @@ pub fn magnetic_square_core_rust(
     counts: Vec<HashMap<String, i32>>,
     num_qubits: i32,
 ) -> (f64, HashMap<i32, f64>, f64) {
-    let sample_shots: i32 = counts[0].values().sum();
-    assert_eq!(
-        shots, sample_shots,
-        "shots {} does not match sample_shots {}",
-        shots, sample_shots
-    );
-    assert!(
-        counts[0].keys().all(|bits| bits.len() == 2),
-        "Bits must be 2-bit strings, but found: {:?}",
-        counts[0]
-    );
+    check_invalid_counts(shots, counts);
+    check_invalid_counts_magsq(counts);
 
     let begin = Instant::now();
 

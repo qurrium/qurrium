@@ -4,7 +4,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::counts_process::single_counts_recount_prototype;
+use crate::counts_process::{check_invalid_counts, single_counts_recount_prototype};
 use crate::randomized::randomized::ensemble_cell_rust;
 
 #[pyfunction]
@@ -86,24 +86,8 @@ pub fn overlap_echo_core_2_rust(
         second_counts.len()
     );
 
-    let sample_shots_01: i32 = first_counts[0].values().sum();
-    let sample_shots_02: i32 = second_counts[0].values().sum();
-    for (tmp01, tmp02, tmp01_name, tmp02_name) in vec![
-        (shots, sample_shots_01, "shots", "first counts"),
-        (shots, sample_shots_02, "shots", "second counts"),
-        (
-            sample_shots_01,
-            sample_shots_02,
-            "first counts",
-            "second counts",
-        ),
-    ] {
-        assert_eq!(
-            tmp01, tmp02,
-            "The number of shots must be equal, but the {} is {}, and the {} is {}",
-            tmp01_name, tmp01, tmp02_name, tmp02
-        );
-    }
+    check_invalid_counts(shots, first_counts);
+    check_invalid_counts(shots, second_counts);
 
     let sample_bitstrings_num_01: i32 = first_counts[0].keys().next().unwrap().len() as i32;
     let sample_bitstrings_num_02: i32 = second_counts[0].keys().next().unwrap().len() as i32;
