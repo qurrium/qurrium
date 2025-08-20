@@ -61,10 +61,7 @@ def generate_random_basis(
     return random_basis
 
 
-def check_random_basis(
-    random_basis: dict[int, dict[int, int]],
-    unitary_located: list[int],
-) -> bool:
+def check_random_basis(random_basis: dict[int, dict[int, int]], unitary_located: list[int]) -> bool:
     """Check if the random basis is valid.
 
     Args:
