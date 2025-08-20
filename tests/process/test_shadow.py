@@ -120,7 +120,7 @@ def test_shadow(
             tmp = classical_shadow_complex(
                 shots=arguments["shots"],
                 counts=counts,
-                random_unitary_um=random_unitary_ids,
+                random_basis=random_unitary_ids,
                 selected_classical_registers=[
                     final_mapping[qi] for qi in arguments["selected_qubits"]
                 ],

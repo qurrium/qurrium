@@ -1,20 +1,8 @@
 """Test the qurry.qurrent module ShadowUnveil class.
 
-- classical shadow at N_U = 100, shots = 1024
-    - [4-trivial] 0.1396211346712979 <= 0.25, 0.8603788653287021 ~= 1.0
-    - [4-GHZ] 0.020000482039018164 <= 0.25, 0.5200004820390182 ~= 0.5
-    - [4-topological-period] 4.4909390534142446e-07 <= 0.25, 0.25000044909390534 ~= 0.25
-    - [6-trivial] 0.1880350251631303 <= 0.25, 0.8119649748368697 ~= 1.0
-    - [6-GHZ] 0.06589450836181643 <= 0.25, 0.43410549163818357 ~= 0.5
-    - [6-topological-period] 8.716583251966448e-06 <= 0.25, 0.25000871658325197 ~= 0.25
+- classical shadow at N_U = 400, shots = 1
 
-- classical shadow at N_U = 100, shots = 1024 with dynamic CNOT gate
-    - [4-entangle-by-dyn] 0.24680606321855025 <= 0.25, 0.7531939367814497 ~= 1.0
-    - [4-entangle-by-dyn-half] 1.4655373313188225e-05 <= 0.25, 0.4999853446266868 ~= 0.5
-    - [4-dummy-2-body-with-clbits] 0.014617952866987749 <= 0.25, 0.9853820471330123 ~= 1.0
-    - [6-entangle-by-dyn] 0.1609451276605785 <= 0.25, 0.839054872339422 ~= 1.0
-    - [6-entangle-by-dyn-half] 1.0452270507832484e-05 <= 0.25, 0.49998954772949217 ~= 0.5
-    - [6-dummy-2-body-with-clbits] 0.09746155305342241 <= 0.25, 0.9025384469465776 ~= 1.0
+- classical shadow at N_U = 400, shots = 1 with dynamic CNOT gate
 
 """
 
@@ -35,7 +23,7 @@ from utils import (
     specific_analysis_args_making,
     check_unit,
     detect_simulator_source,
-    prepare_random_unitary_seeds,
+    prepare_random_basis,
     item_name_making,
 )
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
@@ -51,11 +39,13 @@ from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
 set_cpu_only()
 
 SEED_SIMULATOR = 2019  # <harmony/>
-THREDHOLD = 0.25
+THRESHOLD = 0.25
+SNAPSHOTS = 400
+SHOTS = 1
 
 backend = GeneralSimulator()
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
-random_unitary_seeds = prepare_random_unitary_seeds()
+random_bases = prepare_random_basis()
 SIM_DEFAULT_SOURCE = detect_simulator_source()
 
 RHO_METHODS = ["numpy", "numpy_precomputed", "numpy_flatten"]
@@ -101,11 +91,11 @@ circuits: dict[str, QuantumCircuit] = {
 exp_method_04 = ShadowUnveil()
 
 
-def make_04_item(times: int, num_qubits: int, circ_name: str, answer: float) -> InputUnitTuple:
+def make_04_item(num_qubits: int, circ_name: str, answer: float) -> InputUnitTuple:
     """Make an input item for the fourth experiment.
 
     Args:
-        times (int): The number of measurement times.
+        snapshots (int): The number of measurement times.
         num_qubits (int): The number of qubits in the circuit.
         circ_name (str): The name of the circuit.
         answer (float): The expected answer.
@@ -117,8 +107,9 @@ def make_04_item(times: int, num_qubits: int, circ_name: str, answer: float) -> 
         ("classical_shadow", circ_name),
         {
             "wave": circ_name,
-            "times": times,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(times)},
+            "shots": SHOTS,
+            "snapshots": SNAPSHOTS,
+            "random_basis": {i: random_bases[num_qubits][i] for i in range(SNAPSHOTS)},
         },
         {"selected_qubits": range(-2, 0)},
         answer,
@@ -133,7 +124,7 @@ for num_qubits_tmp, circ_name_tmp, answer_tmp in [
     (6, "6-GHZ", 0.5),
     (6, "6-topological-period", 0.25),
 ]:
-    input_items["04"].append(make_04_item(80, num_qubits_tmp, circ_name_tmp, answer_tmp))
+    input_items["04"].append(make_04_item(num_qubits_tmp, circ_name_tmp, answer_tmp))
     exp_method_04.add(circuits[circ_name_tmp], circ_name_tmp)
 
 
@@ -141,12 +132,11 @@ exp_method_04_extra_clbits = ShadowUnveil()
 
 
 def make_04_extra_clbits_item(
-    times: int, num_qubits: int, circ_name: str, measure_range: list[int], answer: float
+    num_qubits: int, circ_name: str, measure_range: list[int], answer: float
 ) -> InputUnitTuple:
     """Make an input item for the fourth experiment with extra clbits.
 
     Args:
-        times (int): The number of measurement times.
         num_qubits (int): The number of qubits in the circuit.
         circ_name (str): The name of the circuit.
         measure_range (list[int]): The range of measurement.
@@ -160,8 +150,9 @@ def make_04_extra_clbits_item(
         {
             "wave": circ_name,
             "measure": measure_range,
-            "times": times,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(times)},
+            "shots": SHOTS,
+            "snapshots": SNAPSHOTS,
+            "random_basis": {i: random_bases[num_qubits][i] for i in range(SNAPSHOTS)},
         },
         {"selected_qubits": measure_range},
         answer,
@@ -182,7 +173,7 @@ for num_qubits_tmp, measure_range_tmp, circ_name_tmp, answer_tmp in [
     else []
 ):
     input_items["04_extra_clbits"].append(
-        make_04_extra_clbits_item(100, num_qubits_tmp, circ_name_tmp, measure_range_tmp, answer_tmp)
+        make_04_extra_clbits_item(num_qubits_tmp, circ_name_tmp, measure_range_tmp, answer_tmp)
     )
     exp_method_04_extra_clbits.add(circuits[circ_name_tmp], circ_name_tmp)
 
@@ -270,7 +261,7 @@ def test_quantity_unit(exp_method: ShadowUnveil, division: str, input_item: Inpu
                 "purity",
                 input_item.answer,
                 input_item.item_name,
-                THREDHOLD,
+                THRESHOLD,
                 # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
                 ["entropy", "mean_of_rho"],
             )
@@ -363,7 +354,7 @@ def test_multi_output_all(
                             "purity",
                             answer_dict[config["tags"]],
                             item_name_making(*config["tags"]),
-                            THREDHOLD,
+                            THRESHOLD,
                             # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
                             ["entropy", "mean_of_rho"],
                         )
