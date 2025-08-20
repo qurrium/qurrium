@@ -24,7 +24,7 @@ EXPORTING_NAME = {
 
 
 class Before(NamedTuple):
-    """`dataNeccessary` and `expsMultiMain` in V4 format."""
+    """The data structure stores everything before executing."""
 
     exps_config: dict[str, dict[str, Any]]
     """The dict of config of each experiments."""
@@ -91,10 +91,16 @@ class Before(NamedTuple):
             exps_config=quickRead(
                 filename=(real_file_location["exps_config"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             circuits_num=quickRead(
                 filename=(real_file_location["circuits_num"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             circuits_map=TagList.read(
                 filename=real_file_location["circuits_map"],
@@ -109,6 +115,9 @@ class Before(NamedTuple):
             job_id=quickRead(
                 filename=(real_file_location["job_id"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             job_taglist=TagList.read(
                 filename=real_file_location["job_taglist"],
