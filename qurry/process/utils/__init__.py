@@ -9,6 +9,7 @@ from .counts_process import (
     shot_counts_selected_clreg_checker_pyrust,
     counts_list_vectorize_pyrust,
     rho_m_flatten_counts_list_vectorize_pyrust,
+    check_invalid_counts,
 )
 from .other import NUMERICAL_ERROR_TOLERANCE
 from .bit_slice import (

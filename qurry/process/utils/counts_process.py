@@ -63,6 +63,26 @@ BACKEND_AVAILABLE = availablility(
 DEFAULT_PROCESS_BACKEND = "Rust" if RUST_AVAILABLE else "Python"
 
 
+def check_invalid_counts(shots: int, counts: list[dict[str, int]]):
+    """Check whether the counts are valid.
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+
+    Raises:
+        ValueError: If the counts are invalid, which some of them mismatch shots number.
+    """
+    invalid_counts = filter(lambda i_and_c: sum(i_and_c[1].values()) != shots, enumerate(counts))
+    if invalid_counts:
+        raise ValueError(
+            "The counts must be equal to the number of shots, "
+            + f"but following counts are invalid, index: {list(invalid_counts)}"
+        )
+
+
 def single_counts_recount(
     single_counts: dict[str, int],
     num_classical_register: int,
@@ -242,8 +262,7 @@ def shot_counts_selected_clreg_checker_pyrust(
             PostProcessingRustUnavailableWarning,
         )
 
-    sample_shots = sum(counts[0].values())
-    assert sample_shots == shots, f"shots {shots} does not match sample_shots {sample_shots}"
+    check_invalid_counts(shots, counts)
 
     # Determine subsystem size
     measured_system_size = len(list(counts[0].keys())[0])
