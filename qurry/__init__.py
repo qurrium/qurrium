@@ -16,6 +16,8 @@ from .tools import (
     pytorch_cuda_check,
     fun_platform_check,
 )
+from .qurrium.utils.random_unitary import generate_random_unitary_seeds, check_random_unitary_seeds
+from .qurrent.classical_shadow.utils import generate_random_basis, check_random_basis
 
 from .version import __version__
 
