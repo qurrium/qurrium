@@ -29,7 +29,7 @@ from ..utils import NUMERICAL_ERROR_TOLERANCE
 def mean_of_rho(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
@@ -86,8 +86,8 @@ def mean_of_rho(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
+        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
         selected_classical_registers (list[int]):
             The list of **the index of the selected_classical_registers**.
 
@@ -121,7 +121,7 @@ def mean_of_rho(
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
-        random_unitary_um=random_unitary_um,
+        random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
     )
@@ -145,7 +145,7 @@ def mean_of_rho(
 def trace_rho_square(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
@@ -159,8 +159,8 @@ def trace_rho_square(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
+        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
 
@@ -209,7 +209,7 @@ def trace_rho_square(
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
-        random_unitary_um=random_unitary_um,
+        random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
     )
@@ -239,7 +239,7 @@ def trace_rho_square(
 def esitimation_of_given_operators(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     # estimation of given operators
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
@@ -301,8 +301,8 @@ def esitimation_of_given_operators(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
+        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
 
@@ -350,7 +350,7 @@ def esitimation_of_given_operators(
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
-        random_unitary_um=random_unitary_um,
+        random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
     )
@@ -394,7 +394,7 @@ def esitimation_of_given_operators(
 def classical_shadow_complex(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Iterable[int],
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
@@ -504,8 +504,8 @@ def classical_shadow_complex(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
+        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
         selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
 
@@ -569,7 +569,7 @@ def classical_shadow_complex(
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
-        random_unitary_um=random_unitary_um,
+        random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
     )
