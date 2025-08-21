@@ -2,19 +2,20 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::panic;
 
-pub fn check_invalid_counts(shots: i32, counts: Vec<HashMap<String, i32>>) {
+pub fn check_invalid_counts(shots: i32, counts: &Vec<HashMap<String, i32>>) {
     let invalid_counts = counts
         .iter()
         .enumerate()
-        .filter(|(i, single_counts)| {
+        .filter(|(_i, single_counts)| {
             let sample_shots: i32 = single_counts.values().sum();
             shots != sample_shots
         })
         .map(|(i, _)| i)
         .collect::<Vec<_>>();
-    if invalid_counts {
+    if !invalid_counts.is_empty() {
         panic!(
-            "The counts must be equal to the number of shots, but following counts are invalid, index: {}", invalid_counts
+            "The counts must be equal to the number of shots, but following counts are invalid, index: {:?}",
+            invalid_counts
         );
     }
 }
@@ -92,7 +93,7 @@ pub fn shot_counts_selected_clreg_checker(
     selected_classical_registers: Option<Vec<i32>>,
 ) -> (i32, Vec<i32>) {
     // check if the sum of shots is equal to the sum of all counts
-    check_invalid_counts(shots, counts);
+    check_invalid_counts(shots, &counts);
 
     // Determine the size of the allsystems
     let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
@@ -163,7 +164,7 @@ pub fn rho_m_flatten_counts_list_vectorize_rust(
                 })
                 .collect();
             bitstrings.push(bitstring_vec);
-            counts_vec.push(count);
+            counts_vec.push(*count);
         }
         rho_m_flatten_counts_list_vectorized.push((bitstrings, counts_vec));
     }

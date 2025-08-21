@@ -86,8 +86,8 @@ pub fn overlap_echo_core_2_rust(
         second_counts.len()
     );
 
-    check_invalid_counts(shots, first_counts);
-    check_invalid_counts(shots, second_counts);
+    check_invalid_counts(shots, &first_counts);
+    check_invalid_counts(shots, &second_counts);
 
     let sample_bitstrings_num_01: i32 = first_counts[0].keys().next().unwrap().len() as i32;
     let sample_bitstrings_num_02: i32 = second_counts[0].keys().next().unwrap().len() as i32;

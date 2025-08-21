@@ -49,7 +49,7 @@ pub fn entangled_entropy_core_2_rust(
     selected_classical_registers: Option<Vec<i32>>,
 ) -> (HashMap<i32, f64>, Vec<i32>, &'static str, f64) {
     // check if the sum of shots is equal to the sum of all counts
-    check_invalid_counts(shots, counts);
+    check_invalid_counts(shots, &counts);
 
     // Determine the size of the allsystems
     let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
@@ -70,7 +70,7 @@ pub fn entangled_entropy_core_2_rust(
 
     let result_vec = counts.par_iter().enumerate().map(|(identifier, data)| {
         let result: (i32, f64, Vec<i32>) =
-            purity_cell_2_rust(identifier as i32, data, selected_classical_registers_actual);
+            purity_cell_2_rust(identifier as i32, data.clone(), selected_classical_registers_actual.clone());
         // println!("| purity_cell: {:?} {}", result, subsystems_size);
         result
     });

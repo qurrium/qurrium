@@ -6,16 +6,17 @@ use std::time::Instant;
 
 use crate::counts_process::{check_invalid_counts, single_counts_recount_prototype};
 
-pub fn check_invalid_counts_magsq(counts: Vec<HashMap<String, i32>>) {
+pub fn check_invalid_counts_magsq(counts: &Vec<HashMap<String, i32>>) {
     let invalid_counts = counts
         .iter()
         .enumerate()
-        .filter(|(i, single_counts)| single_counts.keys().all(|bits| bits.len() != 2))
+        .filter(|(_i, single_counts)| single_counts.keys().all(|bits| bits.len() != 2))
         .map(|(i, _)| i)
         .collect::<Vec<_>>();
-    if invalid_counts {
+    if !invalid_counts.is_empty() {
         panic!(
-            "The counts must be equal to the number of shots, but following counts are invalid, index: {}", invalid_counts
+            "The counts must be equal to the number of shots, but following counts are invalid, index: {:?}",
+            invalid_counts
         );
     }
 }
@@ -42,8 +43,8 @@ pub fn magnetic_square_core_rust(
     counts: Vec<HashMap<String, i32>>,
     num_qubits: i32,
 ) -> (f64, HashMap<i32, f64>, f64) {
-    check_invalid_counts(shots, counts);
-    check_invalid_counts_magsq(counts);
+    check_invalid_counts(shots, &counts);
+    check_invalid_counts_magsq(&counts);
 
     let begin = Instant::now();
 

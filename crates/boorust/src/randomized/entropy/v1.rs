@@ -69,7 +69,7 @@ pub fn entangled_entropy_core_rust(
     measure: Option<(i32, i32)>,
 ) -> (HashMap<i32, f64>, (i32, i32), (i32, i32), &'static str, f64) {
     // check if the sum of shots is equal to the sum of all counts
-    check_invalid_counts(shots, counts);
+    check_invalid_counts(shots, &counts);
 
     // Determine the size of the allsystems
     let allsystems_size: i32 = counts[0].keys().next().unwrap().len() as i32;
