@@ -21,9 +21,9 @@ pub fn check_invalid_counts(shots: i32, counts: &Vec<HashMap<String, i32>>) {
 }
 
 pub fn single_counts_recount_prototype(
-    single_counts: HashMap<String, i32>,
+    single_counts: &HashMap<String, i32>,
     num_classical_registers: i32,
-    selected_classical_registers: Vec<i32>,
+    selected_classical_registers: &Vec<i32>,
 ) -> HashMap<String, i32> {
     let mut single_counts_recounted: HashMap<String, i32> = HashMap::new();
     for (bit_string_all, count) in single_counts {
@@ -60,9 +60,9 @@ pub fn single_counts_recount_rust(
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
     single_counts_recount_prototype(
-        single_counts,
+        &single_counts,
         num_classical_registers,
-        selected_classical_registers,
+        &selected_classical_registers,
     )
 }
 
@@ -76,24 +76,22 @@ pub fn counts_list_recount_rust(
     let mut counts_list_recounted: Vec<HashMap<String, i32>> = Vec::new();
     for single_counts in counts {
         let counts = single_counts_recount_prototype(
-            single_counts,
+            &single_counts,
             num_classical_registers,
-            selected_classical_registers.clone(),
+            &selected_classical_registers,
         );
         counts_list_recounted.push(counts);
     }
     counts_list_recounted
 }
 
-#[pyfunction]
-#[pyo3(signature = (shots, counts, selected_classical_registers = None))]
-pub fn shot_counts_selected_clreg_checker(
+pub fn shot_counts_selected_clreg_checker_prototype(
     shots: i32,
-    counts: Vec<HashMap<String, i32>>,
+    counts: &Vec<HashMap<String, i32>>,
     selected_classical_registers: Option<Vec<i32>>,
 ) -> (i32, Vec<i32>) {
     // check if the sum of shots is equal to the sum of all counts
-    check_invalid_counts(shots, &counts);
+    check_invalid_counts(shots, counts);
 
     // Determine the size of the allsystems
     let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
@@ -111,6 +109,20 @@ pub fn shot_counts_selected_clreg_checker(
     }
 
     (measured_system_size, selected_classical_registers_actual)
+}
+
+#[pyfunction]
+#[pyo3(signature = (shots, counts, selected_classical_registers = None))]
+pub fn shot_counts_selected_clreg_checker(
+    shots: i32,
+    counts: Vec<HashMap<String, i32>>,
+    selected_classical_registers: Option<Vec<i32>>,
+) -> (i32, Vec<i32>) {
+    shot_counts_selected_clreg_checker_prototype(
+        shots,
+        &counts,
+        selected_classical_registers
+    )
 }
 
 #[pyfunction]
