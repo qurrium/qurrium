@@ -19,8 +19,8 @@ from ...qurrium.utils.randomized import (
     local_random_unitary_pauli_coeff,
     random_unitary,
 )
-from ...qurrium.utils.random_unitary import check_random_unitary_seeds
 from ...process.utils import qubit_selector
+from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.entangled_entropy_v1 import (
     RandomizedEntangledEntropyMitigatedComplex,
     PostProcessingBackendLabel,
@@ -93,7 +93,7 @@ class EntropyMeasureRandomizedV1Experiment(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function :func:`generate_random_unitary_seeds` 
+                you can use the function :func:`generate_random_unitary_seeds`
                 in :mod:`qurry.process.randomized_measure.utils`.
 
                 .. code-block:: python
