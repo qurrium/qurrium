@@ -93,9 +93,9 @@ pub fn z_dir_magnetic_square_core_rust(
         .enumerate()
         .map(|(idx, &pair)| {
             let recounted = single_counts_recount_prototype(
-                single_counts.clone(),
+                &single_counts,
                 num_qubits,
-                vec![pair.0 as i32, pair.1 as i32],
+                &vec![pair.0 as i32, pair.1 as i32],
             );
             magsq_cell_rust(idx as i32, &recounted, shots)
         })
