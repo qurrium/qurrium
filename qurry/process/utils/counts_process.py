@@ -75,11 +75,13 @@ def check_invalid_counts(shots: int, counts: list[dict[str, int]]):
     Raises:
         ValueError: If the counts are invalid, which some of them mismatch shots number.
     """
-    invalid_counts = filter(lambda i_and_c: sum(i_and_c[1].values()) != shots, enumerate(counts))
-    if invalid_counts:
+    invalid_counts = list(
+        filter(lambda i_and_c: sum(i_and_c[1].values()) != shots, enumerate(counts))
+    )
+    if len(invalid_counts) > 0:
         raise ValueError(
             "The counts must be equal to the number of shots, "
-            + f"but following counts are invalid, index: {list(invalid_counts)}"
+            + f"but following counts are invalid, index: {invalid_counts}"
         )
 
 
