@@ -6,6 +6,7 @@ from .counts_process import (
     counts_list_recount,
     counts_list_recount_pyrust,
     BACKEND_AVAILABLE as counts_process_availability,
+    shot_counts_selected_clreg_checker,
     shot_counts_selected_clreg_checker_pyrust,
     counts_list_vectorize_pyrust,
     rho_m_flatten_counts_list_vectorize_pyrust,

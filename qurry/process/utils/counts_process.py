@@ -229,11 +229,10 @@ def counts_list_recount_pyrust(
     )
 
 
-def shot_counts_selected_clreg_checker_pyrust(
+def shot_counts_selected_clreg_checker(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Union[int, list[int]]] = None,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+    selected_classical_registers: Optional[list[int]] = None,
 ) -> tuple[int, list[int]]:
     """Check whether the selected classical registers are valid.
 
@@ -242,7 +241,50 @@ def shot_counts_selected_clreg_checker_pyrust(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        selected_classical_registers (Optional[Union[int, list[int]]], optional):
+        selected_classical_registers (Optional[list[int]], optional):
+            The selected classical registers. Defaults to None.
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the process. Defaults to "Rust".
+
+    Returns:
+        tuple[int, list[int]]:
+            The size of the subsystem and the selected classical registers.
+    """
+
+    check_invalid_counts(shots, counts)
+
+    # Determine subsystem size
+    measured_system_size = len(list(counts[0].keys())[0])
+
+    if selected_classical_registers is None:
+        selected_classical_registers = list(range(measured_system_size))
+    elif not isinstance(selected_classical_registers, list):
+        raise ValueError(
+            "selected_classical_registers should be list, "
+            + f"but get {type(selected_classical_registers)}"
+        )
+    assert all(
+        0 <= q_i < measured_system_size for q_i in selected_classical_registers
+    ), f"Invalid selected classical registers: {selected_classical_registers}"
+
+    return measured_system_size, selected_classical_registers
+
+
+def shot_counts_selected_clreg_checker_pyrust(
+    shots: int,
+    counts: list[dict[str, int]],
+    selected_classical_registers: Optional[list[int]] = None,
+    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
+) -> tuple[int, list[int]]:
+    """Check whether the selected classical registers are valid.
+    This function wraps the implementation of Python and Rust.
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+        selected_classical_registers (Optional[list[int]], optional):
             The selected classical registers. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to "Rust".
@@ -262,23 +304,7 @@ def shot_counts_selected_clreg_checker_pyrust(
             PostProcessingRustUnavailableWarning,
         )
 
-    check_invalid_counts(shots, counts)
-
-    # Determine subsystem size
-    measured_system_size = len(list(counts[0].keys())[0])
-
-    if selected_classical_registers is None:
-        selected_classical_registers = list(range(measured_system_size))
-    elif not isinstance(selected_classical_registers, list):
-        raise ValueError(
-            "selected_classical_registers should be list, "
-            + f"but get {type(selected_classical_registers)}"
-        )
-    assert all(
-        0 <= q_i < measured_system_size for q_i in selected_classical_registers
-    ), f"Invalid selected classical registers: {selected_classical_registers}"
-
-    return measured_system_size, selected_classical_registers
+    return shot_counts_selected_clreg_checker(shots, counts, selected_classical_registers)
 
 
 def counts_list_vectorize_pyrust(
