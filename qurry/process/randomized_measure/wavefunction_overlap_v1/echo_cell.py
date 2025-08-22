@@ -3,51 +3,9 @@
 
 """
 
-import warnings
-from typing import Union
 import numpy as np
 
 from ...utils import ensemble_cell as ensemble_cell_py, cycling_slice as cycling_slice_py
-from ...availability import (
-    availablility,
-    default_postprocessing_backend,
-    PostProcessingBackendLabel,
-)
-from ...exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-)
-
-
-try:
-    from ....boorust import randomized  # type: ignore
-
-    echo_cell_rust_source = randomized.echo_cell_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def echo_cell_rust_source(*args, **kwargs):
-        """Dummy function for cho_cell_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate purity cell."
-        ) from FAILED_RUST_IMPORT
-
-
-BACKEND_AVAILABLE = availablility(
-    "randomized_measure.wavefunction_overlap_v1.echo_cell",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-        ("Cython", "Depr.", None),
-    ],
-)
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(
-    RUST_AVAILABLE,
-    False,
-)
 
 
 def echo_cell_py(
@@ -117,64 +75,9 @@ def echo_cell_py(
                 cycling_slice_py(bitstring, bitstring_range[0], bitstring_range[1], 1)
             ] += second_counts[bitstring]
 
-    _echo_cell = np.float64(0)
+    echo_cell = np.float64(0)
     for s_i, s_i_meas in first_counts_under_degree.items():
         for s_j, s_j_meas in second_counts_under_degree.items():
-            _echo_cell += ensemble_cell_py(s_i, s_i_meas, s_j, s_j_meas, subsystem_size, shots)
+            echo_cell += ensemble_cell_py(s_i, s_i_meas, s_j, s_j_meas, subsystem_size, shots)
 
-    return idx, _echo_cell
-
-
-def echo_cell_rust(
-    idx: int,
-    first_counts: dict[str, int],
-    second_counts: dict[str, int],
-    bitstring_range: tuple[int, int],
-    subsystem_size: int,
-) -> tuple[int, float]:
-    """Calculate the echo cell, one of overlap, of a subsystem by Rust.
-
-    Args:
-        idx (int): Index of the cell (counts).
-        first_counts (dict[str, int]): Counts measured from the first quantum circuit.
-        second_counts (dict[str, int]): Counts measured from the second quantum circuit.
-        bitstring_range (tuple[int, int]): The range of the subsystem.
-        subsystem_size (int): Subsystem size included.
-
-    Returns:
-        tuple[int, float]: Index, one of overlap purity.
-    """
-    return echo_cell_rust_source(idx, first_counts, second_counts, bitstring_range, subsystem_size)
-
-
-def echo_cell(
-    idx: int,
-    first_counts: dict[str, int],
-    second_counts: dict[str, int],
-    bitstring_range: tuple[int, int],
-    subsystem_size: int,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> tuple[int, Union[float, np.float64]]:
-    """Calculate the echo cell, one of overlap, of a subsystem.
-
-    Args:
-        idx (int): Index of the cell (counts).
-        first_counts (dict[str, int]): Counts measured from the first quantum circuit.
-        second_counts (dict[str, int]): Counts measured from the second quantum circuit.
-        bitstring_range (tuple[int, int]): The range of the subsystem.
-        subsystem_size (int): Subsystem size included.
-
-    Returns:
-        tuple[int, float]: Index, one of overlap purity.
-    """
-    if not RUST_AVAILABLE and backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using Cython or Python to calculate purity cell."
-            + f"Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
-        )
-        backend = "Python"
-
-    if backend == "Rust":
-        return echo_cell_rust(idx, first_counts, second_counts, bitstring_range, subsystem_size)
-    return echo_cell_py(idx, first_counts, second_counts, bitstring_range, subsystem_size)
+    return idx, echo_cell

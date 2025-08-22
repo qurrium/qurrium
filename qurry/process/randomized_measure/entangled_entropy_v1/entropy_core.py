@@ -8,7 +8,7 @@ import warnings
 from typing import Union, Optional
 import numpy as np
 
-from .purity_cell import purity_cell_py, purity_cell_rust
+from .purity_cell import purity_cell_py
 from ...utils import is_cycling_slice_active, degree_handler
 from ...availability import (
     availablility,
@@ -51,21 +51,16 @@ BACKEND_AVAILABLE = availablility(
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
 
 
-def entangled_entropy_core_pycyrust(
+def entangled_entropy_core_py(
     shots: int,
     counts: list[dict[str, int]],
     degree: Optional[Union[tuple[int, int], int]],
     measure: Optional[tuple[int, int]] = None,
     multiprocess_pool_size: Optional[int] = None,
-    backend: PostProcessingBackendLabel = "Rust",
 ) -> tuple[
-    Union[dict[int, float], dict[int, np.float64]],
-    tuple[int, int],
-    tuple[int, int],
-    str,
-    float,
+    Union[dict[int, float], dict[int, np.float64]], tuple[int, int], tuple[int, int], str, float
 ]:
-    """The core function of entangled entropy by Cython, Python, or Rust for just purity cell part.
+    """The core function of entangled entropy by Python for just purity cell part.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.
@@ -78,8 +73,6 @@ def entangled_entropy_core_pycyrust(
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.
             Defaults to None.
-        backend (PostProcessingBackendLabel, optional):
-            Backend for the process. Defaults to 'Cython'.
 
     Raises:
         ValueError: Get degree neither 'int' nor 'tuple[int, int]'.
@@ -109,22 +102,6 @@ def entangled_entropy_core_pycyrust(
     # Determine degree
     bitstring_range, measure, subsystem_size = degree_handler(allsystem_size, degree, measure)
 
-    if backend not in BACKEND_AVAILABLE[1]:
-        warnings.warn(
-            f"Unknown backend '{backend}', using {DEFAULT_PROCESS_BACKEND} instead.",
-        )
-        backend = DEFAULT_PROCESS_BACKEND
-
-    if not RUST_AVAILABLE and backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using Cython or Python to calculate purity cell."
-            + f"Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
-        )
-        backend = "Python"
-
-    cell_calculation = purity_cell_rust if backend == "Rust" else purity_cell_py
-
     msg = (
         "| Partition: "
         + (
@@ -132,7 +109,7 @@ def entangled_entropy_core_pycyrust(
             if is_cycling_slice_active(allsystem_size, bitstring_range, subsystem_size)
             else ""
         )
-        + f"{bitstring_range}, Measure: {measure}, backend: {backend}"
+        + f"{bitstring_range}, Measure: {measure}, backend: Python"
     )
 
     times = len(counts)
@@ -143,14 +120,14 @@ def entangled_entropy_core_pycyrust(
         msg += f", single process, {times} overlaps, it will take a lot of time."
         print(msg)
         for i, c in enumerate(counts):
-            purity_cell_items.append(cell_calculation(i, c, bitstring_range, subsystem_size))
+            purity_cell_items.append(purity_cell_py(i, c, bitstring_range, subsystem_size))
 
     else:
         msg += f", {launch_worker} workers, {times} overlaps."
 
         pool = ParallelManager(launch_worker)
         purity_cell_items = pool.starmap(
-            cell_calculation,
+            purity_cell_py,
             [(i, c, bitstring_range, subsystem_size) for i, c in enumerate(counts)],
         )
 
@@ -253,6 +230,4 @@ def entangled_entropy_core(
             PostProcessingRustUnavailableWarning,
         )
 
-    return entangled_entropy_core_pycyrust(
-        shots, counts, degree, measure, multiprocess_pool_size, backend
-    )
+    return entangled_entropy_core_py(shots, counts, degree, measure, multiprocess_pool_size)
