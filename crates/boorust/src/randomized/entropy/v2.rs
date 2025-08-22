@@ -4,14 +4,14 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::counts_process::{check_invalid_counts, single_counts_recount_prototype};
+use crate::counts_process::{
+    shot_counts_selected_clreg_checker_prototype, single_counts_recount_prototype,
+};
 use crate::randomized::randomized::ensemble_cell_rust;
 
-#[pyfunction]
-#[pyo3(signature = (idx, single_counts, selected_classical_registers))]
 pub fn purity_cell_2_rust(
     idx: i32,
-    single_counts: HashMap<String, i32>,
+    single_counts: &HashMap<String, i32>,
     selected_classical_registers: Vec<i32>,
 ) -> (i32, f64, Vec<i32>) {
     let shots: i32 = single_counts.values().sum();
@@ -22,9 +22,9 @@ pub fn purity_cell_2_rust(
     let subsystem_size = selected_classical_registers_sorted.len() as i32;
 
     let single_counts_under_degree: HashMap<String, i32> = single_counts_recount_prototype(
-        single_counts,
+        &single_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone(),
+        &selected_classical_registers_sorted,
     );
 
     let purity_cell: f64 = single_counts_under_degree
@@ -48,30 +48,17 @@ pub fn entangled_entropy_core_2_rust(
     counts: Vec<HashMap<String, i32>>,
     selected_classical_registers: Option<Vec<i32>>,
 ) -> (HashMap<i32, f64>, Vec<i32>, &'static str, f64) {
-    // check if the sum of shots is equal to the sum of all counts
-    check_invalid_counts(shots, &counts);
-
-    // Determine the size of the allsystems
-    let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
-
-    let selected_classical_registers_actual = match selected_classical_registers {
-        Some(selected_classical_registers) => selected_classical_registers,
-        None => (0..measured_system_size).collect(),
-    };
-    for q_i in selected_classical_registers_actual.iter() {
-        assert!(
-            *q_i >= 0 && *q_i < measured_system_size,
-            "Invalid selected classical registers: {:?}",
-            selected_classical_registers_actual
-        );
-    }
+    let (_measured_system_size, selected_classical_registers_actual) =
+        shot_counts_selected_clreg_checker_prototype(shots, &counts, selected_classical_registers);
 
     let begin: Instant = Instant::now();
 
     let result_vec = counts.par_iter().enumerate().map(|(identifier, data)| {
-        let result: (i32, f64, Vec<i32>) =
-            purity_cell_2_rust(identifier as i32, data.clone(), selected_classical_registers_actual.clone());
-        // println!("| purity_cell: {:?} {}", result, subsystems_size);
+        let result: (i32, f64, Vec<i32>) = purity_cell_2_rust(
+            identifier as i32,
+            data,
+            selected_classical_registers_actual.clone(),
+        );
         result
     });
 

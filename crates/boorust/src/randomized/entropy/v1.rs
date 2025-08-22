@@ -8,8 +8,6 @@ use crate::bit_slice::{cycling_slice_rust, degree_handler_rust, QubitDegree};
 use crate::counts_process::check_invalid_counts;
 use crate::randomized::randomized::ensemble_cell_rust;
 
-#[pyfunction]
-#[pyo3(signature = (idx, single_counts, bit_string_range, subsystem_size))]
 pub fn purity_cell_rust(
     idx: i32,
     single_counts: HashMap<String, i32>,
