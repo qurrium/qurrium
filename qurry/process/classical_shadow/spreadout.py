@@ -5,8 +5,8 @@ r"""Post Processing - Classical Shadow - Snapshots/Shots Spreadout
 
 from typing import Literal, Union, Iterable
 
+from .utils import check_random_basis
 from ..utils import check_invalid_counts
-from ..classical_shadow import check_random_basis
 
 
 def spreadout_counts(counts: list[dict[str, int]]) -> list[dict[str, int]]:
