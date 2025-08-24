@@ -22,6 +22,10 @@ class ClassicalShadowBasic(TypedDict):
     """The list of the selected_classical_registers."""
     taking_time: float
     """The time taken for the calculation."""
+    snapshots: int
+    """The number of random basis for classical shadow."""
+    shots: int
+    """The number of shots."""
 
 
 class ClassicalShadowMeanRho(ClassicalShadowBasic):
