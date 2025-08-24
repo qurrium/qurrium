@@ -1,7 +1,7 @@
 """Post Processing - Utils - Counts Process (:mod:`qurry.process.utils.ccounts_process`)"""
 
 import warnings
-from typing import Union, Optional, Literal
+from typing import Union, Optional, Literal, Iterable
 
 from ..availability import availablility, PostProcessingBackendLabel
 from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
@@ -231,10 +231,36 @@ def counts_list_recount_pyrust(
     )
 
 
+def selected_clregs_to_optlist(
+    selected_classical_registers: Optional[Iterable[int]] = None,
+) -> Optional[list[int]]:
+    """Convert selected classical registers to a list.
+    This usually uses for Rust binding
+    which can not handle :class:`~typing.Iterable` but only :class:`list`.
+
+    Args:
+        selected_classical_registers (Optional[Iterable[int]], optional):
+            The selected classical registers.
+
+    Returns:
+        Optional[list[int]]: The list of selected classical registers or None.
+    """
+
+    if isinstance(selected_classical_registers, Iterable):
+        selected_classical_registers = list(selected_classical_registers)
+    elif selected_classical_registers is not None:
+        raise TypeError(
+            "selected_classical_registers must be an Iterable or None"
+            + f", but got {type(selected_classical_registers)}"
+        )
+
+    return selected_classical_registers
+
+
 def shot_counts_selected_clreg_checker(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
 ) -> tuple[int, list[int]]:
     """Check whether the selected classical registers are valid.
 
@@ -243,7 +269,7 @@ def shot_counts_selected_clreg_checker(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The selected classical registers. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to "Rust".
@@ -260,11 +286,13 @@ def shot_counts_selected_clreg_checker(
 
     if selected_classical_registers is None:
         selected_classical_registers = list(range(measured_system_size))
-    elif not isinstance(selected_classical_registers, list):
+    elif not isinstance(selected_classical_registers, Iterable):
         raise ValueError(
-            "selected_classical_registers should be list, "
+            "selected_classical_registers should be Iterable, "
             + f"but get {type(selected_classical_registers)}"
         )
+    else:
+        selected_classical_registers = list(selected_classical_registers)
     assert all(
         0 <= q_i < measured_system_size for q_i in selected_classical_registers
     ), f"Invalid selected classical registers: {selected_classical_registers}"
@@ -272,10 +300,35 @@ def shot_counts_selected_clreg_checker(
     return measured_system_size, selected_classical_registers
 
 
+def shot_counts_selected_clreg_checker_rust(
+    shots: int,
+    counts: list[dict[str, int]],
+    selected_classical_registers: Optional[Iterable[int]] = None,
+) -> tuple[int, list[int]]:
+    """Check whether the selected classical registers are valid by Rust.
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+        selected_classical_registers (Optional[Iterable[int]], optional):
+            The selected classical registers. Defaults to None.
+        backend (PostProcessingBackendLabel, optional):
+            Backend for the process. Defaults to "Rust".
+
+    Returns:
+        tuple[int, list[int]]:
+            The size of the subsystem and the selected classical registers.
+    """
+    selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
+    return shot_counts_selected_clreg_checker_source(shots, counts, selected_classical_registers)
+
+
 def shot_counts_selected_clreg_checker_pyrust(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[int, list[int]]:
     """Check whether the selected classical registers are valid.
@@ -286,7 +339,7 @@ def shot_counts_selected_clreg_checker_pyrust(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The selected classical registers. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to "Rust".
@@ -297,7 +350,7 @@ def shot_counts_selected_clreg_checker_pyrust(
     """
     if backend == "Rust":
         if RUST_AVAILABLE:
-            return shot_counts_selected_clreg_checker_source(
+            return shot_counts_selected_clreg_checker_rust(
                 shots, counts, selected_classical_registers
             )
         warnings.warn(
