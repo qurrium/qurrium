@@ -3,10 +3,7 @@ r"""Post Processing - Classical Shadow - Snapshots/Shots Spreadout
 
 """
 
-from typing import Literal, Union, Iterable
-
-from .utils import check_random_basis
-from ..utils import check_invalid_counts
+from typing import Literal, Union
 
 
 def spreadout_counts(counts: list[dict[str, int]]) -> list[dict[str, int]]:
@@ -27,12 +24,31 @@ def spreadout_counts(counts: list[dict[str, int]]) -> list[dict[str, int]]:
     ]
 
 
+def spreadout_random_basis(
+    shots: int, random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
+) -> dict[int, dict[int, Union[Literal[0, 1, 2], int]]]:
+    """Spreadout the random basis from multiple shots per snapshot to single shots counts.
+
+    Args:
+        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            The random basis to be spreadout.
+
+    Returns:
+        dict[int, dict[int, Union[Literal[0, 1, 2], int]]]: The spreadout random basis.
+    """
+
+    return {
+        (i * shots + j): single_random_basis
+        for i, single_random_basis in random_basis.items()
+        for j in range(shots)
+    }
+
+
 def spreadout(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
-) -> tuple[int, list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+) -> tuple[list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
     """Spreadout the counts and random basis from multiple shots per snapshot
     to single shot per snapshot for classical shadow post-processing.
 
@@ -43,25 +59,28 @@ def spreadout(
             The list of the counts.
         random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (Iterable[int]):
-            The list of **the index of the selected_classical_registers**.
 
     Returns:
-        tuple[int, list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
-            The spreadout snapshotss shots, counts, and random basis.
+        tuple[list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+            The spreadout counts and random basis.
     """
 
     if len(counts) != len(random_basis):
         raise ValueError("The length of counts and random_basis must be the same.")
-    check_invalid_counts(shots, counts)
-    check_random_basis(random_basis, list(selected_classical_registers))
 
-    new_snapshots = len(random_basis) * shots
-    new_random_basis = {
-        (i * shots + j): single_random_basis
-        for i, single_random_basis in random_basis.items()
-        for j in range(shots)
-    }
+    new_random_basis = spreadout_random_basis(shots, random_basis)
+    assert len(new_random_basis) == len(random_basis) * shots, (
+        "The length of new_random_basis must be equal to len(random_basis) * shots."
+        + f"len(new_random_basis): {len(new_random_basis)}, "
+        + f"len(random_basis) * shots: {len(random_basis) * shots}, "
+        + f"len(random_basis): {len(random_basis)}, shots: {shots}."
+    )
     new_counts = spreadout_counts(counts)
+    assert len(new_counts) == len(random_basis) * shots, (
+        "The length of new_counts must be equal to len(random_basis) * shots."
+        + f"len(new_counts): {len(new_counts)}, "
+        + f"len(random_basis) * shots: {len(random_basis) * shots}, "
+        + f"len(random_basis): {len(random_basis)}, shots: {shots}."
+    )
 
-    return new_snapshots, new_counts, new_random_basis
+    return new_counts, new_random_basis
