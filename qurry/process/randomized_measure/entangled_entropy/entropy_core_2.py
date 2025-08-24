@@ -11,7 +11,7 @@ from typing import Optional, Iterable
 import numpy as np
 
 from .purity_cell_2 import purity_cell_2_py
-from ...utils import shot_counts_selected_clreg_checker
+from ...utils import shot_counts_selected_clreg_checker, selected_clregs_to_optlist
 from ...availability import (
     availablility,
     default_postprocessing_backend,
@@ -55,7 +55,7 @@ DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
 def entangled_entropy_core_2_py(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
 ) -> tuple[dict[int, np.float64], list[int], str, float]:
     """The core function of entangled entropy by Python or Rust for just purity cell part.
 
@@ -64,7 +64,7 @@ def entangled_entropy_core_2_py(
             Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
 
     Returns:
@@ -115,7 +115,7 @@ def entangled_entropy_core_2_py(
 def entangled_entropy_core_2_allrust(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
 ) -> tuple[dict[int, np.float64], list[int], str, float]:
     """The core function of entangled entropy by Rust for just purity cell part.
 
@@ -124,14 +124,14 @@ def entangled_entropy_core_2_allrust(
             Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
 
     Returns:
         tuple[dict[int, np.float64], list[int], str, float]:
             Purity of each cell, Selected qubits, Message, Time to calculate.
     """
-
+    selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
     return entangled_entropy_core_2_rust_source(shots, counts, selected_classical_registers)
 
 
@@ -157,11 +157,6 @@ def entangled_entropy_core_2(
         tuple[dict[int, np.float64], list[int], str, float]:
             Purity of each cell, Selected qubits, Message, Time to calculate.
     """
-
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    elif selected_classical_registers is not None:
-        raise TypeError("selected_classical_registers must be an Iterable or None.")
 
     if backend not in BACKEND_AVAILABLE[1]:
         warnings.warn(

@@ -9,7 +9,7 @@ from typing import Optional, Iterable
 import numpy as np
 
 from .echo_cell_2 import echo_cell_2_py
-from ...utils import shot_counts_selected_clreg_checker
+from ...utils import shot_counts_selected_clreg_checker, selected_clregs_to_optlist
 from ...availability import (
     availablility,
     default_postprocessing_backend,
@@ -56,7 +56,7 @@ def overlap_echo_core_2_py(
     shots: int,
     first_counts: list[dict[str, int]],
     second_counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
 ) -> tuple[dict[int, np.float64], list[int], str, float]:
     """The core function of wavefunction overlap by Python or Rust for just purity cell part.
 
@@ -67,7 +67,7 @@ def overlap_echo_core_2_py(
             Counts of the experiment on quantum machine.
         second_counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
 
     Returns:
@@ -136,7 +136,7 @@ def overlap_echo_core_2_allrust(
     shots: int,
     first_counts: list[dict[str, int]],
     second_counts: list[dict[str, int]],
-    selected_classical_registers: Optional[list[int]] = None,
+    selected_classical_registers: Optional[Iterable[int]] = None,
 ) -> tuple[dict[int, np.float64], list[int], str, float]:
     """The core function of wavefunction overlap by Rust for just purity cell part.
 
@@ -147,7 +147,7 @@ def overlap_echo_core_2_allrust(
             Counts of the experiment on quantum machine.
         second_counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[list[int]], optional):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
 
     Returns:
@@ -155,6 +155,7 @@ def overlap_echo_core_2_allrust(
             Purity of each cell, Selected classical registers, Message, Time to calculate.
     """
 
+    selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
     return overlap_echo_core_2_rust_source(
         shots, first_counts, second_counts, selected_classical_registers
     )
@@ -185,11 +186,6 @@ def overlap_echo_core_2(
         tuple[dict[int, np.float64], list[int], str, float]:
             Purity of each cell, Selected classical registers, Message, Time to calculate.
     """
-
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    elif selected_classical_registers is not None:
-        raise TypeError("selected_classical_registers must be an Iterable or None.")
 
     if backend not in BACKEND_AVAILABLE[1]:
         warnings.warn(
