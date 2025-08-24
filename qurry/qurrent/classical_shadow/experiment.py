@@ -298,6 +298,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
     def analyze(
         self,
         selected_qubits: Optional[Iterable[int]] = None,
+        convert_to_single_shot: bool = False,
         # estimation of given operators
         given_operators: Optional[
             list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
@@ -316,6 +317,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         Args:
             selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
+            convert_to_single_shot (bool, optional):
+                Whether to convert the counts and the random basis from multiple shots
+                to single shot per snapshot for classical shadow post-processing.
+                Default to False.
 
             given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
                 The list of the operators to estimate. Defaults to None.
@@ -386,6 +391,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             counts=counts,
             random_basis=random_basis_with_clreg_index,
             selected_classical_registers=selected_classical_registers,
+            convert_to_single_shot=convert_to_single_shot,
             # estimation of given operators
             given_operators=given_operators,
             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -404,7 +410,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             selected_qubits=selected_qubits,
             registers_mapping=registers_mapping,
             bitstring_mapping=bitstring_mapping,
-            shots=self.commons.shots,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,
             **qs,
@@ -420,6 +425,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         counts: Optional[list[dict[str, int]]] = None,
         random_basis: Optional[dict[int, dict[int, Union[Literal[0, 1, 2], int]]]] = None,
         selected_classical_registers: Optional[Iterable[int]] = None,
+        convert_to_single_shot: bool = False,
         # estimation of given operators
         given_operators: Optional[
             list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
@@ -443,6 +449,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 The random basis for classical shadow.
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
+            convert_to_single_shot (bool, optional):
+                Whether to convert the counts and the random basis from multiple shots
+                to single shot per snapshot for classical shadow post-processing.
+                Default to False.
 
             given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
                 The list of the operators to estimate. Defaults to None.
@@ -504,6 +514,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             counts=counts,
             random_basis=random_basis,
             selected_classical_registers=selected_classical_registers,
+            convert_to_single_shot=convert_to_single_shot,
             # estimation of given operators
             given_operators=given_operators,
             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -544,7 +555,8 @@ class OutsideAnalyzeInput(TypedDict):
     shots: int
     counts: list[dict[str, int]]
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
-    selected_classical_registers: Iterable[int]
+    selected_classical_registers: Optional[Iterable[int]]
+    convert_to_single_shot: bool
     # for analysis input
     num_qubits: int
     selected_qubits: list[int]
@@ -567,6 +579,7 @@ def quantities_input_collecter(
     current_exps: ShadowUnveilExperiment,
     # analysis inputs
     selected_qubits: Optional[Iterable[int]] = None,
+    convert_to_single_shot: bool = False,
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
@@ -584,6 +597,10 @@ def quantities_input_collecter(
             The current experiment instance.
         selected_qubits (Optional[Iterable[int]], optional):
             The selected qubits. Defaults to None.
+        convert_to_single_shot (bool, optional):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
+            Default to False.
 
         given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
             The list of the operators to estimate. Defaults to None.
@@ -659,6 +676,7 @@ def quantities_input_collecter(
         "counts": counts,
         "random_basis": random_basis_with_clreg_index,
         "selected_classical_registers": selected_classical_registers,
+        "convert_to_single_shot": convert_to_single_shot,
         # for analysis instance
         "num_qubits": current_exps.args.actual_num_qubits,
         "selected_qubits": selected_qubits,
@@ -684,7 +702,8 @@ def outside_analyze(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]],
+    convert_to_single_shot: bool,
     # for analysis instance
     num_qubits: int,
     selected_qubits: list[int],
@@ -712,7 +731,7 @@ def outside_analyze(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis (Optional[dict[int, dict[int, int]]], optional):
+        random_basis (Optional[dict[int, dict[int, int]]]):
             The random basis for classical shadow.
 
             This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -737,8 +756,11 @@ def outside_analyze(
 
                 random_basis = generate_random_basis(100, [0, 1])
 
-        selected_classical_registers (Iterable[int]):
+        selected_classical_registers (Optional[Iterable[int]]):
             The list of **the index of the selected_classical_registers**.
+        convert_to_single_shot (bool):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
 
         num_qubits (int):
             The number of qubits.
@@ -812,6 +834,7 @@ def outside_analyze(
         counts=counts,
         random_basis=random_basis,
         selected_classical_registers=selected_classical_registers,
+        convert_to_single_shot=convert_to_single_shot,
         # estimation of given operators
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -824,7 +847,6 @@ def outside_analyze(
     )
 
     analysis = ShadowUnveilAnalysis(
-        shots=shots,
         # for analysis input
         num_qubits=num_qubits,
         selected_qubits=selected_qubits,

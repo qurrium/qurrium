@@ -2,7 +2,6 @@
 
 from typing import Optional
 from collections.abc import Iterable, Hashable
-import numpy as np
 
 from qiskit import QuantumCircuit, ClassicalRegister
 
@@ -24,9 +23,9 @@ def inner_process_analyze(
 
     Args:
         selected_qubits (Optional[Iterable[int]]):
-            The selected qubits. Defaults to None.
+            The selected qubits.
         counts_used (Optional[Iterable[int]]):
-            The index of the counts used. Defaults to None.
+            The index of the counts used.
         arguments (ShadowUnveilArguments):
             The arguments of
             :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`.
