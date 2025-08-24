@@ -30,7 +30,8 @@ def mean_of_rho(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]] = None,
+    convert_to_single_shot: bool = False,
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     pbar: Optional[tqdm.tqdm] = None,
@@ -88,8 +89,13 @@ def mean_of_rho(
             The list of the counts.
         random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (list[int]):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
+            Defaults to None.
+        convert_to_single_shot (bool, optional):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
+            Default to False.
 
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
@@ -110,19 +116,12 @@ def mean_of_rho(
         ClassicalShadowMeanRho: The expectation value of Rho.
     """
 
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    else:
-        raise TypeError(
-            "The selected_classical_registers should be Iterable, "
-            + f"not {type(selected_classical_registers)}."
-        )
-
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
+        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -137,6 +136,8 @@ def mean_of_rho(
         average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        shots=shots,
+        snapshots=len(rho_m_list),
         # The mean of Rho
         mean_of_rho=expect_rho,
     )
@@ -146,7 +147,8 @@ def trace_rho_square(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]] = None,
+    convert_to_single_shot: bool = False,
     # other config
     rho_method: RhoMCoreMethod = "numpy_precomputed",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
@@ -161,8 +163,13 @@ def trace_rho_square(
             The list of the counts.
         random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (Iterable[int]):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
+            Defaults to None.
+        convert_to_single_shot (bool, optional):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
+            Default to False.
 
         rho_method (RhoMCoreMethod, optional):
             The method to use for the calculation. Defaults to "numpy_precomputed".
@@ -192,14 +199,6 @@ def trace_rho_square(
         float: The trace of Rho.
     """
 
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    else:
-        raise TypeError(
-            "The selected_classical_registers should be Iterable, "
-            + f"not {type(selected_classical_registers)}."
-        )
-
     if len(counts) < 2:
         raise ValueError(
             "The method of classical shadow require at least 2 counts for the calculation. "
@@ -211,38 +210,41 @@ def trace_rho_square(
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
+        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
     trace_rho_sum = trace_rho_square_core(rho_m_list=rho_m_list, trace_method=trace_method)
-    trace_rho_sum_real = trace_rho_sum.real
     if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
         warnings.warn(
             "The imaginary part of the trace of Rho square is not zero. "
             f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}, {rho_method}",
             RuntimeWarning,
         )
-    entropy = -np.log2(trace_rho_sum_real)
+    entropy = -np.log2(trace_rho_sum.real)
 
     return ClassicalShadowPurity(
         average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        shots=shots,
+        snapshots=len(rho_m_list),
         # The trace of Rho square
-        purity=trace_rho_sum_real,
+        purity=trace_rho_sum.real,
         entropy=entropy,
     )
 
 
-def esitimation_of_given_operators(
+def estimation_of_given_operators(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]] = None,
+    convert_to_single_shot: bool = False,
     # estimation of given operators
-    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
@@ -303,8 +305,13 @@ def esitimation_of_given_operators(
             The list of the counts.
         random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (Iterable[int]):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
+            Defaults to None.
+        convert_to_single_shot (bool, optional):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
+            Default to False.
 
         given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
             The list of the operators to estimate.
@@ -339,19 +346,15 @@ def esitimation_of_given_operators(
     Returns:
         ClassicalShadowEstimation: The estimation of the given operators.
     """
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    else:
-        raise TypeError(
-            "The selected_classical_registers should be Iterable, "
-            + f"not {type(selected_classical_registers)}."
-        )
+    if given_operators is None or len(given_operators) == 0:
+        raise ValueError("The given_operators must be a non-empty list.")
 
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
+        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -379,6 +382,8 @@ def esitimation_of_given_operators(
         average_classical_snapshots_rho=average_classical_snapshots_rho,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        shots=shots,
+        snapshots=len(rho_m_list),
         # esitimation of given operators
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
@@ -395,7 +400,8 @@ def classical_shadow_complex(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]] = None,
+    convert_to_single_shot: bool = False,
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
@@ -506,10 +512,15 @@ def classical_shadow_complex(
             The list of the counts.
         random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (Iterable[int]):
+        selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
+            Defaults to None.
+        convert_to_single_shot (bool, optional):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
+            Default to False.
 
-        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
             The list of the operators to estimate. Defaults to None.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
@@ -558,19 +569,12 @@ def classical_shadow_complex(
             The expectation value of Rho and the purity calculated by classical shadow.
     """
 
-    if isinstance(selected_classical_registers, Iterable):
-        selected_classical_registers = list(selected_classical_registers)
-    else:
-        raise TypeError(
-            "The selected_classical_registers should be Iterable, "
-            + f"not {type(selected_classical_registers)}."
-        )
-
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
+        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -589,8 +593,7 @@ def classical_shadow_complex(
             + f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}, {rho_method}.",
             RuntimeWarning,
         )
-    trace_rho_sum_real = trace_rho_sum.real
-    entropy = -np.log2(trace_rho_sum_real)
+    entropy = -np.log2(trace_rho_sum.real)
 
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
 
@@ -599,10 +602,12 @@ def classical_shadow_complex(
             average_classical_snapshots_rho=average_classical_snapshots_rho,
             classical_registers_actually=selected_classical_registers_sorted,
             taking_time=taken,
+            shots=shots,
+            snapshots=len(rho_m_list),
             # The mean of Rho
             mean_of_rho=expect_rho,
             # The trace of Rho square
-            purity=trace_rho_sum_real,
+            purity=trace_rho_sum.real,
             entropy=entropy,
             # esitimation of given operators
             estimate_of_given_operators=[],
@@ -635,10 +640,12 @@ def classical_shadow_complex(
         average_classical_snapshots_rho=average_classical_snapshots_rho,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
+        shots=shots,
+        snapshots=len(rho_m_list),
         # The mean of Rho
         mean_of_rho=expect_rho,
         # The trace of Rho square
-        purity=trace_rho_sum_real,
+        purity=trace_rho_sum.real,
         entropy=entropy,
         # esitimation of given operators
         estimate_of_given_operators=estimate_of_given_operators,
