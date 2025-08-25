@@ -76,20 +76,18 @@ def check_random_basis(random_basis: dict[int, dict[int, int]], unitary_located:
     """
     if not isinstance(random_basis, dict):
         raise ValueError("random_basis should be a dictionary.")
-    if not all(isinstance(qi, int) for qi in unitary_located):
+    if any(not isinstance(qi, int) for qi in unitary_located):
         raise ValueError("All qubits in unitary_located should be integers.")
 
     invalid_dict = {}
     for k, v in random_basis.items():
         if not isinstance(k, int):
             invalid_dict[k] = f"Index '{k}' is not an integer, but '{type(k)}'."
-        if not isinstance(v, dict):
+        elif not isinstance(v, dict):
             invalid_dict[k] = f"'{v}' is not a dictionary."
-        if list(v) != unitary_located:
-            invalid_dict[k] = (
-                f"Keys '{list(v)}' do not match the expected qubits '{unitary_located}'."
-            )
-        if not all((isinstance(qi, int) and (0 <= q_basis < 3)) for qi, q_basis in v.items()):
+        elif not set(unitary_located).issubset(v.keys()):
+            invalid_dict[k] = f"'selected_qubits' {unitary_located} are not in the random basis."
+        elif not all((isinstance(qi, int) and (0 <= q_basis < 3)) for qi, q_basis in v.items()):
             invalid_dict[k] = "All values should be integers in the range [0, 3) in the dictionary."
 
     if invalid_dict:
