@@ -1,42 +1,108 @@
 """Quick CapSule (:mod:`qurry.capsule.quick`)"""
 
-from typing import Literal, Any, TypeVar, Optional, Type, overload, Union
+from typing import Literal, Any, overload
 from pathlib import Path
-import json
+from json import JSONDecoder, load
+
 
 # pylint: disable=invalid-name
-
-JsonDecoderType = TypeVar("JsonDecoderType", bound=Type[json.JSONDecoder])
-
-
+# flake8: noqa: E302
 @overload
 def quickRead(
-    filename: Union[str, Path],
-    save_location: Optional[Union[str, Path]],
-    filetype: Literal["json"],
-    encoding: str,
-    cls: JsonDecoderType,
-) -> JsonDecoderType: ...
-
-
-@overload
-def quickRead(
-    filename: Union[str, Path],
-    save_location: Optional[Union[str, Path]],
-    filetype: Literal["json"],
-    encoding: str,
-    cls: None,
-) -> Any: ...
-
-
-@overload
-def quickRead(
-    filename: Union[str, Path],
-    save_location: Optional[Union[str, Path]],
-    filetype: Literal["txt"],
-    encoding: str,
-    cls: Optional[JsonDecoderType],
+    filename: Path, save_location: None, filetype: Literal["txt"], encoding: str, cls: None
 ) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: None, filetype: Literal["txt"], encoding: str, cls: None
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: str, filetype: Literal["txt"], encoding: str, cls: None
+) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: str, filetype: Literal["txt"], encoding: str, cls: None
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: Path, filetype: Literal["txt"], encoding: str, cls: None
+) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: Path, filetype: Literal["txt"], encoding: str, cls: None
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: None, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: None, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: str, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: str, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: Path, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: str, save_location: Path, filetype: Literal["txt"], encoding: str, cls: JSONDecoder
+) -> str: ...
+@overload
+def quickRead(
+    filename: Path, save_location: None, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: str, save_location: None, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: Path, save_location: str, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: str, save_location: str, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: Path, save_location: Path, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: str, save_location: Path, filetype: Literal["json"], encoding: str, cls: None
+) -> Any: ...
+@overload
+def quickRead(
+    filename: Path, save_location: None, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
+@overload
+def quickRead(
+    filename: str, save_location: None, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
+@overload
+def quickRead(
+    filename: Path, save_location: str, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
+@overload
+def quickRead(
+    filename: str, save_location: str, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
+@overload
+def quickRead(
+    filename: Path, save_location: Path, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
+@overload
+def quickRead(
+    filename: str, save_location: Path, filetype: Literal["json"], encoding: str, cls: JSONDecoder
+) -> JSONDecoder: ...
 
 
 def quickRead(
@@ -71,9 +137,9 @@ def quickRead(
     if filetype == "json":
         if cls is not None:
             with open(save_location / filename, "r", encoding=encoding) as File:
-                return json.load(File, cls=cls)
+                return load(File, cls=cls)
         with open(save_location / filename, "r", encoding=encoding) as File:
-            return json.load(File)
+            return load(File)
 
     else:
         with open(save_location / filename, "r", encoding=encoding) as File:
