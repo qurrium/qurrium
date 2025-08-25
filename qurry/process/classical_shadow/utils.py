@@ -61,6 +61,30 @@ def generate_random_basis(
     return random_basis
 
 
+def validate_random_basis(
+    index: int, basis: dict[int, int], unitary_located: list[int]
+) -> Optional[str]:
+    """Validate the iteration of the random basis.
+
+    Args:
+        index (int): The index of the random basis item.
+        basis (dict[int, int]): The random basis item.
+        unitary_located (list[int]): The list of selected qubits.
+
+    Returns:
+        Optional[str]: The validation result.
+    """
+    if not isinstance(index, int):
+        return f"Index '{index}' is not an integer, but '{type(index)}'."
+    if not isinstance(basis, dict):
+        return f"'{basis}' is not a dictionary."
+    if not set(unitary_located).issubset(basis.keys()):
+        return f"'selected_qubits' {unitary_located} are not in the random basis."
+    if not all((isinstance(qi, int) and (0 <= q_basis < 3)) for qi, q_basis in basis.items()):
+        return "All values should be integers in the range [0, 3) in the dictionary."
+    return None
+
+
 def check_random_basis(random_basis: dict[int, dict[int, int]], unitary_located: list[int]) -> bool:
     """Check if the random basis is valid.
 
@@ -79,17 +103,10 @@ def check_random_basis(random_basis: dict[int, dict[int, int]], unitary_located:
     if any(not isinstance(qi, int) for qi in unitary_located):
         raise ValueError("All qubits in unitary_located should be integers.")
 
-    invalid_dict = {}
-    for k, v in random_basis.items():
-        if not isinstance(k, int):
-            invalid_dict[k] = f"Index '{k}' is not an integer, but '{type(k)}'."
-        elif not isinstance(v, dict):
-            invalid_dict[k] = f"'{v}' is not a dictionary."
-        elif not set(unitary_located).issubset(v.keys()):
-            invalid_dict[k] = f"'selected_qubits' {unitary_located} are not in the random basis."
-        elif not all((isinstance(qi, int) and (0 <= q_basis < 3)) for qi, q_basis in v.items()):
-            invalid_dict[k] = "All values should be integers in the range [0, 3) in the dictionary."
-
+    invalid_found = [
+        (k, validate_random_basis(k, v, unitary_located)) for k, v in random_basis.items()
+    ]
+    invalid_dict = {k: v for k, v in invalid_found if v is not None}
     if invalid_dict:
         raise ValueError(f"Invalid random_basis: {invalid_dict}")
 
