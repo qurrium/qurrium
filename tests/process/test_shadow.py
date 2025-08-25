@@ -39,6 +39,7 @@ class RawReadShadowCase(TypedDict):
     """TypedDict for shadow case data from JSON."""
 
     answer: dict[str, int]
+    answer_spreadout: dict[str, int]
     arguments: RawReadShadowCaseArguments
     random_unitary_ids: dict[str, dict[str, str]]
     counts: list[dict[str, int]]
@@ -63,29 +64,39 @@ class ClassicalShadowComplexExtended(ClassicalShadowComplex):
 
 raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
 raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01]
-shadow_cases: list[
-    tuple[dict[str, int], ShadowCaseArguments, dict[int, dict[int, int]], list[dict[str, int]]]
-] = [
-    (
-        shadow_case_tmp["answer"],
+
+
+def unpacked_shadow_case(
+    shadow_case: RawReadShadowCase,
+) -> tuple[ShadowCaseArguments, dict[int, dict[int, int]], list[dict[str, int]]]:
+    """Unpack the shadow case from RawReadShadowCase to ShadowCaseArguments."""
+    return (
         {
-            "num_qubits": shadow_case_tmp["arguments"]["num_qubits"],
-            "selected_qubits": shadow_case_tmp["arguments"]["selected_qubits"],
+            "num_qubits": shadow_case["arguments"]["num_qubits"],
+            "selected_qubits": shadow_case["arguments"]["selected_qubits"],
             "registers_mapping": {
-                int(k): int(v) for k, v in shadow_case_tmp["arguments"]["registers_mapping"].items()
+                int(k): int(v) for k, v in shadow_case["arguments"]["registers_mapping"].items()
             },
             "bitstring_mapping": {
-                int(k): int(v) for k, v in shadow_case_tmp["arguments"]["bitstring_mapping"].items()
+                int(k): int(v) for k, v in shadow_case["arguments"]["bitstring_mapping"].items()
             },
-            "shots": shadow_case_tmp["arguments"]["shots"],
-            "unitary_located": shadow_case_tmp["arguments"]["unitary_located"],
+            "shots": shadow_case["arguments"]["shots"],
+            "unitary_located": shadow_case["arguments"]["unitary_located"],
         },
         {
             int(k): {int(k2): int(v2) for k2, v2 in v.items()}
-            for k, v in shadow_case_tmp["random_unitary_ids"].items()
+            for k, v in shadow_case["random_unitary_ids"].items()
         },
-        shadow_case_tmp["counts"],
+        shadow_case["counts"],
     )
+
+
+shadow_cases = [
+    (shadow_case_tmp["answer"], *unpacked_shadow_case(shadow_case_tmp))
+    for shadow_case_tmp in raw_shadow_cases
+]
+shadow_cases_spreadout = [
+    (shadow_case_tmp["answer_spreadout"], *unpacked_shadow_case(shadow_case_tmp))
     for shadow_case_tmp in raw_shadow_cases
 ]
 
@@ -99,39 +110,53 @@ def test_availability():
         )
 
 
-@pytest.mark.parametrize(["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases)
-def test_shadow(
-    answer: dict[str, int],
+def classical_shadow_complex_wrapper(
     arguments: ShadowCaseArguments,
     random_unitary_ids: dict[int, dict[int, int]],
     counts: list[dict[str, int]],
-):
-    """Test the classical_shadow_complex function."""
+    rho_method: str,
+    trace_method: str,
+    final_mapping: dict[int, int],
+    convert_to_single_shot: bool = False,
+) -> ClassicalShadowComplexExtended:
+    """Wrapper for the classical_shadow_complex function to include the trace of the expect_rho.
 
-    _bitstring_mapping, final_mapping = bitstring_mapping_getter(
-        counts, arguments["registers_mapping"]
+    Args:
+        arguments (ShadowCaseArguments): The arguments for the shadow case.
+        random_unitary_ids (dict[int, dict[int, int]]): The random unitary IDs.
+        counts (list[dict[str, int]]): The counts.
+        rho_method (str): The Rho method.
+        trace_method (str): The trace method.
+        final_mapping (dict[int, int]): The final mapping.
+        convert_to_single_shot (bool, optional): Whether to convert the result to a single shot.
+
+    Return:
+        ClassicalShadowComplexExtended: the result to compare.
+    """
+    tmp = classical_shadow_complex(
+        shots=arguments["shots"],
+        counts=counts,
+        random_basis=random_unitary_ids,
+        selected_classical_registers=[final_mapping[qi] for qi in arguments["selected_qubits"]],
+        convert_to_single_shot=convert_to_single_shot,
+        rho_method=rho_method,
+        trace_method=trace_method,
     )
+    return {
+        "mean_of_rho_trace": np.trace(tmp["mean_of_rho"]),
+        **tmp,
+    }
 
-    results: dict[str, ClassicalShadowComplexExtended] = {}
 
-    # Call the classical_shadow_complex function with the provided arguments
-    for rho_method in RHO_METHODS:
-        for trace_method in TRACE_METHODS:
-            tmp = classical_shadow_complex(
-                shots=arguments["shots"],
-                counts=counts,
-                random_basis=random_unitary_ids,
-                selected_classical_registers=[
-                    final_mapping[qi] for qi in arguments["selected_qubits"]
-                ],
-                rho_method=rho_method,
-                trace_method=trace_method,
-            )
-            results[rho_method + "." + trace_method] = {
-                "mean_of_rho_trace": np.trace(tmp["mean_of_rho"]),
-                **tmp,
-            }
+def comparison_shadow_result(
+    results: dict[str, ClassicalShadowComplexExtended], answer: dict[str, int]
+):
+    """Compare the results of different methods.
 
+    Args:
+        results (dict[str, ClassicalShadowComplexExtended]): The results to compare.
+        answer (dict[str, int]): The expected answer.
+    """
     # Compare the result with the expected answer
     for (name_1, result_1), (name_2, result_2) in combinations(results.items(), 2):
         assert np.abs(result_1["purity"] - result_2["purity"]) < NUMERICAL_ERROR_TOLERANCE, (
@@ -154,3 +179,63 @@ def test_shadow(
         assert np.abs(result_1["mean_of_rho_trace"] - 1) < NUMERICAL_ERROR_TOLERANCE, (
             "The trace of the expect_rho should be 1: " + f"{result_1['mean_of_rho_trace']}."
         )
+
+
+@pytest.mark.parametrize(["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases)
+def test_shadow(
+    answer: dict[str, int],
+    arguments: ShadowCaseArguments,
+    random_unitary_ids: dict[int, dict[int, int]],
+    counts: list[dict[str, int]],
+):
+    """Test the classical_shadow_complex function."""
+
+    _bitstring_mapping, final_mapping = bitstring_mapping_getter(
+        counts, arguments["registers_mapping"]
+    )
+
+    results = {
+        f"{rho_method}.{trace_method}": classical_shadow_complex_wrapper(
+            arguments,
+            random_unitary_ids,
+            counts,
+            rho_method,
+            trace_method,
+            final_mapping,
+            convert_to_single_shot=False,
+        )
+        for rho_method in RHO_METHODS
+        for trace_method in TRACE_METHODS
+    }
+    comparison_shadow_result(results, answer)
+
+
+@pytest.mark.parametrize(
+    ["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases_spreadout
+)
+def test_shadow_spreadout(
+    answer: dict[str, int],
+    arguments: ShadowCaseArguments,
+    random_unitary_ids: dict[int, dict[int, int]],
+    counts: list[dict[str, int]],
+):
+    """Test the classical_shadow_complex function."""
+
+    _bitstring_mapping, final_mapping = bitstring_mapping_getter(
+        counts, arguments["registers_mapping"]
+    )
+
+    results_spreadout = {
+        f"{rho_method}.{trace_method}": classical_shadow_complex_wrapper(
+            arguments,
+            random_unitary_ids,
+            counts,
+            rho_method,
+            trace_method,
+            final_mapping,
+            convert_to_single_shot=True,
+        )
+        for rho_method in RHO_METHODS
+        for trace_method in TRACE_METHODS
+    }
+    comparison_shadow_result(results_spreadout, answer)
