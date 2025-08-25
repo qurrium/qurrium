@@ -73,7 +73,7 @@ def rho_m_flatten_core(
     )
     check_random_basis(random_unitary_um, selected_classical_registers)
     if convert_to_single_shot:
-        counts, random_unitary_um = spreadout(shots, counts, random_unitary_um)
+        shots, counts, random_unitary_um = spreadout(shots, counts, random_unitary_um)
 
     begin = time.time()
 
@@ -154,7 +154,7 @@ def rho_m_core_py(
     )
     check_random_basis(random_unitary_um, selected_classical_registers)
     if convert_to_single_shot:
-        counts, random_unitary_um = spreadout(shots, counts, random_unitary_um)
+        shots, counts, random_unitary_um = spreadout(shots, counts, random_unitary_um)
 
     begin = time.time()
 

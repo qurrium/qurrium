@@ -48,7 +48,7 @@ def spreadout(
     shots: int,
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-) -> tuple[list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+) -> tuple[int, list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
     """Spreadout the counts and random basis from multiple shots per snapshot
     to single shot per snapshot for classical shadow post-processing.
 
@@ -62,7 +62,7 @@ def spreadout(
 
     Returns:
         tuple[list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
-            The spreadout counts and random basis.
+            The spreadout shots, counts, and random basis.
     """
 
     if len(counts) != len(random_basis):
@@ -83,4 +83,4 @@ def spreadout(
         + f"len(random_basis): {len(random_basis)}, shots: {shots}."
     )
 
-    return new_counts, new_random_basis
+    return 1, new_counts, new_random_basis
