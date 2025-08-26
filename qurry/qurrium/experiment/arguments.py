@@ -284,9 +284,50 @@ class Commonparams(NamedTuple):
         return commons
 
 
-def commons_dealing(
-    commons_dict: dict[str, Any],
-) -> dict[str, Any]:
+def check_tags(tags: Optional[tuple[Union[str, int], ...]]) -> tuple[Union[str, int], ...]:
+    """Check tags and return formatted tags.
+
+    Args:
+        tags (Optional[tuple[Union[str, int], ...]]): Tags for the experiment.
+
+    Returns:
+        Optional[tuple[Union[str, int], ...]]: Formatted tags for the experiment.
+    """
+    if tags is None:
+        tags = ()
+    elif not isinstance(tags, tuple):
+        raise TypeError("Tags must be a tuple of strings.")
+
+    if all(isinstance(tag, (str, int)) for tag in tags):
+        raise TypeError("Tags must be a tuple of 'str' or 'int', other types are not allowed.")
+
+    return tags
+
+
+def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> DatetimeDict:
+    """Check and format the datetimes dictionary.
+
+    Args:
+        datetimes (Union[DatetimeDict, dict[str, str], None]): The datetimes dictionary.
+
+    Returns:
+        DatetimeDict: The formatted datetimes dictionary.
+    """
+    if datetimes is None:
+        datetimes = DatetimeDict()
+    elif not isinstance(datetimes, (DatetimeDict, dict)):
+        raise TypeError("Datetimes must be a DatetimeDict or a dictionary.")
+    for key, value in datetimes.items():
+        if not isinstance(value, str):
+            raise TypeError(
+                f"All values in datetimes must be strings. Found {value} for key {key}."
+            )
+    datetimes = DatetimeDict(datetimes)
+
+    return datetimes
+
+
+def commons_dealing(commons_dict: dict[str, Any]) -> dict[str, Any]:
     """Dealing some special commons arguments.
 
     Args:
@@ -295,13 +336,10 @@ def commons_dealing(
     Returns:
         dict[str, Any]: The dealt common parameters of the experiment.
     """
-    if "datetimes" not in commons_dict:
-        commons_dict["datetimes"] = DatetimeDict({"bulid": current_time()})
-    else:
-        commons_dict["datetimes"] = DatetimeDict(commons_dict["datetimes"])
-    if "tags" in commons_dict:
-        if isinstance(commons_dict["tags"], list):
-            commons_dict["tags"] = tuple(commons_dict["tags"])
+    commons_dict["datetimes"] = check_datetimes(
+        (commons_dict["datetimes"] if "datetimes" in commons_dict else {"bulid": current_time()})
+    )
+    commons_dict["tags"] = check_tags((commons_dict["tags"] if "tags" in commons_dict else ()))
 
     return commons_dict
 
