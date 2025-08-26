@@ -284,22 +284,22 @@ class Commonparams(NamedTuple):
         return commons
 
 
-def check_tags(tags: Optional[tuple[Union[str, int], ...]]) -> tuple[Union[str, int], ...]:
+def check_tags(tags: Optional[tuple[str, ...]]) -> tuple[str, ...]:
     """Check tags and return formatted tags.
 
     Args:
-        tags (Optional[tuple[Union[str, int], ...]]): Tags for the experiment.
+        tags (Optional[tuple[str, ...]]): Tags for the experiment.
 
     Returns:
-        Optional[tuple[Union[str, int], ...]]: Formatted tags for the experiment.
+        Optional[tuple[str, ...]]: Formatted tags for the experiment.
     """
     if tags is None:
         tags = ()
     elif not isinstance(tags, tuple):
         raise TypeError("Tags must be a tuple of strings.")
 
-    if all(isinstance(tag, (str, int)) for tag in tags):
-        raise TypeError("Tags must be a tuple of 'str' or 'int', other types are not allowed.")
+    if all(isinstance(tag, str) for tag in tags):
+        raise TypeError("Tags must be a tuple of 'str', other types are not allowed.")
 
     return tags
 
