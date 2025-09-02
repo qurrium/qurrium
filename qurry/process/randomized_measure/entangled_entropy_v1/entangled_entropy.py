@@ -467,7 +467,7 @@ def randomized_entangled_entropy_mitigated_v1(
         backend=backend,
         multiprocess_pool_size=workers_num,
     )
-    purity_cell_list = list(purity_cell_dict.values())
+    purity_cell_list = np.array(list(purity_cell_dict.values()))
 
     (
         purity_cell_dict_allsys,
@@ -483,7 +483,7 @@ def randomized_entangled_entropy_mitigated_v1(
         workers_num=workers_num,
         existed_all_system=existed_all_system,
     )
-    purity_cell_list_allsys = list(purity_cell_dict_allsys.values())
+    purity_cell_list_allsys = np.array(list(purity_cell_dict_allsys.values()))
 
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description_str(f"Preparing error mitigation of {bitstring_range} on {measure}")

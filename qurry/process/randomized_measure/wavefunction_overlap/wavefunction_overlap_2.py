@@ -21,7 +21,7 @@ class WaveFuctionOverlapResult(TypedDict):
     """The overlap value."""
     echoSD: np.float64
     """The overlap standard deviation."""
-    echoCells: dict[int, np.float64]
+    echoCells: Union[dict[int, np.float64], dict[int, float]]
     """The overlap of each single count."""
     num_classical_registers: int
     """The number of classical registers."""
