@@ -14,7 +14,7 @@ from ...boorust.counts_process import (  # type: ignore
 )
 
 
-BACKEND_AVAILABLE = availablility("utils.counts_process", [])
+BACKEND_AVAILABLE = availablility("utils.counts_process", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
