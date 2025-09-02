@@ -18,7 +18,6 @@ from ..utils import (
     bit_slice_availability,
     randomized_availability,
     dummy_availability,
-    test_availability,
 )
 from ..availability import BACKEND_TYPES
 from ...version import __version__
@@ -60,7 +59,6 @@ def availability_status_print() -> tuple[
         counts_process_availability,
         bit_slice_availability,
         dummy_availability,
-        test_availability,
     ]
     pre_hoshi = [
         ("txt", f"| Qurrium version: {__version__}"),
