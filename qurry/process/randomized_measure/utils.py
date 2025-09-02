@@ -12,8 +12,7 @@ SeedType = Union[int, np.random.Generator]
 
 
 def generate_seeds_for_single_circ(
-    seed_for_single_circ: Optional[SeedType],
-    num_qubits: int,
+    seed_for_single_circ: Optional[SeedType], num_qubits: int
 ) -> dict[int, int]:
     """Generate the seed for single circuit.
 

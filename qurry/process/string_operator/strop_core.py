@@ -6,37 +6,13 @@
 from typing import Union, Callable, Literal
 import numpy as np
 
-from ..availability import (
-    availablility,
-    default_postprocessing_backend,
-    PostProcessingBackendLabel,
-)
-from ..exceptions import PostProcessingRustImportError
+from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
 
+# pylint:disable=no-name-in-module,import-error
+from ...boorust.string_operator import string_operator_core_rust  # type: ignore
 
-try:
-    from ...boorust import string_operator  # type: ignore
-
-    string_operator_core_rust_source = string_operator.string_operator_core_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def string_operator_core_rust_source(*args, **kwargs):
-        """Dummy function for string_operator_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate string operator."
-        ) from FAILED_RUST_IMPORT
-
-
-BACKEND_AVAILABLE = availablility(
-    "string_operator.strop_core",
-    [("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT)],
-)
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
+BACKEND_AVAILABLE = availablility("string_operator.strop_core", [("Rust", True, None)])
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
 add_or_reducer: Callable[[str], Literal[1, -1]] = lambda bitstring: (
@@ -58,7 +34,7 @@ def string_operator_core(
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> Union[float, np.float64]:
-    """The core function of magnet square by Python and Rust.
+    """The core function of magnet square.
 
     Args:
         shots (int):
@@ -72,7 +48,7 @@ def string_operator_core(
         Union[float, np.float64]: String operator value.
     """
     if backend == "Rust":
-        return string_operator_core_rust_source(shots, counts)
+        return string_operator_core_rust(shots, counts)
 
     if len(counts) != 1:
         raise ValueError(f"counts should be a list of counts with length 1, but got {len(counts)}")

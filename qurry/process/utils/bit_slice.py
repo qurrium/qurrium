@@ -1,55 +1,22 @@
 """Post Processing - Utils - Bit Slice (:mod:`qurry.process.utils.bit_slice`)"""
 
-import warnings
 from typing import Union, Optional, Sequence, TypeVar, overload
 
 from ..availability import availablility
-from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
 
-try:
-    from ...boorust import bit_slice  # type: ignore
-
-    qubit_selector_rust_source = bit_slice.qubit_selector_rust  # type: ignore
-    cycling_slice_rust_source = bit_slice.cycling_slice_rust  # type: ignore
-    degree_handler_rust_source = bit_slice.degree_handler_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def qubit_selector_rust_source(*args, **kwargs):
-        """Dummy function for cycling_slice_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate cycling slice."
-            + f" More infomation about this error: {FAILED_RUST_IMPORT}",
-        )
-
-    def cycling_slice_rust_source(*args, **kwargs):
-        """Dummy function for cycling_slice_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate cycling slice."
-        ) from FAILED_RUST_IMPORT
-
-    def degree_handler_rust_source(*args, **kwargs):
-        """Dummy function for degree_handler_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate degree handler."
-        ) from FAILED_RUST_IMPORT
-
-
-BACKEND_AVAILABLE = availablility(
-    "utils.bit_slice",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
+# pylint:disable=no-name-in-module,import-error,unused-import
+from ...boorust.bit_slice import (  # type: ignore
+    qubit_selector_rust,
+    cycling_slice_rust,
+    degree_handler_rust,
 )
 
 
+BACKEND_AVAILABLE = availablility("utils.bit_slice", [("Rust", True, None)])
+
+
 def qubit_selector(
-    num_qubits: int,
-    degree: Union[int, tuple[int, int], None] = None,
+    num_qubits: int, degree: Union[int, tuple[int, int], None] = None
 ) -> tuple[int, int]:
     """Determint the qubits to be used.
 
@@ -108,38 +75,6 @@ def qubit_selector(
     return item_range
 
 
-def qubit_selector_rust(
-    num_qubits: int,
-    degree: Union[int, tuple[int, int], None] = None,
-) -> tuple[int, int]:
-    """Determint the qubits to be used.
-
-    Args:
-        num_qubits (int): Number of qubits.
-        degree (Union[int, tuple[int, int], None], optional):
-            Degree of freedom or specific subsystem range.
-            Defaults to None then will use number of qubits as degree.
-
-    Raises:
-        ValueError: The specific degree of subsystem qubits
-            beyond number of qubits which the wave function has.
-        ValueError: The number of qubits of subsystem A is not a natural number.
-        ValueError: Invalid input for subsystem range defined by only two integers.
-        ValueError: Degree of freedom is not given.
-
-    Returns:
-        tuple[int]: The range of qubits to be used.
-    """
-    if RUST_AVAILABLE:
-        return qubit_selector_rust_source(num_qubits, degree)
-    warnings.warn(
-        "Rust is not available, using python to calculate qubit selector."
-        + f" More infomation about this error: {FAILED_RUST_IMPORT}",
-        category=PostProcessingRustUnavailableWarning,
-    )
-    return qubit_selector(num_qubits, degree)
-
-
 _ItemT = TypeVar("_ItemT")
 
 
@@ -183,35 +118,6 @@ def cycling_slice(target, start, end, step=1):
         new_string = target[start:end]
 
     return new_string[::step]
-
-
-def cycling_slice_rust(target: str, start: int, end: int, step: int = 1) -> str:
-    """Slice a iterable object with cycling.
-
-    Args:
-        target (str): The target object.
-        start (int): Index of start.
-        end (int): Index of end.
-        step (int, optional): Step of slice. Defaults to 1.
-
-    Raises:
-        IndexError: Slice out of range.
-
-    Returns:
-        str: The sliced object.
-    """
-    if not isinstance(target, str):
-        raise TypeError(
-            f"Expect 'str' but get '{type(target)}'. cycling_slice_rust only support 'str'."
-        )
-    if RUST_AVAILABLE:
-        return cycling_slice_rust_source(target, start, end, step)
-    warnings.warn(
-        "Rust is not available, using python to calculate cycling slice."
-        + f" Check: {FAILED_RUST_IMPORT}",
-        PostProcessingRustUnavailableWarning,
-    )
-    return cycling_slice(target, start, end, step)
 
 
 def qubit_mapper_2_int(
@@ -361,35 +267,6 @@ def degree_handler(
         measure = qubit_selector(allsystem_size)
 
     return bitstring_range, measure, subsystem_size
-
-
-def degree_handler_rust(
-    allsystem_size: int,
-    degree: Optional[Union[int, tuple[int, int]]],
-    measure: Optional[tuple[int, int]],
-) -> tuple[tuple[int, int], tuple[int, int], int]:
-    """Handle the degree of freedom for the subsystem.
-
-    Args:
-        allsystem_size (int):
-            The size of the whole system.
-        degree (Optional[Union[int, tuple[int, int]]]):
-            The degree of freedom.
-        measure (Optional[tuple[int, int]]):
-            The measure range.
-
-    Returns:
-        tuple[tuple[int, int], tuple[int, int], int]:
-            The degree of freedom, measure range, and subsystem size.
-    """
-    if RUST_AVAILABLE:
-        return degree_handler_rust_source(allsystem_size, degree, measure)
-    warnings.warn(
-        "Rust is not available, using python to calculate degree handler."
-        + f" Check: {FAILED_RUST_IMPORT}",
-        PostProcessingRustUnavailableWarning,
-    )
-    return degree_handler(allsystem_size, degree, measure)
 
 
 def is_cycling_slice_active(

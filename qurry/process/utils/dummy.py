@@ -1,71 +1,24 @@
-"""Post Processing - Utils - Toolkits for Dummy Case
-(:mod:`qurry.process.utils.dummy`)
-
-"""
+"""Post Processing - Utils - Toolkits for Dummy Case (:mod:`qurry.process.utils.dummy`)"""
 
 from typing import Callable, Optional
 import random
 import numpy as np
 
-from ..availability import (
-    availablility,
-    default_postprocessing_backend,
-    PostProcessingBackendLabel,
-)
-from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
+from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
 
-try:
-    from ...boorust import dummy  # type: ignore
-
-    make_two_bit_str_32_rust_source = dummy.make_two_bit_str_32  # type: ignore
-    make_dummy_case_32_rust_source = dummy.make_dummy_case_32  # type: ignore
-    make_two_bit_str_unlimit_rust_source = dummy.make_two_bit_str_unlimit  # type: ignore
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def make_two_bit_str_32_rust_source(*args, **kwargs):
-        """Dummy function for make_two_bit_str_32_rust_source."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate make_two_bit_str."
-            + f" More infomation about this error: {FAILED_RUST_IMPORT}",
-        )
-
-    def make_dummy_case_32_rust_source(*args, **kwargs):
-        """Dummy function for make_dummy_case_rust_source."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate make_dummy_case."
-            + f" More infomation about this error: {FAILED_RUST_IMPORT}",
-        )
-
-    def make_two_bit_str_unlimit_rust_source(*args, **kwargs):
-        """Dummy function for make_two_bit_str_unlimit_rust_source."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate make_two_bit_str."
-            + f" More infomation about this error: {FAILED_RUST_IMPORT}",
-        )
-
-
-BACKEND_AVAILABLE = availablility(
-    "utils.dummy",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
-)
-
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(
-    RUST_AVAILABLE,
-    False,
+# pylint:disable=no-name-in-module,import-error
+from ...boorust.dummy import (  # type:ignore
+    make_two_bit_str_32 as make_two_bit_str_32_rust,
+    make_dummy_case_32 as make_dummy_case_32_rust,
+    make_two_bit_str_unlimit as make_two_bit_str_unlimit_rust,
 )
 
 
-def make_two_bit_str_32_py(
-    bitlen: int,
-    num: Optional[int] = None,
-) -> list[str]:
+BACKEND_AVAILABLE = availablility("utils.dummy", [("Rust", True, None)])
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
+
+
+def make_two_bit_str_32_py(bitlen: int, num: Optional[int] = None) -> list[str]:
     """Make a list of bit strings with length of `num`.
 
     Args:
@@ -160,7 +113,6 @@ def make_two_bit_str_unlimit(
 
     Args:
         bitlen (int): bit string length.
-        num (Optional[int]): The number of bit strings.
         backend (PostProcessingBackendLabel): The backend to use.
 
     Returns:
@@ -169,11 +121,7 @@ def make_two_bit_str_unlimit(
     if bitlen > 32:
         raise ValueError("bitlen should be less than 32 for safety reason.")
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return make_two_bit_str_unlimit_rust_source(bitlen)
-        raise PostProcessingRustUnavailableWarning(
-            "Rust is not available, using python to calculate make_two_bit_str."
-        )
+        return make_two_bit_str_unlimit_rust(bitlen)
 
     return make_two_bit_str_32_py(bitlen)
 
@@ -206,19 +154,15 @@ def make_two_bit_str(
     """Make a list of bit strings with length of `num`.
 
     Args:
-        num (int): bit string length.
+        bitlen (int): bit string length.
+        num (Optional[int]): The number of bit strings.
         backend (PostProcessingBackendLabel): The backend to use.
 
     Returns:
         list[str]: The list of bit strings.
     """
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return make_two_bit_str_32_rust_source(bitlen, num)
-        raise PostProcessingRustUnavailableWarning(
-            "Rust is not available, using python to calculate make_two_bit_str."
-        )
-
+        make_two_bit_str_32_rust(bitlen, num)
     return make_two_bit_str_32_py(bitlen, num)
 
 
@@ -240,11 +184,7 @@ def make_dummy_case(
         dict[str, int]: The dummy case.
     """
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return make_dummy_case_32_rust_source(n_a, shot_per_case, bitstring_num)
-        raise PostProcessingRustUnavailableWarning(
-            "Rust is not available, using python to calculate make_dummy_case."
-        )
+        return make_dummy_case_32_rust(n_a, shot_per_case, bitstring_num)
 
     bitstring_cases = make_two_bit_str(n_a, bitstring_num, backend)
     return dict.fromkeys(bitstring_cases, shot_per_case)

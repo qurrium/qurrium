@@ -15,40 +15,18 @@ from ...availability import (
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
-from ...exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-    PostProcessingBackendDeprecatedWarning,
-)
+from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager, workers_distribution
 
-
-try:
-    from ....boorust import randomized  # type: ignore
-
-    entangled_entropy_core_rust_source = randomized.entangled_entropy_core_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def entangled_entropy_core_rust_source(*args, **kwargs):
-        """Dummy function for entangled_entropy_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate entangled entropy."
-        ) from FAILED_RUST_IMPORT
+# pylint:disable=no-name-in-module,import-error
+from ....boorust.randomized import entangled_entropy_core_rust  # type: ignore
 
 
 BACKEND_AVAILABLE = availablility(
     "randomized_measure.entangled_entropy_v1.entropy_core",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-        ("Cython", "Depr.", None),
-    ],
+    [("Rust", True, None), ("Cython", "Depr.", None)],
 )
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
 def entangled_entropy_core_py(
@@ -138,39 +116,6 @@ def entangled_entropy_core_py(
     return purity_cell_dict, bitstring_range, measure, msg, taken
 
 
-def entangled_entropy_core_allrust(
-    shots: int,
-    counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Optional[tuple[int, int]] = None,
-) -> tuple[
-    dict[int, float],
-    tuple[int, int],
-    tuple[int, int],
-    str,
-    float,
-]:
-    """The core function of entangled entropy by Rust.
-
-    Args:
-        shots (int): Shots of the experiment on quantum machine.
-        counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-        degree (Optional[Union[tuple[int, int], int]]): Degree of the subsystem.
-        measure (Optional[tuple[int, int]], optional):
-            Measuring range on quantum circuits. Defaults to None.
-
-    Raises:
-        ValueError: Get degree neither 'int' nor 'tuple[int, int]'.
-        ValueError: Measure range does not contain subsystem.
-
-    Returns:
-        tuple[dict[int, float], tuple[int, int], tuple[int, int], str, float]:
-            Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
-    """
-
-    return entangled_entropy_core_rust_source(shots, counts, degree, measure)
-
-
 def entangled_entropy_core(
     shots: int,
     counts: list[dict[str, int]],
@@ -221,13 +166,6 @@ def entangled_entropy_core(
         )
         backend = DEFAULT_PROCESS_BACKEND
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return entangled_entropy_core_allrust(shots, counts, degree, measure)
-        backend = "Python"
-        warnings.warn(
-            f"Rust is not available, using {backend} to calculate purity cell."
-            + f" Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
-        )
+        return entangled_entropy_core_rust(shots, counts, degree, measure)
 
     return entangled_entropy_core_py(shots, counts, degree, measure, multiprocess_pool_size)

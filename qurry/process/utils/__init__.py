@@ -25,7 +25,8 @@ from .bit_slice import (
 from .randomized import (
     hamming_distance,
     ensemble_cell,
+    hamming_distance_rust,
+    ensemble_cell_rust,
     BACKEND_AVAILABLE as randomized_availability,
 )
 from .dummy import BACKEND_AVAILABLE as dummy_availability
-from .test import BACKEND_AVAILABLE as test_availability, test_bit_slice

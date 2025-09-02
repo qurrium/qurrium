@@ -5,7 +5,7 @@
 
 import time
 import warnings
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Union
 import numpy as np
 
 from .echo_cell_2 import echo_cell_2_py
@@ -15,41 +15,16 @@ from ...availability import (
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
-from ...exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-    PostProcessingBackendDeprecatedWarning,
-)
+from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager
 
-try:
-    from ....boorust import randomized  # type: ignore
-
-    overlap_echo_core_2_rust_source = randomized.overlap_echo_core_2_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def overlap_echo_core_2_rust_source(*args, **kwargs):
-        """Dummy function for entangled_entropy_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate overlap echo."
-        ) from FAILED_RUST_IMPORT
-
+# pylint:disable=no-name-in-module,import-error
+from ....boorust.randomized import overlap_echo_core_2_rust  # type: ignore
 
 BACKEND_AVAILABLE = availablility(
-    "randomized_measure.wavefunction_overlap.echo_core_2",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
+    "randomized_measure.wavefunction_overlap.echo_core_2", [("Rust", True, None)]
 )
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(
-    RUST_AVAILABLE,
-    False,
-)
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
 def overlap_echo_core_2_py(
@@ -132,42 +107,13 @@ def overlap_echo_core_2_py(
     return echo_cell_dict, selected_classical_registers_sorted, msg, taken
 
 
-def overlap_echo_core_2_allrust(
-    shots: int,
-    first_counts: list[dict[str, int]],
-    second_counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
-) -> tuple[dict[int, np.float64], list[int], str, float]:
-    """The core function of wavefunction overlap by Rust for just purity cell part.
-
-    Args:
-        shots (int):
-            Shots of the experiment on quantum machine.
-        first_counts (list[dict[str, int]]):
-            Counts of the experiment on quantum machine.
-        second_counts (list[dict[str, int]]):
-            Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[Iterable[int]], optional):
-            The list of **the index of the selected_classical_registers**.
-
-    Returns:
-        tuple[dict[int, np.float64], list[int], str, float]:
-            Purity of each cell, Selected classical registers, Message, Time to calculate.
-    """
-
-    selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
-    return overlap_echo_core_2_rust_source(
-        shots, first_counts, second_counts, selected_classical_registers
-    )
-
-
 def overlap_echo_core_2(
     shots: int,
     first_counts: list[dict[str, int]],
     second_counts: list[dict[str, int]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> tuple[dict[int, np.float64], list[int], str, float]:
+) -> tuple[Union[dict[int, np.float64], dict[int, float]], list[int], str, float]:
     """The core function of wavefunction overlap for just purity cell part.
 
     Args:
@@ -183,8 +129,7 @@ def overlap_echo_core_2(
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
-        tuple[dict[int, np.float64], list[int], str, float]:
-            Purity of each cell, Selected classical registers, Message, Time to calculate.
+        Purity of each cell, Selected classical registers, Message, Time to calculate.
     """
 
     if backend not in BACKEND_AVAILABLE[1]:
@@ -202,15 +147,9 @@ def overlap_echo_core_2(
         backend = DEFAULT_PROCESS_BACKEND
 
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return overlap_echo_core_2_allrust(
-                shots, first_counts, second_counts, selected_classical_registers
-            )
-        backend = "Python"
-        warnings.warn(
-            f"Rust is not available, using {backend} to calculate purity cell."
-            + f" Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
+        selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
+        return overlap_echo_core_2_rust(
+            shots, first_counts, second_counts, selected_classical_registers
         )
 
     return overlap_echo_core_2_py(shots, first_counts, second_counts, selected_classical_registers)
