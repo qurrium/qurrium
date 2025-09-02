@@ -229,8 +229,9 @@ def preparing_all_system(
         backend=backend,
     )
 
-    purity_all_sys = np.mean(list(purity_cell_dict_allsys.values()), dtype=np.float64)
-    purity_sd_all_sys = np.std(list(purity_cell_dict_allsys.values()), dtype=np.float64)
+    purity_values = np.array(list(purity_cell_dict_allsys.values()), dtype=np.float64)
+    purity_all_sys = np.mean(purity_values, dtype=np.float64)
+    purity_sd_all_sys = np.std(purity_values, dtype=np.float64)
     entropy_all_sys = -np.log2(purity_all_sys, dtype=np.float64)
     entropy_sd_all_sys = purity_sd_all_sys / np.log(2) / purity_all_sys
 
