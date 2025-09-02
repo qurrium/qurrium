@@ -7,7 +7,6 @@ from qurry.process.utils import (
     counts_process_availability,
     bit_slice_availability,
     dummy_availability,
-    test_availability as self_test_availability,
 )
 from qurry.process.utils.bit_slice import (
     qubit_selector as qubit_selector_py,
@@ -15,7 +14,9 @@ from qurry.process.utils.bit_slice import (
     cycling_slice as cycling_slice_py,
     cycling_slice_rust,
 )
-from qurry.process.utils.test import test_bit_slice
+
+# pylint: disable=import-error
+from qurry.boorust.test import test_bit_slice  # type: ignore
 
 
 def test_availability():
@@ -25,7 +26,6 @@ def test_availability():
         counts_process_availability,
         bit_slice_availability,
         dummy_availability,
-        self_test_availability,
     ]:
         assert availability_item[1]["Rust"], (
             "Rust is not available." + f" Check the error: {availability_item[2]}"

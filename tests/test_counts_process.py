@@ -8,13 +8,13 @@ from qurry.tools.datetime import current_time
 from qurry.process.utils import counts_process_availability
 from qurry.process.utils.counts_process import (
     single_counts_recount as single_counts_recount_py,
-    single_counts_recount_rust_source,
+    single_counts_recount_rust,
     counts_list_recount as counts_list_recount_py,
-    counts_list_recount_rust_source,
+    counts_list_recount_rust,
     counts_list_vectorize_pyrust,
-    counts_list_vectorize_rust_source,
+    counts_list_vectorize_rust,
     rho_m_flatten_counts_list_vectorize_pyrust,
-    rho_m_flatten_counts_list_vectorize_rust_source,
+    rho_m_flatten_counts_list_vectorize_rust,
 )
 
 
@@ -38,7 +38,7 @@ def test_counts_substring(test_items: list[int]):
     )
 
     counts_recounted_py_result = single_counts_recount_py(easy_dummy["0"], 8, test_items)
-    counts_recounted_rust_result = single_counts_recount_rust_source(easy_dummy["0"], 8, test_items)
+    counts_recounted_rust_result = single_counts_recount_rust(easy_dummy["0"], 8, test_items)
 
     assert all(
         counts_recounted_rust_result[s] == v for s, v in counts_recounted_py_result.items()
@@ -50,7 +50,7 @@ def test_counts_substring(test_items: list[int]):
     )
 
     counts_list_recounted_py_result = counts_list_recount_py([easy_dummy["0"]], 8, test_items)
-    counts_list_recounted_rust_result = counts_list_recount_rust_source(
+    counts_list_recounted_rust_result = counts_list_recount_rust(
         [easy_dummy["0"]], 8, test_items
     )
 
@@ -76,7 +76,7 @@ def test_counts_list_vectorize():
     counts_list_vectorize_py_result = counts_list_vectorize_pyrust(
         origin_counts_list, backend="Python"
     )
-    counts_list_vectorize_rust_result = counts_list_vectorize_rust_source(origin_counts_list)
+    counts_list_vectorize_rust_result = counts_list_vectorize_rust(origin_counts_list)
 
     error_log_location = os.path.join(os.path.dirname(__file__), "qurrium", "exports")
     current_time_str = current_time().replace(":", "-").replace(" ", "_")
@@ -144,7 +144,7 @@ def test_rho_m_flatten_counts_list_vectorize():
         origin_counts_list, {0: dict.fromkeys(range(8), 0)}, list(range(8)), backend="Python"
     )
     rho_m_flatten_counts_list_vectorize_rust_result = (
-        rho_m_flatten_counts_list_vectorize_rust_source(
+        rho_m_flatten_counts_list_vectorize_rust(
             origin_counts_list, {0: dict.fromkeys(range(8), 0)}, list(range(8))
         )
     )
