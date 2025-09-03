@@ -3,12 +3,10 @@
 
 """
 
-from typing import Iterable, Literal, Callable, Union
+from typing import Literal, Callable, Union
 import warnings
-import functools as ft
 import numpy as np
 
-from .unitary_set import PRECOMPUTED_RHO_M_K_I, PRECOMPUTED_RHO_M_K_I_2
 from ..availability import availablility
 from ..exceptions import (
     PostProcessingThirdPartyImportError,
@@ -175,41 +173,6 @@ It can be either "jax" or "numpy".
 - "numpy": 
     Use Numpy to calculate the Kronecker product.
 """
-
-
-# kronecker product calculation
-def rho_mki_kronecker_product_numpy(
-    key_list_of_precomputed: list[tuple[int, str]],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    r"""Kronecker product for :math:`\rho_{mki}` by Numpy.
-
-    Args:
-        key_list_of_precomputed (list[tuple[int, str]]):
-            The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-    Returns:
-        NDArray[np.complex128]: The Kronecker product of the :math:`\rho_{mki}`.
-    """
-    return ft.reduce(
-        np.kron, [PRECOMPUTED_RHO_M_K_I[key] for key in key_list_of_precomputed]
-    )  # type: ignore
-
-
-def rho_mki_kronecker_product_numpy_2(
-    key_list_of_precomputed: Iterable[int],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    r"""Kronecker product for :math:`\rho_{mki}` by Numpy.
-
-    Args:
-        key_list_of_precomputed (Iterable[int]):
-            The list of the keys of the precomputed :math:`\rho_{mki}`.
-
-    Returns:
-        NDArray[np.complex128]: The Kronecker product of the :math:`\rho_{mki}`.
-    """
-    return ft.reduce(
-        np.kron, [PRECOMPUTED_RHO_M_K_I_2[key] for key in key_list_of_precomputed]
-    )  # type: ignore
 
 
 # single trace calculation

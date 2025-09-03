@@ -5,6 +5,7 @@ The followings are unitary operators for our classical shadow implementation.
 """
 
 from typing import Literal, Union
+import functools as ft
 import numpy as np
 import numpy.typing as npt
 
@@ -217,6 +218,20 @@ Here is the output of when you run the code in jupyter notebook:
 """
 
 
+@ft.lru_cache(maxsize=1024)
+def cached_rho_m_k_i_matrix(direction: int, bit: str) -> np.ndarray:
+    r"""Cached :math:`\rho_{mki}` matrix from :const:`PRECOMPUTED_RHO_M_K_I`
+
+    Args:
+        direction (int): The direction of the shadow.
+        bit (str): The bitstring.
+
+    Returns:
+        np.ndarray: The cached rho_m_k_i matrix.
+    """
+    return PRECOMPUTED_RHO_M_K_I[(direction, bit)]
+
+
 PRECOMPUTED_RHO_M_K_I_2 = {
     direction * 10
     + int(b_k): (3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[b_k] @ U_M_MATRIX[direction])
@@ -265,3 +280,16 @@ Here is the output of when you run the code in jupyter notebook:
     }
 
 """
+
+
+@ft.lru_cache(maxsize=1024)
+def cached_rho_m_k_i_matrix_2(index: int) -> np.ndarray:
+    r"""Cached :math:`\rho_{mki}` matrix from :const:`PRECOMPUTED_RHO_M_K_I_2`
+
+    Args:
+        index (int): The index of the matrix.
+
+    Returns:
+        np.ndarray: The cached rho_m_k_i matrix.
+    """
+    return PRECOMPUTED_RHO_M_K_I_2[index]
