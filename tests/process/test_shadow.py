@@ -17,6 +17,7 @@ from qurry.process.classical_shadow import (
 from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 
 FILE_LOCATION = os.path.join(os.path.dirname(__file__), "shadow-case.json")
+FILE_LOCATION_2 = os.path.join(os.path.dirname(__file__), "shadow-case-hard.json")
 
 RHO_METHODS = ["numpy", "numpy_precomputed", "numpy_flatten"]
 TRACE_METHODS = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
@@ -63,7 +64,8 @@ class ClassicalShadowComplexExtended(ClassicalShadowComplex):
 
 
 raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
-raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01]
+raw_shadow_case_02: RawReadShadowCase = quickRead(FILE_LOCATION_2)
+raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01, raw_shadow_case_02]
 
 
 def unpacked_shadow_case(
@@ -97,7 +99,7 @@ shadow_cases = [
 ]
 shadow_cases_spreadout = [
     (shadow_case_tmp["answer_spreadout"], *unpacked_shadow_case(shadow_case_tmp))
-    for shadow_case_tmp in raw_shadow_cases
+    for shadow_case_tmp in raw_shadow_cases[:1]
 ]
 
 
