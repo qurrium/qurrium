@@ -6,9 +6,12 @@ from .counts_process import (
     counts_list_recount,
     counts_list_recount_pyrust,
     BACKEND_AVAILABLE as counts_process_availability,
+    selected_clregs_to_optlist,
+    shot_counts_selected_clreg_checker,
     shot_counts_selected_clreg_checker_pyrust,
     counts_list_vectorize_pyrust,
     rho_m_flatten_counts_list_vectorize_pyrust,
+    check_invalid_counts,
 )
 from .other import NUMERICAL_ERROR_TOLERANCE
 from .bit_slice import (
@@ -22,7 +25,8 @@ from .bit_slice import (
 from .randomized import (
     hamming_distance,
     ensemble_cell,
+    hamming_distance_rust,
+    ensemble_cell_rust,
     BACKEND_AVAILABLE as randomized_availability,
 )
 from .dummy import BACKEND_AVAILABLE as dummy_availability
-from .test import BACKEND_AVAILABLE as test_availability, test_bit_slice

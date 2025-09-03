@@ -8,64 +8,35 @@ import warnings
 from typing import Union, Optional
 import numpy as np
 
-from .echo_cell import echo_cell_py, echo_cell_rust
+from .echo_cell import echo_cell_py
 from ...utils import cycling_slice as cycling_slice_py, qubit_selector
 from ...availability import (
     availablility,
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
-from ...exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-    PostProcessingBackendDeprecatedWarning,
-)
+from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager, workers_distribution
 
-try:
-    from ....boorust import randomized  # type: ignore
-
-    overlap_echo_core_rust_source = randomized.overlap_echo_core_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def overlap_echo_core_rust_source(*args, **kwargs):
-        """Dummy function for entangled_entropy_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate overlap echo."
-        ) from FAILED_RUST_IMPORT
+# pylint:disable=no-name-in-module,import-error
+from ....boorust.randomized import overlap_echo_core_rust  # type: ignore
 
 
 BACKEND_AVAILABLE = availablility(
     "randomized_measure.wavefunction_overlap_v1.echo_core",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-        ("Cython", "Depr.", None),
-    ],
+    [("Rust", True, None), ("Cython", "Depr.", None)],
 )
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(
-    RUST_AVAILABLE,
-    False,
-)
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
-def overlap_echo_core_pycyrust(
+def overlap_echo_core_py(
     shots: int,
     counts: list[dict[str, int]],
     degree: Optional[Union[tuple[int, int], int]] = None,
     measure: Optional[tuple[int, int]] = None,
     multiprocess_pool_size: Optional[int] = None,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[
-    Union[dict[int, float], dict[int, np.float64]],
-    tuple[int, int],
-    tuple[int, int],
-    str,
-    float,
+    Union[dict[int, float], dict[int, np.float64]], tuple[int, int], tuple[int, int], str, float
 ]:
     """The core function of entangled entropy.
 
@@ -148,28 +119,12 @@ def overlap_echo_core_pycyrust(
 
     msg = f"| Partition: {bitstring_range}, Measure: {measure}"
 
-    if backend not in BACKEND_AVAILABLE[1]:
-        warnings.warn(
-            f"Unknown backend '{backend}', using {DEFAULT_PROCESS_BACKEND} instead.",
-        )
-        backend = DEFAULT_PROCESS_BACKEND
-
-    if not RUST_AVAILABLE and backend == "Rust":
-        warnings.warn(
-            "Rust is not available, using Python to calculate purity cell."
-            + f"Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
-        )
-        backend = "Python"
-
-    cell_calculation = echo_cell_rust if backend == "Rust" else echo_cell_py
-
     if launch_worker == 1:
         echo_cell_items = []
         msg += f", single process, {times} overlaps, it will take a lot of time."
         print(msg)
         for i, (c1, c2) in enumerate(counts_pair):
-            echo_cell_items.append(cell_calculation(i, c1, c2, bitstring_range, subsystem_size))
+            echo_cell_items.append(echo_cell_py(i, c1, c2, bitstring_range, subsystem_size))
 
         take_time = round(time.time() - begin_time, 3)
     else:
@@ -177,7 +132,7 @@ def overlap_echo_core_pycyrust(
 
         pool = ParallelManager(launch_worker)
         echo_cell_items = pool.starmap(
-            cell_calculation,
+            echo_cell_py,
             [
                 (i, c1, c2, bitstring_range, subsystem_size)
                 for i, (c1, c2) in enumerate(counts_pair)
@@ -189,33 +144,6 @@ def overlap_echo_core_pycyrust(
         echo_cell_items
     )  # type: ignore
     return echo_cell_dict, bitstring_range, measure, msg, take_time
-
-
-def overlap_echo_allrust(
-    shots: int,
-    counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Optional[tuple[int, int]] = None,
-) -> tuple[dict[int, float], tuple[int, int], tuple[int, int], str, float]:
-    """The core function of entangled entropy.
-
-    Args:
-        shots (int): Shots of the experiment on quantum machine.
-        counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-        degree (Optional[Union[tuple[int, int], int]]): Degree of the subsystem.
-        measure (Optional[tuple[int, int]], optional):
-            Measuring range on quantum circuits. Defaults to None.
-
-    Raises:
-        ValueError: Get degree neither 'int' nor 'tuple[int, int]'.
-        ValueError: Measure range does not contain subsystem.
-
-    Returns:
-        tuple[dict[int, float], tuple[int, int], tuple[int, int], str, float]:
-            Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
-    """
-
-    return overlap_echo_core_rust_source(shots, counts, degree, measure)
 
 
 def overlap_echo_core(
@@ -273,15 +201,6 @@ def overlap_echo_core(
         )
         backend = DEFAULT_PROCESS_BACKEND
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return overlap_echo_allrust(shots, counts, degree, measure)
-        backend = "Python"
-        warnings.warn(
-            f"Rust is not available, using {backend} to calculate purity cell."
-            + f" Check the error: {FAILED_RUST_IMPORT}",
-            PostProcessingRustUnavailableWarning,
-        )
+        return overlap_echo_core_rust(shots, counts, degree, measure)
 
-    return overlap_echo_core_pycyrust(
-        shots, counts, degree, measure, multiprocess_pool_size, backend
-    )
+    return overlap_echo_core_py(shots, counts, degree, measure, multiprocess_pool_size)

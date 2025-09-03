@@ -11,6 +11,8 @@ class SUAnalysisInput(NamedTuple):
 
     shots: int
     """The number of shots."""
+    snapshots: int
+    """The number of random basis for classical shadow."""
     num_qubits: int
     """The number of qubits."""
     selected_qubits: list[int]
@@ -253,16 +255,15 @@ class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]
             tuple[dict[str, Any], dict[str, Any]]:
                 The converted main and side product dicts.
         """
+        if "expect_rho" in main or "rho_m_dict" in side:
+            main["mean_of_rho"] = main.pop("expect_rho")
+            side["average_classical_snapshots_rho"] = side.pop("rho_m_dict")
+            for k, v in NEW_FIELDS_DEFAULTS.items():
+                if k not in main:
+                    main[k] = v
 
-        if "expect_rho" not in main and "rho_m_dict" not in main:
-            # If neither expect_rho nor rho_m_dict is present, return as is.
-            return main, side
-
-        main["mean_of_rho"] = main.pop("expect_rho")
-        side["average_classical_snapshots_rho"] = side.pop("rho_m_dict")
-        for k, v in NEW_FIELDS_DEFAULTS.items():
-            if k not in main:
-                main[k] = v
+        if "snapshots" not in main["input"]:
+            main["input"]["snapshots"] = len(side["average_classical_snapshots_rho"])
         return main, side
 
     @property

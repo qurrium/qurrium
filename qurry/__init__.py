@@ -5,10 +5,23 @@ and The Measuring Tool for Renyi Entropy, Loschmidt Echo, and More
 
 import sys
 
+from . import boorust
+
+# Due to PyO3 submodule is not fully compatible as a Python module.
+# So we will need to assign manually like the followings do.
+# pylint: disable=c-extension-no-member,wrong-import-position
+sys.modules["qurry.boorust.counts_process"] = boorust.counts_process  # type: ignore
+sys.modules["qurry.boorust.bit_slice"] = boorust.bit_slice  # type: ignore
+sys.modules["qurry.boorust.randomized"] = boorust.randomized  # type: ignore
+sys.modules["qurry.boorust.hadamard"] = boorust.hadamard  # type: ignore
+sys.modules["qurry.boorust.magnet_square"] = boorust.magnet_square  # type: ignore
+sys.modules["qurry.boorust.string_operator"] = boorust.string_operator  # type: ignore
+sys.modules["qurry.boorust.dummy"] = boorust.dummy  # type: ignore
+sys.modules["qurry.boorust.test"] = boorust.test  # type: ignore
+
 from .qurrech import EchoListen, WaveFunctionOverlap
 from .qurrent import EntropyMeasure, ShadowUnveil
 from .qurries import WavesExecuter, SamplingExecuter, MagnetSquare, ZDirMagnetSquare, StringOperator
-
 from .tools import (
     BackendWrapper,
     version_check,
@@ -16,56 +29,10 @@ from .tools import (
     pytorch_cuda_check,
     fun_platform_check,
 )
-
+from .process.randomized_measure import generate_random_unitary_seeds, check_random_unitary_seeds
+from .process.classical_shadow import generate_random_basis, check_random_basis
+from .process.availability import availablility
 from .version import __version__
 
-# pylint: disable=no-name-in-module,import-error
-# pylint: disable=wrong-import-order,no-member,c-extension-no-member
 
-# But Qiskit found a solution to this problem.
-# You can find this implementation in the Qiskit source code.
-# In their root __init__.py file,
-# they import the submodules and assign them to the sys.modules dictionary.
-try:
-    import qurry.boorust  # type: ignore
-
-    sys.modules["qurry.boorust.counts_process"] = qurry.boorust.counts_process  # type: ignore
-    sys.modules["qurry.boorust.bit_slice"] = qurry.boorust.bit_slice  # type: ignore
-    sys.modules["qurry.boorust.randomized"] = qurry.boorust.randomized  # type: ignore
-    sys.modules["qurry.boorust.hadamard"] = qurry.boorust.hadamard  # type: ignore
-    sys.modules["qurry.boorust.magnet_square"] = qurry.boorust.magnet_square  # type: ignore
-    sys.modules["qurry.boorust.string_operator"] = qurry.boorust.string_operator  # type: ignore
-    sys.modules["qurry.boorust.dummy"] = qurry.boorust.dummy  # type: ignore
-    sys.modules["qurry.boorust.test"] = qurry.boorust.test  # type: ignore
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ModuleNotFoundError as qurry_boorust_import_error:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = qurry_boorust_import_error
-
-from .process.availability import availablility
-
-BACKEND_AVAILABLE = availablility(
-    "boorust",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
-)
-# pylint: enable=no-name-in-module,import-error
-# pylint: enable=wrong-import-order,no-member,c-extension-no-member
-
-# """
-# Note that this does not define a package,
-# so this won’t allow Python code to directly import submodules
-# by using from parent_module import child_module.
-# For more information,
-# see [#759](https://github.com/PyO3/pyo3/issues/759)
-# and [#1517](https://github.com/PyO3/pyo3/issues/1517).
-# from https://pyo3.rs/v0.23.0/module.html#python-submodules
-# (Since PyO3 0.20.0, until PyO3 0.23.0)
-# :smile:
-# """
-
-# DO NOT MAKE .pyi FOR boorust MODULES.
-# it will overwrite and corrupt the module from rust.
+BACKEND_AVAILABLE = availablility("boorust", [("Rust", True, None)])

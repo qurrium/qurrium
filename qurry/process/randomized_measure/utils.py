@@ -1,4 +1,7 @@
-"""ToolKits for Random Unitary Operator (:mod:`qurry.qurrium.utils.random_unitary`)"""
+"""Post Processing - Randomized Measure - Utilities
+(:mod:`qurry.process.randomized_measure.utils`)
+
+"""
 
 from typing import Union, Optional
 from collections.abc import Sequence
@@ -9,8 +12,7 @@ SeedType = Union[int, np.random.Generator]
 
 
 def generate_seeds_for_single_circ(
-    seed_for_single_circ: Optional[SeedType],
-    num_qubits: int,
+    seed_for_single_circ: Optional[SeedType], num_qubits: int
 ) -> dict[int, int]:
     """Generate the seed for single circuit.
 
@@ -165,7 +167,7 @@ dict[int, Union[int, np.random.Generator]]\
     return single_seed
 
 
-def check_input_for_experiment(
+def check_random_unitary_seeds(
     times: int,
     num_qubits: int,
     random_unitary_seeds: Optional[dict[int, dict[int, int]]],
@@ -173,7 +175,7 @@ def check_input_for_experiment(
     """Check the input of the experiment.
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_unitary_seeds`
-    in :mod:`qurry.qurrium.utils.random_unitary`.
+    in :mod:`qurry.process.randomized_measure.utils`.
 
     Args:
         times (int): The number of random unitary operator.

@@ -11,61 +11,14 @@ from ..availability import (
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
-from ..exceptions import (
-    PostProcessingRustImportError,
-    PostProcessingRustUnavailableWarning,
-    PostProcessingBackendDeprecatedWarning,
-)
+from ..exceptions import PostProcessingBackendDeprecatedWarning
 
-try:
-    from ...boorust import hadamard  # type: ignore
-
-    purity_echo_core_rust_source = hadamard.purity_echo_core_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def purity_echo_core_rust_source(*args, **kwargs):
-        """Dummy function for purity_cell_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate purity cell."
-        ) from FAILED_RUST_IMPORT
+# pylint:disable=no-name-in-module,import-error
+from ...boorust.hadamard import purity_echo_core_rust  # type: ignore
 
 
-BACKEND_AVAILABLE = availablility(
-    "hadamard_test.purity_echo_core",
-    [
-        ("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT),
-    ],
-)
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(
-    RUST_AVAILABLE,
-    False,
-)
-
-
-def purity_echo_core_allrust(
-    shots: int,
-    counts: list[dict[str, int]],
-) -> float:
-    """The core function of entangled entropy by Rust.
-
-    Args:
-        shots (int): Shots of the experiment on quantum machine.
-        counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-
-    Raises:
-        ValueError: Get degree neither 'int' nor 'tuple[int, int]'.
-        ValueError: Measure range does not contain subsystem.
-
-    Returns:
-        float: Purity or Echo of the experiment.
-    """
-
-    return purity_echo_core_rust_source(shots, counts)
+BACKEND_AVAILABLE = availablility("hadamard_test.purity_echo_core", [("Rust", True, None)])
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
 def purity_echo_core(
@@ -91,21 +44,14 @@ def purity_echo_core(
     if len(counts) != 1:
         raise ValueError(f"counts should be a list of counts with length 1, but got {len(counts)}")
 
-    if backend == "Rust":
-        if RUST_AVAILABLE:
-            return purity_echo_core_allrust(shots, counts)
-
-        warnings.warn(
-            PostProcessingRustUnavailableWarning(
-                "Rust is not available, using python to calculate purity cell."
-            )
-        )
     if backend == "Cython":
         warnings.warn(
             "Cython backend is deprecated, using Python or Rust to calculate purity cell.",
             PostProcessingBackendDeprecatedWarning,
         )
         backend = DEFAULT_PROCESS_BACKEND
+    if backend == "Rust":
+        return purity_echo_core_rust(shots, counts)
 
     only_counts = counts[0]
     sample_shots = sum(only_counts.values())

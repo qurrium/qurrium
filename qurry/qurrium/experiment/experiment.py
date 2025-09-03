@@ -935,7 +935,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             **reading_return_args,
             beforewards=Before.read(file_index=file_index, save_location=save_location),
             afterwards=After.read(file_index=file_index, save_location=save_location),
-            reports=AnalysesContainer(),
         )
         reports_read = exp_instance.analysis_instance.read(
             file_index=file_index, save_location=save_location

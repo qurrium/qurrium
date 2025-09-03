@@ -268,9 +268,9 @@ SingleTraceRhoMethod = Union[
 """The method to calculate the trace of single Rho square.
 
 - "trace_of_matmul":
-    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+    Use `np.trace(np.matmul(rho_m1, rho_m2))` to calculate the trace.
 - "quick_trace_of_matmul" or "einsum_ij_ji": 
-    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
+    Use `np.einsum("ij,ji", rho_m1, rho_m2)` to calculate the trace.
 """
 
 
@@ -334,11 +334,11 @@ AllTraceRhoMethod = Union[Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_
 """The method to calculate the all trace of Rho square.
 
 - "einsum_aij_bji_to_ab_numpy":
-    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-    This is the fastest implementation to calculate the trace of Rho 
+    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+    This is the fastest implementation to calculate the trace of Rho
     if JAX is not available.
 - "einsum_aij_bji_to_ab_jax":
-    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
     This is the fastest implementation to calculate the trace of Rho.
 """
 DEFAULT_ALL_TRACE_RHO_METHOD: AllTraceRhoMethod = (
@@ -359,9 +359,9 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
 
             - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
             - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
 
             This is the fastest implementation to calculate the trace of Rho.
 

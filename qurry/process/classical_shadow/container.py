@@ -22,6 +22,10 @@ class ClassicalShadowBasic(TypedDict):
     """The list of the selected_classical_registers."""
     taking_time: float
     """The time taken for the calculation."""
+    snapshots: int
+    """The number of random basis for classical shadow."""
+    shots: int
+    """The number of shots."""
 
 
 class ClassicalShadowMeanRho(ClassicalShadowBasic):
@@ -42,7 +46,7 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
 
     Here, we use the notations that use in the supplementary material of
     `Predicting many properties of a quantum system from very few measurements
-    <https://doi.org/10.1038/s41567-020-0932-7>`
+    <https://doi.org/10.1038/s41567-020-0932-7>`_
 
     """
 

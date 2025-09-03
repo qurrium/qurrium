@@ -18,7 +18,7 @@ from utils import (
     quantity_units_conclusion,
     multi_output_all_conclusion,
     specific_analysis_args_making,
-    prepare_random_unitary_seeds,
+    prepare_random_basis,
     check_unit,
     item_name_making,
 )
@@ -32,6 +32,7 @@ from qurry.recipe import Cat, TrivialParamagnet
 
 SEED_SIMULATOR = 2019  # <harmony/>
 THREDHOLD = 0.25
+SNAPSHOTS = 500
 
 ANSWERS = {
     "2-trivial": 1 / 2,
@@ -46,7 +47,7 @@ ANSWERS = {
 
 backend = GeneralSimulator()
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
-random_unitary_seeds = prepare_random_unitary_seeds()
+random_bases = prepare_random_basis()
 
 input_items: dict[str, list[InputUnitTuple]] = {
     "01": [],
@@ -167,11 +168,11 @@ def unveil_magnetization_square(
     return np.complex128(sum(estimate_of_given_operators) + num_qubits).real / (num_qubits**2)
 
 
-def make_03_item(times: int, num_qubits: int, circ_name: str, answer: float) -> InputUnitTuple:
+def make_03_item(snapshots: int, num_qubits: int, circ_name: str, answer: float) -> InputUnitTuple:
     """Make an input item for the third experiment.
 
     Args:
-        times (int): The number of times to run the circuit.
+        snapshots (int): The number of snapshots to run the circuit.
         num_qubits (int): The number of qubits in the circuit.
         circ_name (str): The name of the circuit.
         answer (float): The expected answer for the measurement.
@@ -183,9 +184,9 @@ def make_03_item(times: int, num_qubits: int, circ_name: str, answer: float) -> 
         ("magnet_square", circ_name),
         {
             "wave": circ_name,
-            "times": times,
-            "shots": 4096,
-            "random_unitary_seeds": {i: random_unitary_seeds[num_qubits][i] for i in range(times)},
+            "snapshots": snapshots,
+            "shots": 10,
+            "random_basis": {i: random_bases[num_qubits][i] for i in range(snapshots)},
         },
         {
             "selected_qubits": range(num_qubits),
@@ -200,7 +201,7 @@ for num_qubits_tmp, circ_name_tmp, answer_tmp in [
     (4, "4-cat", ANSWERS["4-cat"]),
 ]:
     # classical shadows
-    input_items["03"].append(make_03_item(600, num_qubits_tmp, circ_name_tmp, answer_tmp))
+    input_items["03"].append(make_03_item(SNAPSHOTS, num_qubits_tmp, circ_name_tmp, answer_tmp))
     exp_method_03.add(circuits_with_measure[circ_name_tmp], circ_name_tmp)
 
 

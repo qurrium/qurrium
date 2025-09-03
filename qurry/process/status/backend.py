@@ -4,13 +4,9 @@ from typing import Literal, Optional
 
 from ..randomized_measure import (
     entangled_availability,
-    purity_cell_availability,
     entangled_v1_availability,
-    purity_cell_v1_availability,
     overlap_availability,
-    echo_cell_availability,
     overlap_v1_availability,
-    echo_cell_v1_availability,
 )
 from ..hadamard_test import purity_echo_core_availability
 from ..magnet_square import magnet_square_availability
@@ -22,7 +18,6 @@ from ..utils import (
     bit_slice_availability,
     randomized_availability,
     dummy_availability,
-    test_availability,
 )
 from ..availability import BACKEND_TYPES
 from ...version import __version__
@@ -48,13 +43,9 @@ def availability_status_print() -> tuple[
     availability_dict = [
         # randomized_measure
         entangled_availability,
-        purity_cell_availability,
         entangled_v1_availability,
-        purity_cell_v1_availability,
         overlap_availability,
-        echo_cell_availability,
         overlap_v1_availability,
-        echo_cell_v1_availability,
         # hadamard_test
         purity_echo_core_availability,
         # magnet_square
@@ -68,7 +59,6 @@ def availability_status_print() -> tuple[
         counts_process_availability,
         bit_slice_availability,
         dummy_availability,
-        test_availability,
     ]
     pre_hoshi = [
         ("txt", f"| Qurrium version: {__version__}"),

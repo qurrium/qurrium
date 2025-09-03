@@ -19,17 +19,16 @@ from .utils import (
     create_config,
 )
 from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...qurrium.experiment.utils import memory_usage_factor_expect
+from ...qurrium.experiment import ExperimentPrototype, Commonparams, memory_usage_factor_expect
 from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,
     local_unitary_op_to_pauli_coeff,
 )
-from ...qurrium.utils.random_unitary import check_input_for_experiment
 from ...process.utils import single_counts_recount_pyrust
 from ...process.availability import PostProcessingBackendLabel
+from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
     DEFAULT_PROCESS_BACKEND,
@@ -132,11 +131,11 @@ class EchoListenRandomizedExperiment(
 
                 If you want to generate the seeds for all random unitary operator,
                 you can use the function :func:`generate_random_unitary_seeds`
-                in :mod:`qurry.qurrium.utils.random_unitary`.
+                in :mod:`qurry.process.randomized_measure.utils`.
 
                 .. code-block:: python
 
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+                    from qurry import generate_random_unitary_seeds
 
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
 
@@ -197,8 +196,8 @@ class EchoListenRandomizedExperiment(
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, len(unitary_located_mapping_1), random_unitary_seeds)
-        check_input_for_experiment(times, len(unitary_located_mapping_2), random_unitary_seeds)
+        check_random_unitary_seeds(times, len(unitary_located_mapping_1), random_unitary_seeds)
+        check_random_unitary_seeds(times, len(unitary_located_mapping_2), random_unitary_seeds)
 
         if not any([isinstance(second_backend, Backend), second_backend is None]):
             raise TypeError(

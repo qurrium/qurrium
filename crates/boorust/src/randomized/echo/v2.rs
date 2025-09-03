@@ -4,19 +4,19 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
-use crate::counts_process::single_counts_recount_prototype;
+use crate::counts_process::{
+    shot_counts_selected_clreg_checker_prototype, single_counts_recount_prototype,
+};
 use crate::randomized::randomized::ensemble_cell_rust;
 
-#[pyfunction]
-#[pyo3(signature = (idx, first_counts, second_counts, selected_classical_registers))]
 pub fn echo_cell_2_rust(
     idx: i32,
-    first_counts: HashMap<String, i32>,
-    second_counts: HashMap<String, i32>,
+    first_single_counts: &HashMap<String, i32>,
+    second_single_counts: &HashMap<String, i32>,
     selected_classical_registers: Vec<i32>,
 ) -> (i32, f64, Vec<i32>) {
-    let sample_shots_01: i32 = first_counts.values().sum();
-    let sample_shots_02: i32 = second_counts.values().sum();
+    let sample_shots_01: i32 = first_single_counts.values().sum();
+    let sample_shots_02: i32 = second_single_counts.values().sum();
     assert_eq!(
         sample_shots_01,
         sample_shots_02,
@@ -26,8 +26,8 @@ pub fn echo_cell_2_rust(
         idx
     );
 
-    let num_classical_registers_01: i32 = first_counts.keys().next().unwrap().len() as i32;
-    let num_classical_registers_02: i32 = second_counts.keys().next().unwrap().len() as i32;
+    let num_classical_registers_01: i32 = first_single_counts.keys().next().unwrap().len() as i32;
+    let num_classical_registers_02: i32 = second_single_counts.keys().next().unwrap().len() as i32;
     assert_eq!(
         num_classical_registers_01,
         num_classical_registers_02,
@@ -45,15 +45,15 @@ pub fn echo_cell_2_rust(
     let subsystem_size = selected_classical_registers_sorted.len() as i32;
 
     let first_counts_under_degree: HashMap<String, i32> = single_counts_recount_prototype(
-        first_counts,
+        first_single_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone(),
+        &selected_classical_registers_sorted,
     );
 
     let second_counts_under_degree: HashMap<String, i32> = single_counts_recount_prototype(
-        second_counts,
+        second_single_counts,
         num_classical_registers,
-        selected_classical_registers_sorted.clone(),
+        &selected_classical_registers_sorted,
     );
 
     let echo_cell: f64 = first_counts_under_degree
@@ -86,27 +86,18 @@ pub fn overlap_echo_core_2_rust(
         second_counts.len()
     );
 
-    let sample_shots_01: i32 = first_counts[0].values().sum();
-    let sample_shots_02: i32 = second_counts[0].values().sum();
-    for (tmp01, tmp02, tmp01_name, tmp02_name) in vec![
-        (shots, sample_shots_01, "shots", "first counts"),
-        (shots, sample_shots_02, "shots", "second counts"),
-        (
-            sample_shots_01,
-            sample_shots_02,
-            "first counts",
-            "second counts",
-        ),
-    ] {
-        assert_eq!(
-            tmp01, tmp02,
-            "The number of shots must be equal, but the {} is {}, and the {} is {}",
-            tmp01_name, tmp01, tmp02_name, tmp02
+    let (sample_bitstrings_num_01, selected_classical_registers_actual) =
+        shot_counts_selected_clreg_checker_prototype(
+            shots,
+            &first_counts,
+            selected_classical_registers.clone(),
         );
-    }
-
-    let sample_bitstrings_num_01: i32 = first_counts[0].keys().next().unwrap().len() as i32;
-    let sample_bitstrings_num_02: i32 = second_counts[0].keys().next().unwrap().len() as i32;
+    let (sample_bitstrings_num_02, _selected_classical_registers_actual_02) =
+        shot_counts_selected_clreg_checker_prototype(
+            shots,
+            &second_counts,
+            selected_classical_registers.clone(),
+        );
     assert_eq!(
         sample_bitstrings_num_01,
         sample_bitstrings_num_02,
@@ -114,19 +105,6 @@ pub fn overlap_echo_core_2_rust(
         sample_bitstrings_num_01,
         sample_bitstrings_num_02
     );
-    let measured_system_size: i32 = first_counts[0].keys().next().unwrap().len() as i32;
-
-    let selected_classical_registers_actual = match selected_classical_registers {
-        Some(selected_classical_registers) => selected_classical_registers,
-        None => (0..measured_system_size).collect(),
-    };
-    for q_i in selected_classical_registers_actual.iter() {
-        assert!(
-            *q_i >= 0 && *q_i < measured_system_size,
-            "Invalid selected classical registers: {:?}",
-            selected_classical_registers_actual
-        );
-    }
 
     let begin: Instant = Instant::now();
 
@@ -140,11 +118,10 @@ pub fn overlap_echo_core_2_rust(
         .map(|(identifier, (data, data2))| {
             let result: (i32, f64, Vec<i32>) = echo_cell_2_rust(
                 identifier as i32,
-                data.clone(),
-                data2.clone(),
+                data,
+                data2,
                 selected_classical_registers_actual.clone(),
             );
-            // println!("| purity_cell: {:?} {}", result, subsystems_size);
             result
         });
 
