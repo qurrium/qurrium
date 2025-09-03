@@ -16,7 +16,7 @@ from qurry.process.utils.bit_slice import (
 )
 
 # pylint: disable=import-error
-from qurry.boorust.test import test_bit_slice  # type: ignore
+from qurry.boorust.test import test_bit_slice as self_test_bit_slice  # type: ignore
 
 
 def test_availability():
@@ -32,9 +32,9 @@ def test_availability():
         )
 
 
-def test_test_bit_slice():
+def test_bit_slice():
     """Test the test_bit_slice function."""
-    test_bit_slice()
+    self_test_bit_slice()
 
 
 test_setup_selector: list[tuple[int, Union[int, tuple[int, int]], str]] = [
