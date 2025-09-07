@@ -1,5 +1,5 @@
-r"""Post Processing - Classical Shadow - Snapshots/Shots Spreadout
-(:mod:`qurry.process.classical_shadow.spreadout`)
+"""Post Processing - Classical Shadow - Utilities - Snapshots/Shots Spreadout
+(:mod:`qurry.process.classical_shadow.utils.spreadout`)
 
 """
 

@@ -1,4 +1,7 @@
-"""Post Processing - Classical Shadow - Utilities (:mod:`qurry.process.classical_shadow.utils`)"""
+"""Post Processing - Classical Shadow - Utilities - Random Basis
+(:mod:`qurry.process.classical_shadow.utils.random_basis`)
+
+"""
 
 from typing import Optional
 import numpy as np
