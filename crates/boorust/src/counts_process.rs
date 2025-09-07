@@ -118,11 +118,7 @@ pub fn shot_counts_selected_clreg_checker(
     counts: Vec<HashMap<String, i32>>,
     selected_classical_registers: Option<Vec<i32>>,
 ) -> (i32, Vec<i32>) {
-    shot_counts_selected_clreg_checker_prototype(
-        shots,
-        &counts,
-        selected_classical_registers
-    )
+    shot_counts_selected_clreg_checker_prototype(shots, &counts, selected_classical_registers)
 }
 
 #[pyfunction]
@@ -147,6 +143,42 @@ pub fn counts_list_vectorize_rust(
     counts_list_vectorized
 }
 
+fn process_vectorize_single_counts(
+    single_counts: &HashMap<String, i32>,
+    um_data: &HashMap<i32, i32>,
+    selected_classical_registers_sorted: &[i32],
+    n_qubits: usize,
+) -> (Vec<Vec<i32>>, Vec<i32>) {
+    let mut bitstrings = Vec::with_capacity(single_counts.len());
+    let mut counts_vec = Vec::with_capacity(single_counts.len());
+
+    for (bit_string, count) in single_counts {
+        assert_eq!(
+            bit_string.len(),
+            n_qubits,
+            "bit_string length {} does not match selected_classical_registers_sorted length {}",
+            bit_string.len(),
+            n_qubits
+        );
+
+        let bitstring_vec = bit_string
+            .as_bytes()
+            .iter()
+            .enumerate()
+            .map(|(q_idx, &byte)| {
+                let direction = um_data[&selected_classical_registers_sorted[q_idx]];
+                let digit = (byte - b'0') as i32;
+                direction * 10 + digit
+            })
+            .collect::<Vec<i32>>();
+
+        bitstrings.push(bitstring_vec);
+        counts_vec.push(*count);
+    }
+
+    (bitstrings, counts_vec)
+}
+
 #[pyfunction]
 #[pyo3(signature = (counts, random_unitary_um, selected_classical_registers_sorted))]
 pub fn rho_m_flatten_counts_list_vectorize_rust(
@@ -154,31 +186,17 @@ pub fn rho_m_flatten_counts_list_vectorize_rust(
     random_unitary_um: HashMap<i32, HashMap<i32, i32>>,
     selected_classical_registers_sorted: Vec<i32>,
 ) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
-    let mut rho_m_flatten_counts_list_vectorized: Vec<(Vec<Vec<i32>>, Vec<i32>)> = Vec::new();
+    let n_qubits = selected_classical_registers_sorted.len();
 
-    for (um_idx, single_counts) in counts.iter().enumerate() {
-        let mut bitstrings: Vec<Vec<i32>> = Vec::new();
-        let mut counts_vec: Vec<i32> = Vec::new();
-        for (bit_string, count) in single_counts {
-            assert!(
-                bit_string.len() == selected_classical_registers_sorted.len(),
-                "bit_string length {} does not match selected_classical_registers_sorted length {}",
-                bit_string.len(),
-                selected_classical_registers_sorted.len()
-            );
-            let bitstring_vec: Vec<i32> = bit_string
-                .chars()
-                .enumerate()
-                .map(|(q_idx, c)| {
-                    random_unitary_um[&(um_idx as i32)][&selected_classical_registers_sorted[q_idx]]
-                        * 10
-                        + c.to_digit(2).unwrap() as i32
-                })
-                .collect();
-            bitstrings.push(bitstring_vec);
-            counts_vec.push(*count);
-        }
-        rho_m_flatten_counts_list_vectorized.push((bitstrings, counts_vec));
-    }
-    rho_m_flatten_counts_list_vectorized
+    counts
+        .iter()
+        .map(|single_counts| {
+            process_vectorize_single_counts(
+                single_counts,
+                &random_unitary_um[&0],
+                &selected_classical_registers_sorted,
+                n_qubits,
+            )
+        })
+        .collect()
 }
