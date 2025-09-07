@@ -1,5 +1,5 @@
-r"""Post Processing - Classical Shadow - Unitary Set
-(:mod:`qurry.process.classical_shadow.unitary_set`)
+r"""Post Processing - Classical Shadow - Rho Process - Unitary Set
+(:mod:`qurry.process.classical_shadow.rho_process.unitary_set`)
 
 The followings are unitary operators for our classical shadow implementation.
 """
@@ -233,8 +233,9 @@ def cached_rho_m_k_i_matrix(direction: int, bit: str) -> np.ndarray:
 
 
 PRECOMPUTED_RHO_M_K_I_2 = {
-    direction * 10
-    + int(b_k): (3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[b_k] @ U_M_MATRIX[direction])
+    (direction * 10 + ord(b_k) - 48): (
+        3 * U_M_MATRIX[direction].conj().T @ OUTER_PRODUCT[b_k] @ U_M_MATRIX[direction]
+    )
     - IDENTITY
     for direction in [0, 1, 2]
     for b_k in ["0", "1"]

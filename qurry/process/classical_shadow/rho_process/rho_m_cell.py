@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Rho M K Cell
-(:mod:`qurry.process.classical_shadow.rho_mk_cell`)
+"""Post Processing - Classical Shadow - Rho Process - Rho M Cell
+(:mod:`qurry.process.classical_shadow.rho_process.rho_m_cell`)
 
 """
 
@@ -15,10 +15,23 @@ from .unitary_set import (
     cached_rho_m_k_i_matrix_2,
 )
 
+# pylint: disable=invalid-name
+RhoMCellMethod = Union[Literal["numpy_proto", "numpy", "numpy_vectorized"], str]
+"""Type for rho_m_cell method.
+It can be either "numpy_proto", "numpy", or "numpy_vectorized".
 
-def rho_m_cell(
+- "numpy_proto": Use Numpy to calculate the rho_m.
+- "numpy": Use Numpy to calculate the rho_m with precomputed values.
+- "numpy_vectorized": Use Numpy to calculate the rho_m with a flattening workflow.
+
+Currently, "numpy" is the best option for performance.
+"""
+# pylint: enable=invalid-name
+
+
+def rho_m_cell_prototype(
     single_counts: dict[str, int],
-    nu_shadow_direction: dict[int, Union[Literal[0, 1, 2], int]],
+    single_random_basis: dict[int, Union[Literal[0, 1, 2], int]],
     selected_clregs_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     r""":math:`\rho_{m}` calculation from single counts.
@@ -43,7 +56,7 @@ def rho_m_cell(
     Args:
         single_counts (dict[str, int]):
             Counts measured by the single quantum circuit.
-        nu_shadow_direction (dict[int, Union[Literal[0, 1, 2], int]]):
+        single_random_basis (dict[int, Union[Literal[0, 1, 2], int]]):
             The shadow direction of the unitary operators.
         selected_clregs_sorted (list[int]):
             The **sorted** list of **the index of the selected_classical_registers**.
@@ -65,9 +78,9 @@ def rho_m_cell(
         tmp_dict = {
             q_di: (
                 3
-                * U_M_MATRIX[nu_shadow_direction[q_di]].conj().T
+                * U_M_MATRIX[single_random_basis[q_di]].conj().T
                 @ OUTER_PRODUCT[s_q]
-                @ U_M_MATRIX[nu_shadow_direction[q_di]]
+                @ U_M_MATRIX[single_random_basis[q_di]]
             )
             - IDENTITY
             for q_di, s_q in zip(selected_clregs_sorted, bitstring)
@@ -85,7 +98,7 @@ def rho_m_cell(
 
 def rho_m_cell_precomputed(
     single_counts: dict[str, int],
-    nu_shadow_direction: dict[int, Union[Literal[0, 1, 2], int]],
+    single_random_basis: dict[int, Union[Literal[0, 1, 2], int]],
     selected_clregs_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     r""":math:`\rho_{m}` calculation from single counts with pre-computed.
@@ -110,7 +123,7 @@ def rho_m_cell_precomputed(
     Args:
         single_counts (dict[str, int]):
             Counts measured by the single quantum circuit.
-        nu_shadow_direction (dict[int, Union[Literal[0, 1, 2], int]]):
+        single_random_basis (dict[int, Union[Literal[0, 1, 2], int]]):
             The shadow direction of the unitary operators.
         selected_clregs_sorted (list[int]):
             The **sorted** list of **the index of the selected_classical_registers**.
@@ -131,7 +144,7 @@ def rho_m_cell_precomputed(
     single_matrices = np.empty((len(bitstrings), n_qubits), dtype=object)
     for i, bitstring in enumerate(bitstrings):
         for j, (q_di, s_q) in enumerate(zip(selected_clregs_sorted, bitstring)):
-            single_matrices[i, j] = cached_rho_m_k_i_matrix(nu_shadow_direction[q_di], s_q)
+            single_matrices[i, j] = cached_rho_m_k_i_matrix(single_random_basis[q_di], s_q)
 
     all_rho_mk = np.empty((len(bitstrings), matrix_dim, matrix_dim), dtype=np.complex128)
     for i in range(len(bitstrings)):
@@ -140,11 +153,10 @@ def rho_m_cell_precomputed(
     return np.average(all_rho_mk, axis=0, weights=counts_nums)
 
 
-def rho_m_cell_of_flatten(
-    bits_array: Sequence[Sequence[int]], count_num: Sequence[int]
+def rho_m_cell_vectorized(
+    seq_rho_mki_kinds: Sequence[Sequence[int]], count_num: Sequence[int]
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    r""":math:`\rho_{m}` calculation from single counts
-    for :func:`~qurry.process.classical_shadow.rho_m_core.rho_m_flatten`
+    r""":math:`\rho_{m}` calculation from single counts with a vectorized workflow.
 
     The matrix :math:`\rho_{mk}^{i}` is calculated by the following equation,
 
@@ -164,14 +176,15 @@ def rho_m_cell_of_flatten(
     where :math:`N_M` is the number of shots.
 
     Args:
-        bits_array (Sequence[Sequence[int]]): The bits array.
+        seq_rho_mki_kinds (Sequence[Sequence[int]]):
+            The sequence of sequence of the kinds of rho_m_k_i.
         count_num (Sequence[int]): The counts for each bitstring.
 
     Returns:
         The rho_m.
     """
 
-    bits_array_np = np.asarray(bits_array)
+    bits_array_np = np.asarray(seq_rho_mki_kinds)
     n_samples, n_qubits = bits_array_np.shape
     matrix_dim = 2**n_qubits
 

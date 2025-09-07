@@ -8,7 +8,7 @@ import warnings
 import tqdm
 import numpy as np
 
-from .rho_m_core import rho_m_core, RhoMCoreMethod
+from .rho_process import rho_m_core, RhoMethod, DEFAULT_RHO_METHOD
 from .trace_expect_process import (
     mean_rho_core,
     trace_rho_square_core,
@@ -31,9 +31,7 @@ def mean_of_rho(
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
-    convert_to_single_shot: bool = False,
-    # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowMeanRho:
     r"""Calculate the mean of Rho.
@@ -92,23 +90,35 @@ def mean_of_rho(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        convert_to_single_shot (bool, optional):
-            Whether to convert the counts and the random basis from multiple shots
-            to single shot per snapshot for classical shadow post-processing.
-            Default to False.
-
         rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            Currently, "numpy_precomputed" is the best option for performance.
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the postprocessing.
-            Defaults to DEFAULT_PROCESS_BACKEND.
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
 
@@ -121,7 +131,6 @@ def mean_of_rho(
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -148,9 +157,7 @@ def trace_rho_square(
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
-    convert_to_single_shot: bool = False,
-    # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
@@ -166,20 +173,35 @@ def trace_rho_square(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        convert_to_single_shot (bool, optional):
-            Whether to convert the counts and the random basis from multiple shots
-            to single shot per snapshot for classical shadow post-processing.
-            Default to False.
-
         rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            Currently, "numpy_precomputed" is the best option for performance.
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
 
@@ -210,7 +232,6 @@ def trace_rho_square(
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -242,13 +263,12 @@ def estimation_of_given_operators(
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
-    convert_to_single_shot: bool = False,
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowEstimation:
@@ -308,10 +328,6 @@ def estimation_of_given_operators(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        convert_to_single_shot (bool, optional):
-            Whether to convert the counts and the random basis from multiple shots
-            to single shot per snapshot for classical shadow post-processing.
-            Default to False.
 
         given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
             The list of the operators to estimate.
@@ -324,14 +340,34 @@ def estimation_of_given_operators(
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
         rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            Currently, "numpy_precomputed" is the best option for performance.
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
         estimate_trace_method (AllTraceRhoMethod, optional):
             The method to calculate the trace for searching esitmator.
 
@@ -354,7 +390,6 @@ def estimation_of_given_operators(
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
@@ -401,13 +436,12 @@ def classical_shadow_complex(
     counts: list[dict[str, int]],
     random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
-    convert_to_single_shot: bool = False,
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
@@ -515,10 +549,6 @@ def classical_shadow_complex(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        convert_to_single_shot (bool, optional):
-            Whether to convert the counts and the random basis from multiple shots
-            to single shot per snapshot for classical shadow post-processing.
-            Default to False.
 
         given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
             The list of the operators to estimate. Defaults to None.
@@ -531,14 +561,34 @@ def classical_shadow_complex(
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
         rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            Currently, "numpy_precomputed" is the best option for performance.
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
 
@@ -574,7 +624,6 @@ def classical_shadow_complex(
         counts=counts,
         random_unitary_um=random_basis,
         selected_classical_registers=selected_classical_registers,
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
     )
     if pbar is not None:
