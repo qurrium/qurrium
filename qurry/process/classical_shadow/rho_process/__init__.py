@@ -3,5 +3,10 @@
 
 """
 
-from .rho_m_core import rho_m_core, BACKEND_AVAILABLE, RhoMethod, DEFAULT_RHO_METHOD
+from .rho_m_core import (
+    BACKEND_AVAILABLE as classical_shadow_rho_process_availability,
+    rho_m_core,
+    RhoMethod,
+    DEFAULT_RHO_METHOD,
+)
 from .rho_m_cell import RhoMCellMethod
