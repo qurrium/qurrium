@@ -151,28 +151,9 @@ except ImportError as err:
 
 BACKEND_AVAILABLE = availablility(
     "classical_shadow.array_process",
-    [
-        ("jax", JAX_AVAILABLE, FAILED_JAX_IMPORT),
-    ],
+    [("Numpy", True, None), ("jax", JAX_AVAILABLE, FAILED_JAX_IMPORT)],
 )
-ClassicalShadowPythonMethod = Literal["jax", "numpy"]
-"""The method to use for the calculation of classical shadow.
-It can be either "jax" or "numpy".
-
-- "jax": 
-    Use JAX to calculate the Kronecker product.
-- "numpy": 
-    Use Numpy to calculate the Kronecker product.
-"""
-DEFAULT_PYTHON_METHOD: ClassicalShadowPythonMethod = "jax" if JAX_AVAILABLE else "numpy"
-"""The default backend to use for the calculation of classical shadow.
-It can be either "jax" or "numpy".
-
-- "jax": 
-    Use JAX to calculate the Kronecker product.
-- "numpy": 
-    Use Numpy to calculate the Kronecker product.
-"""
+"""The availability of backends for classical shadow matrix calculation."""
 
 
 # single trace calculation
@@ -394,7 +375,7 @@ def select_prediction_einsum_aij_bji_to_ab(
     Args:
         method (AllTraceRhoMethod, optional):
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD
-            It can be either "jax" or "numpy".
+            It can be either "einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax".
 
     Returns:
         Callable[[
