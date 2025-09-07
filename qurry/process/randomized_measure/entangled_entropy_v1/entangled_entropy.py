@@ -13,7 +13,7 @@ from .container import (
     RandomizedEntangledEntropyMitigatedComplex,
     ExistingAllSystemSource,
 )
-from ..entangled_entropy.error_mitigation import depolarizing_error_mitgation
+from ...utils import depolarizing_error_mitgation
 from ...availability import PostProcessingBackendLabel
 
 
@@ -500,7 +500,7 @@ def randomized_entangled_entropy_mitigated_v1(
     subsystem = max(degree) - min(degree) if isinstance(degree, tuple) else degree
 
     error_mitgation_info = depolarizing_error_mitgation(
-        meas_system=purity, all_system=purity_allsys, n_a=subsystem, system_size=num_qubits
+        meas_system=purity, all_system=purity_allsys, subsystem_size=subsystem, system_size=num_qubits
     )
 
     if isinstance(pbar, tqdm.tqdm):

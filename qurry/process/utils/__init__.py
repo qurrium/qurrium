@@ -30,3 +30,4 @@ from .randomized import (
     BACKEND_AVAILABLE as randomized_availability,
 )
 from .dummy import BACKEND_AVAILABLE as dummy_availability
+from .purity import clamp_purity, depolarizing_error_mitgation

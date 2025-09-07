@@ -14,7 +14,7 @@ from .container import (
     EntangledEntropyResultMitigated,
     ExistedAllSystemInfo,
 )
-from .error_mitigation import depolarizing_error_mitgation
+from ...utils import depolarizing_error_mitgation
 from ...availability import PostProcessingBackendLabel
 
 
@@ -144,7 +144,7 @@ def randomized_entangled_entropy(
     entropy = -np.log2(purity, dtype=np.float64)
     entropy_sd = purity_sd / np.log(2) / purity
 
-    num_classical_registers = len(list(counts[0].keys())[0])
+    num_classical_registers = len(next(iter(counts[0].keys())))
 
     quantity: EntangledEntropyResult = {
         "purity": purity,
@@ -235,7 +235,7 @@ def preparing_all_system(
     entropy_all_sys = -np.log2(purity_all_sys, dtype=np.float64)
     entropy_sd_all_sys = purity_sd_all_sys / np.log(2) / purity_all_sys
 
-    num_classical_registers_all_sys = len(list(counts[0].keys())[0])
+    num_classical_registers_all_sys = len(next(iter(counts[0].keys())))
 
     return ExistedAllSystemInfo(
         source="independent",
@@ -444,7 +444,7 @@ def randomized_entangled_entropy_mitigated(
         selected_classical_registers=selected_classical_registers,
         backend=backend,
     )
-    purity_cell_list: list[Union[float, np.float64]] = list(purity_cell_dict.values())
+    purity_cell_list = list(purity_cell_dict.values())
 
     all_system = preparing_all_system(
         existed_all_system=existed_all_system,
@@ -453,7 +453,7 @@ def randomized_entangled_entropy_mitigated(
         backend=backend,
         pbar=pbar,
     )
-    num_classical_registers = len(list(counts[0].keys())[0])
+    num_classical_registers = len(next(iter(counts[0].keys())))
 
     assert num_classical_registers == all_system.num_classical_registers_all_sys, (
         "The number of classical registers is not matched."
@@ -475,7 +475,7 @@ def randomized_entangled_entropy_mitigated(
     error_mitgation_info = depolarizing_error_mitgation(
         meas_system=purity,
         all_system=all_system.purityAllSys,
-        n_a=len(selected_qubits_sorted),
+        subsystem_size=len(selected_qubits_sorted),
         system_size=num_qubits,
     )
 
