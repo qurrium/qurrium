@@ -282,6 +282,49 @@ def counts_list_vectorize_pyrust(
     return vectorized_counts
 
 
+def process_vectorize_single_counts(
+    single_counts: dict[str, int],
+    um_data: dict[int, Union[Literal[0, 1, 2], int]],
+    selected_classical_registers_sorted: list[int],
+    num_qubits: int,
+) -> tuple[list[list[int]], list[int]]:
+    """Process single counts to vectorized format.
+
+    Args:
+        single_counts (dict[str, int]):
+            Counts measured from the single quantum circuit.
+        um_data (dict[int, Union[Literal[0, 1, 2], int]]):
+            The shadow direction of the unitary operators.
+        selected_classical_registers_sorted (list[int]):
+            The sorted list of **the index of the selected_classical_registers**.
+        num_qubits (int):
+            The number of qubits.
+
+    Returns:
+        tuple[list[list[int]], list[int]]: The vectorized counts.
+    """
+
+    len_nomatch_bitstrings = [
+        bitstring for bitstring in single_counts.keys() if len(bitstring) != num_qubits
+    ]
+    if len(len_nomatch_bitstrings) > 0:
+        raise ValueError(
+            "The length of bitstring must be equal to the number of qubits, "
+            + f"but following bitstrings are invalid: {len_nomatch_bitstrings}"
+        )
+
+    keys_int_array = [
+        [
+            (ord(c) - 48 + 10 * um_data[selected_classical_registers_sorted[q_idx]])
+            for q_idx, c in enumerate(bit_string)
+        ]
+        for bit_string in single_counts.keys()
+    ]
+    values_int_array = list(single_counts.values())
+
+    return keys_int_array, values_int_array
+
+
 def rho_m_flatten_counts_list_vectorize_pyrust(
     counts_list: list[dict[str, int]],
     random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
@@ -308,16 +351,15 @@ def rho_m_flatten_counts_list_vectorize_pyrust(
             counts_list, random_unitary_um, selected_classical_registers_sorted
         )
 
-    rho_m_flatten_vectorized_counts = []
-    for um_idx, single_counts in enumerate(counts_list):
-        keys_int_array: list[list[int]] = [
-            [
-                int(c) + 10 * random_unitary_um[um_idx][selected_classical_registers_sorted[q_idx]]
-                for q_idx, c in enumerate(bit_string)
-            ]
-            for bit_string in single_counts.keys()
-        ]
-        values_int_array: list[int] = list(single_counts.values())
+    num_qubits = len(selected_classical_registers_sorted)
+    rho_m_flatten_vectorized_counts = [
+        process_vectorize_single_counts(
+            single_counts,
+            random_unitary_um[um_idx],
+            selected_classical_registers_sorted,
+            num_qubits,
+        )
+        for um_idx, single_counts in enumerate(counts_list)
+    ]
 
-        rho_m_flatten_vectorized_counts.append((keys_int_array, values_int_array))
     return rho_m_flatten_vectorized_counts
