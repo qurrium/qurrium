@@ -1,5 +1,5 @@
 """Post Processing - Classical Shadow - Expectation Process
-(:mod:`qurry.process.classical_shadow.expectation_process`)
+(:mod:`qurry.process.classical_shadow.trace_expect_process.expectation`)
 
 """
 
@@ -12,7 +12,7 @@ from .matrix_calcution import (
     DEFAULT_ALL_TRACE_RHO_METHOD,
     AllTraceRhoMethod,
 )
-from ..exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
+from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
 
 
 def dim_check(

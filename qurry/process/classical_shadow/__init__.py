@@ -97,12 +97,14 @@ from .classical_shadow import (
     classical_shadow_complex,
     DEFAULT_ALL_TRACE_RHO_METHOD,
 )
-from .trace_expect_process import SingleTraceRhoMethod, TraceRhoMethod, AllTraceRhoMethod
-from .rho_process import BACKEND_AVAILABLE as classical_shadow_rho_process_availability, RhoMethod
-from .matrix_calcution import (
+from .trace_predict_process import (
     set_cpu_only,
-    BACKEND_AVAILABLE as classical_shadow_matrix_availability,
+    classical_shadow_matrix_availability,
+    SingleTraceRhoMethod,
+    TraceRhoMethod,
+    AllTraceRhoMethod,
 )
+from .rho_process import classical_shadow_rho_process_availability, RhoMethod
 from .container import (
     ClassicalShadowBasic,
     ClassicalShadowMeanRho,

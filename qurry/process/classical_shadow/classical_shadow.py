@@ -9,14 +9,14 @@ import tqdm
 import numpy as np
 
 from .rho_process import rho_m_core, RhoMethod, DEFAULT_RHO_METHOD
-from .trace_expect_process import (
+from .trace_predict_process import (
     mean_rho_core,
     trace_rho_square_core,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     AllTraceRhoMethod,
     TraceRhoMethod,
+    prediction_algorithm
 )
-from .expectation_process import prediction_algorithm
 from .container import (
     ClassicalShadowMeanRho,
     ClassicalShadowEstimation,

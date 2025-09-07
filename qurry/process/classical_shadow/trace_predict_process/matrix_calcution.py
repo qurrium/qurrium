@@ -1,5 +1,7 @@
-"""Post Processing - Classical Shadow - Matrix Calculation
-(:mod:`qurry.process.classical_shadow.matrix_calcution`)
+"""Post Processing - Classical Shadow - Trace-Preidction Process - Matrix Calculation
+(:mod:`qurry.process.classical_shadow.trace_predict_process.matrix_calcution`)
+
+The matrix calculattion for predicting quantum properties.
 
 """
 
@@ -7,8 +9,8 @@ from typing import Literal, Callable, Union
 import warnings
 import numpy as np
 
-from ..availability import availablility
-from ..exceptions import (
+from ...availability import availablility
+from ...exceptions import (
     PostProcessingThirdPartyImportError,
     PostProcessingThirdPartyUnavailableWarning,
 )
