@@ -59,7 +59,9 @@ pub fn single_counts_recount_rust(
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
-    let select_clregs_sort_rev = sorted(selected_classical_registers, reverse = True);
+    let mut select_clregs_sort_rev = selected_classical_registers;
+    select_clregs_sort_rev.sort_by(|a, b| b.cmp(a));
+
     single_counts_recount_prototype(
         &single_counts,
         num_classical_registers,
@@ -74,7 +76,8 @@ pub fn counts_list_recount_rust(
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> Vec<HashMap<String, i32>> {
-    let select_clregs_sort_rev = sorted(selected_classical_registers, reverse = True);
+    let mut select_clregs_sort_rev = selected_classical_registers;
+    select_clregs_sort_rev.sort_by(|a, b| b.cmp(a));
 
     let counts_list_recounted = counts
         .iter()
