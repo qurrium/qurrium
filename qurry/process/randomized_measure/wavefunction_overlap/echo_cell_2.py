@@ -5,10 +5,7 @@
 
 import numpy as np
 
-from ...utils import (
-    ensemble_cell as ensemble_cell_py,
-    single_counts_recount as single_counts_under_degree_py,
-)
+from ...utils import ensemble_cell as ensemble_cell_py, single_counts_recount_proto
 
 
 def echo_cell_2_py(
@@ -48,14 +45,14 @@ def echo_cell_2_py(
         "The shots from the first and second counts are different. "
         + f"first: {shots}, second: {shots_02}"
     )
-    selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    subsystem_size = len(selected_classical_registers_sorted)
+    select_clregs_sort_rev = sorted(selected_classical_registers, reverse=True)
+    subsystem_size = len(select_clregs_sort_rev)
 
-    first_counts_under_degree = single_counts_under_degree_py(
-        first_single_counts, num_classical_register, selected_classical_registers_sorted
+    first_counts_under_degree = single_counts_recount_proto(
+        first_single_counts, num_classical_register, select_clregs_sort_rev
     )
-    second_counts_under_degree = single_counts_under_degree_py(
-        second_single_counts, num_classical_register, selected_classical_registers_sorted
+    second_counts_under_degree = single_counts_recount_proto(
+        second_single_counts, num_classical_register, select_clregs_sort_rev
     )
 
     echo_cell_value = np.float64(0)
@@ -65,4 +62,4 @@ def echo_cell_2_py(
                 s_ai, s_ai_meas, s_aj, s_aj_meas, subsystem_size, shots
             )
 
-    return idx, echo_cell_value, selected_classical_registers_sorted
+    return idx, echo_cell_value, select_clregs_sort_rev

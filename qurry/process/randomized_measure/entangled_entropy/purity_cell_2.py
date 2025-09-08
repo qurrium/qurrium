@@ -7,10 +7,7 @@ This version introduces another way to process subsystems.
 
 import numpy as np
 
-from ...utils import (
-    ensemble_cell as ensemble_cell_py,
-    single_counts_recount as single_counts_under_degree_py,
-)
+from ...utils import ensemble_cell as ensemble_cell_py, single_counts_recount_proto
 
 
 def purity_cell_2_py(
@@ -37,10 +34,10 @@ def purity_cell_2_py(
     num_classical_register = len(list(single_counts.keys())[0])
     shots = sum(single_counts.values())
 
-    selected_classical_registers_sorted = sorted(selected_classical_registers, reverse=True)
-    subsystem_size = len(selected_classical_registers_sorted)
-    single_counts_under_degree = single_counts_under_degree_py(
-        single_counts, num_classical_register, selected_classical_registers_sorted
+    select_clregs_sort_rev = sorted(selected_classical_registers, reverse=True)
+    subsystem_size = len(select_clregs_sort_rev)
+    single_counts_under_degree = single_counts_recount_proto(
+        single_counts, num_classical_register, select_clregs_sort_rev
     )
 
     purity_cell_value = np.float64(0)
@@ -50,4 +47,4 @@ def purity_cell_2_py(
                 s_ai, s_ai_meas, s_aj, s_aj_meas, subsystem_size, shots
             )
 
-    return idx, purity_cell_value, selected_classical_registers_sorted
+    return idx, purity_cell_value, select_clregs_sort_rev
