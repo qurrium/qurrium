@@ -9,6 +9,15 @@ from qiskit.qasm2 import dumps as dumps_qasm2, QASM2Error, loads as loads_qasm2
 
 from ...exceptions import OpenQASMProcessingWarning, OpenQASM3Issue13362Warning
 
+MSG_OPENQASM3_ISSUE_13362 = """
+You will need to upgrade your Qiskit 
+version to 1.3.2 for fixing this issue.
+The issues report: https://github.com/Qiskit/qiskit/issues/13362, 
+Pull Requests merged: 
+1. https://github.com/Qiskit/qiskit/pull/13633, 
+2. https://github.com/Qiskit/qiskit/pull/13663
+"""
+
 
 def qasm_dumps(
     qc: QuantumCircuit,
@@ -50,12 +59,7 @@ def qasm_dumps(
                 OpenQASM3Issue13362Warning(
                     "The qiskit version is lower than 1.3.2, "
                     + "which has a critical issue in qiskit.qasm3.dumps. "
-                    + "You will need to upgrade your Qiskit "
-                    + "version to 1.3.2 for fixing this issue. "
-                    + "The issues report: https://github.com/Qiskit/qiskit/issues/13362, "
-                    + "Pull Requests merged: "
-                    + "1. https://github.com/Qiskit/qiskit/pull/13633, "
-                    + "2. https://github.com/Qiskit/qiskit/pull/13663"
+                    + MSG_OPENQASM3_ISSUE_13362
                 )
             )
 
@@ -74,12 +78,7 @@ def qasm_dumps(
                         "Critical errors in qiskit.qasm3.dumps, "
                         + f"due to Exception: {err}, give up to export. "
                         + "This issue is caused by a incorrectly implemented function in Qiskit. "
-                        + "You will need to upgrade your Qiskit "
-                        + "version to 1.3.2 for fixing this issue. "
-                        + "The issues report: https://github.com/Qiskit/qiskit/issues/13362, "
-                        + "Pull Requests merged: "
-                        + "1. https://github.com/Qiskit/qiskit/pull/13633, "
-                        + "2. https://github.com/Qiskit/qiskit/pull/13663"
+                        + MSG_OPENQASM3_ISSUE_13362
                     )
                 )
             else:
