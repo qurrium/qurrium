@@ -205,10 +205,10 @@ def validate_rho_m_core_method(method: RhoMethod) -> tuple[bool, RhoMCellMethod]
             + "'single_shots_vectorized'."
         )
 
-    method_split_tuple = method.split("_shots_", 1)
-    convert_to_single_shot = method_split_tuple[0] == "single"
+    method_split_tuple = method.split("_shots", 1)
+    convert_to_single_shot = "single" in method_split_tuple[0]
     rho_m_cell_method = (
-        ("numpy_" + method_split_tuple[1]) if len(method_split_tuple) > 1 else "numpy"
+        ("numpy" + method_split_tuple[1]) if len(method_split_tuple) > 1 else "numpy"
     )
 
     return convert_to_single_shot, rho_m_cell_method
