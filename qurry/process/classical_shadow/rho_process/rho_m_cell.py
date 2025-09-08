@@ -31,7 +31,7 @@ Currently, "numpy" is the best option for performance.
 
 def rho_m_cell_prototype(
     single_counts: dict[str, int],
-    single_random_basis: dict[int, Union[Literal[0, 1, 2], int]],
+    single_random_basis: list[int],
     selected_clregs_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     r""":math:`\rho_{m}` calculation from single counts.
@@ -56,7 +56,7 @@ def rho_m_cell_prototype(
     Args:
         single_counts (dict[str, int]):
             Counts measured by the single quantum circuit.
-        single_random_basis (dict[int, Union[Literal[0, 1, 2], int]]):
+        single_random_basis (list[int]):
             The shadow direction of the unitary operators.
         selected_clregs_sorted (list[int]):
             The **sorted** list of **the index of the selected_classical_registers**.
@@ -76,14 +76,14 @@ def rho_m_cell_prototype(
 
     for bitstring in single_counts.keys():
         tmp_dict = {
-            q_di: (
+            c_i: (
                 3
-                * U_M_MATRIX[single_random_basis[q_di]].conj().T
-                @ OUTER_PRODUCT[s_q]
-                @ U_M_MATRIX[single_random_basis[q_di]]
+                * U_M_MATRIX[single_random_basis[c_i]].conj().T
+                @ OUTER_PRODUCT[s_b]
+                @ U_M_MATRIX[single_random_basis[c_i]]
             )
             - IDENTITY
-            for q_di, s_q in zip(selected_clregs_sorted, bitstring)
+            for c_i, s_b in zip(selected_clregs_sorted, bitstring)
         }
         tmp: Any = tmp_dict[selected_clregs_sorted[0]]
         for q_di in selected_clregs_sorted[1:]:
@@ -98,7 +98,7 @@ def rho_m_cell_prototype(
 
 def rho_m_cell_precomputed(
     single_counts: dict[str, int],
-    single_random_basis: dict[int, Union[Literal[0, 1, 2], int]],
+    single_random_basis: list[int],
     selected_clregs_sorted: list[int],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
     r""":math:`\rho_{m}` calculation from single counts with pre-computed.
@@ -123,7 +123,7 @@ def rho_m_cell_precomputed(
     Args:
         single_counts (dict[str, int]):
             Counts measured by the single quantum circuit.
-        single_random_basis (dict[int, Union[Literal[0, 1, 2], int]]):
+        single_random_basis (list[int]):
             The shadow direction of the unitary operators.
         selected_clregs_sorted (list[int]):
             The **sorted** list of **the index of the selected_classical_registers**.
@@ -143,8 +143,8 @@ def rho_m_cell_precomputed(
 
     single_matrices = np.empty((len(bitstrings), n_qubits), dtype=object)
     for i, bitstring in enumerate(bitstrings):
-        for j, (q_di, s_q) in enumerate(zip(selected_clregs_sorted, bitstring)):
-            single_matrices[i, j] = cached_rho_m_k_i_matrix(single_random_basis[q_di], s_q)
+        for j, (c_i, s_b) in enumerate(zip(selected_clregs_sorted, bitstring)):
+            single_matrices[i, j] = cached_rho_m_k_i_matrix(single_random_basis[c_i], s_b)
 
     all_rho_mk = np.empty((len(bitstrings), matrix_dim, matrix_dim), dtype=np.complex128)
     for i in range(len(bitstrings)):

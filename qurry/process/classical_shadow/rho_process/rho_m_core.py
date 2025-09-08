@@ -13,7 +13,7 @@ from .rho_m_cell import (
     rho_m_cell_vectorized,
     RhoMCellMethod,
 )
-from ..utils import check_random_basis, spreadout
+from ..utils import spreadout, check_random_basis_array
 from ...utils import (
     counts_list_recount_pyrust,
     shot_counts_selected_clreg_checker_pyrust,
@@ -38,7 +38,7 @@ from :const:`RhoMethod`, which is the option the function
 def rho_m_core_py(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_unitary_array: list[list[int]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     convert_to_single_shot: bool = False,
     rho_method: RhoMCellMethod = "numpy",
@@ -54,7 +54,7 @@ def rho_m_core_py(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[int]]):
             The shadow direction of the unitary operators.
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
@@ -85,28 +85,29 @@ def rho_m_core_py(
             The dictionary of rho_m, the sorted list of the selected qubits, and calculation time.
     """
 
-    measured_system_size, selected_classical_registers = shot_counts_selected_clreg_checker_pyrust(
+    total_system_size, selected_classical_registers = shot_counts_selected_clreg_checker_pyrust(
         shots=shots,
         counts=counts,
         selected_classical_registers=selected_classical_registers,
     )
-    check_random_basis(random_basis, selected_classical_registers)
+    check_random_basis_array(random_unitary_array, len(counts), total_system_size)
+
     if convert_to_single_shot:
-        shots, counts, random_basis = spreadout(shots, counts, random_basis)
+        shots, counts, random_unitary_array = spreadout(shots, counts, random_unitary_array)
 
     begin = time.time()
 
     selected_clregs_sorted = sorted(selected_classical_registers, reverse=True)
     counts_under_degree_list = counts_list_recount_pyrust(
         counts,
-        num_classical_register=measured_system_size,
-        selected_classical_registers_sorted=selected_clregs_sorted,
+        num_classical_register=total_system_size,
+        selected_classical_registers=selected_clregs_sorted,
     )
 
     if rho_method == "numpy_vectorized":
 
         flatten_recount_list_vectorized = rho_m_flatten_counts_list_vectorize_pyrust(
-            counts_under_degree_list, random_basis, selected_clregs_sorted
+            counts_under_degree_list, random_unitary_array, selected_clregs_sorted
         )  # Even parallel is not needed
         rho_m_list = [
             rho_m_cell_vectorized(bits_array, count_num)
@@ -118,7 +119,9 @@ def rho_m_core_py(
             rho_m_cell_precomputed if rho_method == "numpy" else rho_m_cell_prototype
         )
         rho_m_list = [
-            cell_calculation_method(single_counts, random_basis[idx], selected_clregs_sorted)
+            cell_calculation_method(
+                single_counts, random_unitary_array[idx], selected_clregs_sorted
+            )
             for idx, single_counts in enumerate(counts_under_degree_list)
         ]
 
@@ -214,7 +217,7 @@ def validate_rho_m_core_method(method: RhoMethod) -> tuple[bool, RhoMCellMethod]
 def rho_m_core(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_unitary_array: list[list[Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     rho_method: RhoMethod = DEFAULT_RHO_METHOD,
 ) -> tuple[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]], list[int], float]:
@@ -225,7 +228,7 @@ def rho_m_core(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]],):
             The shadow direction of the unitary operators.
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
@@ -274,7 +277,7 @@ def rho_m_core(
     return rho_m_core_py(
         shots=shots,
         counts=counts,
-        random_basis=random_unitary_um,
+        random_unitary_array=random_unitary_array,
         selected_classical_registers=selected_classical_registers,
         convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_m_core_method,

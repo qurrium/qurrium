@@ -62,5 +62,10 @@ For the format of `list[list[int]]`: we will call `pauli_basis`.
 
 """
 
-from .random_basis import generate_random_basis, validate_random_basis, check_random_basis
+from .random_basis import (
+    generate_random_basis,
+    validate_random_basis,
+    check_random_basis,
+    check_random_basis_array,
+)
 from .spreadout import spreadout

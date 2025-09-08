@@ -114,3 +114,35 @@ def check_random_basis(random_basis: dict[int, dict[int, int]], unitary_located:
         raise ValueError(f"Invalid random_basis: {invalid_dict}")
 
     return True
+
+
+def check_random_basis_array(
+    random_basis_array: list[list[int]], snapshot: int, system_size: int
+) -> bool:
+    """Check if the random basis array is valid.
+
+    Args:
+        random_basis_array (list[list[int]]): The random basis array.
+        snapshot (int): The number of snapshots.
+        system_size (int): The size of the system.
+
+    Returns:
+        bool: True if the random basis array is valid.
+
+    Raise:
+        ValueError: If the random basis array is invalid.
+    """
+    random_basis_array_np = np.array(random_basis_array)
+    if random_basis_array_np.shape != (snapshot, system_size):
+        raise ValueError(
+            "The shape of random_basis_array should be "
+            + f"({snapshot}, {system_size}), but {random_basis_array_np.shape}."
+        )
+
+    random_basis_array_np_check = (0 <= random_basis_array_np) & (random_basis_array_np < 3)
+
+    is_validate = random_basis_array_np_check.all()
+    if not is_validate:
+        raise ValueError("All values should be integers in the range [0, 3) in the array.")
+
+    return True

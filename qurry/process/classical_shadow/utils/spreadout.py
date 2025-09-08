@@ -3,7 +3,7 @@
 
 """
 
-from typing import Literal, Union
+from .random_basis import check_random_basis_array
 
 
 def spreadout_counts(counts: list[dict[str, int]]) -> list[dict[str, int]]:
@@ -24,31 +24,30 @@ def spreadout_counts(counts: list[dict[str, int]]) -> list[dict[str, int]]:
     ]
 
 
-def spreadout_random_basis(
-    shots: int, random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
-) -> dict[int, dict[int, Union[Literal[0, 1, 2], int]]]:
+def spreadout_random_basis(shots: int, random_basis_array: list[list[int]]) -> list[list[int]]:
     """Spreadout the random basis from multiple shots per snapshot to single shots counts.
 
+    **Warning: We didn't use :func:`list.copy` in this function.**
+    **For performance reasons, we avoid unnecessary copying of lists**
+    **since they are totally the same all the time.**
+
     Args:
-        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[int]]):
             The random basis to be spreadout.
 
+
     Returns:
-        dict[int, dict[int, Union[Literal[0, 1, 2], int]]]: The spreadout random basis.
+        list[list[int]]: The spreadout random basis.
     """
 
-    return {
-        (i * shots + j): single_random_basis
-        for i, single_random_basis in random_basis.items()
-        for j in range(shots)
-    }
+    return [single_random_basis for single_random_basis in random_basis_array for _ in range(shots)]
 
 
 def spreadout(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-) -> tuple[int, list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+    random_basis_array: list[list[int]],
+) -> tuple[int, list[dict[str, int]], list[list[int]]]:
     """Spreadout the counts and random basis from multiple shots per snapshot
     to single shot per snapshot for classical shadow post-processing.
 
@@ -57,30 +56,28 @@ def spreadout(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_basis (list[list[int]]):
             The random basis for classical shadow.
 
     Returns:
-        tuple[list[dict[str, int]], dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+        tuple[list[dict[str, int]], list[list[int]]]:
             The spreadout shots, counts, and random basis.
     """
+    check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
 
-    if len(counts) != len(random_basis):
-        raise ValueError("The length of counts and random_basis must be the same.")
-
-    new_random_basis = spreadout_random_basis(shots, random_basis)
-    assert len(new_random_basis) == len(random_basis) * shots, (
+    new_random_basis = spreadout_random_basis(shots, random_basis_array)
+    assert len(new_random_basis) == len(random_basis_array) * shots, (
         "The length of new_random_basis must be equal to len(random_basis) * shots."
         + f"len(new_random_basis): {len(new_random_basis)}, "
-        + f"len(random_basis) * shots: {len(random_basis) * shots}, "
-        + f"len(random_basis): {len(random_basis)}, shots: {shots}."
+        + f"len(random_basis) * shots: {len(random_basis_array) * shots}, "
+        + f"len(random_basis): {len(random_basis_array)}, shots: {shots}."
     )
     new_counts = spreadout_counts(counts)
-    assert len(new_counts) == len(random_basis) * shots, (
+    assert len(new_counts) == len(random_basis_array) * shots, (
         "The length of new_counts must be equal to len(random_basis) * shots."
         + f"len(new_counts): {len(new_counts)}, "
-        + f"len(random_basis) * shots: {len(random_basis) * shots}, "
-        + f"len(random_basis): {len(random_basis)}, shots: {shots}."
+        + f"len(random_basis) * shots: {len(random_basis_array) * shots}, "
+        + f"len(random_basis): {len(random_basis_array)}, shots: {shots}."
     )
 
     return 1, new_counts, new_random_basis

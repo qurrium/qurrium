@@ -103,8 +103,9 @@ from .trace_predict_process import (
     SingleTraceRhoMethod,
     TraceRhoMethod,
     AllTraceRhoMethod,
+    JAX_AVAILABLE,
 )
-from .rho_process import classical_shadow_rho_process_availability, RhoMethod
+from .rho_process import classical_shadow_rho_process_availability, RhoMethod, DEFAULT_RHO_METHOD
 from .container import (
     ClassicalShadowBasic,
     ClassicalShadowMeanRho,
@@ -112,4 +113,4 @@ from .container import (
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
-from .utils import generate_random_basis, check_random_basis
+from .utils import generate_random_basis, check_random_basis, check_random_basis_array

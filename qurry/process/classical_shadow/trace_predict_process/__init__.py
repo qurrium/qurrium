@@ -17,4 +17,5 @@ from .trace_mean_core import (
 from .matrix_calcution import (
     set_cpu_only,
     BACKEND_AVAILABLE as classical_shadow_matrix_availability,
+    JAX_AVAILABLE
 )
