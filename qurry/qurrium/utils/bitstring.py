@@ -67,6 +67,18 @@ def bitstring_mapping_getter(
     The `bitstring_mapping` is the mapping of the original index to the shifted index.
     It is useful when you want to know the mapping of all classical registers.
 
+    .. code-block:: python
+
+        bitstring_all = "01 2345"  # length = 7
+        num_classical_register = 7
+
+        select_clregs_sort_rev = sorted([5, 6], reverse=True)
+        bitstring = "".join(
+            bitstring_all[num_classical_register - q_i - 1] for q_i in select_clregs_sort_rev
+        )
+
+        print(bitstring)  # output "01"
+
     Args:
         counts (list[dict[str, int]]):
             The counts of the experiment.
