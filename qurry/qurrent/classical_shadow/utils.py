@@ -81,20 +81,23 @@ def inner_process_analyze(
         raise ValueError(
             f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
         )
-    selected_classical_registers = [final_mapping[qi] for qi in selected_qubits]
+    selected_clregs_sorted = sorted([arguments.registers_mapping[qi] for qi in selected_qubits])
+    all_clregs = sorted(arguments.registers_mapping.values())
 
-    len_register = len(arguments.registers_mapping)
     random_basis_array = []
     for i in range(len(arguments.random_basis)):
-        tmp = {ci: arguments.random_basis[i][n_u_qi] for n_u_qi, ci in final_mapping.items()}
-        random_basis_array.append([tmp[j] for j in range(len_register)])
+        tmp = {
+            ci: arguments.random_basis[i][n_u_qi]
+            for n_u_qi, ci in arguments.registers_mapping.items()
+        }
+        random_basis_array.append([tmp[j] for j in all_clregs])
 
     return (
         counts,
         bitstring_mapping,
         arguments.registers_mapping,
         selected_qubits,
-        selected_classical_registers,
+        selected_clregs_sorted,
         random_basis_array,
     )
 
