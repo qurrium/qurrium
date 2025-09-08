@@ -18,9 +18,9 @@ from .utils import (
     unitary_full_cover_check,
     create_config,
 )
-from ...qurrent.randomized_measure.utils import randomized_circuit_method, bitstring_mapping_getter
+from ...qurrent.randomized_measure.utils import randomized_circuit_method
 from ...qurrium.experiment import ExperimentPrototype, Commonparams, memory_usage_factor_expect
-from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
+from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps, bitstring_mapping_getter
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,

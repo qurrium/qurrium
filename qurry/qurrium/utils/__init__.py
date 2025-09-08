@@ -10,3 +10,4 @@ from .iocontrol import (
     STAND_COMPRESS_FORMAT,
 )
 from .build import passmanager_processor
+from .bitstring import bitstring_mapping_getter
