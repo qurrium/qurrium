@@ -7,7 +7,7 @@ from multiprocessing import get_context
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
-from ..utils import single_counts_recount
+from ..utils import single_counts_recount_proto
 from ...tools import DEFAULT_POOL_SIZE
 
 # pylint:disable=no-name-in-module,import-error
@@ -160,7 +160,7 @@ def z_dir_magnetic_square_core(
             p.map(
                 magsq_cell_wrapper,
                 [
-                    (idx, single_counts_recount(single_counts, num_qubits, [i, j]), shots)
+                    (idx, single_counts_recount_proto(single_counts, num_qubits, [i, j]), shots)
                     for idx, (i, j) in enumerate(permutations(range(num_qubits), 2))
                 ],
             )
