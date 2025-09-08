@@ -23,11 +23,11 @@ pub fn check_invalid_counts(shots: i32, counts: &Vec<HashMap<String, i32>>) {
 pub fn single_counts_recount_prototype(
     single_counts: &HashMap<String, i32>,
     num_classical_registers: i32,
-    selected_classical_registers: &Vec<i32>,
+    select_clregs_sort_rev: &Vec<i32>,
 ) -> HashMap<String, i32> {
     let mut single_counts_recounted: HashMap<String, i32> = HashMap::new();
     for (bit_string_all, count) in single_counts {
-        let substring = selected_classical_registers
+        let substring = select_clregs_sort_rev
             .iter()
             .map(|&i| {
                 bit_string_all
@@ -59,10 +59,11 @@ pub fn single_counts_recount_rust(
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> HashMap<String, i32> {
+    let select_clregs_sort_rev = sorted(selected_classical_registers, reverse = True);
     single_counts_recount_prototype(
         &single_counts,
         num_classical_registers,
-        &selected_classical_registers,
+        &select_clregs_sort_rev,
     )
 }
 
@@ -73,15 +74,18 @@ pub fn counts_list_recount_rust(
     num_classical_registers: i32,
     selected_classical_registers: Vec<i32>,
 ) -> Vec<HashMap<String, i32>> {
-    let mut counts_list_recounted: Vec<HashMap<String, i32>> = Vec::new();
-    for single_counts in counts {
-        let counts = single_counts_recount_prototype(
-            &single_counts,
-            num_classical_registers,
-            &selected_classical_registers,
-        );
-        counts_list_recounted.push(counts);
-    }
+    let select_clregs_sort_rev = sorted(selected_classical_registers, reverse = True);
+
+    let counts_list_recounted = counts
+        .iter()
+        .map(|single_counts| {
+            single_counts_recount_prototype(
+                single_counts,
+                num_classical_registers,
+                &select_clregs_sort_rev,
+            )
+        })
+        .collect();
     counts_list_recounted
 }
 
@@ -94,21 +98,21 @@ pub fn shot_counts_selected_clreg_checker_prototype(
     check_invalid_counts(shots, counts);
 
     // Determine the size of the allsystems
-    let measured_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
+    let total_system_size: i32 = counts[0].keys().next().unwrap().len() as i32;
 
     let selected_classical_registers_actual = match selected_classical_registers {
         Some(selected_classical_registers) => selected_classical_registers,
-        None => (0..measured_system_size).collect(),
+        None => (0..total_system_size).collect(),
     };
     for q_i in selected_classical_registers_actual.iter() {
         assert!(
-            *q_i >= 0 && *q_i < measured_system_size,
+            *q_i >= 0 && *q_i < total_system_size,
             "Invalid selected classical registers: {:?}",
             selected_classical_registers_actual
         );
     }
 
-    (measured_system_size, selected_classical_registers_actual)
+    (total_system_size, selected_classical_registers_actual)
 }
 
 #[pyfunction]
@@ -145,8 +149,8 @@ pub fn counts_list_vectorize_rust(
 
 fn process_vectorize_single_counts(
     single_counts: &HashMap<String, i32>,
-    um_data: &HashMap<i32, i32>,
-    selected_classical_registers_sorted: &[i32],
+    um_data: &Vec<i32>,
+    selected_cregs_sorted: &Vec<i32>,
     n_qubits: usize,
 ) -> (Vec<Vec<i32>>, Vec<i32>) {
     let mut bitstrings = Vec::with_capacity(single_counts.len());
@@ -166,7 +170,7 @@ fn process_vectorize_single_counts(
             .iter()
             .enumerate()
             .map(|(q_idx, &byte)| {
-                let direction = um_data[&selected_classical_registers_sorted[q_idx]];
+                let direction = um_data[selected_cregs_sorted[q_idx] as usize];
                 let digit = (byte - b'0') as i32;
                 direction * 10 + digit
             })
@@ -180,20 +184,21 @@ fn process_vectorize_single_counts(
 }
 
 #[pyfunction]
-#[pyo3(signature = (counts, random_unitary_um, selected_classical_registers_sorted))]
+#[pyo3(signature = (counts, random_unitary_array, selected_classical_registers_sorted))]
 pub fn rho_m_flatten_counts_list_vectorize_rust(
     counts: Vec<HashMap<String, i32>>,
-    random_unitary_um: HashMap<i32, HashMap<i32, i32>>,
+    random_unitary_array: Vec<Vec<i32>>,
     selected_classical_registers_sorted: Vec<i32>,
 ) -> Vec<(Vec<Vec<i32>>, Vec<i32>)> {
     let n_qubits = selected_classical_registers_sorted.len();
 
     counts
         .iter()
-        .map(|single_counts| {
+        .enumerate()
+        .map(|(idx, single_counts)| {
             process_vectorize_single_counts(
                 single_counts,
-                &random_unitary_um[&0],
+                &random_unitary_array[idx],
                 &selected_classical_registers_sorted,
                 n_qubits,
             )
