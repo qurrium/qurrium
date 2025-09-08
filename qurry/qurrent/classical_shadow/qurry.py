@@ -6,6 +6,7 @@ from collections.abc import Hashable
 from pathlib import Path
 from multiprocessing import get_context
 import tqdm
+import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
@@ -20,7 +21,9 @@ from .experiment import (
     ShadowUnveilExperiment,
     quantities_input_collecter,
     outside_analyze_wrapper,
-    RhoMCoreMethod,
+    RhoMethod,
+    DEFAULT_RHO_METHOD,
+    AllTraceRhoMethod,
     TraceRhoMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     JAX_AVAILABLE,
@@ -218,7 +221,7 @@ class ShadowUnveil(
 
                 If you want to generate the seeds for all random unitary operator,
                 you can use the function :func:`generate_random_basis`
-                in :mod:`qurry.qurrent.classical_shadow.utils`.
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
 
@@ -337,7 +340,7 @@ class ShadowUnveil(
 
                 If you want to generate the seeds for all random unitary operator,
                 you can use the function :func:`generate_random_basis`
-                in :mod:`qurry.qurrent.classical_shadow.utils`.
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
 
@@ -413,12 +416,20 @@ class ShadowUnveil(
         multiprocess_analysis: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
+        # estimation of given operators
+        given_operators: Optional[
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+        ] = None,
+        accuracy_prob_comp_delta: float = 0.01,
+        max_shadow_norm: Optional[float] = None,
+        # other config
+        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
-        """Run the analysis for multiple experiments.
+        r"""Run the analysis for multiple experiments.
 
         Args:
             summoner_id (str): The summoner_id of multimanager.
@@ -438,26 +449,65 @@ class ShadowUnveil(
             multiprocess_analysis (bool, optional):
                 Whether use multiprocess for analysis. Defaults to False.
 
-            selected_qubits (Optional[list[int]], optional):
+            selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "numpy_flatten".
 
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (Optional[float], optional):
+                The maximum shadow norm. Defaults to None.
+                If it is None, it will be calculated by the largest shadow norm upper bound.
+                If it is not None, it must be a positive float number.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-                Currently, "numpy_precomputed" is the best option for performance.
+            rho_method (RhoMethod, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
+
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
+
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
+
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
+
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
             trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
 
                 - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
+                    Use np.trace(np.matmul(rho_m1, rho_m2))
+                    to calculate the each summation item in `rho_m_list`.
                 - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                    Which is the fastest method to calculate the trace.
-                    Due to handle all computation in einsum.
+                    Use np.einsum("ij,ji", rho_m1, rho_m2)
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy":
+                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                - "einsum_aij_bji_to_ab_jax":
+                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
+            estimate_trace_method (AllTraceRhoMethod, optional):
+                The method to calculate the trace for searching esitmator.
+
                 - "einsum_aij_bji_to_ab_numpy":
                     Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
                 - "einsum_aij_bji_to_ab_jax":
@@ -515,8 +565,14 @@ class ShadowUnveil(
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=selected_qubits,
+                                # estimation of given operators
+                                given_operators=given_operators,
+                                accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+                                max_shadow_norm=max_shadow_norm,
+                                # other config
                                 rho_method=rho_method,
                                 trace_method=trace_method,
+                                estimate_trace_method=estimate_trace_method,
                                 counts_used=counts_used,
                             )
                         )
@@ -525,8 +581,18 @@ class ShadowUnveil(
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=v_args.get("selected_qubits", selected_qubits),
+                                # estimation of given operators
+                                given_operators=v_args.get("given_operators", given_operators),
+                                accuracy_prob_comp_delta=v_args.get(
+                                    "accuracy_prob_comp_delta", accuracy_prob_comp_delta
+                                ),
+                                max_shadow_norm=v_args.get("max_shadow_norm", max_shadow_norm),
+                                # other config
                                 rho_method=v_args.get("rho_method", rho_method),
                                 trace_method=v_args.get("trace_method", trace_method),
+                                estimate_trace_method=v_args.get(
+                                    "estimate_trace_method", estimate_trace_method
+                                ),
                                 counts_used=v_args.get("counts_used", counts_used),
                             )
                         )
@@ -535,8 +601,14 @@ class ShadowUnveil(
                         quantities_input_collecter(
                             current_exps=current_multimanager.exps[k],
                             selected_qubits=selected_qubits,
+                            # estimation of given operators
+                            given_operators=given_operators,
+                            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+                            max_shadow_norm=max_shadow_norm,
+                            # other config
                             rho_method=rho_method,
                             trace_method=trace_method,
+                            estimate_trace_method=estimate_trace_method,
                             counts_used=counts_used,
                         )
                     )
@@ -571,8 +643,14 @@ class ShadowUnveil(
             skip_write=skip_write,
             multiprocess_write=multiprocess_write,
             selected_qubits=selected_qubits,
+            # estimation of given operators
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            # other config
             rho_method=rho_method,
             trace_method=trace_method,
+            estimate_trace_method=estimate_trace_method,
             counts_used=counts_used,
             **analysis_args,
         )

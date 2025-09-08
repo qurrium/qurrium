@@ -6,13 +6,12 @@
 from typing import Optional, Union, Iterable
 from collections.abc import Hashable
 from dataclasses import dataclass
+import numpy as np
 
 from qiskit import QuantumCircuit
 
 from ...qurrium.experiment import ArgumentsPrototype
-from ...process.randomized_measure.entangled_entropy import (
-    PostProcessingBackendLabel,
-)
+from ...process.classical_shadow import RhoMethod, AllTraceRhoMethod, TraceRhoMethod
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
@@ -67,7 +66,7 @@ class ShadowUnveilArguments(ArgumentsPrototype):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_basis` 
-    in :mod:`qurry.qurrent.classical_shadow.utils`.
+    in :mod:`qurry.process.classical_shadow.utils`.
 
     .. code-block:: python
 
@@ -125,7 +124,7 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_basis` 
-    in :mod:`qurry.qurrent.classical_shadow.utils`.
+    in :mod:`qurry.process.classical_shadow.utils`.
 
     .. code-block:: python
 
@@ -165,7 +164,7 @@ class ShadowUnveilOutputArgs(OutputArgs):
 
     If you want to generate the seeds for all random unitary operator,
     you can use the function :func:`generate_random_basis` 
-    in :mod:`qurry.qurrent.classical_shadow.utils`.
+    in :mod:`qurry.process.classical_shadow.utils`.
 
     .. code-block:: python
 
@@ -182,8 +181,20 @@ class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
 
     selected_qubits: Optional[list[int]]
     """The selected qubits."""
-    backend: PostProcessingBackendLabel
-    """The backend for the process."""
+    # estimation of given operators
+    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]
+    """The list of the operators to estimate."""
+    accuracy_prob_comp_delta: float
+    """The accuracy probability for computing delta."""
+    max_shadow_norm: Optional[float]
+    """The maximum shadow norm of the given operators."""
+    # other config
+    rho_method: RhoMethod
+    """The method to reconstruct the density matrix."""
+    trace_method: TraceRhoMethod
+    """The method to compute the trace."""
+    estimate_trace_method: AllTraceRhoMethod
+    """The method to estimate the trace."""
     counts_used: Optional[Iterable[int]]
     """The index of the counts used."""
 

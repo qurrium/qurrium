@@ -90,7 +90,7 @@ def mean_of_rho(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        rho_method (RhoMCoreMethod, optional):
+        rho_method (RhoMethod, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
@@ -173,7 +173,7 @@ def trace_rho_square(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        rho_method (RhoMCoreMethod, optional):
+        rho_method (RhoMethod, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
@@ -339,7 +339,7 @@ def estimation_of_given_operators(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-        rho_method (RhoMCoreMethod, optional):
+        rho_method (RhoMethod, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
@@ -560,7 +560,7 @@ def classical_shadow_complex(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-        rho_method (RhoMCoreMethod, optional):
+        rho_method (RhoMethod, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 

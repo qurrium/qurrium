@@ -6,9 +6,10 @@ from collections.abc import Iterable, Hashable
 from qiskit import QuantumCircuit, ClassicalRegister
 
 from .arguments import ShadowUnveilArguments
-from ..randomized_measure.utils import bitstring_mapping_getter
+from ...qurrium.utils import bitstring_mapping_getter
 from ...qurrium.experiment import After
-from ...process.classical_shadow.unitary_set import U_M_GATES
+from ...process.utils import counts_list_recount_pyrust
+from ...process.classical_shadow.rho_process.unitary_set import U_M_GATES
 
 
 def inner_process_analyze(
@@ -39,7 +40,7 @@ def inner_process_analyze(
         - register_mapping: The mapping from qubits to classical registers.
         - selected_qubits: The selected qubits.
         - selected_classical_registers: The selected classical registers.
-        - random_basis_with_clreg_index: The random basis with classical register index.
+        - random_basis_array: The random basis array.
     """
 
     if selected_qubits is None:
@@ -70,18 +71,23 @@ def inner_process_analyze(
 
     bitstring_mapping, final_mapping = bitstring_mapping_getter(counts, arguments.registers_mapping)
 
+    # Remove multiple classical registers clusters, leave only one cluster by Qurrium
+    counts = counts_list_recount_pyrust(
+        counts, len(next(iter(counts[0].keys()))), list(final_mapping.values())
+    )
+
     selected_qubits = [qi % arguments.actual_num_qubits for qi in selected_qubits]
     if len(set(selected_qubits)) != len(selected_qubits):
         raise ValueError(
             f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
         )
-
-    random_basis_with_clreg_index = {
-        n_u_i: {ci: single_basis[n_u_qi] for n_u_qi, ci in final_mapping.items()}
-        for n_u_i, single_basis in arguments.random_basis.items()
-    }
-
     selected_classical_registers = [final_mapping[qi] for qi in selected_qubits]
+
+    len_register = len(arguments.registers_mapping)
+    random_basis_array = []
+    for i in range(len(arguments.random_basis)):
+        tmp = {ci: arguments.random_basis[i][n_u_qi] for n_u_qi, ci in final_mapping.items()}
+        random_basis_array.append([tmp[j] for j in range(len_register)])
 
     return (
         counts,
@@ -89,7 +95,7 @@ def inner_process_analyze(
         arguments.registers_mapping,
         selected_qubits,
         selected_classical_registers,
-        random_basis_with_clreg_index,
+        random_basis_array,
     )
 
 

@@ -22,15 +22,16 @@ from ...process.utils import qubit_mapper
 from ...process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
-    RhoMCoreMethod,
-    TraceRhoMethod,
+    RhoMethod,
+    DEFAULT_RHO_METHOD,
     AllTraceRhoMethod,
+    TraceRhoMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     set_cpu_only,
     generate_random_basis,
     check_random_basis,
+    JAX_AVAILABLE,
 )
-from ...process.classical_shadow.rho_m_core import JAX_AVAILABLE
 from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
@@ -101,7 +102,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
                 If you want to generate the seeds for all random unitary operator,
                 you can use the function :func:`generate_random_basis`
-                in :mod:`qurry.qurrent.classical_shadow.utils`.
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
 
@@ -298,7 +299,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
     def analyze(
         self,
         selected_qubits: Optional[Iterable[int]] = None,
-        convert_to_single_shot: bool = False,
         # estimation of given operators
         given_operators: Optional[
             list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
@@ -306,7 +306,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
+        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         counts_used: Optional[Iterable[int]] = None,
@@ -317,10 +317,6 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         Args:
             selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
-            convert_to_single_shot (bool, optional):
-                Whether to convert the counts and the random basis from multiple shots
-                to single shot per snapshot for classical shadow post-processing.
-                Default to False.
 
             given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
                 The list of the operators to estimate. Defaults to None.
@@ -332,16 +328,36 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            rho_method (RhoMethod, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
 
-                Currently, "numpy_precomputed" is the best option for performance.
-            trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
+
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
+
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
+
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
 
                 - "trace_of_matmul":
@@ -389,9 +405,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         qs = self.quantities(
             shots=self.commons.shots,
             counts=counts,
-            random_basis=random_basis_with_clreg_index,
+            random_basis_array=random_basis_with_clreg_index,
             selected_classical_registers=selected_classical_registers,
-            convert_to_single_shot=convert_to_single_shot,
             # estimation of given operators
             given_operators=given_operators,
             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -423,9 +438,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         cls,
         shots: Optional[int] = None,
         counts: Optional[list[dict[str, int]]] = None,
-        random_basis: Optional[dict[int, dict[int, Union[Literal[0, 1, 2], int]]]] = None,
+        random_basis_array: Optional[list[list[Union[Literal[0, 1, 2], int]]]] = None,
         selected_classical_registers: Optional[Iterable[int]] = None,
-        convert_to_single_shot: bool = False,
         # estimation of given operators
         given_operators: Optional[
             list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
@@ -433,7 +447,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
+        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
         trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         pbar: Optional[tqdm.tqdm] = None,
@@ -445,14 +459,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 The number of shots.
             counts (list[dict[str, int]]):
                 The list of the counts.
-            random_basis (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+            random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
                 The random basis for classical shadow.
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
-            convert_to_single_shot (bool, optional):
-                Whether to convert the counts and the random basis from multiple shots
-                to single shot per snapshot for classical shadow post-processing.
-                Default to False.
 
             given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
                 The list of the operators to estimate. Defaults to None.
@@ -465,14 +475,14 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
             rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+                The method to use for the calculation. Defaults to "numpy".
+                It can be either "numpy_proto", "numpy", "jax_flatten", or "numpy_vectorized".
 
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+                - "numpy_proto": Use Numpy to calculate the rho_m.
+                - "numpy": Use Numpy to calculate the rho_m with precomputed values.
+                - "numpy_vectorized": Use Numpy to calculate the rho_m with a flattening workflow.
 
-                Currently, "numpy_precomputed" is the best option for performance.
+                Currently, "numpy" is the best option for performance.
             trace_method (TraceRhoMethod, optional):
                 The method to calculate the trace of Rho square.
 
@@ -504,7 +514,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
         if shots is None or counts is None:
             raise ValueError("shots and counts should be specified.")
-        if random_basis is None:
+        if random_basis_array is None:
             raise ValueError("random_unitary_ids should be specified.")
         if selected_classical_registers is None:
             raise ValueError("selected_classical_registers should be specified.")
@@ -512,9 +522,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         return classical_shadow_complex(
             shots=shots,
             counts=counts,
-            random_basis=random_basis,
+            random_basis_array=random_basis_array,
             selected_classical_registers=selected_classical_registers,
-            convert_to_single_shot=convert_to_single_shot,
             # estimation of given operators
             given_operators=given_operators,
             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -554,9 +563,8 @@ class OutsideAnalyzeInput(TypedDict):
     # for analze
     shots: int
     counts: list[dict[str, int]]
-    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
+    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]]
     selected_classical_registers: Optional[Iterable[int]]
-    convert_to_single_shot: bool
     # for analysis input
     num_qubits: int
     selected_qubits: list[int]
@@ -569,7 +577,7 @@ class OutsideAnalyzeInput(TypedDict):
     max_shadow_norm: Optional[float]
     # setup for running
     serial: int
-    rho_method: RhoMCoreMethod
+    rho_method: RhoMethod
     trace_method: TraceRhoMethod
     estimate_trace_method: AllTraceRhoMethod
     counts_used: Optional[Iterable[int]]
@@ -579,13 +587,12 @@ def quantities_input_collecter(
     current_exps: ShadowUnveilExperiment,
     # analysis inputs
     selected_qubits: Optional[Iterable[int]] = None,
-    convert_to_single_shot: bool = False,
     # estimation of given operators
     given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     counts_used: Optional[Iterable[int]] = None,
@@ -597,10 +604,6 @@ def quantities_input_collecter(
             The current experiment instance.
         selected_qubits (Optional[Iterable[int]], optional):
             The selected qubits. Defaults to None.
-        convert_to_single_shot (bool, optional):
-            Whether to convert the counts and the random basis from multiple shots
-            to single shot per snapshot for classical shadow post-processing.
-            Default to False.
 
         given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
             The list of the operators to estimate. Defaults to None.
@@ -614,16 +617,36 @@ def quantities_input_collecter(
 
         backend (PostProcessingBackendLabel, optional):
             The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+        rho_method (RhoMethod, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            Currently, "numpy_precomputed" is the best option for performance.
-        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
 
             - "trace_of_matmul":
@@ -658,7 +681,7 @@ def quantities_input_collecter(
         registers_mapping,
         selected_qubits,
         selected_classical_registers,
-        random_basis_with_clreg_index,
+        random_basis_array,
     ) = inner_process_analyze(
         selected_qubits=selected_qubits,
         counts_used=counts_used,
@@ -674,9 +697,8 @@ def quantities_input_collecter(
         # for analyze
         "shots": current_exps.commons.shots,
         "counts": counts,
-        "random_basis": random_basis_with_clreg_index,
+        "random_basis_array": random_basis_array,
         "selected_classical_registers": selected_classical_registers,
-        "convert_to_single_shot": convert_to_single_shot,
         # for analysis instance
         "num_qubits": current_exps.args.actual_num_qubits,
         "selected_qubits": selected_qubits,
@@ -701,9 +723,8 @@ def outside_analyze(
     # for analyze
     shots: int,
     counts: list[dict[str, int]],
-    random_basis: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]],
-    convert_to_single_shot: bool,
     # for analysis instance
     num_qubits: int,
     selected_qubits: list[int],
@@ -716,7 +737,7 @@ def outside_analyze(
     max_shadow_norm: Optional[float],
     # setup for running
     serial: int,
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
+    rho_method: RhoMethod = "numpy",
     trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     counts_used: Optional[Iterable[int]] = None,
@@ -731,31 +752,8 @@ def outside_analyze(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis (Optional[dict[int, dict[int, int]]]):
+        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-
-            This argument only takes input as type of `dict[int, dict[int, int]]`.
-            The first key is the index if snapshots.
-            The second key is the index for the qubit.
-
-            .. code-block:: python
-
-                {
-                    0: {0: 1, 1: 0},
-                    1: {0: 2, 1: 1},
-                    2: {0: 0, 1: 2},
-                }
-
-            If you want to generate the seeds for all random unitary operator,
-            you can use the function :func:`generate_random_basis`
-            in :mod:`qurry.qurrent.classical_shadow.utils`.
-
-            .. code-block:: python
-
-                from qurry import generate_random_basis
-
-                random_basis = generate_random_basis(100, [0, 1])
-
         selected_classical_registers (Optional[Iterable[int]]):
             The list of **the index of the selected_classical_registers**.
         convert_to_single_shot (bool):
@@ -786,14 +784,14 @@ def outside_analyze(
         serial (int):
             The serial number of the experiment.
         rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
+            The method to use for the calculation. Defaults to "numpy".
+            It can be either "numpy_proto", "numpy", "jax_flatten", or "numpy_vectorized".
 
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
+            - "numpy_proto": Use Numpy to calculate the rho_m.
+            - "numpy": Use Numpy to calculate the rho_m with precomputed values.
+            - "numpy_vectorized": Use Numpy to calculate the rho_m with a flattening workflow.
 
-            Currently, "numpy_precomputed" is the best option for performance.
+            Currently, "numpy" is the best option for performance.
         trace_method (TraceRhoMethod, optional):
             The method to calculate the trace of Rho square.
 
@@ -832,9 +830,8 @@ def outside_analyze(
     qs = classical_shadow_complex(
         shots=shots,
         counts=counts,
-        random_basis=random_basis,
+        random_basis_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
-        convert_to_single_shot=convert_to_single_shot,
         # estimation of given operators
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,

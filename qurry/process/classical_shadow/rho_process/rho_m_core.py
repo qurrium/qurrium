@@ -233,7 +233,7 @@ def rho_m_core(
         selected_classical_registers (Optional[Iterable[int]], optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
-        rho_method (RhoMCoreMethod, optional):
+        rho_method (RhoMethod, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
