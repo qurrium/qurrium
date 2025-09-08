@@ -7,19 +7,28 @@ import pytest
 import numpy as np
 
 from qurry.capsule import quickRead
-from qurry.qurrent.randomized_measure.utils import bitstring_mapping_getter
+from qurry.qurrium.utils import bitstring_mapping_getter
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
-    classical_shadow_core_availability,
+    classical_shadow_rho_process_availability,
+    JAX_AVAILABLE,
 )
-from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 
 FILE_LOCATION = os.path.join(os.path.dirname(__file__), "shadow-case.json")
 FILE_LOCATION_2 = os.path.join(os.path.dirname(__file__), "shadow-case-hard.json")
 
-RHO_METHODS = ["numpy", "numpy_precomputed", "numpy_flatten"]
+RHO_METHODS = [
+    "multi_shots_proto",
+    "multi_shots",
+    "multi_shots_vectorized",
+]
+RHO_METHODS_SPREADOUT = [
+    "single_shots_proto",
+    "single_shots",
+    "single_shots_vectorized",
+]
 TRACE_METHODS = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
     ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
 )
@@ -66,6 +75,7 @@ class ClassicalShadowComplexExtended(ClassicalShadowComplex):
 raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
 raw_shadow_case_02: RawReadShadowCase = quickRead(FILE_LOCATION_2)
 raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01, raw_shadow_case_02]
+raw_shadow_cases_spreadout: list[RawReadShadowCase] = [raw_shadow_case_01]
 
 
 def unpacked_shadow_case(
@@ -99,14 +109,14 @@ shadow_cases = [
 ]
 shadow_cases_spreadout = [
     (shadow_case_tmp["answer_spreadout"], *unpacked_shadow_case(shadow_case_tmp))
-    for shadow_case_tmp in raw_shadow_cases[:1]
+    for shadow_case_tmp in raw_shadow_cases_spreadout
 ]
 
 
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    for availability_item in [classical_shadow_core_availability]:
+    for availability_item in [classical_shadow_rho_process_availability]:
         assert availability_item[1]["Rust"], (
             "Rust is not available." + f" Check the error: {availability_item[2]}"
         )
@@ -119,7 +129,6 @@ def classical_shadow_complex_wrapper(
     rho_method: str,
     trace_method: str,
     final_mapping: dict[int, int],
-    convert_to_single_shot: bool = False,
 ) -> ClassicalShadowComplexExtended:
     """Wrapper for the classical_shadow_complex function to include the trace of the expect_rho.
 
@@ -130,17 +139,21 @@ def classical_shadow_complex_wrapper(
         rho_method (str): The Rho method.
         trace_method (str): The trace method.
         final_mapping (dict[int, int]): The final mapping.
-        convert_to_single_shot (bool, optional): Whether to convert the result to a single shot.
 
     Return:
         ClassicalShadowComplexExtended: the result to compare.
     """
+    len_register = len(final_mapping)
+    random_basis_array = []
+    for i in range(len(random_unitary_ids)):
+        tmp = {ci: random_unitary_ids[i][n_u_qi] for n_u_qi, ci in final_mapping.items()}
+        random_basis_array.append([tmp[j] for j in range(len_register)])
+
     tmp = classical_shadow_complex(
         shots=arguments["shots"],
         counts=counts,
-        random_basis=random_unitary_ids,
+        random_basis_array=random_basis_array,
         selected_classical_registers=[final_mapping[qi] for qi in arguments["selected_qubits"]],
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
         trace_method=trace_method,
     )
@@ -204,7 +217,6 @@ def test_shadow(
             rho_method,
             trace_method,
             final_mapping,
-            convert_to_single_shot=False,
         )
         for rho_method in RHO_METHODS
         for trace_method in TRACE_METHODS
@@ -235,9 +247,8 @@ def test_shadow_spreadout(
             rho_method,
             trace_method,
             final_mapping,
-            convert_to_single_shot=True,
         )
-        for rho_method in RHO_METHODS
+        for rho_method in RHO_METHODS_SPREADOUT
         for trace_method in TRACE_METHODS
     }
     comparison_shadow_result(results_spreadout, answer)
