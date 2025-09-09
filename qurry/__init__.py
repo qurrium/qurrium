@@ -19,6 +19,7 @@ sys.modules["qurry.boorust.randomized"] = boorust.randomized  # type: ignore
 sys.modules["qurry.boorust.hadamard"] = boorust.hadamard  # type: ignore
 sys.modules["qurry.boorust.magnet_square"] = boorust.magnet_square  # type: ignore
 sys.modules["qurry.boorust.string_operator"] = boorust.string_operator  # type: ignore
+sys.modules["qurry.boorust.shadow"] = boorust.shadow  # type: ignore
 sys.modules["qurry.boorust.dummy"] = boorust.dummy  # type: ignore
 sys.modules["qurry.boorust.test"] = boorust.test  # type: ignore
 
