@@ -100,9 +100,9 @@ from .classical_shadow import (
 from .trace_predict_process import (
     set_cpu_only,
     classical_shadow_matrix_availability,
-    SingleTraceRhoMethod,
-    TraceRhoMethod,
-    AllTraceRhoMethod,
+    SingleTraceMethod,
+    TraceMethod,
+    ListTraceMethod,
     JAX_AVAILABLE,
 )
 from .rho_process import classical_shadow_rho_process_availability, RhoMethod, DEFAULT_RHO_METHOD

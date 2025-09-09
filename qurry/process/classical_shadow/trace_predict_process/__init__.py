@@ -9,9 +9,9 @@ from .prediction import prediction_algorithm
 from .trace_mean_core import (
     mean_rho_core,
     trace_rho_square_core,
-    SingleTraceRhoMethod,
-    TraceRhoMethod,
-    AllTraceRhoMethod,
+    SingleTraceMethod,
+    TraceMethod,
+    ListTraceMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
 )
 from .matrix_calcution import (

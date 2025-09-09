@@ -10,9 +10,9 @@ import numpy as np
 
 from .matrix_calcution import (
     select_single_trace_rho_method,
-    SingleTraceRhoMethod,
+    SingleTraceMethod,
     select_all_trace_rho_by_einsum_aij_bji_to_ab,
-    AllTraceRhoMethod,
+    ListTraceMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
 )
 
@@ -46,7 +46,7 @@ def mean_rho_core(
     return expect_rho
 
 
-TraceRhoMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
+TraceMethod = Union[SingleTraceMethod, ListTraceMethod]
 """The method to calculate the trace of Rho square.
 
 - "trace_of_matmul":
@@ -64,7 +64,7 @@ TraceRhoMethod = Union[SingleTraceRhoMethod, AllTraceRhoMethod]
 
 def trace_rho_square_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 

@@ -203,14 +203,7 @@ def single_trace_rho_by_einsum_ij_ji(
     return np.einsum("ij,ji", rho_m1, rho_m2) + np.einsum("ij,ji", rho_m2, rho_m1)
 
 
-SingleTraceRhoMethod = Union[
-    Literal[
-        "trace_of_matmul",
-        "quick_trace_of_matmul",
-        "einsum_ij_ji",
-    ],
-    str,
-]
+SingleTraceMethod = Union[Literal["trace_of_matmul", "quick_trace_of_matmul", "einsum_ij_ji"], str]
 """The method to calculate the trace of single Rho square.
 
 - "trace_of_matmul":
@@ -221,7 +214,7 @@ SingleTraceRhoMethod = Union[
 
 
 def select_single_trace_rho_method(
-    method: SingleTraceRhoMethod = "quick_trace_of_matmul",
+    method: SingleTraceMethod = "quick_trace_of_matmul",
 ) -> Callable[
     [
         tuple[
@@ -276,7 +269,7 @@ def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
     return sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1))
 
 
-AllTraceRhoMethod = Union[Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"], str]
+ListTraceMethod = Union[Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax"], str]
 """The method to calculate the all trace of Rho square.
 
 - "einsum_aij_bji_to_ab_numpy":
@@ -287,13 +280,13 @@ AllTraceRhoMethod = Union[Literal["einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_
     Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
     This is the fastest implementation to calculate the trace of Rho.
 """
-DEFAULT_ALL_TRACE_RHO_METHOD: AllTraceRhoMethod = (
+DEFAULT_ALL_TRACE_RHO_METHOD: ListTraceMethod = (
     "einsum_aij_bji_to_ab_jax" if JAX_AVAILABLE else "einsum_aij_bji_to_ab_numpy"
 )
 
 
 def select_all_trace_rho_by_einsum_aij_bji_to_ab(
-    method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> Callable[
     [np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]],
     np.complex128,
@@ -301,7 +294,7 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
     """Select the method to calculate the trace of Rho square.
 
     Args:
-        method (AllTraceRhoMethod, optional):
+        method (ListTraceMethod, optional):
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
 
             - "einsum_aij_bji_to_ab_numpy":
@@ -364,7 +357,7 @@ def prediction_einsum_aij_bji_to_ab_numpy(
 
 
 def select_prediction_einsum_aij_bji_to_ab(
-    method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> Callable[
     [
         np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
@@ -375,7 +368,7 @@ def select_prediction_einsum_aij_bji_to_ab(
     """Select the method to calculate the prediction of given operators.
 
     Args:
-        method (AllTraceRhoMethod, optional):
+        method (ListTraceMethod, optional):
             The method to use for the calculation. Defaults to DEFAULT_ALL_TRACE_RHO_METHOD
             It can be either "einsum_aij_bji_to_ab_numpy", "einsum_aij_bji_to_ab_jax".
 

@@ -24,8 +24,8 @@ from ...process.classical_shadow import (
     ClassicalShadowComplex,
     RhoMethod,
     DEFAULT_RHO_METHOD,
-    AllTraceRhoMethod,
-    TraceRhoMethod,
+    ListTraceMethod,
+    TraceMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     set_cpu_only,
     generate_random_basis,
@@ -307,8 +307,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         max_shadow_norm: Optional[float] = None,
         # other config
         rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
@@ -371,7 +371,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-            estimate_trace_method (AllTraceRhoMethod, optional):
+            estimate_trace_method (ListTraceMethod, optional):
                 The method to calculate the trace for searching esitmator.
 
                 - "einsum_aij_bji_to_ab_numpy":
@@ -448,8 +448,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         max_shadow_norm: Optional[float] = None,
         # other config
         rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
         r"""Randomized entangled entropy with complex.
@@ -497,7 +497,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-            estimate_trace_method (AllTraceRhoMethod, optional):
+            estimate_trace_method (ListTraceMethod, optional):
                 The method to calculate the trace for searching esitmator.
 
                 - "einsum_aij_bji_to_ab_numpy":
@@ -578,8 +578,8 @@ class OutsideAnalyzeInput(TypedDict):
     # setup for running
     serial: int
     rho_method: RhoMethod
-    trace_method: TraceRhoMethod
-    estimate_trace_method: AllTraceRhoMethod
+    trace_method: TraceMethod
+    estimate_trace_method: ListTraceMethod
     counts_used: Optional[Iterable[int]]
 
 
@@ -593,8 +593,8 @@ def quantities_input_collecter(
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> OutsideAnalyzeInput:
     r"""Collect the inputs for the quantities.
@@ -660,7 +660,7 @@ def quantities_input_collecter(
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-        estimate_trace_method (AllTraceRhoMethod, optional):
+        estimate_trace_method (ListTraceMethod, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":
@@ -738,8 +738,8 @@ def outside_analyze(
     # setup for running
     serial: int,
     rho_method: RhoMethod = "numpy",
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> tuple[str, ShadowUnveilAnalysis]:
     r"""Randomized entangled entropy with complex.
@@ -806,7 +806,7 @@ def outside_analyze(
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-        estimate_trace_method (AllTraceRhoMethod, optional):
+        estimate_trace_method (ListTraceMethod, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":

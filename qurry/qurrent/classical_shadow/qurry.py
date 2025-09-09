@@ -23,8 +23,8 @@ from .experiment import (
     outside_analyze_wrapper,
     RhoMethod,
     DEFAULT_RHO_METHOD,
-    AllTraceRhoMethod,
-    TraceRhoMethod,
+    ListTraceMethod,
+    TraceMethod,
     DEFAULT_ALL_TRACE_RHO_METHOD,
     JAX_AVAILABLE,
 )
@@ -424,8 +424,8 @@ class ShadowUnveil(
         max_shadow_norm: Optional[float] = None,
         # other config
         rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
@@ -505,7 +505,7 @@ class ShadowUnveil(
                 - "einsum_aij_bji_to_ab_jax":
                     Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-            estimate_trace_method (AllTraceRhoMethod, optional):
+            estimate_trace_method (ListTraceMethod, optional):
                 The method to calculate the trace for searching esitmator.
 
                 - "einsum_aij_bji_to_ab_numpy":

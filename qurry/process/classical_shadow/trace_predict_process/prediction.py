@@ -10,7 +10,7 @@ import numpy as np
 from .matrix_calcution import (
     select_prediction_einsum_aij_bji_to_ab,
     DEFAULT_ALL_TRACE_RHO_METHOD,
-    AllTraceRhoMethod,
+    ListTraceMethod,
 )
 from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
 
@@ -372,7 +372,7 @@ def prediction_algorithm(
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
-    trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
 ) -> tuple[
     list[np.complex128],
     list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
@@ -399,7 +399,7 @@ def prediction_algorithm(
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-        trace_method (AllTraceRhoMethod, optional):
+        trace_method (ListTraceMethod, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":

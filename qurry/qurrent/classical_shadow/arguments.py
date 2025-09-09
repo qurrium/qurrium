@@ -11,7 +11,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 
 from ...qurrium.experiment import ArgumentsPrototype
-from ...process.classical_shadow import RhoMethod, AllTraceRhoMethod, TraceRhoMethod
+from ...process.classical_shadow import RhoMethod, ListTraceMethod, TraceMethod
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
@@ -191,9 +191,9 @@ class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
     # other config
     rho_method: RhoMethod
     """The method to reconstruct the density matrix."""
-    trace_method: TraceRhoMethod
+    trace_method: TraceMethod
     """The method to compute the trace."""
-    estimate_trace_method: AllTraceRhoMethod
+    estimate_trace_method: ListTraceMethod
     """The method to estimate the trace."""
     counts_used: Optional[Iterable[int]]
     """The index of the counts used."""

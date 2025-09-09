@@ -13,8 +13,8 @@ from .trace_predict_process import (
     mean_rho_core,
     trace_rho_square_core,
     DEFAULT_ALL_TRACE_RHO_METHOD,
-    AllTraceRhoMethod,
-    TraceRhoMethod,
+    ListTraceMethod,
+    TraceMethod,
     prediction_algorithm,
 )
 from .container import (
@@ -158,7 +158,7 @@ def trace_rho_square(
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowPurity:
     """Trace of Rho square.
@@ -269,7 +269,7 @@ def estimation_of_given_operators(
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowEstimation:
     r"""Calculate the expectation value of given operators.
@@ -368,7 +368,7 @@ def estimation_of_given_operators(
 
             Currently, "multi_shots" is the best option for performance.
             Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-        estimate_trace_method (AllTraceRhoMethod, optional):
+        estimate_trace_method (ListTraceMethod, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":
@@ -442,8 +442,8 @@ def classical_shadow_complex(
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
@@ -603,7 +603,7 @@ def classical_shadow_complex(
             - "einsum_aij_bji_to_ab_jax":
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
-        estimate_trace_method (AllTraceRhoMethod, optional):
+        estimate_trace_method (ListTraceMethod, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":
