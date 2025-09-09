@@ -13,7 +13,7 @@ from .rho_m_cell import (
     rho_m_cell_vectorized,
     RhoMCellMethod,
 )
-from ..utils import spreadout, check_random_basis_array
+from ..utils import spreadout
 from ...utils import (
     counts_list_recount_pyrust,
     shot_counts_selected_clreg_checker_pyrust,
@@ -90,7 +90,6 @@ def rho_m_core_py(
         counts=counts,
         selected_classical_registers=selected_classical_registers,
     )
-    check_random_basis_array(random_unitary_array, len(counts), total_system_size)
 
     if convert_to_single_shot:
         shots, counts, random_unitary_array = spreadout(shots, counts, random_unitary_array)

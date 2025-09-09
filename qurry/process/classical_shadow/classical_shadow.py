@@ -23,6 +23,7 @@ from .container import (
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
+from .utils import check_random_basis_array
 from ..utils import NUMERICAL_ERROR_TOLERANCE
 
 
@@ -126,6 +127,8 @@ def mean_of_rho(
         ClassicalShadowMeanRho: The expectation value of Rho.
     """
 
+    total_system_size = len(next(iter(counts[0].keys())))
+    check_random_basis_array(random_basis_array, len(counts), total_system_size)
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
         counts=counts,
@@ -220,6 +223,9 @@ def trace_rho_square(
     Returns:
         float: The trace of Rho.
     """
+
+    total_system_size = len(next(iter(counts[0].keys())))
+    check_random_basis_array(random_basis_array, len(counts), total_system_size)
 
     if len(counts) < 2:
         raise ValueError(
@@ -382,6 +388,10 @@ def estimation_of_given_operators(
     Returns:
         ClassicalShadowEstimation: The estimation of the given operators.
     """
+
+    total_system_size = len(next(iter(counts[0].keys())))
+    check_random_basis_array(random_basis_array, len(counts), total_system_size)
+    
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 
@@ -618,6 +628,8 @@ def classical_shadow_complex(
         ClassicalShadowComplex:
             The expectation value of Rho and the purity calculated by classical shadow.
     """
+    total_system_size = len(next(iter(counts[0].keys())))
+    check_random_basis_array(random_basis_array, len(counts), total_system_size)
 
     rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
         shots=shots,
