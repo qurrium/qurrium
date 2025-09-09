@@ -186,7 +186,7 @@ def shot_counts_selected_clreg_checker(
 
     check_invalid_counts(shots, counts)
 
-    total_system_size = len(list(counts[0].keys())[0])
+    total_system_size = len(next(iter(counts[0].keys())))
 
     if selected_classical_registers is None:
         selected_classical_registers = list(range(total_system_size))

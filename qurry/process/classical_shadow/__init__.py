@@ -113,4 +113,4 @@ from .container import (
     ClassicalShadowPurity,
     ClassicalShadowComplex,
 )
-from .utils import generate_random_basis, check_random_basis, check_random_basis_array
+from .utils import generate_random_basis, check_random_basis, check_random_basis_array, spreadout
