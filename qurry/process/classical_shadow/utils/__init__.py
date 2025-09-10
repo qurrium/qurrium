@@ -69,3 +69,5 @@ from .random_basis import (
     check_random_basis_array,
 )
 from .spreadout import spreadout
+from .basis_spin_fmt import multi_counts_to_basis_spin
+from .method_enum import BaseMethodEnum
