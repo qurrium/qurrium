@@ -3,7 +3,7 @@
 
 """
 
-from typing import Union, TypedDict
+from typing import Union, TypedDict, Literal
 import numpy as np
 
 
@@ -177,6 +177,71 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     """
 
 
+PurityValueKind = Literal["multishots", "singleshots", "bitwise"]
+"""The kind of purity value calculation.
+This will depend on the rho_method and trace_method.
+
+- "multishots":
+    The *rho_method is one of the multi_shots methods* **and** *trace_method is one of the
+    matrix operation methods*.
+
+    .. code-block:: python
+
+        (
+            rho_method in [
+                "multi_shots_proto", 
+                "multi_shots", 
+                "multi_shots_vectorized",
+            ]
+        ) and (
+            trace_method in [
+                "trace_of_matmul", 
+                "einsum_ij_ji", 
+                "quick_trace_of_matmul",
+                "einsum_aij_bji_to_ab_numpy", 
+                "einsum_aij_bji_to_ab_jax",
+            ]
+        )
+
+- "singleshots":
+    The *rho_method is one of the single_shots methods* **and** *trace_method is one of the
+    matrix operation methods*, or the *trace_method is one of the non-matrix operation methods
+    except "bitwise_py"*.
+    
+    .. code-block:: python
+
+        (
+            trace_method in [
+                "nomatmul_trace_py", 
+                "nomatmul_trace_rust",
+            ]
+        ) or (
+            (
+                rho_method in [
+                    "single_shots_proto", 
+                    "single_shots", 
+                    "single_shots_vectorized",
+                ]
+            ) and (
+                trace_method in [
+                    "trace_of_matmul", 
+                    "einsum_ij_ji", 
+                    "quick_trace_of_matmul",
+                    "einsum_aij_bji_to_ab_numpy", 
+                    "einsum_aij_bji_to_ab_jax",
+                ]
+            )
+        )
+
+- "bitwise":
+    The *trace_method is "bitwise_py"* no matter what the rho_method is.
+    
+    .. code-block:: python
+
+        (trace_method in ["bitwise_py"])
+"""
+
+
 class ClassicalShadowPurity(ClassicalShadowBasic):
     """The expectation value of Rho."""
 
@@ -184,6 +249,12 @@ class ClassicalShadowPurity(ClassicalShadowBasic):
     """The purity calculated by classical shadow."""
     entropy: Union[float, np.float64]
     """The entropy calculated by classical shadow."""
+    purity_value_kind: Union[PurityValueKind, str]
+    """The kind of purity value calculation.
+    This will depend on the rho_method and trace_method.
+    
+    If it is not one of the defined kinds, it will be "unknown".
+    """
 
 
 class ClassicalShadowComplex(

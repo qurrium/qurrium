@@ -94,18 +94,27 @@ Reference:
 from .classical_shadow import (
     mean_of_rho,
     trace_rho_square,
+    estimation_of_given_operators,
     classical_shadow_complex,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
+    TraceMethod,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    purity_value_kind,
 )
 from .trace_predict_process import (
     set_cpu_only,
     classical_shadow_matrix_availability,
-    SingleTraceMethod,
-    TraceMethod,
-    ListTraceMethod,
     JAX_AVAILABLE,
+    ListTraceMethod,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_RHO_METHOD,
 )
-from .rho_process import classical_shadow_rho_process_availability, RhoMethod, DEFAULT_RHO_METHOD
+from .rho_process import (
+    classical_shadow_rho_process_availability,
+    RhoMethod,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+)
 from .container import (
     ClassicalShadowBasic,
     ClassicalShadowMeanRho,
