@@ -3,13 +3,15 @@
 
 """
 
-from typing import Sequence, Iterable, Literal, Union
+from typing import Sequence, Iterable, Union
 from functools import reduce
 from itertools import combinations, batched
 import multiprocessing as mp
 
 # pylint:disable=no-name-in-module,import-error
 from qurry.boorust.shadow import nomatmul_trace_sum_rust  # type: ignore
+
+from ...utils import BaseMethodEnum
 
 
 def rho_elt_compare(
@@ -185,27 +187,49 @@ def nomatmul_trace_sum_py(
     return trace_m1_m2
 
 
-NonMatMulTraceMethod = Union[
-    Literal["nomatmul_trace_py", "nomatmul_trace_py_mp", "nomatmul_trace_rust"], str
-]
+class NonMatMulTraceMethod(BaseMethodEnum):
+    """The method to use for the trace calculation without matrix multiplication.
+
+    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+
+    The default method is "nomatmul_trace_rust", which is the fastest option.
+    """
+
+    NOMATMUL_TRACE_PY = "nomatmul_trace_py"
+    """Use pure Python implementation without multiprocessing."""
+    # NOMATMUL_TRACE_PY_MP = "nomatmul_trace_py_mp"
+    # """Use pure Python implementation with multiprocessing."""
+    NOMATMUL_TRACE_RUST = "nomatmul_trace_rust"
+    """Use Rust implementation via PyO3."""
+
+    @classmethod
+    def get_default(cls) -> "NonMatMulTraceMethod":
+        """Get the default trace calculation method.
+
+        Returns:
+            NonMatMulTraceMethod: The default method, which is NOMATMUL_TRACE_RUST.
+        """
+        return cls.NOMATMUL_TRACE_RUST
+
+
+NonMatMulTraceMethodType = Union[NonMatMulTraceMethod, str]
 """The method to use for the trace calculation without matrix multiplication.
 
 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-- "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
 - "nomatmul_trace_rust": Use Rust implementation via PyO3.
 
 The default method is "nomatmul_trace_rust", which is the fastest option.
 """
 
-DEFAULT_NONMATMUL_TRACE_METHOD: NonMatMulTraceMethod = "nomatmul_trace_rust"
-"""The default method to use for the trace calculation without matrix multiplication."""
+DEFAULT_NONMATMUL_TRACE_METHOD: NonMatMulTraceMethod = NonMatMulTraceMethod.get_default()
 
 
 def nomatmul_trace_sum(
     pauli_basis: Sequence[Sequence[int]],
     spin_outcome: Sequence[Sequence[int]],
     subsystem: Sequence[int],
-    trace_method: NonMatMulTraceMethod = DEFAULT_NONMATMUL_TRACE_METHOD,
+    trace_method: NonMatMulTraceMethodType = DEFAULT_NONMATMUL_TRACE_METHOD,
 ) -> float:
     """Perform the trace calculation for the given data and subsystems.
 
@@ -216,30 +240,33 @@ def nomatmul_trace_sum(
             The list of spin outcomes. (1, -1)
         subsystem (Sequence[int]):
             The subsystems.
-        trace_method (NonMatMulTraceMethod):
+        trace_method (NonMatMulTraceMethodType):
             The method to use for the trace calculation.
             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-            - "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
             Default is DEFAULT_NONMATMUL_TRACE_METHOD.
 
     Returns:
         float: The result of the trace calculation.
     """
-    if trace_method == "nomatmul_trace_py":
+    if isinstance(trace_method, str):
+        trace_method = NonMatMulTraceMethod.from_string(trace_method)
+
+    if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_PY:
         return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=False)
-    if trace_method == "nomatmul_trace_py_mp":
-        return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=True)
-    if trace_method == "nomatmul_trace_rust":
+    # if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_PY_MP:
+    #     return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=True)
+    if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_RUST:
         return nomatmul_trace_sum_rust(pauli_basis, spin_outcome, subsystem)
-    raise ValueError(f"Unknown backend: {trace_method}")
+
+    raise NonMatMulTraceMethod.value_error()
 
 
 def nomatmul_trace_core(
     pauli_basis: Sequence[Sequence[int]],
     spin_outcome: Sequence[Sequence[int]],
     subsystem: Sequence[int],
-    trace_method: NonMatMulTraceMethod = DEFAULT_NONMATMUL_TRACE_METHOD,
+    trace_method: NonMatMulTraceMethodType = DEFAULT_NONMATMUL_TRACE_METHOD,
 ) -> float:
     """Calculate the purity of the quantum state from the measurement data
     in string format without using matrix multiplication.
@@ -251,12 +278,11 @@ def nomatmul_trace_core(
             The list of spin outcomes. (1, -1)
         subsystem (Sequence[int]):
             The subsystems.
-        trace_method (NonMatMulTraceMethod):
+        trace_method (NonMatMulTraceMethodType):
             The method to use for the trace calculation.
             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-            - "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-            Default is DEFAULT_NONMATMUL_TRACE_METHOD.
+            Default is DEFAULT_NONMATMUL_TRACE_METHOD
 
     Returns:
         float: The calculated purity of the quantum state.

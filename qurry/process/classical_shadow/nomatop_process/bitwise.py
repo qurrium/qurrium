@@ -14,8 +14,11 @@ All following functions can be found in the Python conversion.
 
 """
 
-from typing import Sequence
+from typing import Sequence, Union
+from enum import Enum
 import numpy as np
+
+from ...utils import BaseMethodEnum
 
 
 def count_trailing_zeros(n: int) -> int:
@@ -324,3 +327,33 @@ def bitwise_core(
     )
 
     return predicted_purity
+
+
+class BitWiseTraceMethod(BaseMethodEnum, Enum):
+    """The method to use for the trace calculation without matrix multiplication.
+
+    - "bitwise_py": Use pure Python bitwise implementation.
+
+    The default method is "bitwise_py", which is the fastest option.
+    """
+
+    BITWISE_PY = "bitwise_py"
+    """Use pure Python bitwise implementation."""
+    # BITWISE_RUST = "bitwise_rust"
+    # """Use Rust implementation via PyO3."""
+
+    @classmethod
+    def get_default(cls) -> "BitWiseTraceMethod":
+        """Get the default method for the trace calculation without matrix multiplication.
+
+        Returns:
+            BitWiseTraceMethod: The default method.
+        """
+        return cls.BITWISE_PY
+
+
+BitWiseTraceMethodType = Union[BitWiseTraceMethod, str]
+"""The method to use for the trace calculation with bitwise operations."""
+
+DEFAULT_BITWISE_TRACE_METHOD: BitWiseTraceMethod = BitWiseTraceMethod.get_default()
+"""The default method for the trace calculation with bitwise operations."""

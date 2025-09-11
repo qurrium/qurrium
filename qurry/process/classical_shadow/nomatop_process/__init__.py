@@ -3,9 +3,6 @@
 
 """
 
-from .nomatmul_trace import (
-    nomatmul_trace_core,
-    NonMatMulTraceMethod,
-    DEFAULT_NONMATMUL_TRACE_METHOD,
-)
-from .bitwise import bitwise_core
+from .nomatmul_trace import nomatmul_trace_core, NonMatMulTraceMethod
+from .bitwise import bitwise_core, BitWiseTraceMethod
+from .nomatop_core import trace_nomatop_core, NonMatOpTraceMethod
