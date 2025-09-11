@@ -4,9 +4,9 @@
 The abstract base class for method enums with utility functions.
 """
 
-from abc import ABC, abstractmethod, ABCMeta
-from enum import EnumMeta
 from typing import TypeVar, Type, List
+from abc import abstractmethod, ABCMeta
+from enum import EnumMeta, Enum
 
 T = TypeVar("T", bound="BaseMethodEnum")
 
@@ -15,7 +15,7 @@ class EnumABCMeta(EnumMeta, ABCMeta):
     """A metaclass that combines EnumMeta and ABCMeta."""
 
 
-class BaseMethodEnum(ABC, metaclass=EnumABCMeta):
+class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
     """Base class for method enums with utility functions."""
 
     @classmethod
@@ -26,6 +26,24 @@ class BaseMethodEnum(ABC, metaclass=EnumABCMeta):
             list[str]: A list of method names.
         """
         return [method.value for method in cls]  # type: ignore[attr-defined]
+
+    @classmethod
+    def unknown_method_error_msg(cls: Type[T]) -> str:
+        """Generate a ValueError for an unknown method.
+
+        Returns:
+            str: The error message.
+        """
+        return f"Unknown method. Supported methods are: {', '.join(cls.get_all_methods())}"
+
+    @classmethod
+    def value_error(cls) -> ValueError:
+        """Generate a ValueError for an unknown method.
+
+        Returns:
+            ValueError: The ValueError with the error message.
+        """
+        return ValueError(cls.unknown_method_error_msg())
 
     @classmethod
     def from_string(cls: Type[T], method_str: str) -> T:
@@ -44,10 +62,7 @@ class BaseMethodEnum(ABC, metaclass=EnumABCMeta):
         for method in cls:  # type: ignore[attr-defined]
             if method.value == method_str:
                 return method
-        raise ValueError(
-            f"Unknown method: {method_str}. "
-            f"Supported methods are: {', '.join(cls.get_all_methods())}"
-        )
+        raise cls.value_error()
 
     @classmethod
     @abstractmethod

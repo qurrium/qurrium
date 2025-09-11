@@ -30,3 +30,4 @@ from .randomized import (
 )
 from .dummy import BACKEND_AVAILABLE as dummy_availability
 from .purity import clamp_purity, depolarizing_error_mitgation
+from .method_enum import BaseMethodEnum
