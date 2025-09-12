@@ -41,7 +41,7 @@ class ClassicalShadowMeanRho(ClassicalShadowBasic):
     """The mean of single classical snapshots."""
 
 
-class ClassicalShadowEstimation(ClassicalShadowBasic):
+class EstimationOfObservable(TypedDict):
     """The esitimations of the classical shadow from classical snapshots.
 
     Here, we use the notations that use in the supplementary material of
@@ -174,6 +174,16 @@ class ClassicalShadowEstimation(ClassicalShadowBasic):
     This is the worst scenario of the shadow norm
     for its scaling can be reduced to :math:`3^n || O ||_{\infty}^2`,
     which is the significantly lower bound than the worst case scenario.
+    """
+
+
+class ClassicalShadowEstimation(ClassicalShadowBasic, EstimationOfObservable):
+    """The esitimations of the classical shadow from classical snapshots.
+
+    Here, we use the notations that use in the supplementary material of
+    `Predicting many properties of a quantum system from very few measurements
+    <https://doi.org/10.1038/s41567-020-0932-7>`_
+
     """
 
 

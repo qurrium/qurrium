@@ -9,9 +9,10 @@ import numpy as np
 
 from .matrix_calcution import (
     select_prediction_einsum_aij_bji_to_ab,
-    ListTraceMethod,
+    ListTraceMethodType,
     DEFAULT_LIST_TRACE_RHO_METHOD,
 )
+from ..container import EstimationOfObservable
 from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
 
 
@@ -372,17 +373,8 @@ def prediction_algorithm(
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
-    trace_method: ListTraceMethod = DEFAULT_LIST_TRACE_RHO_METHOD,
-) -> tuple[
-    list[np.complex128],
-    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    float,
-    int,
-    float,
-    float,
-    float,
-    float,
-]:
+    trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+) -> EstimationOfObservable:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
     Args:
@@ -399,7 +391,7 @@ def prediction_algorithm(
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-        trace_method (ListTraceMethod, optional):
+        trace_method (ListTraceMethodType, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":
@@ -408,29 +400,16 @@ def prediction_algorithm(
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
     Returns:
-        tuple[
-            list[np.complex128],
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-            float, int, float, float, float, float
-        ]:
-            - estimate_of_given_operators: list[np.complex128]
-                The esitmation values of measurement primitive :math:`\mathcal{U}`.
-            - corresponding_rhos: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-                The corresponding rho of measurement primitive :math:`\mathcal{U}`.
-            - actual_accuracy_prob_comp_delta: float
-                The actual accuracy probability component delta,
-            - num_of_estimators: int
-                The number of esitmators
-            - accuracy_predict_epsilon: float
-                The prediction of accuracy
-            - max_shadow_norm: float
-                The maximum shadow norm
-            - epsilon_upperbound: float
-                The upper bound of the prediction of accuracy epsilon
-            - shadow_norm_upperbound: float
-                The upper bound of the shadow norm
+        EstimationOfObservable:
+            The esitimations of the classical shadow from classical snapshots.
+
     Raises:
+        ValueError: If the shape of classical snapshots and the shape of given operators
+            are not the same.
+        ValueError: If the number of classical snapshots or the number of given operators
+            is less than or equal to 0.
     """
+
     num_classical_snapshot = len(classical_snapshots_rho)
     shape_of_classical_snapshots = next(iter(classical_snapshots_rho.values())).shape
     num_of_given_operators = len(given_operators)
@@ -444,6 +423,7 @@ def prediction_algorithm(
             "The number of classical snapshots and "
             "the number of given operators must be greater than 0."
         )
+    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
 
     epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
         num_classical_snapshot, given_operators
@@ -471,17 +451,17 @@ def prediction_algorithm(
             for i in range(num_of_estimators)
         ]
     )  # type: ignore
-    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
+
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
         np.array(given_operators), estimators  # type: ignore
     )
-    return (
-        estimate_of_given_operators,
-        corresponding_rhos,
-        actual_accuracy_prob_comp_delta,
-        num_of_estimators,
-        accuracy_predict_epsilon,
-        max_shadow_norm,
-        epsilon_upperbound,
-        shadow_norm_upperbound,
+    return EstimationOfObservable(
+        estimate_of_given_operators=estimate_of_given_operators,
+        corresponding_rhos=corresponding_rhos,
+        accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
+        num_of_estimators_k=num_of_estimators,
+        accuracy_predict_epsilon=accuracy_predict_epsilon,
+        maximum_shadow_norm=max_shadow_norm,
+        epsilon_upperbound=epsilon_upperbound,
+        shadow_norm_upperbound=shadow_norm_upperbound,
     )
