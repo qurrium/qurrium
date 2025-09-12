@@ -11,7 +11,7 @@ import numpy as np
 from qiskit import QuantumCircuit
 
 from ...qurrium.experiment import ArgumentsPrototype
-from ...process.classical_shadow import RhoMethod, ListTraceMethod, TraceMethod
+from ...process.classical_shadow import RhoMethodType, ListTraceMethodType, TraceMethodType
 from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 
@@ -189,11 +189,11 @@ class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
     max_shadow_norm: Optional[float]
     """The maximum shadow norm of the given operators."""
     # other config
-    rho_method: RhoMethod
+    rho_method: RhoMethodType
     """The method to reconstruct the density matrix."""
-    trace_method: TraceMethod
+    trace_method: TraceMethodType
     """The method to compute the trace."""
-    estimate_trace_method: ListTraceMethod
+    estimate_trace_method: ListTraceMethodType
     """The method to estimate the trace."""
     counts_used: Optional[Iterable[int]]
     """The index of the counts used."""

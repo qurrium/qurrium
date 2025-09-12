@@ -20,17 +20,18 @@ from ...qurrium.experiment import (
 )
 from ...process.utils import qubit_mapper
 from ...process.classical_shadow import (
-    classical_shadow_complex,
-    ClassicalShadowComplex,
-    RhoMethod,
-    DEFAULT_RHO_METHOD,
-    ListTraceMethod,
-    TraceMethod,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
     set_cpu_only,
     generate_random_basis,
     check_random_basis,
     JAX_AVAILABLE,
+    classical_shadow_complex,
+    ClassicalShadowComplex,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
@@ -306,9 +307,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
@@ -328,7 +329,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMethod, optional):
+            rho_method (RhoMethodType, optional):
                 It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
                 "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
@@ -357,27 +358,44 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
                 Currently, "multi_shots" is the best option for performance.
                 Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-            trace_method (TraceRhoMethod, optional):
-                The method to calculate the trace of Rho square.
+            trace_method (TraceMethodType, optional):
+                The method to calculate the trace of rho.
 
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2))
-                    to calculate the each summation item in `rho_m_list`.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2)
-                    to calculate the each summation item in `rho_m_list`.
+                - Matrix operation methods:
+                    - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_aij_bji_to_ab_numpy": Use
+                        `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is not available.
+                    - "einsum_aij_bji_to_ab_jax": Use
+                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is available.
+                For the matrix operation methods, it will require rho has been calculated first.
+
+                - Non-matrix operation methods:
+                    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                    - "bitwise_py": Use pure Python bitwise implementation.
+                For the non-matrix operation methods, it will directly calculate the trace from
+                the counts and random basis.
+
+                The default method is "bitwise_py", which is the fastest option.
+            estimate_trace_method (ListTraceMethodType, optional):
+                The method to use for the calculation.
+
                 - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
                 - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho.
 
-            estimate_trace_method (ListTraceMethod, optional):
-                The method to calculate the trace for searching esitmator.
-
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Defaults to DEFAULT_LIST_TRACE_METHOD.
 
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
@@ -447,9 +465,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
         r"""Randomized entangled entropy with complex.
@@ -474,36 +492,73 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy".
-                It can be either "numpy_proto", "numpy", "jax_flatten", or "numpy_vectorized".
+            rho_method (RhoMethodType, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-                - "numpy_proto": Use Numpy to calculate the rho_m.
-                - "numpy": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_vectorized": Use Numpy to calculate the rho_m with a flattening workflow.
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
 
-                Currently, "numpy" is the best option for performance.
-            trace_method (TraceRhoMethod, optional):
-                The method to calculate the trace of Rho square.
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
 
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2))
-                    to calculate the each summation item in `rho_m_list`.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2)
-                    to calculate the each summation item in `rho_m_list`.
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
+
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
+
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            trace_method (TraceMethodType, optional):
+                The method to calculate the trace of rho.
+
+                - Matrix operation methods:
+                    - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_aij_bji_to_ab_numpy": Use
+                        `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is not available.
+                    - "einsum_aij_bji_to_ab_jax": Use
+                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is available.
+                For the matrix operation methods, it will require rho has been calculated first.
+
+                - Non-matrix operation methods:
+                    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                    - "bitwise_py": Use pure Python bitwise implementation.
+                For the non-matrix operation methods, it will directly calculate the trace from
+                the counts and random basis.
+
+                The default method is "bitwise_py", which is the fastest option.
+            estimate_trace_method (ListTraceMethodType, optional):
+                The method to use for the calculation.
+
                 - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
                 - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho.
 
-            estimate_trace_method (ListTraceMethod, optional):
-                The method to calculate the trace for searching esitmator.
-
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Defaults to DEFAULT_LIST_TRACE_METHOD.
 
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
@@ -577,9 +632,9 @@ class OutsideAnalyzeInput(TypedDict):
     max_shadow_norm: Optional[float]
     # setup for running
     serial: int
-    rho_method: RhoMethod
-    trace_method: TraceMethod
-    estimate_trace_method: ListTraceMethod
+    rho_method: RhoMethodType
+    trace_method: TraceMethodType
+    estimate_trace_method: ListTraceMethodType
     counts_used: Optional[Iterable[int]]
 
 
@@ -592,9 +647,9 @@ def quantities_input_collecter(
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
-    rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> OutsideAnalyzeInput:
     r"""Collect the inputs for the quantities.
@@ -615,9 +670,7 @@ def quantities_input_collecter(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        rho_method (RhoMethod, optional):
+        rho_method (RhoMethodType, optional):
             It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
             "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
@@ -646,27 +699,44 @@ def quantities_input_collecter(
 
             Currently, "multi_shots" is the best option for performance.
             Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-        trace_method (TraceRhoMethod, optional):
-            The method to calculate the trace of Rho square.
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
 
-            - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2))
-                to calculate the each summation item in `rho_m_list`.
-            - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2)
-                to calculate the each summation item in `rho_m_list`.
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
+
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
             - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
             - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
 
-        estimate_trace_method (ListTraceMethod, optional):
-            The method to calculate the trace for searching esitmator.
-
-            - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
         counts_used (Optional[Iterable[int]], optional):
             The index of the counts used. Defaults to None.
@@ -737,9 +807,9 @@ def outside_analyze(
     max_shadow_norm: Optional[float],
     # setup for running
     serial: int,
-    rho_method: RhoMethod = "numpy",
-    trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> tuple[str, ShadowUnveilAnalysis]:
     r"""Randomized entangled entropy with complex.
@@ -783,36 +853,74 @@ def outside_analyze(
 
         serial (int):
             The serial number of the experiment.
-        rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy".
-            It can be either "numpy_proto", "numpy", "jax_flatten", or "numpy_vectorized".
 
-            - "numpy_proto": Use Numpy to calculate the rho_m.
-            - "numpy": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_vectorized": Use Numpy to calculate the rho_m with a flattening workflow.
+        rho_method (RhoMethodType, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            Currently, "numpy" is the best option for performance.
-        trace_method (TraceRhoMethod, optional):
-            The method to calculate the trace of Rho square.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-            - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2))
-                to calculate the each summation item in `rho_m_list`.
-            - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2)
-                to calculate the each summation item in `rho_m_list`.
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
+
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
+
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
             - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
             - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
 
-        estimate_trace_method (ListTraceMethod, optional):
-            The method to calculate the trace for searching esitmator.
-
-            - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
         backend (PostProcessingBackend, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.

@@ -18,15 +18,16 @@ from .arguments import (
     ShadowUnveilAnalyzeArgs,
 )
 from .experiment import (
+    JAX_AVAILABLE,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
     ShadowUnveilExperiment,
     quantities_input_collecter,
     outside_analyze_wrapper,
-    RhoMethod,
-    DEFAULT_RHO_METHOD,
-    ListTraceMethod,
-    TraceMethod,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
-    JAX_AVAILABLE,
 )
 from ...qurrium import QurriumPrototype
 from ...qurrium.utils.iocontrol import RJUST_LEN
@@ -423,9 +424,9 @@ class ShadowUnveil(
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMethod = DEFAULT_RHO_METHOD,
-        trace_method: TraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: ListTraceMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
@@ -462,56 +463,71 @@ class ShadowUnveil(
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMethod, optional):
-                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-                "single_shots_proto", "single_shots", or "single_shots_vectorized".
+        rho_method (RhoMethodType, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-                For the "multi_shots_*" methods, the counts and random basis are used as is.
-                For the "single_shots_*" methods, the counts and random basis are
-                converted to single shot per snapshot for classical shadow post-processing.
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
 
-                **Warning: Althought larger snapshots number means more accurate values.**
-                **But if your shots number is large,**
-                **this may significantly increase memory usage**
-                **and require a lot of computing resource.**
-                **In worst scenrio, this will break your computer.**
-                **Please reconsider for performance.**
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
 
-                - "multi_shots_proto": Use Numpy to calculate the rho_m.
-                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow.
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
 
-                - "single_shots_proto": Use Numpy to calculate the rho_m
-                    with converted single shot counts.
-                - "single_shots": Use Numpy to calculate the rho_m
-                    with precomputed values with converted single shot counts.
-                - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow with converted single shot counts.
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
 
-                Currently, "multi_shots" is the best option for performance.
-                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-            trace_method (TraceRhoMethod, optional):
-                The method to calculate the trace of Rho square.
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
 
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2))
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
                     to calculate the each summation item in `rho_m_list`.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2)
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
                     to calculate the each summation item in `rho_m_list`.
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
 
-            estimate_trace_method (ListTraceMethod, optional):
-                The method to calculate the trace for searching esitmator.
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
 
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
+            - "einsum_aij_bji_to_ab_numpy":
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
+            - "einsum_aij_bji_to_ab_jax":
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
 
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
