@@ -323,7 +323,7 @@ ListTraceMethodType = Union[ListTraceMethod, str]
     This is the fastest implementation to calculate the trace of Rho.
 """
 
-DEFAULT_LIST_TRACE_RHO_METHOD: ListTraceMethod = ListTraceMethod.get_default()
+DEFAULT_LIST_TRACE_METHOD: ListTraceMethod = ListTraceMethod.get_default()
 """The default method for the trace calculation with matrix multiplication."""
 
 
@@ -352,7 +352,7 @@ def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
 
 
 def select_all_trace_rho_by_einsum_aij_bji_to_ab(
-    method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+    method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> Callable[
     [np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]],
     np.complex128,
@@ -371,7 +371,7 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
                 Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho.
 
-            Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
         Callable[[np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]], np.complex128]:
@@ -425,7 +425,7 @@ def prediction_einsum_aij_bji_to_ab_numpy(
 
 
 def select_prediction_einsum_aij_bji_to_ab(
-    method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+    method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> Callable[
     [
         np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
@@ -447,7 +447,7 @@ def select_prediction_einsum_aij_bji_to_ab(
                 Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho.
 
-            Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
         Callable[[

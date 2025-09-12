@@ -102,7 +102,7 @@ from .trace_predict_process import (
     classical_shadow_matrix_availability,
     JAX_AVAILABLE,
     ListTraceMethodType,
-    DEFAULT_LIST_TRACE_RHO_METHOD,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from .all_trace_process import TraceMethodType, DEFAULT_TRACE_METHOD, purity_value_kind
 from .container import (

@@ -12,7 +12,7 @@ from .matrix_calcution import (
     SingleTraceMethod,
     ListTraceMethod,
     ListTraceMethodType,
-    DEFAULT_LIST_TRACE_RHO_METHOD,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from .trace_mean_core import (
     mean_rho_core,

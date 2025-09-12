@@ -12,7 +12,7 @@ from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
 from ..trace_predict_process import (
     prediction_algorithm,
     ListTraceMethodType,
-    DEFAULT_LIST_TRACE_RHO_METHOD,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from ..utils import check_random_basis_array
 
@@ -28,7 +28,7 @@ def estimation_of_given_operators(
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
-    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowEstimation:
     r"""Calculate the expectation value of given operators.
@@ -138,7 +138,7 @@ def estimation_of_given_operators(
                 Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho.
 
-            Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.

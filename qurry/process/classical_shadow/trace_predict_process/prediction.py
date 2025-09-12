@@ -10,7 +10,7 @@ import numpy as np
 from .matrix_calcution import (
     select_prediction_einsum_aij_bji_to_ab,
     ListTraceMethodType,
-    DEFAULT_LIST_TRACE_RHO_METHOD,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from ..container import EstimationOfObservable
 from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
@@ -373,7 +373,7 @@ def prediction_algorithm(
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
-    trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+    trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> EstimationOfObservable:
     r"""Calculate the prediction of accuracy and the number of estimators.
 

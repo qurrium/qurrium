@@ -19,7 +19,7 @@ from ..trace_predict_process import (
     mean_rho_core,
     prediction_algorithm,
     ListTraceMethodType,
-    DEFAULT_LIST_TRACE_RHO_METHOD,
+    DEFAULT_LIST_TRACE_METHOD,
 )
 from ..utils import check_random_basis_array
 
@@ -36,7 +36,7 @@ def classical_shadow_complex(
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_RHO_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowComplex:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
@@ -219,7 +219,7 @@ def classical_shadow_complex(
                 Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho.
 
-            Defaults to DEFAULT_ALL_TRACE_RHO_METHOD.
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
 
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
