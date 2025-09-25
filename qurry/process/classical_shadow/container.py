@@ -187,11 +187,11 @@ class ClassicalShadowEstimation(ClassicalShadowBasic, EstimationOfObservable):
     """
 
 
-PurityValueKind = Literal["multishots", "singleshots", "bitwise"]
+PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]
 """The kind of purity value calculation.
 This will depend on the rho_method and trace_method.
 
-- "multishots":
+- "multi_shots":
     The *rho_method is one of the multi_shots methods* **and** *trace_method is one of the
     matrix operation methods*.
 
@@ -213,7 +213,7 @@ This will depend on the rho_method and trace_method.
             ]
         )
 
-- "singleshots":
+- "single_shots":
     The *rho_method is one of the single_shots methods* **and** *trace_method is one of the
     matrix operation methods*, or the *trace_method is one of the non-matrix operation methods
     except "bitwise_py"*.
