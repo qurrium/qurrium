@@ -5,7 +5,7 @@
 
 from typing import Sequence, Iterable, Union
 from functools import reduce
-from itertools import combinations, batched
+from itertools import combinations
 import multiprocessing as mp
 
 # pylint:disable=no-name-in-module,import-error
@@ -97,23 +97,6 @@ def trace_calculation_unit(
     )
 
 
-def batch_make(num_of_samples: int):
-    """Create a batched list of combinations for multiprocessing.
-
-    Args:
-        num_of_samples (int): The number of samples to create combinations from.
-
-    Returns:
-        A tuple containing:
-            - A batched iterable of combinations.
-            - The total number of batches.
-    """
-    return (
-        batched(combinations(range(num_of_samples), 2), num_of_samples),
-        num_of_samples // 2,
-    )
-
-
 def trace_calculation_unit_wrapper(
     args: tuple[
         Sequence[Sequence[int]], Sequence[Sequence[int]], Sequence[int], Iterable[tuple[int, int]]
@@ -162,8 +145,7 @@ def nomatmul_trace_sum_py(
     trace_m1_m2 = 0.0
     cpu_count = mp.cpu_count()
 
-    all_combinations_split, all_combinations_split_num = batch_make(len(pauli_basis))
-    chunksize = all_combinations_split_num // cpu_count // 4
+    num_of_samples = len(pauli_basis)
 
     if multiprocessing or cpu_count > 1:
         with mp.Pool(cpu_count) as pool:
@@ -171,17 +153,24 @@ def nomatmul_trace_sum_py(
             results = pool.imap_unordered(
                 trace_calculation_unit_wrapper,
                 (
-                    (pauli_basis, spin_outcome, subsystem, combination_item)
-                    for combination_item in all_combinations_split
+                    (
+                        pauli_basis,
+                        spin_outcome,
+                        subsystem,
+                        [(i, j) for j in range(i + 1, num_of_samples)],
+                    )
+                    for i in range(num_of_samples)
                 ),
-                chunksize=max(1, chunksize),
+                chunksize=max(1, num_of_samples // cpu_count // 2),
             )
             trace_m1_m2 += sum(results)
     else:
         # Without multiprocessing, calculate directly
         trace_m1_m2 += sum(
-            trace_calculation_unit(pauli_basis, spin_outcome, subsystem, combination_item)
-            for combination_item in all_combinations_split
+            get_trace(
+                pauli_basis[m1], spin_outcome[m1], pauli_basis[m2], spin_outcome[m2], subsystem
+            )
+            for m1, m2 in combinations(range(num_of_samples), 2)
         )
 
     return trace_m1_m2
