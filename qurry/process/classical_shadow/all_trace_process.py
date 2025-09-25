@@ -80,6 +80,15 @@ class TraceMethod(BaseMethodEnum):
         """
         return self in [self.BITWISE_PY]
 
+    @classmethod
+    def get_all_bitwise_methods(cls) -> list[str]:
+        """Get a list of all avaialble bitwise methods.
+
+        Returns:
+            list[str]: A list of avaialble bitwise methods.
+        """
+        return [cls.BITWISE_PY.value]
+
     def is_singleshots_method(self) -> bool:
         """Whether it is a singleshots method.
 
@@ -88,6 +97,15 @@ class TraceMethod(BaseMethodEnum):
         """
         return self in [self.NOMATMUL_TRACE_PY, self.NOMATMUL_TRACE_RUST]
 
+    @classmethod
+    def get_single_methods(cls) -> list[str]:
+        """Get a list of all avaialble non-matrix operation methods.
+
+        Returns:
+            list[str]: A list of avaialble non-matrix operation methods.
+        """
+        return [cls.NOMATMUL_TRACE_PY.value, cls.NOMATMUL_TRACE_RUST.value]
+
     def is_nomatop_method(self) -> bool:
         """Whether it is a nomatmul method.
 
@@ -95,6 +113,15 @@ class TraceMethod(BaseMethodEnum):
             bool: True if it is a nomatmul method, False otherwise.
         """
         return self.is_bitwise_method() or self.is_singleshots_method()
+
+    @classmethod
+    def get_nomatop_methods(cls) -> list[str]:
+        """Get a list of all avaialble nomatmul methods.
+
+        Returns:
+            list[str]: A list of avaialble nomatmul methods.
+        """
+        return cls.get_single_methods() + cls.get_all_bitwise_methods()
 
     def to_nomatop_enum(self) -> NonMatOpTraceMethod:
         """Convert to NonMatOpTraceMethod enum.
@@ -120,6 +147,20 @@ class TraceMethod(BaseMethodEnum):
             self.EINSUM_IJ_JI,
             self.EINSUM_AIJ_BJI_TO_AB_NUMPY,
             self.EINSUM_AIJ_BJI_TO_AB_JAX,
+        ]
+
+    @classmethod
+    def get_all_matrixop_methods(cls) -> list[str]:
+        """Get a list of all avaialble matrix operation methods.
+
+        Returns:
+            list[str]: A list of avaialble matrix operation methods.
+        """
+        return [
+            cls.TRACE_OF_MATMUL.value,
+            cls.EINSUM_IJ_JI.value,
+            cls.EINSUM_AIJ_BJI_TO_AB_NUMPY.value,
+            cls.EINSUM_AIJ_BJI_TO_AB_JAX.value,
         ]
 
     def to_matrixop_enum(self) -> RhoTraceMethod:
@@ -356,5 +397,5 @@ def purity_value_kind(rho_method: RhoMethodType, trace_method: TraceMethodType) 
     if trace_method.is_bitwise_method():
         return "bitwise"
     if not trace_method.is_nomatop_method() and rho_method.is_multi_method():
-        return "multishots"
-    return "singleshots"
+        return "multi_shots"
+    return "single_shots"
