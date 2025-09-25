@@ -42,15 +42,21 @@ def multi_counts_to_basis_spin(
 
         for bitstring, count in single_counts.items():
             spin_values = [1 if bits == "1" else -1 for bits in reversed(bitstring)]
-            partial_spin_outcome.extend([spin_values] * count)
+            partial_spin_outcome.extend(spin_values for _ in range(count))
 
         if len(partial_spin_outcome) != shots:
             raise ValueError(
                 "The single counts should only contain one bitstring with count equal to shots. "
                 + f"Counts: {single_counts}. Index: {idx}."
             )
+        if len(partial_pauli_basis) != len(partial_spin_outcome):
+            raise ValueError(
+                "The length of the partial_pauli_basis should be equal to "
+                + "the length of the partial_spin_outcome. "
+                + f"Index: {idx}."
+            )
         pauli_basis.extend(partial_pauli_basis)
-        spin_outcome.append(partial_spin_outcome)
+        spin_outcome.extend(partial_spin_outcome)
 
     return pauli_basis, spin_outcome
 
