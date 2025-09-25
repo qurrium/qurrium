@@ -153,8 +153,8 @@ except ImportError as err:
 
 
 BACKEND_AVAILABLE = availablility(
-    "classical_shadow.array_process",
-    [("Numpy", True, None), ("jax", JAX_AVAILABLE, FAILED_JAX_IMPORT)],
+    "classical_shadow.trace_predict_process",
+    [("Numpy", True, None), ("JAX", JAX_AVAILABLE, FAILED_JAX_IMPORT)],
 )
 """The availability of backends for classical shadow matrix calculation."""
 
