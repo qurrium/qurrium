@@ -18,8 +18,8 @@ from utils import (
     current_time_filename,
     InputUnitTuple,
     ResultUnitDict,
-    quantity_units_conclusion,
     multi_output_all_conclusion,
+    quantity_units_conclusion,
     specific_analysis_args_making,
     check_unit,
     detect_simulator_source,
@@ -29,9 +29,15 @@ from utils import (
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
 from qurry.qurrent import ShadowUnveil
-from qurry.qurrent.classical_shadow import ShadowUnveilAnalysis
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
-from qurry.process.classical_shadow import JAX_AVAILABLE, set_cpu_only
+from qurry.process.classical_shadow import (
+    JAX_AVAILABLE,
+    set_cpu_only,
+    RhoMethod,
+    TraceMethod,
+    purity_value_kind,
+    PurityValueKind,
+)
 from qurry.tools.backend.import_simulator import GeneralSimulator
 from qurry.capsule import quickJSON
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
@@ -41,43 +47,28 @@ set_cpu_only()
 SEED_SIMULATOR = 2019  # <harmony/>
 THRESHOLD = 0.25
 SNAPSHOTS = 400
-SHOTS = 1
+SHOTS = 4
 
 backend = GeneralSimulator()
 backend.set_options(seed_simulator=SEED_SIMULATOR)  # type: ignore
 random_bases = prepare_random_basis()
 SIM_DEFAULT_SOURCE = detect_simulator_source()
 
-RHO_METHODS = [
-    "multi_shots_proto",
-    "multi_shots",
-    "multi_shots_vectorized",
-]
-RHO_METHODS_SPREADOUT = [
-    "single_shots_proto",
-    "single_shots",
-    "single_shots_vectorized",
-]
-TRACE_METHODS = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
-    ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
-)
+methods_by_kind: dict[PurityValueKind, list[tuple[str, str]]] = {}
 
-input_items: dict[str, list[InputUnitTuple]] = {
-    "04": [],
-    "04_extra_clbits": [],
-}
+for rho_method_tmp in RhoMethod.get_all_methods():
+    for trace_method_tmp in TraceMethod.get_all_methods():
+        if not JAX_AVAILABLE and trace_method_tmp == TraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value:
+            continue
+        methods_by_kind.setdefault(purity_value_kind(rho_method_tmp, trace_method_tmp), []).append(
+            (rho_method_tmp, trace_method_tmp)
+        )
+
+
+input_items: dict[str, list[InputUnitTuple]] = {"04": [], "04_extra_clbits": []}
 """Input items. """
 result_items: dict[str, list[ResultUnitDict]] = {}
 """Result items. """
-for items_name_tmp in ["04", "04_extra_clbits"]:
-    for rho_method_tmp in RHO_METHODS:
-        for trace_method_tmp in TRACE_METHODS:
-            result_items[item_name_making(items_name_tmp, rho_method_tmp, trace_method_tmp)] = []
-            result_items[
-                item_name_making(
-                    f"{items_name_tmp}_multi", "multi_process", rho_method_tmp, trace_method_tmp
-                )
-            ] = []
 
 circuits: dict[str, QuantumCircuit] = {
     "4-trivial": TrivialParamagnet(4),
@@ -187,110 +178,66 @@ for num_qubits_tmp, measure_range_tmp, circ_name_tmp, answer_tmp in [
     exp_method_04_extra_clbits.add(circuits[circ_name_tmp], circ_name_tmp)
 
 
-# @pytest.mark.parametrize(
-#     ["exp_method", "division", "input_item"],
-#     quantity_units_conclusion(
-#         [
-#             # (exp_method_04, "04"),
-#             (exp_method_04_extra_clbits, "04_extra_clbits"),
-#         ],
-#         input_items,
-#     ),
-# )
-# def test_quantity_unit(exp_method: ShadowUnveil, division: str, input_item: InputUnitTuple) -> None:
-#     """Test the quantity.
+@pytest.mark.parametrize(
+    ["exp_method", "division", "input_item"],
+    quantity_units_conclusion(
+        [
+            (exp_method_04, "04"),
+            (exp_method_04_extra_clbits, "04_extra_clbits"),
+        ],
+        input_items,
+    ),
+)
+def test_quantity_unit(exp_method: ShadowUnveil, division: str, input_item: InputUnitTuple) -> None:
+    """Test the quantity.
 
-#     Args:
-#         exp_method (QurriumPrototype): The QurriumPrototype instance.
-#         division (str): The test item division.
-#         input_item (InputUnitTuple): The input item containing measure, analyze, and answer.
-#     """
+    Args:
+        exp_method (QurriumPrototype): The QurriumPrototype instance.
+        division (str): The test item division.
+        input_item (InputUnitTuple): The input item containing measure, analyze, and answer.
+    """
 
-#     exp_id = exp_method.measure(**input_item.measure, backend=backend)  # type: ignore
+    exp_id = exp_method.measure(**input_item.measure, backend=backend)  # type: ignore
 
-#     analysis: dict[str, ShadowUnveilAnalysis] = {}
-#     quantity: dict[str, dict[str, Any]] = {}
-#     for rho_method in RHO_METHODS:
-#         for trace_method in TRACE_METHODS:
-#             analysis[rho_method + "." + trace_method] = exp_method.exps[exp_id].analyze(
-#                 **input_item.analyze, rho_method=rho_method, trace_method=trace_method
-#             )
-#             quantity[rho_method + "." + trace_method] = analysis[
-#                 rho_method + "." + trace_method
-#             ].content._asdict()
+    quantity: dict[str, dict[tuple[str, str], dict[str, Any]]] = {}
+    for kind, all_methods in methods_by_kind.items():
+        for rho_method, trace_method in all_methods:
+            analysis_01_tmp = exp_method.exps[exp_id].analyze(
+                **input_item.analyze, rho_method=rho_method, trace_method=trace_method
+            )
+            quantity.setdefault(kind, {})[
+                (rho_method, trace_method)
+            ] = analysis_01_tmp.content._asdict()
 
-#             # analysis_02_tmp = exp_method.exps[exp_id].analyze(
-#             #     **test_item["analyze"], counts_used=range(5)  # type: ignore
-#             # )
-#             # quantity_02_tmp = analysis_02_tmp.content._asdict()
+        for (rho_method, trace_method), quantity_item in quantity[kind].items():
+            result_items.setdefault(division + f".{rho_method}.{trace_method}", []).append(
+                check_unit(
+                    quantity_item,
+                    "purity",
+                    input_item.answer,
+                    input_item.item_name,
+                    THRESHOLD,
+                    # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
+                    ["entropy", "mean_of_rho"],
+                )
+            )
+            tmp_mean_of_rho_trace = np.trace(quantity_item["mean_of_rho"])
+            assert np.abs(tmp_mean_of_rho_trace - 1) < NUMERICAL_ERROR_TOLERANCE, (
+                "The trace of the mean_of_rho should be 1, but error larger than tolerance: "
+                + f"{NUMERICAL_ERROR_TOLERANCE}, the trace: {tmp_mean_of_rho_trace}."
+            )
 
-#             # analysis_03_tmp = exp_method.exps[exp_id].analyze(
-#             #     **test_item["analyze"], counts_used=range(5)  # type: ignore
-#             # )
-#             # quantity_03_tmp = analysis_03_tmp.content._asdict()
-
-#             # all_system_source_keyname = (
-#             #     "allSystemSource" if test_item_division == "03" else "all_system_source"
-#             # )
-
-#             # assert (
-#             #     quantity_02_tmp["entropyAllSys"]
-#             #     != quantity[rho_method + "." + trace_method]["entropyAllSys"]
-#             # ), (
-#             #     "The all system entropy should be different for counts_used is not same: "
-#             #     + f"counts_used: {quantity[rho_method + "." + trace_method]['counts_used']} "
-#             #     + f"and {quantity_02_tmp['counts_used']}."
-#             #     + f"{quantity[rho_method + "." + trace_method]['entropyAllSys']} != "
-#             #     + f"{quantity_02_tmp['entropyAllSys']}, "
-#             #     + f"from {quantity[rho_method + "." + trace_method][all_system_source_keyname]} "
-#             #     + f"and {quantity_02_tmp[all_system_source_keyname]}."
-#             # )
-#             # assert (
-#             #     np.abs(quantity_03_tmp["entropyAllSys"]
-#             #            - quantity_02_tmp["entropyAllSys"]) < NUMERICAL_ERROR_TOLERANCE
-#             # ), (
-#             #     "The all system entropy should be the same for same all system source: "
-#             #     + f"{quantity_03_tmp['entropyAllSys']} == {quantity_02_tmp['entropyAllSys']}."
-#             #     + f"from {quantity_03_tmp[all_system_source_keyname]} "
-#             #     + f"and {quantity_02_tmp[all_system_source_keyname]}."
-#             # )
-#             # assert quantity_02_tmp[all_system_source_keyname] == "independent", (
-#             #     "The source of all system is not independent: "
-#             #     + f"{quantity_02_tmp[all_system_source_keyname]}."
-#             # )
-#             # assert "AnalysisHeader" in quantity_03_tmp[all_system_source_keyname], (
-#             #     "The source of all system is not from existed analysis: "
-#             #     + f"{quantity_03_tmp[all_system_source_keyname]}."
-#             # )
-
-#     for rho_trace_method, quantity_item in quantity.items():
-#         result_items[division + f".{rho_trace_method}"].append(
-#             check_unit(
-#                 quantity_item,
-#                 "purity",
-#                 input_item.answer,
-#                 input_item.item_name,
-#                 THRESHOLD,
-#                 # ["entropy", "purityAllSys", "entropyAllSys", "all_system_source"],
-#                 ["entropy", "mean_of_rho"],
-#             )
-#         )
-#         tmp_mean_of_rho_trace = np.trace(quantity_item["mean_of_rho"])
-#         assert np.abs(tmp_mean_of_rho_trace - 1) < NUMERICAL_ERROR_TOLERANCE, (
-#             "The trace of the mean_of_rho should be 1, but error larger than tolerance: "
-#             + f"{NUMERICAL_ERROR_TOLERANCE}, the trace: {tmp_mean_of_rho_trace}."
-#         )
-#     for (rho_trace_1, quantity_item_1), (rho_trace_2, quantity_item_2) in combinations(
-#         quantity.items(), 2
-#     ):
-#         assert (
-#             np.abs(quantity_item_1["purity"] - quantity_item_2["purity"])
-#             < NUMERICAL_ERROR_TOLERANCE
-#         ), (
-#             "The purity should be the same for same rho and trace method: "
-#             + f"{rho_trace_1} != {rho_trace_2}: "
-#             + f"{quantity_item_1['purity']} != {quantity_item_2['purity']}."
-#         )
+        for (rho_trace_1, quantity_item_1), (rho_trace_2, quantity_item_2) in combinations(
+            quantity[kind].items(), 2
+        ):
+            assert (
+                np.abs(quantity_item_1["purity"] - quantity_item_2["purity"])
+                < NUMERICAL_ERROR_TOLERANCE
+            ), (
+                "The purity should be the same for same rho and trace method: "
+                + f"{rho_trace_1} != {rho_trace_2}: "
+                + f"{quantity_item_1['purity']} != {quantity_item_2['purity']}."
+            )
 
 
 @pytest.mark.parametrize(
@@ -327,26 +274,27 @@ def test_multi_output_all(
         backend=backend,
         summoner_name=summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
-        skip_build_write=True,
-        skip_output_write=True,
+        # skip_build_write=True,
+        # skip_output_write=True,
         multiprocess_build=True,
     )
 
     specific_analysis_args = specific_analysis_args_making(exp_method, summoner_id, analysis_args)
 
-    for rho_method in RHO_METHODS:
-        for trace_method in TRACE_METHODS:
-            summoner_id = exp_method.multiAnalysis(
-                summoner_id,
-                specific_analysis_args=specific_analysis_args,  # type: ignore
-                rho_method=rho_method,
-                trace_method=trace_method,
-                no_serialize=True,
-                analysis_name=f"multi_process.{rho_method}.{trace_method}",
-                skip_write=(RHO_METHODS[-1] != rho_method or TRACE_METHODS[-1] != trace_method),
-                multiprocess_analysis=True,
-                multiprocess_write=True,
-            )
+    methods = sum(methods_by_kind.values(), [])
+    for i, (rho_method, trace_method) in enumerate(methods):
+        print(f"Processing {i+1}/{len(methods)}: {rho_method}, {trace_method}...")
+        summoner_id = exp_method.multiAnalysis(
+            summoner_id,
+            specific_analysis_args=specific_analysis_args,  # type: ignore
+            rho_method=rho_method,
+            trace_method=trace_method,
+            no_serialize=True,
+            analysis_name=f"multi_process.{rho_method}.{trace_method}",
+            skip_write=i < len(methods) - 1,  # only write the last one
+            multiprocess_analysis=True,
+            multiprocess_write=True,
+        )
 
     for rk, report in exp_method.multimanagers[summoner_id].quantity_container.items():
         for config in config_list:
@@ -356,7 +304,7 @@ def test_multi_output_all(
                     + f"{quantity.keys()}/{config['tags']}/{rk}."
                 )
 
-                result_items[f"{division}_multi.{rk}"].append(
+                result_items.setdefault(f"{division}_multi.{rk}", []).append(
                     (
                         check_unit(
                             quantity,
