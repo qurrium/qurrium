@@ -445,6 +445,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             bitstring_mapping=bitstring_mapping,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,
+            methods_used=(
+                rho_method if isinstance(rho_method, str) else rho_method.value,
+                trace_method if isinstance(trace_method, str) else trace_method.value,
+            ),
             **qs,
         )
 
@@ -961,6 +965,10 @@ def outside_analyze(
         # setup for running
         serial=serial,
         counts_used=counts_used,
+        methods_used=(
+            rho_method if isinstance(rho_method, str) else rho_method.value,
+            trace_method if isinstance(trace_method, str) else trace_method.value,
+        ),
         **qs,
     )
 

@@ -1,9 +1,10 @@
 """ShadowUnveil - Analysis (:mod:`qurry.qurrent.classical_shadow.analysis`)"""
 
-from typing import Optional, NamedTuple, Iterable, Any, Type
+from typing import Optional, NamedTuple, Iterable, Any, Type, Union
 import numpy as np
 
 from ...qurrium.analysis import AnalysisPrototype
+from ...process.classical_shadow import PurityValueKind, RhoMethodType, TraceMethodType
 
 
 class SUAnalysisInput(NamedTuple):
@@ -102,6 +103,14 @@ class SUAnalysisContent(NamedTuple):
     """The purity calculated by classical shadow."""
     entropy: float
     """The entropy calculated by classical shadow."""
+    purity_value_kind: Union[PurityValueKind, str]
+    """The kind of purity value calculation.
+    This will depend on the rho_method and trace_method.
+    
+    If it is not one of the defined kinds, it will be "unknown".
+    """
+    methods_used: tuple[RhoMethodType, TraceMethodType]
+    """The (rho_method, trace_method) used for the calculation."""
     # esitimation of given operators
     estimate_of_given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     r"""The result of measurement primitive :math:`\mathcal{U}`."""
@@ -212,6 +221,8 @@ NEW_FIELDS_DEFAULTS = {
     "taking_time": 0.0,
     "purity": np.nan,
     "entropy": np.nan,
+    "purity_value_kind": "unknown",
+    "methods_used": ("unknown", "unknown"),
     "estimate_of_given_operators": [],
     "corresponding_rhos": [],
     "accuracy_prob_comp_delta": np.nan,
