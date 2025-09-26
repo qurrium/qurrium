@@ -106,7 +106,7 @@ class SUAnalysisContent(NamedTuple):
     purity_value_kind: Union[PurityValueKind, str]
     """The kind of purity value calculation.
     This will depend on the rho_method and trace_method.
-    
+
     If it is not one of the defined kinds, it will be "unknown".
     """
     methods_used: tuple[RhoMethodType, TraceMethodType]

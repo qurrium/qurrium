@@ -56,7 +56,7 @@ class RhoTraceMethod(BaseMethodEnum):
         to calculate the each summation item in `rho_m_list`.
     - "einsum_aij_bji_to_ab_numpy": Use
         `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-        This is the fastest implementation to calculate the trace of Rho 
+        This is the fastest implementation to calculate the trace of Rho
         if JAX is not available.
     - "einsum_aij_bji_to_ab_jax": Use
         `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.

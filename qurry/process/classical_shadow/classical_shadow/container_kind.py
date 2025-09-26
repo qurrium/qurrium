@@ -40,7 +40,7 @@ This will depend on the rho_method and trace_method.
     The *rho_method is one of the single_shots methods* **and** *trace_method is one of the
     matrix operation methods*, or the *trace_method is one of the non-matrix operation methods
     except "bitwise_py"*.
-    
+
     .. code-block:: python
 
         (
@@ -68,7 +68,7 @@ This will depend on the rho_method and trace_method.
 
 - "bitwise":
     The *trace_method is "bitwise_py"* no matter what the rho_method is.
-    
+
     .. code-block:: python
 
         (trace_method in ["bitwise_py"])
@@ -228,7 +228,7 @@ class ClassicalShadowPurity(ClassicalShadowBasic):
     purity_value_kind: Union[PurityValueKind, str]
     """The kind of purity value calculation.
     This will depend on the rho_method and trace_method.
-    
+
     If it is not one of the defined kinds, it will be "unknown".
     """
 
