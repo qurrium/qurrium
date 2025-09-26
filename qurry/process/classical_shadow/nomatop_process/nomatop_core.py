@@ -140,7 +140,6 @@ def trace_nomatop_core(
     selected_clreg_sorted = sorted(selected_classical_registers)
     pauli_basis, spin_outcome = multi_counts_to_basis_spin(shots, counts, random_unitary_array)
 
-    # 處理輸入，確保是 enum
     if isinstance(trace_method, str):
         trace_method = NonMatOpTraceMethod.from_string(trace_method)
 
