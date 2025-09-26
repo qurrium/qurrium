@@ -1,7 +1,7 @@
 """Utility functions for testing qurry package."""
 
 import os
-from typing import TypedDict, Any, Optional, Iterable, NamedTuple, Literal
+from typing import TypedDict, Any, Optional, Iterable, NamedTuple, Literal, Union
 import warnings
 import numpy as np
 
@@ -37,7 +37,7 @@ def detect_simulator_source() -> str:
 
 def prepare_random_unitary_seeds(
     filename: str = SEED_FILE_LOCATION,
-) -> dict[int, dict[int, dict[int, Literal[0, 1, 2, int]]]]:
+) -> dict[int, dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
     """Prepare random unitary seeds from a file.
 
     Args:
