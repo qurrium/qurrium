@@ -147,7 +147,7 @@ def nomatmul_trace_sum_py(
 
     num_of_samples = len(pauli_basis)
 
-    if multiprocessing or cpu_count > 1:
+    if multiprocessing and cpu_count > 1:
         with mp.Pool(cpu_count) as pool:
             # Using multiprocessing to parallelize the trace calculation
             results = pool.imap_unordered(
