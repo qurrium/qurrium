@@ -7,10 +7,9 @@ from typing import Literal, Union
 import warnings
 import numpy as np
 
-from .rho_process import RhoMethod, RhoMethodType, DEFAULT_RHO_METHOD
-from .trace_predict_process import trace_rho_square_core, RhoTraceMethod
+from .rho_process import RhoMethodType, DEFAULT_RHO_METHOD
+from .trace_predict_process import trace_rho_square_core, RhoTraceMethod, JAX_AVAILABLE
 from .nomatop_process import trace_nomatop_core, NonMatOpTraceMethod
-from .container import PurityValueKind
 from ..utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum
 
 
@@ -70,7 +69,7 @@ class TraceMethod(BaseMethodEnum):
         Returns:
             TraceMethod: The default method.
         """
-        return cls.BITWISE_PY
+        return cls.EINSUM_AIJ_BJI_TO_AB_JAX if JAX_AVAILABLE else cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
 
     def is_bitwise_method(self) -> bool:
         """Whether it is a bitwise method.
@@ -322,80 +321,3 @@ def all_trace_core(
     entropy = -np.log2(purity)
 
     return purity, entropy
-
-
-def purity_value_kind(rho_method: RhoMethodType, trace_method: TraceMethodType) -> PurityValueKind:
-    """Get the kind of purity value calculation.
-
-    Args:
-        rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
-
-            For the "multi_shots_*" methods, the counts and random basis are used as is.
-            For the "single_shots_*" methods, the counts and random basis are
-            converted to single shot per snapshot for classical shadow post-processing.
-
-            **Warning: Althought larger snapshots number means more accurate values.**
-            **But if your shots number is large,**
-            **this may significantly increase memory usage**
-            **and require a lot of computing resource.**
-            **In worst scenrio, this will break your computer.**
-            **Please reconsider for performance.**
-
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
-            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow.
-
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
-            - "single_shots": Use Numpy to calculate the rho_m
-                with precomputed values with converted single shot counts.
-            - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow with converted single shot counts.
-
-            Currently, "multi_shots" is the best option for performance.
-            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-        trace_method (TraceMethodType, optional):
-            The method to calculate the trace of rho.
-
-            - Matrix operation methods:
-                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_aij_bji_to_ab_numpy": Use
-                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax": Use
-                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is available.
-
-            For the matrix operation methods, it will require rho has been calculated first.
-
-            - Non-matrix operation methods:
-                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-                - "bitwise_py": Use pure Python bitwise implementation.
-
-            For the non-matrix operation methods, it will directly calculate the trace from
-            the counts and random basis.
-
-            The default method is "bitwise_py", which is the fastest option.
-
-    Returns:
-        PurityValueKind: The kind of purity value calculation.
-    """
-    if isinstance(rho_method, str):
-        rho_method = RhoMethod.from_string(rho_method)
-    if isinstance(trace_method, str):
-        trace_method = TraceMethod.from_string(trace_method)
-
-    if trace_method.is_bitwise_method():
-        return "bitwise"
-    if not trace_method.is_nomatop_method() and rho_method.is_multi_method():
-        return "multi_shots"
-    return "single_shots"

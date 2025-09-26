@@ -6,7 +6,7 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 
-from ..container import ClassicalShadowMeanRho
+from .container_kind import ClassicalShadowMeanRho
 from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
 from ..trace_predict_process import mean_rho_core
 from ..utils import check_random_basis_array

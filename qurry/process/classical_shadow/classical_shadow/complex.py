@@ -7,14 +7,9 @@ from typing import Literal, Union, Optional, Iterable
 import tqdm
 import numpy as np
 
-from ..container import ClassicalShadowComplex
+from .container_kind import ClassicalShadowComplex, purity_value_kind
 from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..all_trace_process import (
-    all_trace_core,
-    TraceMethodType,
-    DEFAULT_TRACE_METHOD,
-    purity_value_kind,
-)
+from ..all_trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
 from ..trace_predict_process import (
     mean_rho_core,
     prediction_algorithm,

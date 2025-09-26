@@ -9,3 +9,13 @@ from .mean import mean_of_rho
 from .trace import trace_rho_square
 from .estimation import estimation_of_given_operators
 from .complex import classical_shadow_complex
+from .container_kind import (
+    ClassicalShadowBasic,
+    ClassicalShadowMeanRho,
+    ClassicalShadowEstimation,
+    ClassicalShadowPurity,
+    ClassicalShadowComplex,
+    PurityValueKind,
+    purity_value_kind,
+    default_method_on_value_kind,
+)

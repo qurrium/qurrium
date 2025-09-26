@@ -6,14 +6,9 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 
-from ..container import ClassicalShadowPurity
+from .container_kind import ClassicalShadowPurity, purity_value_kind
 from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..all_trace_process import (
-    all_trace_core,
-    TraceMethodType,
-    DEFAULT_TRACE_METHOD,
-    purity_value_kind,
-)
+from ..all_trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
 from ..utils import check_random_basis_array
 
 

@@ -7,7 +7,7 @@ from typing import Literal, Union, Optional, Iterable
 import tqdm
 import numpy as np
 
-from ..container import ClassicalShadowEstimation
+from .container_kind import ClassicalShadowEstimation
 from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
 from ..trace_predict_process import (
     prediction_algorithm,
