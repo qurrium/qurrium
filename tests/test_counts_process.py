@@ -7,10 +7,8 @@ from qurry.capsule import quickRead, quickJSON
 from qurry.tools.datetime import current_time
 from qurry.process.utils import counts_process_availability
 from qurry.process.utils.counts_process import (
-    single_counts_recount as single_counts_recount_py,
-    single_counts_recount_rust,
-    counts_list_recount as counts_list_recount_py,
-    counts_list_recount_rust,
+    single_counts_recount_pyrust,
+    counts_list_recount_pyrust,
     counts_list_vectorize_pyrust,
     counts_list_vectorize_rust,
     rho_m_flatten_counts_list_vectorize_pyrust,
@@ -37,8 +35,12 @@ def test_counts_substring(test_items: list[int]):
         "Rust is not available." + f" Check the error: {counts_process_availability[2]}"
     )
 
-    counts_recounted_py_result = single_counts_recount_py(easy_dummy["0"], 8, test_items)
-    counts_recounted_rust_result = single_counts_recount_rust(easy_dummy["0"], 8, test_items)
+    counts_recounted_py_result = single_counts_recount_pyrust(
+        easy_dummy["0"], 8, test_items, backend="Python"
+    )
+    counts_recounted_rust_result = single_counts_recount_pyrust(
+        easy_dummy["0"], 8, test_items, backend="Rust"
+    )
 
     assert all(
         counts_recounted_rust_result[s] == v for s, v in counts_recounted_py_result.items()
@@ -49,9 +51,11 @@ def test_counts_substring(test_items: list[int]):
         + f"counts_recount_py_result: {counts_recounted_py_result}."
     )
 
-    counts_list_recounted_py_result = counts_list_recount_py([easy_dummy["0"]], 8, test_items)
-    counts_list_recounted_rust_result = counts_list_recount_rust(
-        [easy_dummy["0"]], 8, test_items
+    counts_list_recounted_py_result = counts_list_recount_pyrust(
+        [easy_dummy["0"]], 8, test_items, backend="Python"
+    )
+    counts_list_recounted_rust_result = counts_list_recount_pyrust(
+        [easy_dummy["0"]], 8, test_items, backend="Rust"
     )
 
     assert all(
@@ -141,12 +145,10 @@ def test_rho_m_flatten_counts_list_vectorize():
 
     origin_counts_list = [easy_dummy["0"]]
     rho_m_flatten_counts_list_vectorize_py_result = rho_m_flatten_counts_list_vectorize_pyrust(
-        origin_counts_list, {0: dict.fromkeys(range(8), 0)}, list(range(8)), backend="Python"
+        origin_counts_list, [[0] * 8], list(range(8)), backend="Python"
     )
-    rho_m_flatten_counts_list_vectorize_rust_result = (
-        rho_m_flatten_counts_list_vectorize_rust(
-            origin_counts_list, {0: dict.fromkeys(range(8), 0)}, list(range(8))
-        )
+    rho_m_flatten_counts_list_vectorize_rust_result = rho_m_flatten_counts_list_vectorize_rust(
+        origin_counts_list, [[0] * 8], list(range(8))
     )
 
     error_log_location = os.path.join(os.path.dirname(__file__), "qurrium", "exports")

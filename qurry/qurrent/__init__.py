@@ -35,8 +35,6 @@ from .randomized_measure_v1 import EntropyMeasureRandomizedV1, EntropyMeasureRan
 from .hadamard_test import EntropyMeasureHadamard, EntropyMeasureHadamardMeasureArgs
 from .classical_shadow import ShadowUnveil, ShadowUnveilMeasureArgs
 
-# from .classical_shadow import ShadowUnveil
-
 
 # pylint: disable=invalid-name
 @overload

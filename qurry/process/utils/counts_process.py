@@ -1,6 +1,6 @@
 """Post Processing - Utils - Counts Process (:mod:`qurry.process.utils.counts_process`)"""
 
-from typing import Union, Optional, Literal, Iterable
+from typing import Optional, Iterable
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
 
@@ -38,10 +38,10 @@ def check_invalid_counts(shots: int, counts: list[dict[str, int]]):
         )
 
 
-def single_counts_recount(
+def single_counts_recount_proto(
     single_counts: dict[str, int],
     num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
+    select_clregs_sort_rev: list[int],
 ) -> dict[str, int]:
     """Calculate the counts under the degree.
 
@@ -50,8 +50,8 @@ def single_counts_recount(
             Counts measured from the single quantum circuit.
         num_classical_register (int):
             The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The sorted list of **the index of the selected_classical_registers**.
+        select_clregs_sort_rev (list[int]):
+            The reversed sorted list of **the index of the selected_classical_registers**.
 
     Returns:
         dict[str, int]: The counts under the degree.
@@ -60,8 +60,7 @@ def single_counts_recount(
     single_counts_recounted = {}
     for bitstring_all, num_counts_all in single_counts.items():
         bitstring = "".join(
-            bitstring_all[num_classical_register - q_i - 1]
-            for q_i in selected_classical_registers_sorted
+            bitstring_all[num_classical_register - q_i - 1] for q_i in select_clregs_sort_rev
         )
         if bitstring in single_counts_recounted:
             single_counts_recounted[bitstring] += num_counts_all
@@ -71,36 +70,10 @@ def single_counts_recount(
     return single_counts_recounted
 
 
-def counts_list_recount(
-    counts_list: list[dict[str, int]],
-    num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
-) -> list[dict[str, int]]:
-    """Calculate the counts under the degree.
-
-    Args:
-        counts_list (list[dict[str, int]]):
-            The list of counts measured from the single quantum circuit.
-        num_classical_register (int):
-            The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The sorted list of **the index of the selected_classical_registers**.
-
-    Returns:
-        list[dict[str, int]]: The counts under the degree.
-    """
-    return [
-        single_counts_recount(
-            single_counts, num_classical_register, selected_classical_registers_sorted
-        )
-        for single_counts in counts_list
-    ]
-
-
 def single_counts_recount_pyrust(
     single_counts: dict[str, int],
     num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
+    selected_classical_registers: list[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> dict[str, int]:
     """Calculate the counts under the degree.
@@ -121,17 +94,19 @@ def single_counts_recount_pyrust(
 
     if backend == "Rust":
         return single_counts_recount_rust(
-            single_counts, num_classical_register, selected_classical_registers_sorted
+            single_counts, num_classical_register, selected_classical_registers
         )
-    return single_counts_recount(
-        single_counts, num_classical_register, selected_classical_registers_sorted
+
+    select_clregs_sort_rev = sorted(selected_classical_registers, reverse=True)
+    return single_counts_recount_proto(
+        single_counts, num_classical_register, select_clregs_sort_rev
     )
 
 
 def counts_list_recount_pyrust(
     counts_list: list[dict[str, int]],
     num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
+    selected_classical_registers: list[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> list[dict[str, int]]:
     """Calculate the counts under the degree.
@@ -141,8 +116,8 @@ def counts_list_recount_pyrust(
             The list of counts measured from the single quantum circuit.
         num_classical_register (int):
             The number of classical registers.
-        selected_classical_registers_sorted (list[int]):
-            The sorted list of **the index of the selected_classical_registers**.
+        selected_classical_registers (list[int]):
+            The list of **the index of the selected_classical_registers**.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to "Rust".
 
@@ -151,11 +126,14 @@ def counts_list_recount_pyrust(
     """
     if backend == "Rust":
         return counts_list_recount_rust(
-            counts_list, num_classical_register, selected_classical_registers_sorted
+            counts_list, num_classical_register, selected_classical_registers
         )
-    return counts_list_recount(
-        counts_list, num_classical_register, selected_classical_registers_sorted
-    )
+
+    select_clregs_sort_rev = sorted(selected_classical_registers, reverse=True)
+    return [
+        single_counts_recount_proto(single_counts, num_classical_register, select_clregs_sort_rev)
+        for single_counts in counts_list
+    ]
 
 
 def selected_clregs_to_optlist(
@@ -203,16 +181,15 @@ def shot_counts_selected_clreg_checker(
 
     Returns:
         tuple[int, list[int]]:
-            The size of the subsystem and the selected classical registers.
+            The size of the total system and the selected classical registers.
     """
 
     check_invalid_counts(shots, counts)
 
-    # Determine subsystem size
-    measured_system_size = len(list(counts[0].keys())[0])
+    total_system_size = len(next(iter(counts[0].keys())))
 
     if selected_classical_registers is None:
-        selected_classical_registers = list(range(measured_system_size))
+        selected_classical_registers = list(range(total_system_size))
     elif not isinstance(selected_classical_registers, Iterable):
         raise ValueError(
             "selected_classical_registers should be Iterable, "
@@ -221,10 +198,10 @@ def shot_counts_selected_clreg_checker(
     else:
         selected_classical_registers = list(selected_classical_registers)
     assert all(
-        0 <= q_i < measured_system_size for q_i in selected_classical_registers
+        0 <= q_i < total_system_size for q_i in selected_classical_registers
     ), f"Invalid selected classical registers: {selected_classical_registers}"
 
-    return measured_system_size, selected_classical_registers
+    return total_system_size, selected_classical_registers
 
 
 def shot_counts_selected_clreg_checker_pyrust(
@@ -248,7 +225,7 @@ def shot_counts_selected_clreg_checker_pyrust(
 
     Returns:
         tuple[int, list[int]]:
-            The size of the subsystem and the selected classical registers.
+            The size of the total systemsize and the selected classical registers.
     """
     if backend == "Rust":
         selected_classical_registers = selected_clregs_to_optlist(selected_classical_registers)
@@ -282,10 +259,53 @@ def counts_list_vectorize_pyrust(
     return vectorized_counts
 
 
+def process_vectorize_single_counts(
+    single_counts: dict[str, int],
+    um_data: list[int],
+    selected_cregs_sorted: list[int],
+    num_qubits: int,
+) -> tuple[list[list[int]], list[int]]:
+    """Process single counts to vectorized format.
+
+    Args:
+        single_counts (dict[str, int]):
+            Counts measured from the single quantum circuit.
+        um_data (list[int]):
+            The shadow direction of the unitary operators.
+        selected_cregs_sorted (list[int]):
+            The sorted list of **the index of the selected_classical_registers**.
+        num_qubits (int):
+            The number of qubits.
+
+    Returns:
+        tuple[list[list[int]], list[int]]: The vectorized counts.
+    """
+
+    len_nomatch_bitstrings = [
+        bitstring for bitstring in single_counts.keys() if len(bitstring) != num_qubits
+    ]
+    if len(len_nomatch_bitstrings) > 0:
+        raise ValueError(
+            "The length of bitstring must be equal to the number of qubits, "
+            + f"but following bitstrings are invalid: {len_nomatch_bitstrings}"
+        )
+
+    keys_int_array = [
+        [
+            (ord(c) - 48 + 10 * um_data[selected_cregs_sorted[q_idx]])
+            for q_idx, c in enumerate(bit_string)
+        ]
+        for bit_string in single_counts.keys()
+    ]
+    values_int_array = list(single_counts.values())
+
+    return keys_int_array, values_int_array
+
+
 def rho_m_flatten_counts_list_vectorize_pyrust(
     counts_list: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers_sorted: list[int],
+    random_unitary_array: list[list[int]],
+    selected_cregs_sorted: list[int],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> list[tuple[list[list[int]], list[int]]]:
     """Dedicated function for rho_m_flatten counts list vectorized.
@@ -293,9 +313,9 @@ def rho_m_flatten_counts_list_vectorize_pyrust(
     Args:
         counts_list (list[dict[str, int]]):
             The list of counts measured from the single quantum circuit.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_unitary_array (list[list[int]]):
             The shadow direction of the unitary operators.
-        selected_classical_registers_sorted (list[int]):
+        selected_cregs_sorted (list[int]):
             The sorted list of **the index of the selected_classical_registers**.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to "Rust".
@@ -305,19 +325,18 @@ def rho_m_flatten_counts_list_vectorize_pyrust(
     """
     if backend == "Rust":
         return rho_m_flatten_counts_list_vectorize_rust(
-            counts_list, random_unitary_um, selected_classical_registers_sorted
+            counts_list, random_unitary_array, selected_cregs_sorted
         )
 
-    rho_m_flatten_vectorized_counts = []
-    for um_idx, single_counts in enumerate(counts_list):
-        keys_int_array: list[list[int]] = [
-            [
-                int(c) + 10 * random_unitary_um[um_idx][selected_classical_registers_sorted[q_idx]]
-                for q_idx, c in enumerate(bit_string)
-            ]
-            for bit_string in single_counts.keys()
-        ]
-        values_int_array: list[int] = list(single_counts.values())
+    num_qubits = len(selected_cregs_sorted)
+    rho_m_flatten_vectorized_counts = [
+        process_vectorize_single_counts(
+            single_counts,
+            random_unitary_array[um_idx],
+            selected_cregs_sorted,
+            num_qubits,
+        )
+        for um_idx, single_counts in enumerate(counts_list)
+    ]
 
-        rho_m_flatten_vectorized_counts.append((keys_int_array, values_int_array))
     return rho_m_flatten_vectorized_counts

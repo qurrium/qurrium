@@ -1,11 +1,15 @@
 {
-  "answer": {
+  "answer_multi_shots": {
     "purity": 0.9822364936440678,
     "entropy": 0.025857670011180806
   },
-  "answer_spreadout": {
+  "answer_single_shots": {
     "purity": 0.9986288431474727,
     "entropy": 0.001979518617029416
+  },
+  "answer_bitwise": {
+    "purity": 0.9991490610328639,
+    "entropy": 0.0012281680501533669
   },
   "arguments": {
     "shots": 32,

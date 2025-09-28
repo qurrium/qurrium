@@ -7,17 +7,22 @@ import sys
 
 from . import boorust
 
-# Due to PyO3 submodule is not fully compatible as a Python module.
-# So we will need to assign manually like the followings do.
 # pylint: disable=c-extension-no-member,wrong-import-position
+
+# Due to PyO3 submodule is not fully compatible as a Python module.
+# So we will need to assign them manually like the following does.
+# Qiskit also does something similar which I 'learned' from them at beginning.
+# They do not create pyi files for their Rust binding, but I made it here.
 sys.modules["qurry.boorust.counts_process"] = boorust.counts_process  # type: ignore
 sys.modules["qurry.boorust.bit_slice"] = boorust.bit_slice  # type: ignore
 sys.modules["qurry.boorust.randomized"] = boorust.randomized  # type: ignore
 sys.modules["qurry.boorust.hadamard"] = boorust.hadamard  # type: ignore
 sys.modules["qurry.boorust.magnet_square"] = boorust.magnet_square  # type: ignore
 sys.modules["qurry.boorust.string_operator"] = boorust.string_operator  # type: ignore
+sys.modules["qurry.boorust.shadow"] = boorust.shadow  # type: ignore
 sys.modules["qurry.boorust.dummy"] = boorust.dummy  # type: ignore
 sys.modules["qurry.boorust.test"] = boorust.test  # type: ignore
+
 
 from .qurrech import EchoListen, WaveFunctionOverlap
 from .qurrent import EntropyMeasure, ShadowUnveil

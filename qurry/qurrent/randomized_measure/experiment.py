@@ -8,12 +8,9 @@ from qiskit import QuantumCircuit
 
 from .analysis import EntropyMeasureRandomizedAnalysis
 from .arguments import EntropyMeasureRandomizedArguments, SHORT_NAME
-from .utils import (
-    randomized_circuit_method,
-    randomized_entangled_entropy_complex,
-    bitstring_mapping_getter,
-)
+from .utils import randomized_circuit_method, randomized_entangled_entropy_complex
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from ...qurrium.utils import bitstring_mapping_getter
 from ...qurrium.utils.randomized import (
     random_unitary,
     local_unitary_op_to_list,

@@ -1,18 +1,154 @@
 """Post Processing - Classical Shadow - Expectation Process
-(:mod:`qurry.process.classical_shadow.expectation_process`)
+(:mod:`qurry.process.classical_shadow.trace_expect_process.expectation`)
 
 """
 
-from typing import Optional
+from typing import Optional, TypedDict
 import warnings
 import numpy as np
 
 from .matrix_calcution import (
     select_prediction_einsum_aij_bji_to_ab,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
-    AllTraceRhoMethod,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
 )
-from ..exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
+from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
+
+
+class EstimationOfObservable(TypedDict):
+    """The esitimations of the classical shadow from classical snapshots.
+
+    Here, we use the notations that use in the supplementary material of
+    `Predicting many properties of a quantum system from very few measurements
+    <https://doi.org/10.1038/s41567-020-0932-7>`_
+
+    """
+
+    estimate_of_given_operators: list[np.complex128]
+    r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
+    corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
+    r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`."""
+    # The accuracy of estimation
+    accuracy_prob_comp_delta: float
+    r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
+    and mentioned in Theorem S1 in the supplementary material,
+    the equation (S13) in the supplementary material.
+    The probabiltiy of accuracy is :math:`1 - \delta`.
+
+    The number of given operators and the accuracy parameters will 
+    be used to decide the number of estimators K 
+    from the equation (S13) in the supplementary material.
+
+    .. math::
+        K = 2 \log(2M / \delta)
+
+    where :math:`\delta` is the probabiltiy complement of accuracy,
+    and :math:`M` is the number of given operators.
+
+    But we can see :math:`K` will be not the integer value of the result of the equation.
+    So, we will use the ceil value of the result of the equation.
+    And recalculate the probabiltiy complement of accuracy from this new value of :math:`K`.
+    """
+    num_of_estimators_k: int
+    r"""The number of esitmators, which used the notation K
+    and mentioned in Algorithm 1 in the paper,
+    Theorem S1 in the supplementary material,
+    the equation (S13) in the supplementary material.
+
+    We can calculate the number of esitmator K from the equation (S13) 
+    in the supplementary material, the equation (S13) is as follows,
+
+    .. math::
+        K = 2 \log(2M / \delta)
+
+    where :math:`\delta` is the probabiltiy complement of accuracy,
+    and :math:`M` is the number of given operators.
+
+    But we can see :math:`K` will be not the integer value of the result of the equation.
+    So, we will use the ceil value of the result of the equation.
+    And recalculate the probabiltiy complement of accuracy from this new value of :math:`K`.
+    """
+
+    accuracy_predict_epsilon: float
+    r"""The prediction of accuracy, which used the notation :math:`\epsilon`
+    and mentioned in Theorem S1 in the supplementary material,
+    the equation (S13) in the supplementary material.
+
+    We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
+    in the supplementary material, the equation (S13) is as follows,
+
+    .. math::
+        N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
+        || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
+
+    where :math:`\epsilon` is the prediction of accuracy,
+    and :math:`M` is the number of given operatorsm
+    and :math:`N` is the number of classical snapshots.
+    The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
+    which is defined in the supplementary material with value between 0 and 1.
+    """
+    maximum_shadow_norm: float
+    r"""The maximum shadow norm, which is defined in the supplementary material.
+    The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
+    from the equation (S13) in the supplementary material.
+
+    We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
+    in the supplementary material, the equation (S13) is as follows,
+
+    .. math::
+        N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
+        || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
+
+    where :math:`\epsilon` is the prediction of accuracy,
+    and :math:`M` is the number of given operatorsm
+    and :math:`N` is the number of classical snapshots.
+    The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm.
+
+    Due to its calculation is complex, we curently use the value of np.nan
+    to represent the maximum shadow norm.
+    """
+    epsilon_upperbound: float
+    r"""The upper bound of the prediction of accuracy, 
+    which used the notation :math:`\epsilon`
+    and mentioned in Theorem S1 in the supplementary material,
+    the equation (S13) in the supplementary material.
+
+    .. math::
+        || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+
+    where :math:`O` is the any operator, and :math:`n` is the number of qubits.
+    So we set the shadow norm as follows,
+
+    .. math::
+        \chi = || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}} \\
+        \chi_{\infty} = 4^n || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\infty}^2 \\
+        \chi^2 \leq \chi_{\infty}
+
+    and we can simplify the equation to:
+
+    .. math::
+        N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi^2 
+            \leq \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} \chi_{\infty}^2
+
+    Then get:
+
+    .. math::
+        \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
+
+    """
+    shadow_norm_upperbound: float
+    r"""The largest shadow norm upper bound is defined as follows,
+
+    .. math::
+        || O ||_{\text{shadow}}^2 \leq 4^n || O ||_{\infty}^2
+
+    where :math:`O` is the operator, and :math:`n` is the number of qubits,
+    which mentioned in the paper at Theorem 1 (informal version).
+
+    This is the worst scenario of the shadow norm
+    for its scaling can be reduced to :math:`3^n || O ||_{\infty}^2`,
+    which is the significantly lower bound than the worst case scenario.
+    """
 
 
 def dim_check(
@@ -372,17 +508,8 @@ def prediction_algorithm(
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
-    trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-) -> tuple[
-    list[np.complex128],
-    list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    float,
-    int,
-    float,
-    float,
-    float,
-    float,
-]:
+    trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+) -> EstimationOfObservable:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
     Args:
@@ -399,7 +526,7 @@ def prediction_algorithm(
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-        trace_method (AllTraceRhoMethod, optional):
+        trace_method (ListTraceMethodType, optional):
             The method to calculate the trace for searching esitmator.
 
             - "einsum_aij_bji_to_ab_numpy":
@@ -408,29 +535,16 @@ def prediction_algorithm(
                 Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
     Returns:
-        tuple[
-            list[np.complex128],
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-            float, int, float, float, float, float
-        ]:
-            - estimate_of_given_operators: list[np.complex128]
-                The esitmation values of measurement primitive :math:`\mathcal{U}`.
-            - corresponding_rhos: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-                The corresponding rho of measurement primitive :math:`\mathcal{U}`.
-            - actual_accuracy_prob_comp_delta: float
-                The actual accuracy probability component delta,
-            - num_of_estimators: int
-                The number of esitmators
-            - accuracy_predict_epsilon: float
-                The prediction of accuracy
-            - max_shadow_norm: float
-                The maximum shadow norm
-            - epsilon_upperbound: float
-                The upper bound of the prediction of accuracy epsilon
-            - shadow_norm_upperbound: float
-                The upper bound of the shadow norm
+        EstimationOfObservable:
+            The esitimations of the classical shadow from classical snapshots.
+
     Raises:
+        ValueError: If the shape of classical snapshots and the shape of given operators
+            are not the same.
+        ValueError: If the number of classical snapshots or the number of given operators
+            is less than or equal to 0.
     """
+
     num_classical_snapshot = len(classical_snapshots_rho)
     shape_of_classical_snapshots = next(iter(classical_snapshots_rho.values())).shape
     num_of_given_operators = len(given_operators)
@@ -444,6 +558,7 @@ def prediction_algorithm(
             "The number of classical snapshots and "
             "the number of given operators must be greater than 0."
         )
+    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
 
     epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
         num_classical_snapshot, given_operators
@@ -471,17 +586,17 @@ def prediction_algorithm(
             for i in range(num_of_estimators)
         ]
     )  # type: ignore
-    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
+
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
         np.array(given_operators), estimators  # type: ignore
     )
-    return (
-        estimate_of_given_operators,
-        corresponding_rhos,
-        actual_accuracy_prob_comp_delta,
-        num_of_estimators,
-        accuracy_predict_epsilon,
-        max_shadow_norm,
-        epsilon_upperbound,
-        shadow_norm_upperbound,
+    return EstimationOfObservable(
+        estimate_of_given_operators=estimate_of_given_operators,
+        corresponding_rhos=corresponding_rhos,
+        accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
+        num_of_estimators_k=num_of_estimators,
+        accuracy_predict_epsilon=accuracy_predict_epsilon,
+        maximum_shadow_norm=max_shadow_norm,
+        epsilon_upperbound=epsilon_upperbound,
+        shadow_norm_upperbound=shadow_norm_upperbound,
     )

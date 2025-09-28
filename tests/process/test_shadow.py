@@ -7,21 +7,36 @@ import pytest
 import numpy as np
 
 from qurry.capsule import quickRead
-from qurry.qurrent.randomized_measure.utils import bitstring_mapping_getter
+from qurry.qurrium.utils import bitstring_mapping_getter
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow import (
     classical_shadow_complex,
     ClassicalShadowComplex,
-    classical_shadow_core_availability,
+    classical_shadow_rho_process_availability,
+    classical_shadow_matrix_availability,
+    JAX_AVAILABLE,
+    RhoMethod,
+    RhoMethodType,
+    TraceMethod,
+    TraceMethodType,
+    purity_value_kind,
+    PurityValueKind,
 )
-from qurry.process.classical_shadow.matrix_calcution import JAX_AVAILABLE
 
-FILE_LOCATION = os.path.join(os.path.dirname(__file__), "shadow-case.json")
+FILE_LOCATIONS = [
+    os.path.join(os.path.dirname(__file__), "shadow-case.json"),
+    os.path.join(os.path.dirname(__file__), "shadow-case-hard.json"),
+]
 
-RHO_METHODS = ["numpy", "numpy_precomputed", "numpy_flatten"]
-TRACE_METHODS = ["trace_of_matmul", "einsum_ij_ji", "einsum_aij_bji_to_ab_numpy"] + (
-    ["einsum_aij_bji_to_ab_jax"] if JAX_AVAILABLE else []
-)
+methods_by_kind: dict[PurityValueKind, list[tuple[RhoMethodType, TraceMethodType]]] = {}
+
+for rho_method_tmp in RhoMethod.get_all_methods():
+    for trace_method_tmp in TraceMethod.get_all_methods():
+        if not JAX_AVAILABLE and trace_method_tmp == TraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value:
+            continue
+        methods_by_kind.setdefault(purity_value_kind(rho_method_tmp, trace_method_tmp), []).append(
+            (rho_method_tmp, trace_method_tmp)
+        )
 
 
 class RawReadShadowCaseArguments(TypedDict):
@@ -38,8 +53,9 @@ class RawReadShadowCaseArguments(TypedDict):
 class RawReadShadowCase(TypedDict):
     """TypedDict for shadow case data from JSON."""
 
-    answer: dict[str, int]
-    answer_spreadout: dict[str, int]
+    answer_multi_shots: dict[str, int]
+    answer_single_shots: dict[str, int]
+    answer_bitwise: dict[str, int]
     arguments: RawReadShadowCaseArguments
     random_unitary_ids: dict[str, dict[str, str]]
     counts: list[dict[str, int]]
@@ -62,8 +78,7 @@ class ClassicalShadowComplexExtended(ClassicalShadowComplex):
     mean_of_rho_trace: np.complex128
 
 
-raw_shadow_case_01: RawReadShadowCase = quickRead(FILE_LOCATION)
-raw_shadow_cases: list[RawReadShadowCase] = [raw_shadow_case_01]
+raw_shadow_cases: list[RawReadShadowCase] = [quickRead(file_loc) for file_loc in FILE_LOCATIONS]
 
 
 def unpacked_shadow_case(
@@ -91,33 +106,30 @@ def unpacked_shadow_case(
     )
 
 
-shadow_cases = [
-    (shadow_case_tmp["answer"], *unpacked_shadow_case(shadow_case_tmp))
+shadow_cases_multi = [
+    (shadow_case_tmp["answer_multi_shots"], *unpacked_shadow_case(shadow_case_tmp))
     for shadow_case_tmp in raw_shadow_cases
+    if "answer_multi_shots" in shadow_case_tmp
 ]
-shadow_cases_spreadout = [
-    (shadow_case_tmp["answer_spreadout"], *unpacked_shadow_case(shadow_case_tmp))
+shadow_cases_single = [
+    (shadow_case_tmp["answer_single_shots"], *unpacked_shadow_case(shadow_case_tmp))
     for shadow_case_tmp in raw_shadow_cases
+    if "answer_single_shots" in shadow_case_tmp
 ]
-
-
-def test_availability():
-    """Test the availability of the Rust backend for the entangled_entropy_core function."""
-
-    for availability_item in [classical_shadow_core_availability]:
-        assert availability_item[1]["Rust"], (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
+shadow_cases_bitwise = [
+    (shadow_case_tmp["answer_bitwise"], *unpacked_shadow_case(shadow_case_tmp))
+    for shadow_case_tmp in raw_shadow_cases
+    if "answer_bitwise" in shadow_case_tmp
+]
 
 
 def classical_shadow_complex_wrapper(
     arguments: ShadowCaseArguments,
     random_unitary_ids: dict[int, dict[int, int]],
     counts: list[dict[str, int]],
-    rho_method: str,
-    trace_method: str,
+    rho_method: RhoMethodType,
+    trace_method: TraceMethodType,
     final_mapping: dict[int, int],
-    convert_to_single_shot: bool = False,
 ) -> ClassicalShadowComplexExtended:
     """Wrapper for the classical_shadow_complex function to include the trace of the expect_rho.
 
@@ -125,20 +137,24 @@ def classical_shadow_complex_wrapper(
         arguments (ShadowCaseArguments): The arguments for the shadow case.
         random_unitary_ids (dict[int, dict[int, int]]): The random unitary IDs.
         counts (list[dict[str, int]]): The counts.
-        rho_method (str): The Rho method.
-        trace_method (str): The trace method.
+        rho_method (RhoMethodType): The Rho method.
+        trace_method (TraceMethodType): The trace method.
         final_mapping (dict[int, int]): The final mapping.
-        convert_to_single_shot (bool, optional): Whether to convert the result to a single shot.
 
     Return:
         ClassicalShadowComplexExtended: the result to compare.
     """
+    len_register = len(final_mapping)
+    random_basis_array = []
+    for i in range(len(random_unitary_ids)):
+        tmp = {ci: random_unitary_ids[i][n_u_qi] for n_u_qi, ci in final_mapping.items()}
+        random_basis_array.append([tmp[j] for j in range(len_register)])
+
     tmp = classical_shadow_complex(
         shots=arguments["shots"],
         counts=counts,
-        random_basis=random_unitary_ids,
+        random_basis_array=random_basis_array,
         selected_classical_registers=[final_mapping[qi] for qi in arguments["selected_qubits"]],
-        convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_method,
         trace_method=trace_method,
     )
@@ -181,8 +197,25 @@ def comparison_shadow_result(
         )
 
 
-@pytest.mark.parametrize(["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases)
-def test_shadow(
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
+
+    for module_location, avails_backends, errors in [  # type: ignore
+        classical_shadow_rho_process_availability,
+        classical_shadow_matrix_availability,
+    ]:
+        avails_backends: dict[str, str]
+        for backend, status in avails_backends.items():
+            assert status, (
+                f"{backend} is not available in {module_location}. "
+                + f"Check the error: {errors.get(backend)}."
+            )
+
+
+@pytest.mark.parametrize(
+    ["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases_multi
+)
+def test_shadow_multi(
     answer: dict[str, int],
     arguments: ShadowCaseArguments,
     random_unitary_ids: dict[int, dict[int, int]],
@@ -202,18 +235,16 @@ def test_shadow(
             rho_method,
             trace_method,
             final_mapping,
-            convert_to_single_shot=False,
         )
-        for rho_method in RHO_METHODS
-        for trace_method in TRACE_METHODS
+        for rho_method, trace_method in methods_by_kind["multi_shots"]
     }
     comparison_shadow_result(results, answer)
 
 
 @pytest.mark.parametrize(
-    ["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases_spreadout
+    ["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases_single
 )
-def test_shadow_spreadout(
+def test_shadow_single(
     answer: dict[str, int],
     arguments: ShadowCaseArguments,
     random_unitary_ids: dict[int, dict[int, int]],
@@ -233,9 +264,36 @@ def test_shadow_spreadout(
             rho_method,
             trace_method,
             final_mapping,
-            convert_to_single_shot=True,
         )
-        for rho_method in RHO_METHODS
-        for trace_method in TRACE_METHODS
+        for rho_method, trace_method in methods_by_kind["single_shots"]
+    }
+    comparison_shadow_result(results_spreadout, answer)
+
+
+@pytest.mark.parametrize(
+    ["answer", "arguments", "random_unitary_ids", "counts"], shadow_cases_bitwise
+)
+def test_shadow_bitwise(
+    answer: dict[str, int],
+    arguments: ShadowCaseArguments,
+    random_unitary_ids: dict[int, dict[int, int]],
+    counts: list[dict[str, int]],
+):
+    """Test the classical_shadow_complex function."""
+
+    _bitstring_mapping, final_mapping = bitstring_mapping_getter(
+        counts, arguments["registers_mapping"]
+    )
+
+    results_spreadout = {
+        f"{rho_method}.{trace_method}": classical_shadow_complex_wrapper(
+            arguments,
+            random_unitary_ids,
+            counts,
+            rho_method,
+            trace_method,
+            final_mapping,
+        )
+        for rho_method, trace_method in methods_by_kind["bitwise"]
     }
     comparison_shadow_result(results_spreadout, answer)

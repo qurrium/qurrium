@@ -1,12 +1,12 @@
 """Boorust - Counts Process (:mod:`qurry.boorust.counts_process`)"""
 
-from typing import Sequence, Optional, Union, Literal
+from typing import Sequence, Optional
 
 # pylint:disable=unused-argument
 def single_counts_recount_rust(
     single_counts: dict[str, int],
     num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
+    selected_classical_registers: list[int],
 ) -> dict[str, int]:
     """Calculate the counts under the degree.
 
@@ -25,7 +25,7 @@ def single_counts_recount_rust(
 def counts_list_recount_rust(
     counts_list: list[dict[str, int]],
     num_classical_register: int,
-    selected_classical_registers_sorted: list[int],
+    selected_classical_registers: list[int],
 ) -> list[dict[str, int]]:
     """Calculate the counts under the degree.
 
@@ -58,7 +58,7 @@ def shot_counts_selected_clreg_checker(
 
     Returns:
         tuple[int, list[int]]:
-            The size of the subsystem and the selected classical registers.
+            The size of the total system and the selected classical registers.
     """
 
 def counts_list_vectorize_rust(
@@ -76,7 +76,7 @@ def counts_list_vectorize_rust(
 
 def rho_m_flatten_counts_list_vectorize_rust(
     counts_list: list[dict[str, int]],
-    random_unitary_um: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
+    random_unitary_array: list[list[int]],
     selected_classical_registers_sorted: list[int],
 ) -> list[tuple[list[list[int]], list[int]]]:
     """Dedicated function for rho_m_flatten counts list vectorized.
@@ -84,7 +84,7 @@ def rho_m_flatten_counts_list_vectorize_rust(
     Args:
         counts_list (list[dict[str, int]]):
             The list of counts measured from the single quantum circuit.
-        random_unitary_um (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
+        random_unitary_array (list[list[int]]):
             The shadow direction of the unitary operators.
         selected_classical_registers_sorted (list[int]):
             The list of **the index of the selected_classical_registers**.
