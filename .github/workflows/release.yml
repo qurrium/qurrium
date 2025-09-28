@@ -98,11 +98,11 @@ jobs:
 
       - name: Get custom tarball name
         id: get_tarball_name
-        run: echo "TARBALL_NAME=qurecipe-${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        run: echo "TARBALL_NAME=qurry-${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Get archived folder name for custom tarball
         id: get_archived_folder_name
-        run: echo "ARCHIVED_FOLDER=${{ github.repository_owner }}-qurecipe-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "ARCHIVED_FOLDER=${{ github.repository_owner }}-qurry-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create custom tarball artifact
         run: |
