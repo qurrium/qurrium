@@ -205,21 +205,28 @@ omit = ["./tests/*"]
 data_file = "./.coverage/.coverage"
 
 # Linter and Formatter Configuration
-[tool.pylint]
+# Pylint and Ruff are used for linting and formatting.
+# We keep Pylint for it's still suporting more rules than Ruff.
+[tool.pylint.format]
 max-line-length = 100
 [tool.pylint."messages control"]
 disable = [
-    "too-many-lines",
-    "too-many-branches",
-    "too-many-locals",
-    "too-many-nested-blocks",
-    "too-many-statements",
-    "too-many-instance-attributes",
-    "too-many-arguments",
-    "too-many-public-methods",
-    "too-few-public-methods",
-    "too-many-ancestors",
+    "too-many-lines",                  # C0302, hard to avoid in some core files.
+    "duplicate-code",                  # R0801, some duplicate code is hard to avoid.
+    "too-many-instance-attributes",    # R0902
+    "too-few-public-methods",          # R0903
+    "too-many-public-methods",         # R0904
+    "too-many-branches",               # R0912
+    "too-many-arguments",              # R0913
+    "too-many-locals",                 # R0914
+    "too-many-statements",             # R0915
+    "too-many-positional-arguments",   # R0917
+    "too-many-nested-blocks",          # R1702
 ]
+# Respecting command line options of pylint
+# This will be useful when you configure pylint in your IDE
+# --max-line-length=105
+# --disable=C0302,R0801,R0902,R0903,R0904,R0912,R0913,R0914,R0915,R0917,R1702
 
 [tool.ruff]
 line-length = 100
@@ -228,7 +235,7 @@ target-version = "py39"
 # This will need to be updated when we start to support Python 3.10+ specific syntax.
 
 [tool.ruff.lint]
-# select = ["E", "F", "W"]
+select = ["E4", "E7", "E9", "F", "R"]
 ignore = ["F401", "E203", "W291", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
