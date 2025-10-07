@@ -222,6 +222,8 @@ disable = [
     "too-many-statements",             # R0915
     "too-many-positional-arguments",   # R0917
     "too-many-nested-blocks",          # R1702
+    # Require to be fixed in the future
+    "cyclic-import"                    # R0401, from qurry.qurrium.container
 ]
 # Respecting command line options of pylint
 # This will be useful when you configure pylint in your IDE
