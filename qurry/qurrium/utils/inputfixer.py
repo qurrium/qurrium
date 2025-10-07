@@ -164,7 +164,7 @@ def outfields_hint(
             Mute the warning of unrecognized arguments. Defaults to False.
     """
     if len(outfields_maybe) + len(outfields_unknown) == 0:
-        return None
+        return
 
     if not mute_outfields_warning:
         warnings.warn(
@@ -177,4 +177,4 @@ def outfields_hint(
             + "].",
             QurryUnrecongnizedArguments,
         )
-    return None
+    return

@@ -43,8 +43,7 @@ def hadamard_entangled_entropy(
         pbar.set_description_str("Calculate entropy by Hadamard Test.")
     purity = purity_echo_core(shots, counts, backend)
 
-    quantity = {
+    return {
         "purity": purity,
         "entropy": -np.log2(purity),
     }
-    return quantity

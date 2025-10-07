@@ -3,7 +3,7 @@
 
 """
 
-from typing import Union, Callable, Literal
+from typing import Union, Literal
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
@@ -59,6 +59,5 @@ def string_operator_core(
     order_per_bitstring_without_div_by_shots = {
         s: add_or_reducer(s) * m for s, m in only_counts.items()
     }
-    order = sum(order_per_bitstring_without_div_by_shots.values()) / sample_shots
 
-    return order
+    return sum(order_per_bitstring_without_div_by_shots.values()) / sample_shots

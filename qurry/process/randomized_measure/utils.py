@@ -203,7 +203,7 @@ def check_random_unitary_seeds(
 
     """
     if random_unitary_seeds is None:
-        return None
+        return
     if not isinstance(random_unitary_seeds, dict):
         raise TypeError(
             "The random_unitary_seeds must be dict, " + f"not {type(random_unitary_seeds)}"
@@ -230,4 +230,4 @@ def check_random_unitary_seeds(
                     "The random_unitary_seeds must be int, "
                     + f"not {type(random_unitary_seeds[i][j])} in {i}, {j}."
                 )
-    return None
+    return

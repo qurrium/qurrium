@@ -316,7 +316,7 @@ def bitwise_core(
         renyi_number_of_outcomes,  # type: ignore
     )
 
-    predicted_purity = sum(
+    return sum(
         calculate_term_per_encoding(
             c,
             subsystem_size,
@@ -327,8 +327,6 @@ def bitwise_core(
         )
         for c in range(max_encoding)
     )
-
-    return predicted_purity
 
 
 class BitWiseTraceMethod(BaseMethodEnum, Enum):

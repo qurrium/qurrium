@@ -50,7 +50,7 @@ def generate_random_basis(
     random_basis_placeholder = np.random.randint(
         0, 3, size=(snapshots, len(unitary_located))
     ).tolist()
-    random_basis = {
+    return {
         n_u_i: {
             n_u_qi: (
                 random_basis_placeholder[n_u_i][seed_i]
@@ -61,7 +61,6 @@ def generate_random_basis(
         }
         for n_u_i in range(snapshots)
     }
-    return random_basis
 
 
 def validate_random_basis(

@@ -317,9 +317,7 @@ def wave_container_maker(
         "__str__": __str__,
     }
 
-    result = type(typename, (base_type,), class_namespace)
-
-    return result
+    return type(typename, (base_type,), class_namespace)
 
 
 DyanmicWaveContainerByDict = wave_container_maker("WaveContainer", dict)

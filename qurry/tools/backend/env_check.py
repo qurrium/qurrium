@@ -144,5 +144,4 @@ def version_check():
 
 async def _async_version_check():
     """Version check to remind user to update qiskit if needed."""
-    check_msg = _version_check()
-    return check_msg
+    return _version_check()

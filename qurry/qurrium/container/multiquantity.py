@@ -25,9 +25,8 @@ class QuantityContainer(dict[str, TagList[TagListKeyable, dict[str, Any]]]):
         Args:
             name (str): The name of the analysis.
         """
-        remain = self.pop(name)
 
-        return remain
+        return self.pop(name)
 
     def read(
         self,

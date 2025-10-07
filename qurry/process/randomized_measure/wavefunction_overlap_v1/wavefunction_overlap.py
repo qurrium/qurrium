@@ -98,12 +98,12 @@ def randomized_overlap_echo_v1(
         backend=backend,
         multiprocess_pool_size=workers_num,
     )
-    echo_cell_list: Union[list[float], list[np.float64]] = list(echo_cell_dict.values())  # type: ignore
+    echo_cell_list: list[np.float64] = list(echo_cell_dict.values())  # type: ignore
 
     echo = np.mean(echo_cell_list, dtype=np.float64)
     purity_sd = np.std(echo_cell_list, dtype=np.float64)
 
-    quantity = {
+    return {
         "echo": echo,
         "echoCells": echo_cell_dict,
         "echoSD": purity_sd,
@@ -112,6 +112,4 @@ def randomized_overlap_echo_v1(
         "bitStringRange": bitstring_range,
         "countsNum": len(counts),
         "takingTime": taken,
-    }
-
-    return quantity
+    }  # type: ignore

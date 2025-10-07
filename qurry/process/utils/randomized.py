@@ -47,5 +47,4 @@ def ensemble_cell(
         float: the value of two counts from qubits in ensemble average.
     """
     diff = sum(s1 != s2 for s1, s2 in zip(s_i, s_j))
-    tmp = (2**a_num) * ((-2) ** (-diff)) * (s_i_meas / shots) * (s_j_meas / shots)
-    return tmp
+    return (2**a_num) * ((-2) ** (-diff)) * (s_i_meas / shots) * (s_j_meas / shots)

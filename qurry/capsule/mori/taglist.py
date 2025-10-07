@@ -371,9 +371,8 @@ class TagList(defaultdict[_K, Union[list[_V], list[Any]]]):
 
         with open(args.save_location / filename, encoding=encoding, **args.open_args) as read_json:
             raw_data = json.load(read_json)
-            obj = cls(
+            return cls(
                 o=raw_data,
                 name=taglist_name,
                 tuple_str_auto_transplie=tuple_str_auto_transplie,
             )
-        return obj

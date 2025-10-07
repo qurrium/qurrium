@@ -326,9 +326,8 @@ def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> Dat
             raise TypeError(
                 f"All values in datetimes must be strings. Found {value} for key {key}."
             )
-    datetimes = DatetimeDict(datetimes)
 
-    return datetimes
+    return DatetimeDict(datetimes)
 
 
 def commons_dealing(commons_dict: dict[str, Any]) -> dict[str, Any]:

@@ -87,8 +87,7 @@ def hnprint(title, heading=3, raw_input=False) -> Union[str, dict[str, Any]]:
             "heading": heading,
             "title": title,
         }
-    content = " " + "#" * heading + f" {title}"
-    return content
+    return " " + "#" * heading + f" {title}"
 
 
 def divider(length: int = 60, raw_input=False) -> Union[str, dict[str, Any]]:
@@ -107,8 +106,7 @@ def divider(length: int = 60, raw_input=False) -> Union[str, dict[str, Any]]:
             "type": "divider",
             "length": length,
         }
-    content = "-" * length
-    return content
+    return "-" * length
 
 
 def txt(text: str, listing_level: int = 1, raw_input=False) -> Union[str, dict[str, Any]]:

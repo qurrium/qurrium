@@ -140,7 +140,7 @@ def overlap_echo_core_py(
         )
         take_time = round(time.time() - begin_time, 3)
 
-    echo_cell_dict: Union[dict[int, float], dict[int, np.float64]] = dict(echo_cell_items)  # type: ignore
+    echo_cell_dict: Union[dict[int, float], dict[int, np.float64]] = dict(echo_cell_items)
     return echo_cell_dict, bitstring_range, measure, msg, take_time
 
 

@@ -10,7 +10,7 @@ class PassManagerContainer(dict[str, PassManager]):
     __name__ = "PassManagerContainer"
 
     def __repr__(self):
-        original_repr = repr({k: v for k, v in self.items()})
+        original_repr = repr(dict(self.items()))
         return f"{self.__name__}({original_repr}, num={len(self)})"
 
     def _repr_oneline(self):
@@ -18,7 +18,7 @@ class PassManagerContainer(dict[str, PassManager]):
 
     def _repr_pretty_(self, p, cycle):
         # pylint: disable=protected-access
-        original_repr = repr({k: v for k, v in self.items()})
+        original_repr = repr(dict(self.items()))
         # pylint: enable=protected-access
         original_repr_split = original_repr[1:-1].split(", ")
         length = len(original_repr_split)

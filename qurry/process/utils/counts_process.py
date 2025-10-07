@@ -329,7 +329,8 @@ def rho_m_flatten_counts_list_vectorize_pyrust(
         )
 
     num_qubits = len(selected_cregs_sorted)
-    rho_m_flatten_vectorized_counts = [
+
+    return [
         process_vectorize_single_counts(
             single_counts,
             random_unitary_array[um_idx],
@@ -338,5 +339,3 @@ def rho_m_flatten_counts_list_vectorize_pyrust(
         )
         for um_idx, single_counts in enumerate(counts_list)
     ]
-
-    return rho_m_flatten_vectorized_counts

@@ -281,6 +281,5 @@ def nomatmul_trace_core(
         raise ValueError("At least two samples are required to calculate purity.")
 
     trace_m1_m2 = nomatmul_trace_sum(pauli_basis, spin_outcome, subsystem, trace_method)
-    purity = 2 * trace_m1_m2 / (num_of_samples * (num_of_samples - 1))
 
-    return purity
+    return 2 * trace_m1_m2 / (num_of_samples * (num_of_samples - 1))

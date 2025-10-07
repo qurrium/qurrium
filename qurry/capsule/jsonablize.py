@@ -138,6 +138,7 @@ def quickJSON(
             json.dump(content, file, indent=indent, ensure_ascii=False)
     if not mute:
         return f"'{save_loc_w_name}' exported successfully."
+    return None
 
 
 # pylint: enable=invalid-name

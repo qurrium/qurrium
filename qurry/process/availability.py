@@ -1,6 +1,6 @@
 """Availability for the post-processing module. (:mod:`qurry.process.availability`)"""
 
-from typing import Union, Literal, Optional, Callable
+from typing import Union, Literal, Optional
 
 PostProcessingBackendLabel = Union[Literal["Cython", "Rust", "Python"], str]
 """The backend label for post-processing."""

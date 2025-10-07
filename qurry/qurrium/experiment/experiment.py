@@ -1021,6 +1021,5 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 total=num_exps,
                 desc=f"Loading {num_exps} experiments ...",
             )
-            exps = list(exps_iterable)
 
-        return exps
+        return list(exps_iterable)

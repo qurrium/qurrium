@@ -309,11 +309,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
         runned_exp_id = self.orphan_exps[exp_id].run(pbar=pbar)
 
-        resulted_exp_id = self.orphan_exps[runned_exp_id].result(
-            export=export, save_location=save_location
-        )
-
-        return resulted_exp_id
+        return self.orphan_exps[runned_exp_id].result(export=export, save_location=save_location)
 
     @abstractmethod
     def measure_to_output(self) -> _OA:

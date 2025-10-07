@@ -154,7 +154,8 @@ class EchoListenRandomizedV1OutputArgs(OutputArgs):
 
 class EchoListenRandomizedV1AnalyzeArgs(AnalyzeArgs, total=False):
     """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrech.randomized_measure_v1.experiment.EchoListenRandomizedV1Experiment.analyze`.
+    :meth:`~qurry.qurrech.randomized_measure_v1.\
+experiment.EchoListenRandomizedV1Experiment.analyze`.
     """
 
     degree: Optional[Union[tuple[int, int], int]]

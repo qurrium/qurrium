@@ -110,7 +110,7 @@ def entangled_entropy_core_py(
         )
 
     taken = round(time.time() - begin, 3)
-    purity_cell_dict: Union[dict[int, float], dict[int, np.float64]] = dict(purity_cell_items)  # type: ignore
+    purity_cell_dict: Union[dict[int, float], dict[int, np.float64]] = dict(purity_cell_items)
     return purity_cell_dict, bitstring_range, measure, msg, taken
 
 
