@@ -311,7 +311,9 @@ def bitwise_core(
 
     # Calculate level counts with optimized version
     level_cnt, level_ttl = calculate_level_count(
-        max_encoding, subsystem_size, renyi_number_of_outcomes  # type: ignore
+        max_encoding,
+        subsystem_size,
+        renyi_number_of_outcomes,  # type: ignore
     )
 
     predicted_purity = sum(

@@ -116,7 +116,9 @@ def circuit_method_compose(
     qc_exp1.name = (
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
-        else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
+        else f".{target_key}" + ""
+        if len(old_name) < 1
+        else f".{old_name}"
     )
 
     qc_exp1.compose(
@@ -169,7 +171,9 @@ def randomized_circuit_method(
     qc_exp1 = target_circuit.copy(
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
-        else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
+        else f".{target_key}" + ""
+        if len(old_name) < 1
+        else f".{old_name}"
     )
     c_meas1 = ClassicalRegister(
         len(registers_mapping),

@@ -46,9 +46,9 @@ def create_config(
     registers_mapping = qubit_mapper(actual_qubits, measure)
     qubits_measured = list(registers_mapping)
     unitary_located_mapping = qubit_mapper(actual_qubits, unitary_loc)
-    assert list(unitary_located_mapping.values()) == list(
-        range(len(unitary_located_mapping))
-    ), f"The unitary_located_mapping_{which_circuit} should be continuous."
+    assert list(unitary_located_mapping.values()) == list(range(len(unitary_located_mapping))), (
+        f"The unitary_located_mapping_{which_circuit} should be continuous."
+    )
     measured_but_not_unitary_located = [
         qi for qi in qubits_measured if qi not in unitary_located_mapping
     ]

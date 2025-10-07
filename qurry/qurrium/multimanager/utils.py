@@ -105,9 +105,9 @@ def experiment_writer(
                 multiprocess=True,
                 pbar=single_exporting_progress,
             )
-            assert (
-                id_exec == tmp_export_info[0]
-            ), f"ID is not consistent: {id_exec} != {tmp_export_info[0]}."
+            assert id_exec == tmp_export_info[0], (
+                f"ID is not consistent: {id_exec} != {tmp_export_info[0]}."
+            )
             all_qurryinfo[id_exec] = tmp_export_info[1]
 
     # for id_exec, files in all_qurryinfo_items:

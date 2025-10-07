@@ -102,7 +102,6 @@ cases_list: list[tuple[int, str, float, Literal["i", "zy"]]] = [
     (8, "8-topological", ANSWERS["zy"]["8-topological"], "zy"),
 ]
 for num_qubits_tmp, circ_name_tmp, answer_tmp, str_op_tmp in cases_list:
-
     input_items["01"].append(make_01_item(circ_name_tmp, str_op_tmp, answer_tmp))
     exp_method_01.add(circuits_with_measure[circ_name_tmp], circ_name_tmp)
 
@@ -173,9 +172,9 @@ def test_multi_output_all(
 
     for config in config_list:
         for quantity in report_001[config["tags"]]:
-            assert isinstance(
-                quantity, dict
-            ), f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            assert isinstance(quantity, dict), (
+                f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            )
 
             result_items[f"{division}_multi"].append(
                 check_unit(
@@ -191,9 +190,9 @@ def test_multi_output_all(
         summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    assert read_summoner_id == summoner_id, (
+        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    )
 
 
 def test_export():

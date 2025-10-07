@@ -479,7 +479,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
             )
             transpiled_circs = passmanager.run(
-                circuits=cirqs, num_processes=None if multiprocess else 1  # type: ignore
+                circuits=cirqs,
+                num_processes=None if multiprocess else 1,  # type: ignore
             )
             if len(current_exp.commons.transpile_args) > 0:
                 warnings.warn(

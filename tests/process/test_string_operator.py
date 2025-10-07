@@ -74,9 +74,9 @@ def unfold_and_validate_case(
 
     assert isinstance(tags, list), "'tags' should be a list."
     assert len(tags) == 3, "'tags' should have exactly 3 elements."
-    assert (
-        tags[2].replace("circ=", "") in ANSWERS[tags[0]]
-    ), f"Tag {tags[2]} is not in the expected answers for {tags[0]}."
+    assert tags[2].replace("circ=", "") in ANSWERS[tags[0]], (
+        f"Tag {tags[2]} is not in the expected answers for {tags[0]}."
+    )
     tags = tags[:2] + [tags[2].replace("circ=", "")]
     assert isinstance(answer, dict), "'answer' should be a dictionary."
     assert isinstance(counts, list), "'counts' should be a list of dictionaries."
@@ -91,13 +91,13 @@ cases = [unfold_and_validate_case(case) for case in raw_cases]
 def test_string_operator(case_tags: list[str], answer: RawReadAnswer, counts: list[dict[str, int]]):
     """Test the string_operator_core function."""
 
-    assert string_operator_availability[1][
-        "Rust"
-    ], f"Rust is not available. Check the error: {string_operator_availability[1]}"
+    assert string_operator_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {string_operator_availability[1]}"
+    )
 
-    assert (
-        len(counts) == 1
-    ), "The counts should be a single item for the string_operator_core function."
+    assert len(counts) == 1, (
+        "The counts should be a single item for the string_operator_core function."
+    )
 
     py_result = string_operator_core(
         shots=answer["shots"],

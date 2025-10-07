@@ -287,12 +287,14 @@ def test_quantity_unit(
 
     if division != "01":
         analysis_02 = exp_method.exps[exp_id].analyze(
-            **input_item.analyze, counts_used=range(5)  # type: ignore
+            **input_item.analyze,
+            counts_used=range(5),  # type: ignore
         )
         quantity_02 = analysis_02.content._asdict()
 
         analysis_03 = exp_method.exps[exp_id].analyze(
-            **input_item.analyze, counts_used=range(5)  # type: ignore
+            **input_item.analyze,
+            counts_used=range(5),  # type: ignore
         )
         quantity_03 = analysis_03.content._asdict()
 
@@ -316,9 +318,9 @@ def test_quantity_unit(
             + f"and {quantity_02[all_system_source_keyname]}."
         )
 
-        assert (
-            quantity_02[all_system_source_keyname] == "independent"
-        ), f"The source of all system is not independent: {quantity_02[all_system_source_keyname]}."
+        assert quantity_02[all_system_source_keyname] == "independent", (
+            f"The source of all system is not independent: {quantity_02[all_system_source_keyname]}."
+        )
 
     result_items[division].append(
         check_unit(
@@ -389,9 +391,9 @@ def test_multi_output_all(
 
     for config in config_list:
         for quantity in report_001[config["tags"]]:
-            assert isinstance(
-                quantity, dict
-            ), f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            assert isinstance(quantity, dict), (
+                f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            )
 
             result_items[f"{division}_multi"].append(
                 check_unit(
@@ -408,9 +410,9 @@ def test_multi_output_all(
         summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    assert read_summoner_id == summoner_id, (
+        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    )
 
 
 def test_export():

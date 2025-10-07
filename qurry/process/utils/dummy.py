@@ -81,9 +81,9 @@ def make_two_bit_str_32_py(bitlen: int, num: Optional[int] = None) -> list[str]:
 
     raw_content = generate_bits(int(logged_num))
     len_raw_content = len(raw_content)
-    assert (
-        2 ** int(logged_num) == len_raw_content
-    ), f"2**int(logged_num) == len_raw_content: {2**int(logged_num)} == {len_raw_content}"
+    assert 2 ** int(logged_num) == len_raw_content, (
+        f"2**int(logged_num) == len_raw_content: {2 ** int(logged_num)} == {len_raw_content}"
+    )
     assert 2 * len_raw_content >= real_num >= len_raw_content, (
         "2*len_raw_content >= real_num >= len_raw_content: "
         + f"{2 * len_raw_content} >= {real_num} >= {len_raw_content}"

@@ -126,7 +126,6 @@ class BackendWrapper:
     def __init__(
         self,
     ) -> None:
-
         self.is_aer_gpu = False
         backend_fake_callsign, backend_fake = fack_backend_loader()
 
@@ -153,7 +152,8 @@ class BackendWrapper:
 
         if hasattr(self.backend_dict["sim"]["sim"], "available_devices"):
             assert isinstance(
-                self.backend_dict["sim"]["sim"].available_devices, Callable  # type: ignore
+                self.backend_dict["sim"]["sim"].available_devices,
+                Callable,  # type: ignore
             ), "The available_devices should be a callable."
 
             self.is_aer_gpu = (

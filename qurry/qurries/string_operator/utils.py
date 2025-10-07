@@ -166,7 +166,8 @@ def circuit_method(
     string_op_lib = STRING_OPERATOR[on_dir][str_op]
     index_map = {op + ((k + 1) if op < 0 else i): op for op in string_op_lib if isinstance(op, int)}
     operations = {
-        idx: string_op_lib[index_map.get(idx, "filling")] for idx in range(i, k + 1)  # type: ignore
+        idx: string_op_lib[index_map.get(idx, "filling")]
+        for idx in range(i, k + 1)  # type: ignore
     }
 
     for ci, (qi, move) in enumerate(operations.items()):

@@ -107,9 +107,9 @@ class EntropyMeasureHadamardExperiment(
                 The circuits of the experiment and the arguments of the experiment.
         """
 
-        assert isinstance(
-            arguments.degree, tuple
-        ), f"The degree should be a tuple, got {arguments.degree}."
+        assert isinstance(arguments.degree, tuple), (
+            f"The degree should be a tuple, got {arguments.degree}."
+        )
 
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
@@ -124,7 +124,9 @@ class EntropyMeasureHadamardExperiment(
         qc_exp1.name = (
             f"{arguments.exp_name}" + ""
             if len(target_key) < 1
-            else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
+            else f".{target_key}" + ""
+            if len(old_name) < 1
+            else f".{old_name}"
         )
 
         qc_exp1.compose(

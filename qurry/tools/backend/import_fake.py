@@ -116,9 +116,7 @@ for the migration of fake_provider is not completed around this version.
 Many of the fake backends are not available in qiskit-ibm-runtime. 
 (This made me a lot problem to handle the fake backends in Qurry.) 
 (If you see this error raised, good luck to you to fix environment. :smile:.) 
-""".replace(
-    "\n", " "
-).strip()
+""".replace("\n", " ").strip()
 """A warning message for the fake backend not available. """
 
 

@@ -205,9 +205,9 @@ def test_quantity_unit(exp_method: ShadowUnveil, division: str, input_item: Inpu
             analysis_01_tmp = exp_method.exps[exp_id].analyze(
                 **input_item.analyze, rho_method=rho_method, trace_method=trace_method
             )
-            quantity.setdefault(kind, {})[
-                (rho_method, trace_method)
-            ] = analysis_01_tmp.content._asdict()
+            quantity.setdefault(kind, {})[(rho_method, trace_method)] = (
+                analysis_01_tmp.content._asdict()
+            )
 
         for (rho_method, trace_method), quantity_item in quantity[kind].items():
             result_items.setdefault(division + f".{rho_method}.{trace_method}", []).append(
@@ -283,7 +283,7 @@ def test_multi_output_all(
 
     methods = sum(methods_by_kind.values(), [])
     for i, (rho_method, trace_method) in enumerate(methods):
-        print(f"Processing {i+1}/{len(methods)}: {rho_method}, {trace_method}...")
+        print(f"Processing {i + 1}/{len(methods)}: {rho_method}, {trace_method}...")
         summoner_id = exp_method.multiAnalysis(
             summoner_id,
             specific_analysis_args=specific_analysis_args,  # type: ignore
@@ -322,9 +322,9 @@ def test_multi_output_all(
         summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    assert read_summoner_id == summoner_id, (
+        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    )
 
 
 def test_export():

@@ -255,12 +255,12 @@ class EchoListenRandomizedExperiment(
         target_key_2 = "" if isinstance(target_key_2, int) else str(target_key_2)
 
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-        assert (
-            arguments.unitary_located_mapping_1 is not None
-        ), "unitary_located_1 should be specified."
-        assert (
-            arguments.unitary_located_mapping_2 is not None
-        ), "unitary_located_2 should be specified."
+        assert arguments.unitary_located_mapping_1 is not None, (
+            "unitary_located_1 should be specified."
+        )
+        assert arguments.unitary_located_mapping_2 is not None, (
+            "unitary_located_2 should be specified."
+        )
         assert len(arguments.unitary_located_mapping_1) == len(
             arguments.unitary_located_mapping_2
         ), (

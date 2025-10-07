@@ -360,9 +360,9 @@ class MultiManager(Generic[_E]):
             }
         )
 
-        assert (
-            naming_complex.save_location == multicommons.save_location
-        ), "| save_location is not consistent with namingCpx.save_location."
+        assert naming_complex.save_location == multicommons.save_location, (
+            "| save_location is not consistent with namingCpx.save_location."
+        )
 
         current_multimanager = cls(
             naming_complex=naming_complex,
@@ -411,7 +411,6 @@ class MultiManager(Generic[_E]):
 
             pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
             with pool as p:
-
                 exps_iterable = qurry_progressbar(
                     p.imap_unordered(
                         experiment_instance.build_for_multiprocess,
@@ -580,9 +579,9 @@ class MultiManager(Generic[_E]):
             old_files=old_files,
         )
 
-        assert (
-            naming_complex.save_location == multicommons.save_location
-        ), "| save_location is not consistent with namingCpx.save_location."
+        assert naming_complex.save_location == multicommons.save_location, (
+            "| save_location is not consistent with namingCpx.save_location."
+        )
 
         current_multimanager = cls(
             naming_complex=naming_complex,

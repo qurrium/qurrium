@@ -220,9 +220,9 @@ class MultiCommonparams(NamedTuple):
         if isinstance(multicommons["export_location"], str):
             multicommons["export_location"] = Path(multicommons["export_location"])
 
-        assert isinstance(
-            multicommons["datetimes"], DatetimeDict
-        ), "datetimes should be DatetimeDict."
+        assert isinstance(multicommons["datetimes"], DatetimeDict), (
+            "datetimes should be DatetimeDict."
+        )
 
         return (
             cls(

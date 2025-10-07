@@ -38,9 +38,9 @@ ensemble_cases: list[tuple[EnsembleTarget, float]] = [
 def test_ensemble_cell_rust(target: EnsembleTarget, answer: float):
     """Test the ensemble_cell_rust function."""
 
-    assert randomized_availability[1][
-        "Rust"
-    ], f"Rust is not available. Check the error: {randomized_availability[2]}"
+    assert randomized_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {randomized_availability[2]}"
+    )
 
     py_result = ensemble_cell_py(*target)
     rust_result = ensemble_cell_rust(*target)

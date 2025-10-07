@@ -53,15 +53,15 @@ def randomized_entangled_entropy_complex_v1(
 
     if all_system_source is not None:
         source = f"serial={all_system_source.serial}, datetime={all_system_source.datetime}"
-        assert (
-            all_system_source.content.purityCellsAllSys is not None
-        ), f"purityCellsAllSys of {source} is None"
-        assert (
-            all_system_source.content.bitStringRange is not None
-        ), f"bitStringRange of {source} is None"
-        assert (
-            all_system_source.content.measureActually is not None
-        ), f"measureActually of {source} is None"
+        assert all_system_source.content.purityCellsAllSys is not None, (
+            f"purityCellsAllSys of {source} is None"
+        )
+        assert all_system_source.content.bitStringRange is not None, (
+            f"bitStringRange of {source} is None"
+        )
+        assert all_system_source.content.measureActually is not None, (
+            f"measureActually of {source} is None"
+        )
 
         existed_all_system: Optional[ExistingAllSystemSource] = {
             "bitStringRange": all_system_source.content.bitStringRange,
@@ -117,7 +117,9 @@ def circuit_method_core_v1(
     qc_exp1.name = (
         f"{exp_name}_{idx}" + ""
         if len(str(target_key)) < 1
-        else f".{target_key}" + "" if len(old_name) < 1 else f".{old_name}"
+        else f".{target_key}" + ""
+        if len(old_name) < 1
+        else f".{old_name}"
     )
 
     qc_exp1.compose(target_circuit, [q_func1[i] for i in range(num_qubits)], inplace=True)

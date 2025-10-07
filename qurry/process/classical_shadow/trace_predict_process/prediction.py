@@ -588,7 +588,8 @@ def prediction_algorithm(
     )  # type: ignore
 
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
-        np.array(given_operators), estimators  # type: ignore
+        np.array(given_operators),
+        estimators,  # type: ignore
     )
     return EstimationOfObservable(
         estimate_of_given_operators=estimate_of_given_operators,

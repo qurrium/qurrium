@@ -206,9 +206,9 @@ def test_multi_output_all(
 
     for config in config_list:
         for quantity in report_001[config["tags"]]:
-            assert isinstance(
-                quantity, dict
-            ), f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            assert isinstance(quantity, dict), (
+                f"The quantity is not a dict: {quantity}, {quantity.keys()}/{config['tags']}."
+            )
 
             result_items[f"{division}_multi"].append(
                 check_unit(
@@ -223,6 +223,6 @@ def test_multi_output_all(
         summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
         save_location=os.path.join(os.path.dirname(__file__), "exports"),
     )
-    assert (
-        read_summoner_id == summoner_id
-    ), f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    assert read_summoner_id == summoner_id, (
+        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    )

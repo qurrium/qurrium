@@ -105,7 +105,6 @@ def rho_m_core_py(
     )
 
     if rho_method == "numpy_vectorized":
-
         flatten_recount_list_vectorized = rho_m_flatten_counts_list_vectorize_pyrust(
             counts_under_degree_list, random_unitary_array, selected_clregs_sorted
         )  # Even parallel is not needed

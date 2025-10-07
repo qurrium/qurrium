@@ -287,9 +287,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             raise ValueError("Both circuits and exp_id are given.")
 
         if exp_id is None:
-            assert (
-                circuits is not None
-            ), "No circuits given, but it should be given for passing check."
+            assert circuits is not None, (
+                "No circuits given, but it should be given for passing check."
+            )
             exp_id = self.build(
                 circuits=circuits,
                 shots=shots,

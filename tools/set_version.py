@@ -99,9 +99,9 @@ def build_version_tree(
 
     for vers in formatted_all_versions:
         vers_split = vers.split(".")
-        assert (
-            3 <= len(vers_split) < 5
-        ), f"| Expect at 3 or 4 versions split parts, got {vers_split}"
+        assert 3 <= len(vers_split) < 5, (
+            f"| Expect at 3 or 4 versions split parts, got {vers_split}"
+        )
         if vers_split[0] not in unsorted_version_tree:
             unsorted_version_tree[vers_split[0]] = {}
         if vers_split[1] not in unsorted_version_tree[vers_split[0]]:
@@ -297,9 +297,9 @@ def bump_version(
     Returns:
         tuple[str, str, str, str]: The bumped version number
     """
-    assert (
-        len(version_split) == 3 or len(version_split) == 4
-    ), f"| The version number should be split by dot and have 3 or 4 parts: {version_split}."
+    assert len(version_split) == 3 or len(version_split) == 4, (
+        f"| The version number should be split by dot and have 3 or 4 parts: {version_split}."
+    )
 
     if bump_type == "dev":
         version_new_split = (
@@ -323,9 +323,9 @@ def bump_version(
             + f"major, minor, patch, dev, or skip, but got: '{bump_type}'."
         )
 
-    assert (
-        len(version_new_split) == 4
-    ), f"| The bumped version number should have 4 parts: {version_new_split}."
+    assert len(version_new_split) == 4, (
+        f"| The bumped version number should have 4 parts: {version_new_split}."
+    )
     return (version_new_split[0], version_new_split[1], version_new_split[2], version_new_split[3])
 
 

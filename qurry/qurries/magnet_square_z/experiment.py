@@ -112,9 +112,9 @@ class ZDirMagnetSquareExperiment(
             ZDirMagnetSquareAnalysis: The result of the magnet square analysis.
         """
 
-        assert (
-            len(self.afterwards.counts) == 1
-        ), f"The number of counts should be one, but got {len(self.afterwards.counts)}."
+        assert len(self.afterwards.counts) == 1, (
+            f"The number of counts should be one, but got {len(self.afterwards.counts)}."
+        )
 
         qs = self.quantities(
             shots=self.commons.shots,

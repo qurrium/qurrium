@@ -14,9 +14,9 @@ version_txt_split = raw_version_txt.split(".")
 print(f"| Get raw version: {raw_version_txt}")
 print(f"| Get version split: {version_txt_split}")
 
-assert (
-    len(version_txt_split) == 3 or len(version_txt_split) == 4
-), f"| The version number should be split by dot and have 3 or 4 parts: {version_txt_split}."
+assert len(version_txt_split) == 3 or len(version_txt_split) == 4, (
+    f"| The version number should be split by dot and have 3 or 4 parts: {version_txt_split}."
+)
 
 
 class MyProgramArgs(argparse.Namespace):
@@ -55,9 +55,9 @@ def bump_version(
     Returns:
         tuple[str, str, str, str]: The bumped version number
     """
-    assert (
-        len(version_split) == 3 or len(version_split) == 4
-    ), f"| The version number should be split by dot and have 3 or 4 parts: {version_split}."
+    assert len(version_split) == 3 or len(version_split) == 4, (
+        f"| The version number should be split by dot and have 3 or 4 parts: {version_split}."
+    )
 
     if bump_type == "dev":
         version_new_split = (
@@ -84,9 +84,9 @@ def bump_version(
             + f"major, minor, patch, dev, or skip, but got: '{bump_type}'."
         )
 
-    assert (
-        len(version_new_split) == 4
-    ), f"| The bumped version number should have 4 parts: {version_new_split}."
+    assert len(version_new_split) == 4, (
+        f"| The bumped version number should have 4 parts: {version_new_split}."
+    )
     return (version_new_split[0], version_new_split[1], version_new_split[2], version_new_split[3])
 
 

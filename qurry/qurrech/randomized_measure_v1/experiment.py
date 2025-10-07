@@ -189,9 +189,9 @@ class EchoListenRandomizedV1Experiment(
         target_key_02 = "" if isinstance(target_key_02, int) else str(target_key_02)
         num_qubits_02 = target_circuit_02.num_qubits
 
-        assert (
-            num_qubits_01 == num_qubits_02
-        ), "The number of qubits in two circuits should be the same."
+        assert num_qubits_01 == num_qubits_02, (
+            "The number of qubits in two circuits should be the same."
+        )
 
         if arguments.unitary_loc is None:
             actual_unitary_loc = (0, num_qubits_01)

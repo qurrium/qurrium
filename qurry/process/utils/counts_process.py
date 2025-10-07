@@ -197,9 +197,9 @@ def shot_counts_selected_clreg_checker(
         )
     else:
         selected_classical_registers = list(selected_classical_registers)
-    assert all(
-        0 <= q_i < total_system_size for q_i in selected_classical_registers
-    ), f"Invalid selected classical registers: {selected_classical_registers}"
+    assert all(0 <= q_i < total_system_size for q_i in selected_classical_registers), (
+        f"Invalid selected classical registers: {selected_classical_registers}"
+    )
 
     return total_system_size, selected_classical_registers
 

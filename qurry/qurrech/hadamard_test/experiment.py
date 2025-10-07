@@ -115,9 +115,9 @@ class EchoListenHadamardExperiment(
                 The circuits of the experiment and the arguments of the experiment.
         """
 
-        assert isinstance(
-            arguments.degree, tuple
-        ), f"The degree should be a tuple, got {arguments.degree}."
+        assert isinstance(arguments.degree, tuple), (
+            f"The degree should be a tuple, got {arguments.degree}."
+        )
 
         target_key_01, target_circuit_01 = targets[0]
         target_key_01 = "" if isinstance(target_key_01, int) else str(target_key_01)
@@ -128,9 +128,9 @@ class EchoListenHadamardExperiment(
         num_qubits_02 = target_circuit_02.num_qubits
         old_name_02 = "" if isinstance(target_circuit_02.name, str) else target_circuit_02.name
 
-        assert (
-            num_qubits_01 == num_qubits_02
-        ), "The number of qubits in two circuits should be the same."
+        assert num_qubits_01 == num_qubits_02, (
+            "The number of qubits in two circuits should be the same."
+        )
 
         q_ancilla = QuantumRegister(1, "ancilla_1")
         q_func1 = QuantumRegister(num_qubits_01, "q1")

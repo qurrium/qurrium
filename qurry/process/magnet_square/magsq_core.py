@@ -108,9 +108,9 @@ def magnetic_square_core(
         return magnetic_square_core_rust(shots, counts, num_qubits)
 
     sample_counts_sum = sum(counts[0].values())
-    assert (
-        shots == sample_counts_sum
-    ), f"Shots: {shots} must be equal to the sum of counts: {sample_counts_sum}."
+    assert shots == sample_counts_sum, (
+        f"Shots: {shots} must be equal to the sum of counts: {sample_counts_sum}."
+    )
     assert all(len(bits) == 2 for bits in counts[0]), f"Bits must be 2 bit, but found: {counts[0]}"
 
     begin = time.time()
@@ -149,9 +149,9 @@ def z_dir_magnetic_square_core(
         return z_dir_magnetic_square_core_rust(shots, single_counts, num_qubits)
 
     sample_counts_sum = sum(single_counts.values())
-    assert (
-        shots == sample_counts_sum
-    ), f"Shots: {shots} must be equal to the sum of counts: {sample_counts_sum}."
+    assert shots == sample_counts_sum, (
+        f"Shots: {shots} must be equal to the sum of counts: {sample_counts_sum}."
+    )
 
     begin = time.time()
     pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)

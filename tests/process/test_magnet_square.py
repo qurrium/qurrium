@@ -109,13 +109,13 @@ def test_magnet_square_zdir(
 ):
     """Test the z_dir_magnetic_square_core function."""
 
-    assert magnet_square_availability[1][
-        "Rust"
-    ], f"Rust is not available. Check the error: {magnet_square_availability[2]}"
+    assert magnet_square_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
+    )
 
-    assert (
-        len(counts) == 1
-    ), "The counts should be a single item for the z_dir_magnetic_square_core function."
+    assert len(counts) == 1, (
+        "The counts should be a single item for the z_dir_magnetic_square_core function."
+    )
 
     py_result = z_dir_magnetic_square_core(
         shots=answer["shots"],
@@ -151,14 +151,13 @@ def test_magnet_square_zdir(
 def test_magnet_square(case_name: str, answer: RawReadMSAnswer, counts: list[dict[str, int]]):
     """Test the z_dir_magnetic_square_core function."""
 
-    assert magnet_square_availability[1][
-        "Rust"
-    ], f"Rust is not available. Check the error: {magnet_square_availability[2]}"
+    assert magnet_square_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
+    )
 
     predict_counts_num = answer["num_qubits"] * (answer["num_qubits"] - 1)
     assert len(counts) == predict_counts_num, (
-        f"The counts should have {predict_counts_num} items, "
-        f"but got {len(counts)} for {case_name}"
+        f"The counts should have {predict_counts_num} items, but got {len(counts)} for {case_name}"
     )
 
     py_result = magnetic_square_core(

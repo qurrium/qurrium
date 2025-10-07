@@ -16,9 +16,9 @@ hadamard_cases = [(100, [{"0": 50, "1": 50}], 0), (100, [{"0": 100}], 1), (100, 
 def test_hadamard(shots: int, counts: list[dict[str, int]], answer: float):
     """Test the purity_echo_core function."""
 
-    assert purity_echo_core_availability[1][
-        "Rust"
-    ], f"Rust is not available. Check the error: {purity_echo_core_availability[2]}"
+    assert purity_echo_core_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {purity_echo_core_availability[2]}"
+    )
 
     rust_result = purity_echo_core(shots=shots, counts=counts, backend="Rust")
     py_result = purity_echo_core(shots=shots, counts=counts, backend="Python")
