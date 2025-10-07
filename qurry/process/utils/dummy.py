@@ -18,6 +18,19 @@ BACKEND_AVAILABLE = availablility("utils.dummy", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
+def filler_h_or_e(ff: str, item: str) -> str:
+    """Fill the bit string with `ff` at head or end randomly.
+
+    Args:
+        ff (str): The filler, should be '0' or '1'.
+        item (str): The bit string to be filled.
+    Returns:
+        str: The filled bit string.
+    """
+
+    return ff + item if np.random.rand() > 0.5 else item + ff
+
+
 def make_two_bit_str_32_py(bitlen: int, num: Optional[int] = None) -> list[str]:
     """Make a list of bit strings with length of `num`.
 
@@ -76,9 +89,7 @@ def make_two_bit_str_32_py(bitlen: int, num: Optional[int] = None) -> list[str]:
         + f"{2 * len_raw_content} >= {real_num} >= {len_raw_content}"
     )
     first_filler = ["0", "1"] if np.random.rand() > 0.5 else ["1", "0"]
-    filler_h_or_e: Callable[[str, str], str] = lambda ff, item: (
-        ff + item if np.random.rand() > 0.5 else item + ff
-    )
+
     num_fulfill_content = [filler_h_or_e(first_filler[0], item) for item in raw_content] + [
         filler_h_or_e(first_filler[1], item)
         for item in raw_content[: (real_num - len(raw_content))]
