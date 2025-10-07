@@ -4,7 +4,6 @@ from .command import cmd_wrapper, pytorch_cuda_check, fun_platform_check
 from .backend import (
     BackendWrapper,
     version_check,
-    backendName,
     GeneralSimulator,
     GeneralBackend,
     backend_name_getter,
