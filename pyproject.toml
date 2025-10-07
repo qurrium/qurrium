@@ -194,6 +194,19 @@ before-build = [
 ]
 test-command = ["pytest {project}/tests"]
 
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning"]
+# Qiskit DeprecationWarning is very annoying,
+# it can raise 100k+ warnings in a single test. WTF?
+
+[tool.coverage.run]
+include = ["./qurry/*"]
+omit = ["./tests/*"]
+data_file = "./.coverage/.coverage"
+
+# Linter and Formatter Configuration
+[tool.pylint]
+max-line-length = 100
 [tool.pylint."messages control"]
 disable = [
     "too-many-lines",
@@ -208,16 +221,19 @@ disable = [
     "too-many-ancestors",
 ]
 
-[tool.black]
+[tool.ruff]
 line-length = 100
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
+target-version = "py39"
+# We only support Python 3.9+, this is the minimum version.
+# This will need to be updated when we start to support Python 3.10+ specific syntax.
 
-[tool.pytest.ini_options]
-filterwarnings = ["ignore::DeprecationWarning"]
-# Qiskit DeprecationWarning is very annoying,
-# it can raise 100k+ warnings in a single test. WTF?
+[tool.ruff.lint]
+# select = ["E", "F", "W"]
+ignore = ["F401", "E203", "W291", "F841"]
 
-[tool.coverage.run]
-include = ["./qurry/*"]
-omit = ["./tests/*"]
-data_file = "./.coverage/.coverage"
+[tool.ruff.lint.per-file-ignores]
+# "**/{tests,docs,tools}/*" = ["E402"]
+"__init__.py" = ["E402", "F401"]
+# module level import of this package need before boorust setup
+"qurry/process/utils/dummy.py" = ["E731"]
+# The only file allows lambda assignment for a specific function

@@ -3,7 +3,7 @@ setuptools
 setuptools_rust
 
 # Lint tools
-flake8 
+ruff 
 pep440
 
 # Test tools
