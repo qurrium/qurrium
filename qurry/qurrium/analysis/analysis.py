@@ -70,7 +70,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         *,
         serial: int,
         log: Optional[dict[str, Any]] = None,
-        datatime: Optional[str] = None,
+        datetime: Optional[str] = None,
         **other_kwargs,
     ):
         duplicate_fields = (
@@ -86,7 +86,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
             )
 
         self.serial = serial
-        self.datetime = current_time() if datatime is None else datatime
+        self.datetime = current_time() if datetime is None else datetime
         self.log = log if isinstance(log, dict) else {}
 
         lost_fields = [
@@ -245,10 +245,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         serial = main["header"].get("serial", 0)
         log = main["header"].get("log", {})
         datetime = main["header"].get("datetime", current_time())
-        instance = cls(
-            serial=serial, log=log, datatime=datetime, **main["input"], **content, **side
-        )
-        return instance
+        return cls(serial=serial, log=log, datetime=datetime, **main["input"], **content, **side)
 
     @classmethod
     def read(cls, file_index: dict[str, str], save_location: Path):
