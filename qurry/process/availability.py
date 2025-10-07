@@ -61,17 +61,16 @@ def availablility(
     return module_location, avails, errors
 
 
-default_postprocessing_backend: Callable[[bool, bool], PostProcessingBackendLabel] = (
-    lambda rust_available=False, cython_available=False: (
-        "Rust" if rust_available else "Cython" if cython_available else "Python"
-    )
-)
-"""Return the default post-processing backend.
+def default_postprocessing_backend(
+    rust_available: bool = False, cython_available: bool = False
+) -> PostProcessingBackendLabel:
+    """Return the default post-processing backend.
 
-Args:
-    rust_available (bool): Rust availability.
-    cython_available (bool): Cython availability.
+    Args:
+        rust_available (bool): Rust availability.
+        cython_available (bool): Cython availability.
 
-Returns:
-    PostProcessingBackendLabel: The default post-processing backend.
-"""
+    Returns:
+        PostProcessingBackendLabel: The default post-processing backend.
+    """
+    return "Rust" if rust_available else "Cython" if cython_available else "Python"

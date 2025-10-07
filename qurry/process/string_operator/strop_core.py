@@ -15,18 +15,17 @@ BACKEND_AVAILABLE = availablility("string_operator.strop_core", [("Rust", True, 
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
-add_or_reducer: Callable[[str], Literal[1, -1]] = lambda bitstring: (
-    1 if sum(int(bit) for bit in bitstring) % 2 == 0 else -1
-)
-"""The add or reduce function.
-If the sum of the bitstring is even, return 1.
-If the sum of the bitstring is odd, return -1.
+def add_or_reducer(bitstring: str) -> Literal[1, -1]:
+    """The add or reduce function.
+    If the sum of the bitstring is even, return 1.
+    If the sum of the bitstring is odd, return -1.
 
-Args:
-    bitstring (str): The bitstring.
-Returns:
-    Literal[1, -1]: 1 or -1.
-"""
+    Args:
+        bitstring (str): The bitstring.
+    Returns:
+        Literal[1, -1]: 1 or -1.
+    """
+    return 1 if sum(int(bit) for bit in bitstring) % 2 == 0 else -1
 
 
 def string_operator_core(
