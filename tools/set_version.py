@@ -36,9 +36,8 @@ def read_all_versions_from_git():
 
     all_versions_read = subprocess.check_output(["git", "tag", "-l"]).strip()
     all_versions_read = all_versions_read.decode("utf-8")
-    all_versions = all_versions_read.split("\n")
 
-    return all_versions
+    return all_versions_read.split("\n")
 
 
 def formatted_version(

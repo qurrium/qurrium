@@ -48,11 +48,10 @@ def prepare_random_unitary_seeds(
     """
 
     random_unitary_seeds_raw: dict[str, dict[str, dict[str, int]]] = quickRead(filename)
-    random_unitary_seeds = {
+    return {
         int(k): {int(k2): {int(k3): v3 for k3, v3 in v2.items()} for k2, v2 in v.items()}
         for k, v in random_unitary_seeds_raw.items()
     }
-    return random_unitary_seeds
 
 
 def prepare_random_basis(
@@ -68,11 +67,10 @@ def prepare_random_basis(
     """
 
     random_basis_raw: dict[str, dict[str, dict[str, int]]] = quickRead(filename)
-    random_basis = {
+    return {
         int(k): {int(k2): {int(k3): v3 for k3, v3 in v2.items()} for k2, v2 in v.items()}
         for k, v in random_basis_raw.items()
     }
-    return random_basis
 
 
 def current_time_filename():
