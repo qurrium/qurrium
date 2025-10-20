@@ -105,6 +105,7 @@ from .trace_predict_process import (
     ListTraceMethod,
     ListTraceMethodType,
     DEFAULT_LIST_TRACE_METHOD,
+    worst_accuracy_predict_epsilon_calc,
 )
 from .all_trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
 from .classical_shadow import (

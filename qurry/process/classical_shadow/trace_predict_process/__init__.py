@@ -20,4 +20,8 @@ from .trace_mean_core import (
     RhoTraceMethod,
     DEFAULT_RHO_TRACE_METHOD,
 )
-from .prediction import prediction_algorithm, EstimationOfObservable
+from .prediction import (
+    prediction_algorithm,
+    EstimationOfObservable,
+    worst_accuracy_predict_epsilon_calc,
+)
