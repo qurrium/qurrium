@@ -145,7 +145,7 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 # Attention: If you are building universal2 binaries, 
 # confirm that you are using universal2 Python since version 3.9
 # It can be check by `python -c "from setuptools._distutils.util import get_platform; print(get_platform())"`
-# You should see something like `macosx-10.*-universal2` in the output.
+# You should see something like `macosx-*-universal2` in the output.
 
 [tool.cibuildwheel.windows]
 # PowerShell script
@@ -206,13 +206,13 @@ data_file = "./.coverage/.coverage"
 
 # Linter and Formatter Configuration
 # Pylint and Ruff are used for linting and formatting.
-# We keep Pylint for it's still suporting more rules than Ruff.
+# We keep Pylint for it still supports more rules than Ruff.
 [tool.pylint.format]
 max-line-length = 100
 [tool.pylint."messages control"]
 disable = [
     "too-many-lines",                  # C0302, hard to avoid in some core files.
-    "duplicate-code",                  # R0801, some duplicate code is hard to avoid.
+    "duplicate-code",                  # R0801, hard to avoid in some complicated code.
     "too-many-instance-attributes",    # R0902
     "too-few-public-methods",          # R0903
     "too-many-public-methods",         # R0904
@@ -236,9 +236,11 @@ target-version = "py39"
 # We only support Python 3.9+, this is the minimum version.
 # This will need to be updated when we start to support Python 3.10+ specific syntax.
 
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "R"]
-ignore = ["F401", "E203", "W291", "F841"]
+lint.select = [
+    "E4", "E7", "E9",  # pycodestyle errors
+    "F",               # Pyflakes
+]
+lint.ignore = ["F401", "E203", "W291", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
 # "**/{tests,docs,tools}/*" = ["E402"]
