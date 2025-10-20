@@ -1,4 +1,4 @@
-"""Qurrent/Qurshady - Second Renyi Entropy Measurement/Classical Shadow (:mod:`qurry.qurrent`)
+"""Qurrent - Second Renyi Entropy Measurement (:mod:`qurry.qurrent`)
 
 .. tip::
 
@@ -33,7 +33,6 @@ from typing import Literal, Union, overload
 from .randomized_measure import EntropyMeasureRandomized, EntropyMeasureRandomizedMeasureArgs
 from .randomized_measure_v1 import EntropyMeasureRandomizedV1, EntropyMeasureRandomizedV1MeasureArgs
 from .hadamard_test import EntropyMeasureHadamard, EntropyMeasureHadamardMeasureArgs
-from .classical_shadow import ShadowUnveil, ShadowUnveilMeasureArgs
 
 
 # pylint: disable=invalid-name
@@ -51,10 +50,6 @@ def EntropyMeasure(
 def EntropyMeasure(
     *args, method: Union[Literal["randomized", "haar", "base"], str] = "randomized", **kwargs
 ) -> EntropyMeasureRandomized: ...
-
-
-@overload
-def EntropyMeasure(*args, method: Literal["classical_shadow"], **kwargs) -> ShadowUnveil: ...
 
 
 def EntropyMeasure(
@@ -80,8 +75,6 @@ def EntropyMeasure(
         return EntropyMeasureRandomizedV1(*args, **kwargs)
     if method == "hadamard":
         return EntropyMeasureHadamard(*args, **kwargs)
-    if method == "classical_shadow":
-        return ShadowUnveil(*args, **kwargs)
     return EntropyMeasureRandomized(*args, **kwargs)
 
 

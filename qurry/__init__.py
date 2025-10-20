@@ -25,7 +25,8 @@ sys.modules["qurry.boorust.test"] = boorust.test  # type: ignore
 
 
 from .qurrech import EchoListen, WaveFunctionOverlap
-from .qurrent import EntropyMeasure, ShadowUnveil
+from .qurrent import EntropyMeasure
+from .qurshady import ShadowUnveil
 from .qurries import WavesExecuter, SamplingExecuter, MagnetSquare, ZDirMagnetSquare, StringOperator
 from .tools import (
     BackendWrapper,
