@@ -771,6 +771,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         save_location: Union[Path, str] = Path("./"),
         reload: bool = False,
         read_from_tarfile: bool = False,
+        multiprocess: bool = True,
     ) -> str:
         """Read the multimanager from the file.
 
@@ -781,11 +782,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
             reload (bool, optional):
-                Whether to reload the multimanager.
-                Defaults to False.
+                Whether to reload the multimanager. Defaults to False.
             read_from_tarfile (bool, optional):
-                Whether to read from the tarfile.
-                Defaults to False.
+                Whether read from tarfile. Defaults to False.
+            multiprocess (bool, optional):
+                Whether use multiprocess for reading. Defaults to True.
 
         Returns:
             str: The summoner_id of multimanager.
@@ -815,6 +816,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             save_location=save_location,
             is_read_or_retrieve=True,
             read_from_tarfile=read_from_tarfile,
+            multiprocess=multiprocess,
         )
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager
 
