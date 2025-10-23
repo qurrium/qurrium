@@ -421,12 +421,12 @@ def accuracy_prob_comp_delta_calc(
     return delta
 
 
-def num_of_esitmator_calc(
+def decide_num_of_estimators(
     num_classical_snapshot: int,
     num_of_given_operators: int,
     accuracy_prob_comp_delta: float = 0.01,
 ) -> tuple[int, float]:
-    r"""Calculate the number of estimators.
+    r"""Decide the number of estimators K from the equation (S13) in the supplementary material.
 
     The number of estimators is calculated by the following equation,
 
@@ -571,7 +571,7 @@ def prediction_algorithm(
         accuracy_predict_epsilon = epsilon_upperbound
         max_shadow_norm = np.nan
 
-    num_of_estimators, actual_accuracy_prob_comp_delta = num_of_esitmator_calc(
+    num_of_estimators, actual_accuracy_prob_comp_delta = decide_num_of_estimators(
         num_classical_snapshot, num_of_given_operators, accuracy_prob_comp_delta
     )
     n_div_k_floor = int(np.floor(num_classical_snapshot / num_of_estimators))
