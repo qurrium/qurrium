@@ -8,6 +8,11 @@ from .backend import (
     GeneralBackend,
     backend_name_getter,
 )
-from .parallelmanager import ParallelManager, workers_distribution, DEFAULT_POOL_SIZE
+from .parallelmanager import (
+    ParallelManager,
+    workers_distribution,
+    DEFAULT_POOL_SIZE,
+    DEFAULT_START_METHOD,
+)
 from .progressbar import qurry_progressbar, set_pbar_description
 from .datetime import current_time, DatetimeDict

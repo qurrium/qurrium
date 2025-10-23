@@ -36,6 +36,7 @@ from ...tools import (
     set_pbar_description,
     backend_name_getter,
     DEFAULT_POOL_SIZE,
+    DEFAULT_START_METHOD,
     qurry_progressbar,
     GeneralSimulator,
 )
@@ -1003,6 +1004,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
             qurryinfo.update(qurryinfo_found)
 
+        num_exps = len(qurryinfo)
         if not multiprocess or len(qurryinfo) == 1:
             return [
                 cls._read_core(
@@ -1013,26 +1015,24 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 for exp_id, file_index in qurryinfo.items()
             ]
 
-        num_exps = len(qurryinfo)
         chunks_num = very_easy_chunk_size(
             tasks_num=num_exps,
             num_process=DEFAULT_POOL_SIZE,
             max_chunk_size=min(max(1, num_exps // DEFAULT_POOL_SIZE), 40),
         )
-        reading_pool = get_context("spawn").Pool(
+        with get_context(DEFAULT_START_METHOD).Pool(
             processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-        )
-        with reading_pool as pool:
-            exps_iterable = qurry_progressbar(
-                pool.imap_unordered(
-                    cls._read_core_multiprocess,
-                    (
-                        (exp_id, file_index, save_location)
-                        for exp_id, file_index in qurryinfo.items()
+        ) as pool:
+            return list(
+                qurry_progressbar(
+                    pool.imap_unordered(
+                        cls._read_core_multiprocess,
+                        (
+                            (exp_id, file_index, save_location)
+                            for exp_id, file_index in qurryinfo.items()
+                        ),
                     ),
-                ),
-                total=num_exps,
-                desc=f"Loading {num_exps} experiments ...",
+                    total=num_exps,
+                    desc=f"Loading {num_exps} experiments ...",
+                )
             )
-
-        return list(exps_iterable)
