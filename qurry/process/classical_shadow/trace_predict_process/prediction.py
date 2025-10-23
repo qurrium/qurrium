@@ -1,5 +1,5 @@
 """Post Processing - Classical Shadow - Expectation Process
-(:mod:`qurry.process.classical_shadow.trace_expect_process.expectation`)
+(:mod:`qurry.process.classical_shadow.trace_predict_process.prediction`)
 
 """
 

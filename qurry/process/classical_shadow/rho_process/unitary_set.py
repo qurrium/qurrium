@@ -1,4 +1,4 @@
-r"""Post Processing - Classical Shadow - Rho Process - Unitary Set
+"""Post Processing - Classical Shadow - Rho Process - Unitary Set
 (:mod:`qurry.process.classical_shadow.rho_process.unitary_set`)
 
 The followings are unitary operators for our classical shadow implementation.

@@ -1,5 +1,5 @@
 """Post Processing - Classical Shadow - Trace-Preidction Process - Trace and Mean of Rho
-(:mod:`qurry.process.classical_shadow.trace_predcit_process.trace_mean_core`)
+(:mod:`qurry.process.classical_shadow.trace_predict_process.trace_mean_core`)
 
 This module is used to process the rho dictionary for classical shadow.
 """
