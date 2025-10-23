@@ -91,7 +91,14 @@ Reference:
 
 """
 
-from .utils import generate_random_basis, check_random_basis, check_random_basis_array, spreadout
+from .utils import (
+    generate_random_basis,
+    check_random_basis,
+    check_random_basis_array,
+    spreadout,
+    measurements_export,
+    measurements_read,
+)
 from .rho_process import (
     classical_shadow_rho_process_availability,
     RhoMethod,
