@@ -28,7 +28,7 @@ from utils import (
 )
 from circuits import CNOTDynCase4To8, DummyTwoBodyWithDedicatedClbits
 
-from qurry.qurrent import ShadowUnveil
+from qurry.qurshady import ShadowUnveil
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.classical_shadow import (
     JAX_AVAILABLE,

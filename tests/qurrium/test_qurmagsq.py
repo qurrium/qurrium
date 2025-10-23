@@ -24,7 +24,7 @@ from utils import (
 )
 
 from qurry.qurries import ZDirMagnetSquare, MagnetSquare
-from qurry.qurrent import ShadowUnveil
+from qurry.qurshady import ShadowUnveil
 from qurry.qurrium import QurriumPrototype
 from qurry.tools.backend import GeneralSimulator
 from qurry.capsule import quickJSON
