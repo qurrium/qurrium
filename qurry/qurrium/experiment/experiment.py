@@ -966,6 +966,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         cls,
         name_or_id: Union[Path, str],
         save_location: Union[Path, str] = Path("./"),
+        multiprocess: bool = True,
     ):
         """Read the experiment from file.
 
@@ -973,6 +974,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             name_or_id (Union[Path, str]): The name or id of the experiment to be read.
             save_location (Union[Path, str], optional):
                 The location of the experiment to be read. Defaults to Path('./').
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
 
         Raises:
             ValueError: 'save_location' needs to be the type of 'str' or 'Path'.
@@ -999,6 +1002,16 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         with open(qurryinfo_location, "r", encoding=DEFAULT_ENCODING) as f:
             qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
             qurryinfo.update(qurryinfo_found)
+
+        if not multiprocess or len(qurryinfo) == 1:
+            return [
+                cls._read_core(
+                    exp_id=exp_id,
+                    file_index=file_index,
+                    save_location=save_location,
+                )
+                for exp_id, file_index in qurryinfo.items()
+            ]
 
         num_exps = len(qurryinfo)
         chunks_num = very_easy_chunk_size(

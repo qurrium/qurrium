@@ -462,6 +462,7 @@ class MultiManager(Generic[_E]):
         save_location: Union[Path, str] = Path("./"),
         is_read_or_retrieve: bool = False,
         read_from_tarfile: bool = False,
+        multiprocess: bool = True,
     ) -> "MultiManager[_E]":
         """Read the multi-experiment.
 
@@ -476,6 +477,8 @@ class MultiManager(Generic[_E]):
                 Whether read or retrieve. Defaults to False.
             read_from_tarfile (bool, optional):
                 Whether read from tarfile. Defaults to False.
+            multiprocess (bool, optional):
+                Whether use multiprocess for reading. Defaults to True.
 
         Returns:
             MultiManager: The container of experiments and multi-experiment.
@@ -619,6 +622,7 @@ class MultiManager(Generic[_E]):
         reading_results: list[_E] = experiment_instance.read(  # type: ignore
             save_location=current_multimanager.multicommons.save_location,
             name_or_id=current_multimanager.multicommons.summoner_name,
+            multiprocess=multiprocess,
         )
         for read_exps in reading_results:
             current_multimanager.exps[read_exps.commons.exp_id] = read_exps
