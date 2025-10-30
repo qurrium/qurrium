@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Non Matrix Operation Process - Bitwise Trace
-(:mod:`qurry.process.classical_shadow.nomatop_process.bitwise`)
+"""Post Processing - Classical Shadow - Trace Process - Bitwise Trace
+(:mod:`qurry.process.classical_shadow.trace_process.bitwise`)
 
 This derived from the implementation of Hsin-Yuan Huang
 in `Predicting Properties of Quantum Many-Body Systems

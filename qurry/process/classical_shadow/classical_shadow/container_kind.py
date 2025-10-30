@@ -6,8 +6,8 @@ from typing import Union, TypedDict, Literal
 import numpy as np
 
 from ..rho_process import RhoMethod, RhoMethodType
-from ..trace_predict_process import EstimationOfObservable
-from ..all_trace_process import TraceMethod, TraceMethodType
+from ..trace_process import TraceMethod, TraceMethodType
+from ..prediction_process import EstimationOfObservable
 
 
 PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]

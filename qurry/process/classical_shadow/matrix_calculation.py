@@ -1,5 +1,5 @@
 """Post Processing - Classical Shadow - Trace-Prediction Process - Matrix Calculation
-(:mod:`qurry.process.classical_shadow.trace_predict_process.matrix_calcution`)
+(:mod:`qurry.process.classical_shadow.trace_predict_process.matrix_calculation`)
 
 The matrix calculation for predicting quantum properties.
 
@@ -9,9 +9,9 @@ from typing import Callable, Union
 import warnings
 import numpy as np
 
-from ...utils import BaseMethodEnum
-from ...availability import availablility
-from ...exceptions import (
+from ..utils import BaseMethodEnum
+from ..availability import availablility
+from ..exceptions import (
     PostProcessingThirdPartyImportError,
     PostProcessingThirdPartyUnavailableWarning,
 )
@@ -153,7 +153,7 @@ except ImportError as err:
 
 
 BACKEND_AVAILABLE = availablility(
-    "classical_shadow.trace_predict_process",
+    "classical_shadow.matrix_calculation",
     [("Numpy", True, None), ("JAX", JAX_AVAILABLE, FAILED_JAX_IMPORT)],
 )
 """The availability of backends for classical shadow matrix calculation."""

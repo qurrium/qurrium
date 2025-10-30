@@ -8,14 +8,10 @@ import tqdm
 import numpy as np
 
 from .container_kind import ClassicalShadowComplex, purity_value_kind
-from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..all_trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
-from ..trace_predict_process import (
-    mean_rho_core,
-    prediction_algorithm,
-    ListTraceMethodType,
-    DEFAULT_LIST_TRACE_METHOD,
-)
+from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD, mean_rho_core
+from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
+from ..prediction_process import prediction_algorithm
+from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ..utils import check_random_basis_array
 
 
@@ -232,7 +228,7 @@ def classical_shadow_complex(
         )
     kind_of_purity = purity_value_kind(rho_method, trace_method)
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
@@ -253,7 +249,6 @@ def classical_shadow_complex(
         random_basis_array=random_basis_array,
         rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
-        rho_method=rho_method,
         trace_method=trace_method,
     )
 

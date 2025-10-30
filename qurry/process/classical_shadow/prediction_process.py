@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Expectation Process
-(:mod:`qurry.process.classical_shadow.trace_predict_process.prediction`)
+"""Post Processing - Classical Shadow - Prediction Process
+(:mod:`qurry.process.classical_shadow.prediction_process`)
 
 """
 
@@ -7,12 +7,12 @@ from typing import Optional, TypedDict
 import warnings
 import numpy as np
 
-from .matrix_calcution import (
+from .matrix_calculation import (
     select_prediction_einsum_aij_bji_to_ab,
     ListTraceMethodType,
     DEFAULT_LIST_TRACE_METHOD,
 )
-from ...exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
+from ..exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
 
 
 class EstimationOfObservable(TypedDict):

@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Non Matrix Operation Process - Non MatMul Trace
-(:mod:`qurry.process.classical_shadow.nomatop_process.nomatmul_trace`)
+"""Post Processing - Classical Shadow - Trace Process - Non-Matrix Multiplication Trace
+(:mod:`qurry.process.classical_shadow.trace_process.nomatmul_trace`)
 
 """
 

@@ -269,7 +269,7 @@ Currently, "multi_shots" is the best option for performance.
 """
 
 
-def rho_m_core(
+def rho_core(
     shots: int,
     counts: list[dict[str, int]],
     random_unitary_array: list[list[Union[Literal[0, 1, 2], int]]],
@@ -339,3 +339,32 @@ def rho_m_core(
         convert_to_single_shot=convert_to_single_shot,
         rho_method=rho_m_core_method,
     )
+
+
+def mean_rho_core(
+    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    selected_classical_registers_sorted: list[int],
+) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+    """Calculate the expectation value of Rho.
+
+    Args:
+        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+            The dictionary of Rho M.
+            The dictionary of Rho M I.
+        selected_classical_registers_sorted (list[int]):
+            The list of the selected_classical_registers.
+
+    Returns:
+        np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The expectation value of Rho.
+    """
+
+    expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = np.sum(
+        rho_m_list, axis=0, dtype=np.complex128
+    )  # type: ignore
+    assert expect_rho.shape == (2 ** len(selected_classical_registers_sorted),) * 2, (
+        f"The shape of expect_rho: {expect_rho.shape} "
+        + f"and the shape of rho_m_list: {rho_m_list[0].shape} are different."
+    )
+    expect_rho /= len(rho_m_list)
+
+    return expect_rho

@@ -7,8 +7,8 @@ from typing import Literal, Union, Optional, Iterable
 import tqdm
 
 from .container_kind import ClassicalShadowPurity, purity_value_kind
-from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..all_trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
+from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD
+from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
 from ..utils import check_random_basis_array
 
 
@@ -104,7 +104,7 @@ def trace_rho_square(
             + f"The number of counts is {len(counts)}."
         )
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
@@ -120,7 +120,6 @@ def trace_rho_square(
         random_basis_array=random_basis_array,
         rho_m_list=rho_m_list,
         selected_classical_registers_sorted=selected_classical_registers_sorted,
-        rho_method=rho_method,
         trace_method=trace_method,
     )
 

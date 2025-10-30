@@ -99,23 +99,26 @@ from .utils import (
     measurements_export,
     measurements_read,
 )
+from .matrix_calculation import (
+    set_cpu_only,
+    JAX_AVAILABLE,
+    BACKEND_AVAILABLE as classical_shadow_matrix_availability,
+    ListTraceMethod,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
+)
 from .rho_process import (
     classical_shadow_rho_process_availability,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
 )
-from .trace_predict_process import (
-    set_cpu_only,
-    JAX_AVAILABLE,
-    classical_shadow_matrix_availability,
-    ListTraceMethod,
-    ListTraceMethodType,
-    DEFAULT_LIST_TRACE_METHOD,
+from .prediction_process import (
     worst_accuracy_predict_epsilon_calc,
     decide_num_of_estimators,
+    prediction_algorithm,
 )
-from .all_trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
+from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
 from .classical_shadow import (
     mean_of_rho,
     trace_rho_square,

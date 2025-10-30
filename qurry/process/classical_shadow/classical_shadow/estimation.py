@@ -8,12 +8,9 @@ import tqdm
 import numpy as np
 
 from .container_kind import ClassicalShadowEstimation
-from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..trace_predict_process import (
-    prediction_algorithm,
-    ListTraceMethodType,
-    DEFAULT_LIST_TRACE_METHOD,
-)
+from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD
+from ..prediction_process import prediction_algorithm
+from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ..utils import check_random_basis_array
 
 
@@ -151,7 +148,7 @@ def estimation_of_given_operators(
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,

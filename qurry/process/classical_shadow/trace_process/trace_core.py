@@ -7,10 +7,9 @@ from typing import Literal, Union
 import warnings
 import numpy as np
 
-from .rho_process import RhoMethodType, DEFAULT_RHO_METHOD
-from .trace_predict_process import trace_rho_square_core, RhoTraceMethod, JAX_AVAILABLE
-from .nomatop_process import trace_nomatop_core, NonMatOpTraceMethod
-from ..utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum
+from .nomatop_core import NonMatOpTraceMethod, trace_nomatop_core
+from .rho_trace_core import RhoTraceMethod, trace_rho_square_core, JAX_AVAILABLE
+from ...utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum
 
 
 class TraceMethod(BaseMethodEnum):
@@ -217,7 +216,6 @@ def all_trace_core(
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     selected_classical_registers_sorted: list[int],
-    rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
 ) -> tuple[Union[float, np.float64], Union[float, np.float64]]:
     """Calculate the trace by all given methods.
@@ -234,35 +232,6 @@ def all_trace_core(
         selected_classical_registers_sorted (list[int]):
             The **sorted** list of the index of the selected classical registers.
 
-        rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
-
-            For the "multi_shots_*" methods, the counts and random basis are used as is.
-            For the "single_shots_*" methods, the counts and random basis are
-            converted to single shot per snapshot for classical shadow post-processing.
-
-            **Warning: Althought larger snapshots number means more accurate values.**
-            **But if your shots number is large,**
-            **this may significantly increase memory usage**
-            **and require a lot of computing resource.**
-            **In worst scenrio, this will break your computer.**
-            **Please reconsider for performance.**
-
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
-            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow.
-
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
-            - "single_shots": Use Numpy to calculate the rho_m
-                with precomputed values with converted single shot counts.
-            - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow with converted single shot counts.
-
-            Currently, "multi_shots" is the best option for performance.
-            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
         trace_method (TraceMethodType, optional):
             The method to calculate the trace of rho.
 
@@ -313,7 +282,7 @@ def all_trace_core(
         if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
             warnings.warn(
                 "The imaginary part of the trace of Rho square is not zero. "
-                f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}, {rho_method}",
+                f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}",
                 RuntimeWarning,
             )
         purity = trace_rho_sum.real

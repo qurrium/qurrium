@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Trace-Preidction Process - Trace and Mean of Rho
-(:mod:`qurry.process.classical_shadow.trace_predict_process.trace_mean_core`)
+"""Post Processing - Classical Shadow - Trace Process - Rho Trace Core
+(:mod:`qurry.process.classical_shadow.trace_process.rho_trace_core`)
 
 This module is used to process the rho dictionary for classical shadow.
 """
@@ -8,7 +8,7 @@ from typing import Union
 from itertools import combinations
 import numpy as np
 
-from .matrix_calcution import (
+from ..matrix_calculation import (
     select_single_trace_rho_method,
     SingleTraceMethod,
     select_all_trace_rho_by_einsum_aij_bji_to_ab,
@@ -16,35 +16,6 @@ from .matrix_calcution import (
     JAX_AVAILABLE,
 )
 from ...utils import BaseMethodEnum
-
-
-def mean_rho_core(
-    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    selected_classical_registers_sorted: list[int],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
-    """Calculate the expectation value of Rho.
-
-    Args:
-        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
-            The dictionary of Rho M.
-            The dictionary of Rho M I.
-        selected_classical_registers_sorted (list[int]):
-            The list of the selected_classical_registers.
-
-    Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]: The expectation value of Rho.
-    """
-
-    expect_rho: np.ndarray[tuple[int, int], np.dtype[np.complex128]] = np.sum(
-        rho_m_list, axis=0, dtype=np.complex128
-    )  # type: ignore
-    assert expect_rho.shape == (2 ** len(selected_classical_registers_sorted),) * 2, (
-        f"The shape of expect_rho: {expect_rho.shape} "
-        + f"and the shape of rho_m_list: {rho_m_list[0].shape} are different."
-    )
-    expect_rho /= len(rho_m_list)
-
-    return expect_rho
 
 
 class RhoTraceMethod(BaseMethodEnum):

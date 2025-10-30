@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Non Matrix Operation Process - Core
-(:mod:`qurry.process.classical_shadow.nomatop_process.nomatop_core`)
+"""Post Processing - Classical Shadow - Trace Process - Non-Matrix Operation Core
+(:mod:`qurry.process.classical_shadow.trace_process.nomatop_core`)
 
 """
 

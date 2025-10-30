@@ -7,8 +7,7 @@ from typing import Literal, Union, Optional, Iterable
 import tqdm
 
 from .container_kind import ClassicalShadowMeanRho
-from ..rho_process import rho_m_core, RhoMethodType, DEFAULT_RHO_METHOD
-from ..trace_predict_process import mean_rho_core
+from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD, mean_rho_core
 from ..utils import check_random_basis_array
 
 
@@ -116,7 +115,7 @@ def mean_of_rho(
 
     check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_m_core(
+    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
