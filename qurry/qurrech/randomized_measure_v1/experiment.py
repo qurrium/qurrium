@@ -5,7 +5,6 @@ The deprecated version of the randomized measure experiment.
 
 from typing import Union, Optional, Type, Any
 from collections.abc import Iterable, Hashable
-import warnings
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -16,9 +15,9 @@ from ...qurrent.randomized_measure_v1.utils import circuit_method_core_v1
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.utils import qubit_selector
 from ...qurrium.utils.randomized import (
+    generate_random_unitary,
     local_random_unitary_operators,
     local_random_unitary_pauli_coeff,
-    random_unitary,
 )
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap_v1 import (
@@ -27,7 +26,6 @@ from ...process.randomized_measure.wavefunction_overlap_v1 import (
 )
 from ...process.availability import PostProcessingBackendLabel
 from ...tools import qurry_progressbar, ParallelManager, set_pbar_description
-from ...exceptions import QurryArgumentsExpectedNotNone
 
 
 class EchoListenRandomizedV1Experiment(
@@ -193,29 +191,13 @@ class EchoListenRandomizedV1Experiment(
             "The number of qubits in two circuits should be the same."
         )
 
-        if arguments.unitary_loc is None:
-            actual_unitary_loc = (0, num_qubits_01)
-            warnings.warn(
-                f"| unitary_loc is not specified, using the whole qubits {actual_unitary_loc},"
-                + " but it should be not None anymore here.",
-                QurryArgumentsExpectedNotNone,
-            )
-        else:
-            actual_unitary_loc = arguments.unitary_loc
-        unitary_dict = {
-            i: {
-                j: (
-                    random_unitary(2)
-                    if arguments.random_unitary_seeds is None
-                    else random_unitary(2, arguments.random_unitary_seeds[i][j])
-                )
-                for j in range(*actual_unitary_loc)
-            }
-            for i in range(arguments.times)
-        }
-
         set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
         assert arguments.unitary_loc is not None, "unitary_loc should be not None."
+        unitary_dict = generate_random_unitary(
+            arguments.times,
+            list(range(*arguments.unitary_loc)),
+            arguments.random_unitary_seeds,
+        )
         assert arguments.measure is not None, "measure should be not None."
         if multiprocess:
             pool = ParallelManager(arguments.workers_num)

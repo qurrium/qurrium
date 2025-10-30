@@ -12,7 +12,7 @@ from .utils import randomized_circuit_method, randomized_entangled_entropy_compl
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...qurrium.utils import bitstring_mapping_getter
 from ...qurrium.utils.randomized import (
-    random_unitary,
+    generate_random_unitary,
     local_unitary_op_to_list,
     local_unitary_op_to_pauli_coeff,
 )
@@ -194,17 +194,11 @@ class EntropyMeasureRandomizedExperiment(
 
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
         assert arguments.unitary_located is not None, "unitary_located should be specified."
-        unitary_dicts = {
-            n_u_i: {
-                n_u_qi: (
-                    random_unitary(2)
-                    if arguments.random_unitary_seeds is None
-                    else random_unitary(2, arguments.random_unitary_seeds[n_u_i][seed_i])
-                )
-                for seed_i, n_u_qi in enumerate(arguments.unitary_located)
-            }
-            for n_u_i in range(arguments.times)
-        }
+        unitary_dicts = generate_random_unitary(
+            times=arguments.times,
+            unitary_located=arguments.unitary_located,
+            random_unitary_seeds=arguments.random_unitary_seeds,
+        )
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
         assert arguments.registers_mapping is not None, "registers_mapping should be specified."

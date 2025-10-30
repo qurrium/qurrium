@@ -22,7 +22,7 @@ from ...qurrent.randomized_measure.utils import randomized_circuit_method
 from ...qurrium.experiment import ExperimentPrototype, Commonparams, memory_usage_factor_expect
 from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps, bitstring_mapping_getter
 from ...qurrium.utils.randomized import (
-    random_unitary,
+    generate_random_unitary,
     local_unitary_op_to_list,
     local_unitary_op_to_pauli_coeff,
 )
@@ -269,17 +269,11 @@ class EchoListenRandomizedExperiment(
             + f"but got {len(arguments.unitary_located_mapping_1)} "
             + f"and {len(arguments.unitary_located_mapping_2)}."
         )
-        unitary_dicts_source = {
-            n_u_i: {
-                ui: (
-                    random_unitary(2)
-                    if arguments.random_unitary_seeds is None
-                    else random_unitary(2, arguments.random_unitary_seeds[n_u_i][ui])
-                )
-                for ui in range(len(arguments.unitary_located_mapping_1))
-            }
-            for n_u_i in range(arguments.times)
-        }
+        unitary_dicts_source = generate_random_unitary(
+            arguments.times,
+            list(range(len(arguments.unitary_located_mapping_1))),
+            arguments.random_unitary_seeds,
+        )
         unitary_dict = {}
         for n_u_i in range(arguments.times):
             unitary_dict[n_u_i] = {
