@@ -112,7 +112,7 @@ class SUAnalysisContent(NamedTuple):
     methods_used: tuple[RhoMethodType, TraceMethodType]
     """The (rho_method, trace_method) used for the calculation."""
     # esitimation of given operators
-    estimate_of_given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+    estimate_of_given_operators: list[np.complex128]
     r"""The result of measurement primitive :math:`\mathcal{U}`."""
     corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
     r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`."""
