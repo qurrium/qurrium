@@ -383,6 +383,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 For the non-matrix operation methods, it will directly calculate the trace from
                 the counts and random basis.
 
+                - Skip calculation of trace:
+                    - "skip_trace": Skip the trace calculation and return NaN.
+
                 The default method is "bitwise_py", which is the fastest option.
             estimate_trace_method (ListTraceMethodType, optional):
                 The method to use for the calculation.
@@ -549,6 +552,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     - "bitwise_py": Use pure Python bitwise implementation.
                 For the non-matrix operation methods, it will directly calculate the trace from
                 the counts and random basis.
+
+                - Skip calculation of trace:
+                    - "skip_trace": Skip the trace calculation and return NaN.
 
                 The default method is "bitwise_py", which is the fastest option.
             estimate_trace_method (ListTraceMethodType, optional):
@@ -727,6 +733,9 @@ def quantities_input_collecter(
                 - "bitwise_py": Use pure Python bitwise implementation.
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
+            
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
 
             The default method is "bitwise_py", which is the fastest option.
         estimate_trace_method (ListTraceMethodType, optional):
@@ -911,6 +920,9 @@ def outside_analyze(
                 - "bitwise_py": Use pure Python bitwise implementation.
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
+
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
 
             The default method is "bitwise_py", which is the fastest option.
         estimate_trace_method (ListTraceMethodType, optional):

@@ -218,10 +218,12 @@ NEW_FIELDS_DEFAULTS = {
     "average_classical_snapshots_rho": {},
     "mean_of_rho": np.zeros((1, 1), dtype=np.complex128),
     "classical_registers_actually": [],
+    "rho_method": "unknown",
     "taking_time": 0.0,
     "purity": np.nan,
     "entropy": np.nan,
     "purity_value_kind": "unknown",
+    "trace_method": "unknown",
     "methods_used": ("unknown", "unknown"),
     "estimate_of_given_operators": [],
     "corresponding_rhos": [],
@@ -229,6 +231,7 @@ NEW_FIELDS_DEFAULTS = {
     "num_of_estimators_k": 0,
     "accuracy_predict_epsilon": np.nan,
     "maximum_shadow_norm": np.nan,
+    "estimate_trace_method": "unknown",
 }
 """Default values for new fields introduced in 0.13."""
 
