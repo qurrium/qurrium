@@ -164,7 +164,7 @@ def estimation_of_given_operators(
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
-        trace_method=estimate_trace_method,
+        estimate_trace_method=estimate_trace_method,
     )
 
     return ClassicalShadowEstimation(
@@ -173,6 +173,7 @@ def estimation_of_given_operators(
         taking_time=taken,
         shots=shots,
         snapshots=len(rho_m_list),
+        rho_method=rho_method,
         # esitimation of given operators
         **all_prediction_results,
     )

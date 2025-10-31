@@ -88,6 +88,9 @@ def trace_rho_square(
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
 
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
+
             The default method is "bitwise_py", which is the fastest option.
 
         pbar (Optional[tqdm.tqdm], optional):
@@ -129,8 +132,10 @@ def trace_rho_square(
         taking_time=taken,
         shots=shots,
         snapshots=len(rho_m_list),
+        rho_method=rho_method,
         # The trace of Rho square
         purity=purity,
         entropy=entropy,
+        trace_method=trace_method,
         purity_value_kind=purity_value_kind(rho_method, trace_method),
     )

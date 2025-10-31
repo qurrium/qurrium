@@ -198,6 +198,9 @@ def classical_shadow_complex(
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
 
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
+
             The default method is "bitwise_py", which is the fastest option.
         estimate_trace_method (ListTraceMethodType, optional):
             The method to use for the calculation.
@@ -261,12 +264,14 @@ def classical_shadow_complex(
             taking_time=taken,
             shots=shots,
             snapshots=len(rho_m_list),
+            rho_method=rho_method,
             # The mean of Rho
             mean_of_rho=expect_rho,
             # The trace of Rho square
             purity=purity,
             entropy=entropy,
             purity_value_kind=kind_of_purity,
+            trace_method=trace_method,
             # esitimation of given operators
             estimate_of_given_operators=[],
             corresponding_rhos=[],
@@ -276,6 +281,7 @@ def classical_shadow_complex(
             maximum_shadow_norm=np.nan,
             epsilon_upperbound=np.nan,
             shadow_norm_upperbound=np.nan,
+            estimate_trace_method=estimate_trace_method,
         )
 
     all_prediction_results = prediction_algorithm(
@@ -283,7 +289,7 @@ def classical_shadow_complex(
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
-        trace_method=estimate_trace_method,
+        estimate_trace_method=estimate_trace_method,
     )
     return ClassicalShadowComplex(
         average_classical_snapshots_rho=average_classical_snapshots_rho,
@@ -291,12 +297,14 @@ def classical_shadow_complex(
         taking_time=taken,
         shots=shots,
         snapshots=len(rho_m_list),
+        rho_method=rho_method,
         # The mean of Rho
         mean_of_rho=expect_rho,
         # The trace of Rho square
         purity=purity,
         entropy=entropy,
         purity_value_kind=kind_of_purity,
+        trace_method=trace_method,
         # esitimation of given operators
         **all_prediction_results,
     )

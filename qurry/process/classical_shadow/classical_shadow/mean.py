@@ -136,6 +136,7 @@ def mean_of_rho(
         taking_time=taken,
         shots=shots,
         snapshots=len(rho_m_list),
+        rho_method=rho_method,
         # The mean of Rho
         mean_of_rho=expect_rho,
     )
