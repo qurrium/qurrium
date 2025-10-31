@@ -7,7 +7,7 @@ import numpy as np
 
 from ..rho_process import RhoMethod, RhoMethodType
 from ..trace_process import TraceMethod, TraceMethodType
-from ..prediction_process import EstimationOfObservable
+from ..prediction_process import EstimationOfObservable, ListTraceMethodType
 
 
 PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]
@@ -194,6 +194,9 @@ class ClassicalShadowBasic(TypedDict):
     shots: int
     """The number of shots."""
 
+    rho_method: RhoMethodType
+    """The method to calculate the rho."""
+
 
 class ClassicalShadowMeanRho(ClassicalShadowBasic):
     """The esitimations of the classical shadow from classical snapshots.
@@ -217,6 +220,9 @@ class ClassicalShadowEstimation(ClassicalShadowBasic, EstimationOfObservable):
 
     """
 
+    estimate_trace_method: ListTraceMethodType
+    """The method to use for the calculation of the trace of Rho."""
+
 
 class ClassicalShadowPurity(ClassicalShadowBasic):
     """The expectation value of Rho."""
@@ -231,6 +237,8 @@ class ClassicalShadowPurity(ClassicalShadowBasic):
 
     If it is not one of the defined kinds, it will be "unknown".
     """
+    trace_method: TraceMethodType
+    """The method to calculate the trace of rho."""
 
 
 class ClassicalShadowComplex(ClassicalShadowMeanRho, EstimationOfObservable, ClassicalShadowPurity):

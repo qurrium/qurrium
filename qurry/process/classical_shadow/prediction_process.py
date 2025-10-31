@@ -150,6 +150,9 @@ class EstimationOfObservable(TypedDict):
     which is the significantly lower bound than the worst case scenario.
     """
 
+    estimate_trace_method: ListTraceMethodType
+    """The method to calculate the trace for searching estimators."""
+
 
 def dim_check(
     op: np.ndarray[tuple[int, int], np.dtype[np.complex128]],
@@ -508,7 +511,7 @@ def prediction_algorithm(
     given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
-    trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> EstimationOfObservable:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
@@ -526,8 +529,8 @@ def prediction_algorithm(
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-        trace_method (ListTraceMethodType, optional):
-            The method to calculate the trace for searching esitmator.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to calculate the trace for searching estimators.
 
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
@@ -558,7 +561,7 @@ def prediction_algorithm(
             "The number of classical snapshots and "
             "the number of given operators must be greater than 0."
         )
-    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(trace_method)
+    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(estimate_trace_method)
 
     epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
         num_classical_snapshot, given_operators
@@ -600,4 +603,5 @@ def prediction_algorithm(
         maximum_shadow_norm=max_shadow_norm,
         epsilon_upperbound=epsilon_upperbound,
         shadow_norm_upperbound=shadow_norm_upperbound,
+        estimate_trace_method=estimate_trace_method,
     )
