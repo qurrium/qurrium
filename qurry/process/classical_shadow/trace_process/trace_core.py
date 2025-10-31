@@ -36,6 +36,9 @@ class TraceMethod(BaseMethodEnum):
         - "nomatmul_trace_rust": Use Rust implementation via PyO3.
         - "bitwise_py": Use pure Python bitwise implementation.
 
+    - Skip Method:
+        - "skip_trace": Skip the trace calculation and return NaN.
+
     For the non-matrix operation methods, it will directly calculate the trace from
     the counts and random basis.
 
@@ -61,6 +64,9 @@ class TraceMethod(BaseMethodEnum):
     """Use Rust implementation via PyO3."""
     BITWISE_PY = NonMatOpTraceMethod.BITWISE_PY.value
     """Use pure Python bitwise implementation."""
+
+    SKIP_TRACE = "skip_trace"
+    """Skip the trace calculation and return NaN."""
 
     @classmethod
     def get_default(cls) -> "TraceMethod":
@@ -257,6 +263,9 @@ def all_trace_core(
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
 
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
+
             The default method is "bitwise_py", which is the fastest option.
 
     Returns:
@@ -266,6 +275,9 @@ def all_trace_core(
 
     if isinstance(trace_method, str):
         trace_method = TraceMethod.from_string(trace_method)
+
+    if trace_method == TraceMethod.SKIP_TRACE:
+        return np.nan, np.nan
 
     if trace_method.is_nomatop_method():
         purity = trace_nomatop_core(
