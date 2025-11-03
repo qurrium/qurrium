@@ -699,13 +699,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
     # analysis
-    @classmethod
-    @abstractmethod
-    def quantities(cls) -> dict[str, Any]:
-        """Computing specific squantity.
-        Where should be overwritten by each construction of new measurement.
-        """
-
     @abstractmethod
     def analyze(self) -> _R:
         """Analyzing the example circuit results in specific method.
