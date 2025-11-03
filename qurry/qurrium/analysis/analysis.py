@@ -5,6 +5,7 @@ from abc import abstractmethod
 from pathlib import Path
 import json
 
+
 from ...capsule import jsonablize, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
 from ...exceptions import QurryInvalidInherition
@@ -40,13 +41,6 @@ class AnalysisPrototype(Generic[_RI, _RC]):
     def input_instance(self) -> Type[_RI]:
         """The input instance of the analysis."""
         return self.input_type()
-
-    @classmethod
-    @abstractmethod
-    def quantities(cls) -> dict[str, Any]:
-        """Computing specific squantity.
-        Where should be overwritten by each construction of new measurement.
-        """
 
     @classmethod
     @abstractmethod
