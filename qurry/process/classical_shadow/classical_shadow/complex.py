@@ -273,6 +273,7 @@ def classical_shadow_complex(
             purity_value_kind=kind_of_purity,
             trace_method=trace_method,
             # esitimation of given operators
+            given_operators=[],
             estimate_of_given_operators=[],
             corresponding_rhos=[],
             accuracy_prob_comp_delta=np.nan,

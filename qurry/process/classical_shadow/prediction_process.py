@@ -24,6 +24,8 @@ class EstimationOfObservable(TypedDict):
 
     """
 
+    given_operators: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
+    """The list of the operators to estimate."""
     estimate_of_given_operators: list[np.complex128]
     r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
     corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
@@ -595,6 +597,7 @@ def prediction_algorithm(
         estimators,  # type: ignore
     )
     return EstimationOfObservable(
+        given_operators=given_operators,
         estimate_of_given_operators=estimate_of_given_operators,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
