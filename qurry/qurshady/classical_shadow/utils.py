@@ -5,34 +5,40 @@ from collections.abc import Iterable, Hashable
 
 from qiskit import QuantumCircuit, ClassicalRegister
 
-from .arguments import ShadowUnveilArguments
 from ...qurrium.utils import bitstring_mapping_getter
-from ...qurrium.experiment import After
 from ...process.utils import counts_list_recount_pyrust
 from ...process.classical_shadow.rho_process.unitary_set import U_M_GATES
 
 
 def inner_process_analyze(
-    selected_qubits: Optional[Iterable[int]],
+    selected_qubits: Iterable[int],
+    registers_mapping: dict[int, int],
+    snapshots: int,
+    num_qubits: int,
+    random_basis: dict[int, dict[int, int]],
+    counts: list[dict[str, int]],
     counts_used: Optional[Iterable[int]],
-    arguments: ShadowUnveilArguments,
-    afterwards: After,
 ):
     """The inner process for
     :meth:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment.analyze`
     in :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`.
 
     Args:
-        selected_qubits (Optional[Iterable[int]]):
+        selected_qubits (Iterable[int]):
             The selected qubits.
+        registers_mapping (Optional[dict[int, int]]):
+            The mapping of the classical registers with quantum registers.
+        snapshots (Optional[int]):
+            The number of random basis for classical shadow.
+        num_qubits (Optional[int]):
+            The number of qubits.
+        random_basis (Optional[dict[int, dict[int, int]]]):
+            The random basis for classical shadow.
+
+        counts (list[dict[str, int]]):
+            The counts of the experiment.
         counts_used (Optional[Iterable[int]]):
-            The index of the counts used.
-        arguments (ShadowUnveilArguments):
-            The arguments of
-            :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`.
-        afterwards (After)
-            The afterwards of
-            :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`.
+            The selected counts used for analysis.
 
     Return:
         - counts: The counts of the measurements after slice range.
@@ -43,59 +49,45 @@ def inner_process_analyze(
         - random_basis_array: The random basis array.
     """
 
-    if selected_qubits is None:
-        raise ValueError("selected_qubits should be specified.")
-    assert arguments.unitary_located is not None, "unitary_located should be specified."
-    assert arguments.random_basis is not None, "random_basis should be given here."
-
-    if len(arguments.random_basis) != arguments.snapshots:
+    if len(random_basis) != snapshots:
         raise ValueError(
-            f"The number of random basis should be {arguments.snapshots}, "
-            + f"but got {len(arguments.random_basis)}."
+            f"The number of random basis should be {snapshots}, " + f"but got {len(random_basis)}."
         )
-    assert isinstance(arguments.registers_mapping, dict), (
-        f"registers_mapping {arguments.registers_mapping} is not dict."
-    )
-
+    if not isinstance(registers_mapping, dict):
+        raise ValueError(
+            "The registers_mapping should be dict, " + f"but got {type(registers_mapping)}."
+        )
     if isinstance(counts_used, Iterable):
-        if max(counts_used) >= len(afterwards.counts):
+        if max(counts_used) >= len(counts):
             raise ValueError(
-                "counts_used should be less than "
-                f"{len(afterwards.counts)}, but get {max(counts_used)}."
+                f"counts_used should be less than {len(counts)}, but get {max(counts_used)}."
             )
-        counts = [afterwards.counts[i] for i in counts_used]
-    elif counts_used is not None:
-        raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
-    else:
-        counts = afterwards.counts
+        counts = [counts[i] for i in counts_used]
 
-    bitstring_mapping, final_mapping = bitstring_mapping_getter(counts, arguments.registers_mapping)
+    bitstring_mapping, final_mapping = bitstring_mapping_getter(counts, registers_mapping)
 
     # Remove multiple classical registers clusters, leave only one cluster by Qurrium
     counts = counts_list_recount_pyrust(
         counts, len(next(iter(counts[0].keys()))), list(final_mapping.values())
     )
 
-    selected_qubits = [qi % arguments.actual_num_qubits for qi in selected_qubits]
+    selected_qubits = [qi % num_qubits for qi in selected_qubits]
     if len(set(selected_qubits)) != len(selected_qubits):
         raise ValueError(
             f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
         )
-    selected_clregs_sorted = sorted([arguments.registers_mapping[qi] for qi in selected_qubits])
-    all_clregs = sorted(arguments.registers_mapping.values())
+    selected_clregs_sorted = sorted([registers_mapping[qi] for qi in selected_qubits])
+    all_clregs = sorted(registers_mapping.values())
 
     random_basis_array = []
-    for i in range(len(arguments.random_basis)):
-        tmp = {
-            ci: arguments.random_basis[i][n_u_qi]
-            for n_u_qi, ci in arguments.registers_mapping.items()
-        }
+    for i in range(len(random_basis)):
+        tmp = {ci: random_basis[i][n_u_qi] for n_u_qi, ci in registers_mapping.items()}
         random_basis_array.append([tmp[j] for j in all_clregs])
 
     return (
         counts,
         bitstring_mapping,
-        arguments.registers_mapping,
+        registers_mapping,
         selected_qubits,
         selected_clregs_sorted,
         random_basis_array,
