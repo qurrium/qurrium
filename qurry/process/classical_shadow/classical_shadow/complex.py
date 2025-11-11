@@ -6,6 +6,7 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 import numpy as np
+import numpy.typing as npt
 
 from .container_kind import ClassicalShadowComplex, purity_value_kind
 from ..rho_process import (
@@ -26,9 +27,9 @@ def classical_shadow_complex(
     shots: int,
     counts: list[dict[str, int]],
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    selected_classical_registers: Optional[Iterable[int]] = None,
     # estimation of given operators
-    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
@@ -142,7 +143,7 @@ def classical_shadow_complex(
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
-        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        given_operators (list[npt.NDArray[np.complex128]]):
             The list of the operators to estimate.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
@@ -243,6 +244,8 @@ def classical_shadow_complex(
             + f"The number of counts is {len(counts)}."
         )
     kind_of_purity = purity_value_kind(rho_method, trace_method)
+    if given_operators is None or len(given_operators) == 0:
+        raise ValueError("The given_operators must be a non-empty list.")
 
     rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
         shots=shots,

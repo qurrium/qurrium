@@ -6,6 +6,7 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 import numpy as np
+import numpy.typing as npt
 
 from .container_kind import ClassicalShadowEstimation
 from ..rho_process import (
@@ -27,7 +28,7 @@ def estimation_of_given_operators(
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     # estimation of given operators
-    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
+    given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
@@ -93,7 +94,7 @@ def estimation_of_given_operators(
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
-        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        given_operators (list[npt.NDArray[np.complex128]]):
             The list of the operators to estimate.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
