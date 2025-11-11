@@ -11,4 +11,11 @@ from .rho_m_core import (
     DEFAULT_RHO_METHOD,
     mean_rho_core,
 )
-from .rho_m_cell import RhoMCellMethod
+from .unitary_set import (
+    BASIS_ALLOW_GATES,
+    ShadowRandomBasisData,
+    ShadowRandomBasis,
+    ShadowBasisMethod,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
+)

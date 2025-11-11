@@ -8,7 +8,14 @@ import tqdm
 import numpy as np
 
 from .container_kind import ClassicalShadowComplex, purity_value_kind
-from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD, mean_rho_core
+from ..rho_process import (
+    rho_core,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
+    mean_rho_core,
+)
 from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
 from ..prediction_process import prediction_algorithm
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
@@ -19,13 +26,14 @@ def classical_shadow_complex(
     shots: int,
     counts: list[dict[str, int]],
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int],
     # estimation of given operators
-    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]] = None,
+    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
@@ -130,12 +138,12 @@ def classical_shadow_complex(
             The list of the counts.
         random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
             The random basis for classical shadow.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int]):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
-        given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
-            The list of the operators to estimate. Defaults to None.
+        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+            The list of the operators to estimate.
         accuracy_prob_comp_delta (float, optional):
             The accuracy probability component delta. Defaults to 0.01.
         max_shadow_norm (Optional[float], optional):
@@ -145,8 +153,8 @@ def classical_shadow_complex(
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
         rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+            It can be either "multi_shots", "multi_shots_vectorized",
+            "single_shots", or "single_shots_vectorized".
 
             For the "multi_shots_*" methods, the counts and random basis are used as is.
             For the "single_shots_*" methods, the counts and random basis are
@@ -159,13 +167,10 @@ def classical_shadow_complex(
             **In worst scenrio, this will break your computer.**
             **Please reconsider for performance.**
 
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
             - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
             - "multi_shots_vectorized": Use Numpy to calculate the rho_m
                 with a vectorized workflow.
 
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
             - "single_shots": Use Numpy to calculate the rho_m
                 with precomputed values with converted single shot counts.
             - "single_shots_vectorized": Use Numpy to calculate the rho_m
@@ -173,6 +178,14 @@ def classical_shadow_complex(
 
             Currently, "multi_shots" is the best option for performance.
             Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        shadow_basis (ShadowBasisType, optional):
+            The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
+
+            Here are the built-in basis sets:
+            - `RX_RY_RZ`:
+                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+            - `H_H-Sdg_I`:
+                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
         trace_method (TraceMethodType, optional):
             The method to calculate the trace of rho.
 
@@ -231,12 +244,13 @@ def classical_shadow_complex(
         )
     kind_of_purity = purity_value_kind(rho_method, trace_method)
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
+    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
+        shadow_basis=shadow_basis,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -257,34 +271,6 @@ def classical_shadow_complex(
 
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
 
-    if given_operators is None or len(given_operators) == 0:
-        return ClassicalShadowComplex(
-            average_classical_snapshots_rho=average_classical_snapshots_rho,
-            classical_registers_actually=selected_classical_registers_sorted,
-            taking_time=taken,
-            shots=shots,
-            snapshots=len(rho_m_list),
-            rho_method=rho_method,
-            # The mean of Rho
-            mean_of_rho=expect_rho,
-            # The trace of Rho square
-            purity=purity,
-            entropy=entropy,
-            purity_value_kind=kind_of_purity,
-            trace_method=trace_method,
-            # esitimation of given operators
-            given_operators=[],
-            estimate_of_given_operators=[],
-            corresponding_rhos=[],
-            accuracy_prob_comp_delta=np.nan,
-            num_of_estimators_k=0,
-            accuracy_predict_epsilon=np.nan,
-            maximum_shadow_norm=np.nan,
-            epsilon_upperbound=np.nan,
-            shadow_norm_upperbound=np.nan,
-            estimate_trace_method=estimate_trace_method,
-        )
-
     all_prediction_results = prediction_algorithm(
         classical_snapshots_rho=average_classical_snapshots_rho,
         given_operators=given_operators,
@@ -299,6 +285,7 @@ def classical_shadow_complex(
         shots=shots,
         snapshots=len(rho_m_list),
         rho_method=rho_method,
+        random_basis_data=shadow_basis_obj.export(),
         # The mean of Rho
         mean_of_rho=expect_rho,
         # The trace of Rho square

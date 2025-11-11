@@ -4,8 +4,9 @@
 
 from typing import Union, TypedDict, Literal
 import numpy as np
+import numpy.typing as npt
 
-from ..rho_process import RhoMethod, RhoMethodType
+from ..rho_process import RhoMethod, RhoMethodType, ShadowRandomBasisData
 from ..trace_process import TraceMethod, TraceMethodType
 from ..prediction_process import EstimationOfObservable, ListTraceMethodType
 
@@ -22,7 +23,6 @@ This will depend on the rho_method and trace_method.
 
         (
             rho_method in [
-                "multi_shots_proto", 
                 "multi_shots", 
                 "multi_shots_vectorized",
             ]
@@ -51,7 +51,6 @@ This will depend on the rho_method and trace_method.
         ) or (
             (
                 rho_method in [
-                    "single_shots_proto", 
                     "single_shots", 
                     "single_shots_vectorized",
                 ]
@@ -80,8 +79,8 @@ def purity_value_kind(rho_method: RhoMethodType, trace_method: TraceMethodType) 
 
     Args:
         rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+            It can be either "multi_shots", "multi_shots_vectorized",
+            "single_shots", or "single_shots_vectorized".
 
             For the "multi_shots_*" methods, the counts and random basis are used as is.
             For the "single_shots_*" methods, the counts and random basis are
@@ -94,13 +93,10 @@ def purity_value_kind(rho_method: RhoMethodType, trace_method: TraceMethodType) 
             **In worst scenrio, this will break your computer.**
             **Please reconsider for performance.**
 
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
             - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
             - "multi_shots_vectorized": Use Numpy to calculate the rho_m
                 with a vectorized workflow.
 
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
             - "single_shots": Use Numpy to calculate the rho_m
                 with precomputed values with converted single shot counts.
             - "single_shots_vectorized": Use Numpy to calculate the rho_m
@@ -196,6 +192,8 @@ class ClassicalShadowBasic(TypedDict):
 
     rho_method: RhoMethodType
     """The method to calculate the rho."""
+    random_basis_data: ShadowRandomBasisData
+    """The random basis data used for classical shadow."""
 
 
 class ClassicalShadowMeanRho(ClassicalShadowBasic):
@@ -207,7 +205,7 @@ class ClassicalShadowMeanRho(ClassicalShadowBasic):
 
     """
 
-    mean_of_rho: np.ndarray[tuple[int, ...], np.dtype[np.complex128]]
+    mean_of_rho: npt.NDArray[np.complex128]
     """The mean of single classical snapshots."""
 
 

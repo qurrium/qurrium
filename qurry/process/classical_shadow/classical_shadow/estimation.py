@@ -8,7 +8,13 @@ import tqdm
 import numpy as np
 
 from .container_kind import ClassicalShadowEstimation
-from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD
+from ..rho_process import (
+    rho_core,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
+)
 from ..prediction_process import prediction_algorithm
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ..utils import check_random_basis_array
@@ -25,6 +31,7 @@ def estimation_of_given_operators(
     max_shadow_norm: Optional[float] = None,
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowEstimation:
@@ -95,9 +102,10 @@ def estimation_of_given_operators(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
+
         rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+            It can be either "multi_shots", "multi_shots_vectorized",
+            "single_shots", or "single_shots_vectorized".
 
             For the "multi_shots_*" methods, the counts and random basis are used as is.
             For the "single_shots_*" methods, the counts and random basis are
@@ -110,13 +118,10 @@ def estimation_of_given_operators(
             **In worst scenrio, this will break your computer.**
             **Please reconsider for performance.**
 
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
             - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
             - "multi_shots_vectorized": Use Numpy to calculate the rho_m
                 with a vectorized workflow.
 
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
             - "single_shots": Use Numpy to calculate the rho_m
                 with precomputed values with converted single shot counts.
             - "single_shots_vectorized": Use Numpy to calculate the rho_m
@@ -124,6 +129,14 @@ def estimation_of_given_operators(
 
             Currently, "multi_shots" is the best option for performance.
             Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        shadow_basis (ShadowBasisType, optional):
+            The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
+
+            Here are the built-in basis sets:
+            - `RX_RY_RZ`:
+                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+            - `H_H-Sdg_I`:
+                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
         estimate_trace_method (ListTraceMethodType, optional):
             The method to use for the calculation.
 
@@ -148,12 +161,13 @@ def estimation_of_given_operators(
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
+    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
+        shadow_basis=shadow_basis,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -174,6 +188,7 @@ def estimation_of_given_operators(
         shots=shots,
         snapshots=len(rho_m_list),
         rho_method=rho_method,
+        random_basis_data=shadow_basis_obj.export(),
         # esitimation of given operators
         **all_prediction_results,
     )

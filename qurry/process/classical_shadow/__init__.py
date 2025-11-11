@@ -112,6 +112,12 @@ from .rho_process import (
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
+    BASIS_ALLOW_GATES,
+    ShadowRandomBasisData,
+    ShadowRandomBasis,
+    ShadowBasisMethod,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
 )
 from .prediction_process import (
     worst_accuracy_predict_epsilon_calc,

@@ -7,7 +7,14 @@ from typing import Literal, Union, Optional, Iterable
 import tqdm
 
 from .container_kind import ClassicalShadowMeanRho
-from ..rho_process import rho_core, RhoMethodType, DEFAULT_RHO_METHOD, mean_rho_core
+from ..rho_process import (
+    rho_core,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
+    mean_rho_core,
+)
 from ..utils import check_random_basis_array
 
 
@@ -17,6 +24,7 @@ def mean_of_rho(
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
     selected_classical_registers: Optional[Iterable[int]] = None,
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> ClassicalShadowMeanRho:
     r"""Calculate the mean of Rho.
@@ -77,8 +85,8 @@ def mean_of_rho(
             Defaults to None.
 
         rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+            It can be either "multi_shots", "multi_shots_vectorized",
+            "single_shots", or "single_shots_vectorized".
 
             For the "multi_shots_*" methods, the counts and random basis are used as is.
             For the "single_shots_*" methods, the counts and random basis are
@@ -91,13 +99,10 @@ def mean_of_rho(
             **In worst scenrio, this will break your computer.**
             **Please reconsider for performance.**
 
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
             - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
             - "multi_shots_vectorized": Use Numpy to calculate the rho_m
                 with a vectorized workflow.
 
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
             - "single_shots": Use Numpy to calculate the rho_m
                 with precomputed values with converted single shot counts.
             - "single_shots_vectorized": Use Numpy to calculate the rho_m
@@ -105,6 +110,14 @@ def mean_of_rho(
 
             Currently, "multi_shots" is the best option for performance.
             Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        shadow_basis (ShadowBasisType, optional):
+            The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
+
+            Here are the built-in basis sets:
+            - `RX_RY_RZ`:
+                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+            - `H_H-Sdg_I`:
+                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
 
         pbar (Optional[tqdm.tqdm], optional):
             The progress bar. Defaults to None.
@@ -115,12 +128,13 @@ def mean_of_rho(
 
     check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
 
-    rho_m_list, selected_classical_registers_sorted, taken = rho_core(
+    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
         shots=shots,
         counts=counts,
         random_unitary_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
+        shadow_basis=shadow_basis,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -137,6 +151,7 @@ def mean_of_rho(
         shots=shots,
         snapshots=len(rho_m_list),
         rho_method=rho_method,
+        random_basis_data=shadow_basis_obj.export(),
         # The mean of Rho
         mean_of_rho=expect_rho,
     )
