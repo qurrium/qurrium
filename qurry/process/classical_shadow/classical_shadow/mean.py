@@ -6,7 +6,7 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 
-from .container_kind import ClassicalShadowMeanRho
+from .container_kind import ClassicalShadowBasic
 from ..rho_process import (
     rho_core,
     RhoMethodType,
@@ -18,7 +18,7 @@ from ..rho_process import (
 from ..utils import check_random_basis_array
 
 
-def mean_of_rho(
+def mean_rho(
     shots: int,
     counts: list[dict[str, int]],
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
@@ -26,7 +26,7 @@ def mean_of_rho(
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     pbar: Optional[tqdm.tqdm] = None,
-) -> ClassicalShadowMeanRho:
+) -> ClassicalShadowBasic:
     r"""Calculate the mean of Rho.
 
     Reference:
@@ -144,7 +144,7 @@ def mean_of_rho(
         selected_classical_registers_sorted=selected_classical_registers_sorted,
     )
 
-    return ClassicalShadowMeanRho(
+    return ClassicalShadowBasic(
         average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,

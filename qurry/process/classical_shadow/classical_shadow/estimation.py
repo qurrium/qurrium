@@ -14,6 +14,7 @@ from ..rho_process import (
     DEFAULT_RHO_METHOD,
     ShadowBasisType,
     DEFAULT_SHADOW_BASIS,
+    mean_rho_core,
 )
 from ..prediction_process import prediction_algorithm
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
@@ -172,6 +173,11 @@ def estimation_of_given_operators(
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
+    expect_rho = mean_rho_core(
+        rho_m_list=rho_m_list,
+        selected_classical_registers_sorted=selected_classical_registers_sorted,
+    )
+
     average_classical_snapshots_rho = dict(enumerate(rho_m_list))
     all_prediction_results = prediction_algorithm(
         classical_snapshots_rho=average_classical_snapshots_rho,
@@ -189,6 +195,8 @@ def estimation_of_given_operators(
         snapshots=len(rho_m_list),
         rho_method=rho_method,
         random_basis_data=shadow_basis_obj.export(),
+        # The mean of Rho
+        mean_of_rho=expect_rho,
         # esitimation of given operators
         **all_prediction_results,
     )

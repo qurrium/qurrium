@@ -7,7 +7,6 @@ The post-processing module for classical shadow methods.
 
 from .container_kind import (
     ClassicalShadowBasic,
-    ClassicalShadowMeanRho,
     ClassicalShadowEstimation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
@@ -15,7 +14,7 @@ from .container_kind import (
     purity_value_kind,
     default_method_on_value_kind,
 )
-from .mean import mean_of_rho
+from .mean import mean_rho
 from .trace import trace_rho_square
 from .estimation import estimation_of_given_operators
 from .complex import classical_shadow_complex

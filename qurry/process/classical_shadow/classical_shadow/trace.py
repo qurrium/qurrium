@@ -13,6 +13,7 @@ from ..rho_process import (
     DEFAULT_RHO_METHOD,
     ShadowBasisType,
     DEFAULT_SHADOW_BASIS,
+    mean_rho_core,
 )
 from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
 from ..utils import check_random_basis_array
@@ -130,6 +131,11 @@ def trace_rho_square(
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
 
+    expect_rho = mean_rho_core(
+        rho_m_list=rho_m_list,
+        selected_classical_registers_sorted=selected_classical_registers_sorted,
+    )
+
     purity, entropy = all_trace_core(
         shots=shots,
         counts=counts,
@@ -147,6 +153,8 @@ def trace_rho_square(
         snapshots=len(rho_m_list),
         rho_method=rho_method,
         random_basis_data=shadow_basis_obj.export(),
+        # The mean of Rho
+        mean_of_rho=expect_rho,
         # The trace of Rho square
         purity=purity,
         entropy=entropy,

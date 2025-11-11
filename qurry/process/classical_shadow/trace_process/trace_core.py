@@ -118,6 +118,14 @@ class TraceMethod(BaseMethodEnum):
         """
         return self.is_bitwise_method() or self.is_singleshots_method()
 
+    def is_skip_method(self) -> bool:
+        """Whether it is a skip method.
+
+        Returns:
+            bool: True if it is a skip method, False otherwise.
+        """
+        return self == self.SKIP_TRACE
+
     @classmethod
     def get_nomatop_methods(cls) -> list[str]:
         """Get a list of all avaialble nomatmul methods.

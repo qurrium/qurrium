@@ -126,12 +126,11 @@ from .prediction_process import (
 )
 from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
 from .classical_shadow import (
-    mean_of_rho,
+    mean_rho,
     trace_rho_square,
     estimation_of_given_operators,
     classical_shadow_complex,
     ClassicalShadowBasic,
-    ClassicalShadowMeanRho,
     ClassicalShadowEstimation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
