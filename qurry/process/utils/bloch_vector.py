@@ -1,4 +1,4 @@
-"""Bloch Vector Utilities (:mod:`qurry.qurrium.utils.bloch_vector`)"""
+"""Bloch Vector Utilities (:mod:`qurry.process.utils.bloch_vector`)"""
 
 from typing import Union
 import numpy as np
