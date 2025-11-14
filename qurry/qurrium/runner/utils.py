@@ -5,10 +5,9 @@ from typing import Union, Literal, Any, overload
 from collections.abc import Iterable, Hashable
 from qiskit import QuantumCircuit
 
-from ..multimanager import MultiManager
-from ..multimanager.arguments import PendingStrategyLiteral
-from ..container import ExperimentContainer
 from ..experiment import ExperimentPrototype
+from ..multimanager import MultiManager, ExperimentContainer
+from ..multimanager.arguments import PendingStrategyLiteral
 from ...tools import qurry_progressbar, DatetimeDict
 from ...exceptions import QurryPendingTagTooMany
 
@@ -218,7 +217,6 @@ def circuits_map_distributer(
         distributing_progressbar.set_description_str(
             f"{current_id} with {len(idx_circs)} circuits", refresh=True
         )
-        experiment_container[current_id].reset_counts(summoner_id=current_multimanager.summoner_id)
         for idx in idx_circs:
             experiment_container[current_id].afterwards.counts.append(counts_tmp_container[idx])
         experiment_container[current_id].commons.datetimes.add_only(retrieve_times_name)

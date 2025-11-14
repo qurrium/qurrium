@@ -1,21 +1,22 @@
-"""Declaration - Arguments (:mod:`qurry.declare.qurrium`)"""
+"""Declaration of the input fields of QurriumPrototype (:mod:`qurry.qurrium.utils.declare`)"""
 
 from typing import Optional, Union, TypedDict, Any, Literal, TypeVar
-from collections.abc import Hashable
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
-from qiskit.transpiler.passmanager import PassManager
 
-from .run import RunArgsType
-from .transpile import TranspileArgs
+from .waves import WCKeyable
+from .transpiler import PassManagerType, TranspileArgs
 
 
-PassManagerType = Optional[Union[str, PassManager, tuple[str, PassManager]]]
-"""The type hint for passmanager argument in 
-:meth:`~qurry.qurrium.qurrium.QurriumPrototype.output`."""
+class BaseRunArgs(TypedDict):
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`."""
+
+
+RunArgsType = Optional[Union[BaseRunArgs, dict[str, Any]]]
+"""The type hint for :meth:`~qiskit.providers.backend.BackendV2.run`."""
 
 
 class BasicArgs(TypedDict, total=False):
@@ -58,7 +59,7 @@ class OutputArgs(BasicArgs):
     """Basic output arguments for
     :meth:`~qurry.qurrium.qurrium.QurriumPrototype.output`."""
 
-    circuits: list[Union[QuantumCircuit, Hashable]]
+    circuits: list[Union[QuantumCircuit, WCKeyable]]
 
 
 _OA = TypeVar("_OA", bound=OutputArgs)
@@ -68,20 +69,4 @@ for :meth:`~qurry.qurrium.qurrium.QurriumPrototype.output`
 :class:`OutputArgs` is also used for passing arguments in an standard format to
 :meth:`~qurry.qurrium.qurrium.QurriumPrototype.output` 
 and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`.
-"""
-
-
-class AnalyzeArgs(TypedDict):
-    """Analysis input prototype."""
-
-
-_RA = TypeVar("_RA", bound=AnalyzeArgs)
-"""The type var of :class:`AnalyzeArgs` for
-:meth:`~qurry.qurrium.qurrium.QurriumPrototype.analyze`
-and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
-"""
-
-SpecificAnalsisArgs = Optional[dict[Hashable, Union[_RA, dict[str, Any], bool]]]
-"""The type hint for :meth:`~qurry.qurrium.multimanager.multimanager.analyze` 
-and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """

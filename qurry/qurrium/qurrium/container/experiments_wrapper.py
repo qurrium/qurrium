@@ -2,8 +2,7 @@
 
 from typing import Generic, Any
 
-from ..multimanager import MultiManager
-from .experiments import ExperimentContainer, _E
+from ...multimanager import MultiManager, ExperimentContainer, _E
 
 
 class ExperimentContainerWrapper(Generic[_E]):

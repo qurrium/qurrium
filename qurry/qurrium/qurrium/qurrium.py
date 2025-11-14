@@ -1,43 +1,40 @@
-"""Qurrium (:mod:`qurry.qurrium.qurrium`)"""
+"""Qurrium Runtime Instance (:mod:`qurry.qurrium.qurrium.qurrium`)"""
 
 import warnings
 from abc import abstractmethod, ABC
 from typing import Literal, Union, Optional, Any, Type, Generic
-from collections.abc import Hashable
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .runner import RemoteAccessor, retrieve_counter
-from .utils import passmanager_processor
-from .container import (
-    WaveContainer,
-    ExperimentContainer,
-    MultiManagerContainer,
-    PassManagerContainer,
-    ExperimentContainerWrapper,
-    _E,
-)
-from .multimanager.multimanager import (
-    MultiManager,
-    PendingTargetProviderLiteral,
-    PendingStrategyLiteral,
-)
-from ..tools import qurry_progressbar
-from ..tools.backend import GeneralSimulator
-from ..tools.qiskit_version import qiskit_version_v0_check
-from ..declare import (
+from .container import MultiManagerContainer, ExperimentContainerWrapper
+from ..utils import passmanager_processor
+from ..container import (
     RunArgsType,
-    TranspileArgs,
-    PassManagerType,
     ConfigListType,
     _MA,
     _OA,
-    SpecificAnalsisArgs,
-    _RA,
+    TranspileArgs,
+    PassManagerContainer,
+    PassManagerType,
+    WaveContainer,
+    WCKeyable,
 )
+from ..analysis import SpecificAnalsisArgs, _RA
+from ..runner import RemoteAccessor, retrieve_counter
+from ..multimanager import (
+    MultiManager,
+    PendingTargetProviderLiteral,
+    PendingStrategyLiteral,
+    ExperimentContainer,
+    _E,
+)
+
+from ...tools import qurry_progressbar
+from ...tools.backend import GeneralSimulator
+from ...tools.qiskit_version import qiskit_version_v0_check
 
 
 class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
@@ -55,14 +52,14 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def add(
         self,
         wave: QuantumCircuit,
-        key: Optional[Hashable] = None,
+        key: Optional[WCKeyable] = None,
         replace: Literal[True, False, "duplicate"] = True,
-    ) -> Hashable:
+    ) -> WCKeyable:
         """Add new wave function to measure.
 
         Args:
             wave (QuantumCircuit): The wave functions or circuits want to measure.
-            key (Optional[Hashable], optional):
+            key (Optional[WCKeyable], optional):
                 Given a specific key to add to the wave function or circuit,
                 if `key == None`, then generate a number as key.
                 Defaults to None.
@@ -73,23 +70,23 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to `True`.
 
         Returns:
-            Optional[Hashable]: Key of given wave function in `.waves`.
+            Optional[WCKeyable]: Key of given wave function in `.waves`.
         """
         return self.waves.add(wave=wave, key=key, replace=replace)
 
-    def remove(self, key: Hashable) -> None:
+    def remove(self, key: WCKeyable) -> None:
         """Remove wave function from `.waves`.
 
         Args:
-            wave (Hashable): The key of wave in `.waves`.
+            wave (WCKeyable): The key of wave in `.waves`.
         """
         self.waves.remove(key)
 
-    def has(self, wavename: Hashable) -> bool:
+    def has(self, wavename: WCKeyable) -> bool:
         """Is there a wave with specific name.
 
         Args:
-            wavename (Hashable): Name of wave which is used in `.waves`
+            wavename (WCKeyable): Name of wave which is used in `.waves`
 
         Returns:
             bool: Exist or not.
@@ -136,7 +133,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
     def build(
         self,
-        circuits: list[Union[QuantumCircuit, Hashable]],
+        circuits: list[Union[QuantumCircuit, WCKeyable]],
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -154,7 +151,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         """Build the experiment.
 
         Args:
-            circuits (list[Union[QuantumCircuit, Hashable]]):
+            circuits (list[Union[QuantumCircuit, WCKeyable]]):
                 The circuits or keys of circuits in `.waves`.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -219,7 +216,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def output(
         self,
         # create new exp
-        circuits: Optional[list[Union[QuantumCircuit, Hashable]]] = None,
+        circuits: Optional[list[Union[QuantumCircuit, WCKeyable]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -239,7 +236,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         """Output the experiment.
 
         Args:
-            circuits (Optional[list[Union[QuantumCircuit, Hashable]]], optional):
+            circuits (Optional[list[Union[QuantumCircuit, WCKeyable]]], optional):
                 The circuits or keys of circuits in `.waves`.
                 Defaults to None.
             shots (int, optional):

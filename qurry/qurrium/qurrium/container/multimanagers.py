@@ -1,7 +1,6 @@
 """Multimanagers Container (:mod:`qurry.qurrium.container.multimanagers`)"""
 
-from .experiments import _E
-from ..multimanager import MultiManager
+from ...multimanager import MultiManager, _E
 
 
 class MultiManagerContainer(dict[str, MultiManager[_E]]):

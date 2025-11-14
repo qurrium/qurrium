@@ -9,8 +9,7 @@ from typing import Optional, Literal
 from qiskit.providers import Backend
 
 from ..experiment import ExperimentPrototype
-from ..container import ExperimentContainer
-from ..multimanager import MultiManager
+from ..multimanager import MultiManager, ExperimentContainer
 from ..multimanager.beforewards import TagListKeyable
 from ...tools.backend import backend_name_getter
 from ...exceptions import QurryDummyRunnerWarning

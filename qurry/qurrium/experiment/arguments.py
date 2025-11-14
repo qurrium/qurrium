@@ -8,7 +8,7 @@ from pathlib import Path
 
 from qiskit.providers import Backend
 
-from ...declare import BaseRunArgs, TranspileArgs
+from ..container import BaseRunArgs, TranspileArgs
 from ...tools.backend import backend_name_getter
 from ...tools.datetime import current_time, DatetimeDict
 from ...capsule import jsonablize, DEFAULT_ENCODING

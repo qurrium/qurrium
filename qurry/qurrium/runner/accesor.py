@@ -5,14 +5,13 @@ from typing import Union, Optional, Any
 from qiskit.providers import Backend
 
 from .runner import DummyRunner
-from ..multimanager import MultiManager
+from ..multimanager import MultiManager, ExperimentContainer
 from ..multimanager.beforewards import TagListKeyable
 from ..multimanager.arguments import (
     PendingTargetProviderLiteral,
     PENDING_TARGET_PROVIDER,
     PendingStrategyLiteral,
 )
-from ..container import ExperimentContainer
 from ...capsule.hoshi import Hoshi
 from ...exceptions import QurryExtraPackageRequired, QurryInvalidArgument
 

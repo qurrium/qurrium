@@ -7,8 +7,8 @@ from typing import Union, Literal, Any, TypeVar
 from collections.abc import Hashable
 from pathlib import Path
 
-from ...tools import qurry_progressbar
-from ...capsule.mori import TagList
+from ....tools import qurry_progressbar
+from ....capsule.mori import TagList
 
 TagListKeyable = TypeVar("TagListKeyable", bound=Hashable)
 

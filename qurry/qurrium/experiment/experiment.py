@@ -5,7 +5,6 @@ import json
 import warnings
 from abc import abstractmethod, ABC
 from typing import Union, Optional, Any, Type, Literal, Generic
-from collections.abc import Hashable
 from multiprocessing import get_context
 from pathlib import Path
 import tqdm
@@ -29,9 +28,10 @@ from .utils import (
     decide_folder_and_filename,
 )
 from ..utils import get_counts_and_exceptions, qasm_dumps, outfields_check, outfields_hint
-from ..utils.chunk import very_easy_chunk_size
+from ..container import WCKeyable, RunArgsType, TranspileArgs
 from ...tools import (
     ParallelManager,
+    very_easy_chunk_size,
     DatetimeDict,
     set_pbar_description,
     backend_name_getter,
@@ -42,7 +42,6 @@ from ...tools import (
 )
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
-from ...declare import RunArgsType, TranspileArgs
 from ...exceptions import QurryResetSecurityActivated, QurryTranspileConfigurationIgnored
 
 
@@ -160,12 +159,12 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     @abstractmethod
     def params_control(
-        cls, targets: list[tuple[Hashable, QuantumCircuit]], exp_name: str, **custom_kwargs: Any
+        cls, targets: list[tuple[WCKeyable, QuantumCircuit]], exp_name: str, **custom_kwargs: Any
     ) -> tuple[_A, Commonparams, dict[str, Any]]:
         """Control the experiment's parameters.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]): The circuits of the experiment.
+            targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             exp_name (str):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
@@ -180,7 +179,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     def _params_control_core(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_id: Optional[str] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -190,7 +189,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         # multimanager
         tags: Optional[tuple[str, ...]] = None,
         serial: Optional[int] = None,
-        summoner_id: Optional[Hashable] = None,
+        summoner_id: Optional[str] = None,
         summoner_name: Optional[str] = None,
         # process tool
         mute_outfields_warning: bool = False,
@@ -227,7 +226,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[Hashable], optional):
+            summoner_id (Optional[str], optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -300,7 +299,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @abstractmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: _A,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
@@ -309,7 +308,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Where should be overwritten by each construction of new measurement.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]): The circuits of the experiment.
+            targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             arguments (_Arg): The arguments of the experiment.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
@@ -324,7 +323,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     def build(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -334,7 +333,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         tags: Optional[tuple[str, ...]] = None,
         # multimanager
         serial: Optional[int] = None,
-        summoner_id: Optional[Hashable] = None,
+        summoner_id: Optional[str] = None,
         summoner_name: Optional[str] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
@@ -347,7 +346,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         """Construct the experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]): The circuits of the experiment.
+            targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             shots (int, optional): Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional): The quantum backend. Defaults to None.
             exp_name (str, optional):
@@ -372,7 +371,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[Hashable], optional):
+            summoner_id (Optional[str], optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -448,7 +447,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
         targets_keys, targets_values = zip(*targets)
-        targets_keys: tuple[Hashable, ...]
+        targets_keys: tuple[WCKeyable, ...]
         targets_values: tuple[QuantumCircuit, ...]
 
         if multiprocess:

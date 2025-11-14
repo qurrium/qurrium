@@ -4,11 +4,10 @@ from multiprocessing import get_context
 
 from .arguments import MultiCommonparams
 from .beforewards import Before
+from .container import ExperimentContainer, _E, QuantityContainer
 from .process import multiprocess_exporter_wrapper
 from ..utils.iocontrol import RJUST_LEN, serial_naming
-from ..utils.chunk import very_easy_chunk_distribution
-from ..container import ExperimentContainer, _E, QuantityContainer
-from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
+from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE, very_easy_chunk_distribution
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING, DEFAULT_INDENT
 
 

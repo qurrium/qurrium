@@ -2,7 +2,7 @@
 
 from typing import TypeVar
 
-from ..experiment import ExperimentPrototype
+from ...experiment import ExperimentPrototype
 
 _E = TypeVar("_E", bound=ExperimentPrototype)
 

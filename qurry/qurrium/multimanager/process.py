@@ -4,9 +4,9 @@ from typing import Any
 from pathlib import Path
 
 from .arguments import MultiCommonparams
-from ..container import _E
+from .container import _E
+from ..utils import IOComplex
 from ..experiment import ExperimentPrototype, Export
-from ..utils.iocontrol import IOComplex
 
 
 def multiprocess_exporter(
