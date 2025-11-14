@@ -1,6 +1,8 @@
 """Build Tools (:mod:`qurry.qurrium.utils.build`)"""
 
 from typing import Union, Optional
+
+from qiskit import QuantumCircuit
 from qiskit.transpiler.passmanager import PassManager
 
 
@@ -38,3 +40,21 @@ def passmanager_processor(
     else:
         raise ValueError(f"Invalid passmanager: {passmanager}")
     return passmanager_pair
+
+
+def decomposer(
+    qc: QuantumCircuit,
+    reps: int = 2,
+) -> QuantumCircuit:
+    """Decompose the circuit with giving times.
+
+    Args:
+        qc (QuantumCircuit): The circuit wanted to be decomposed.
+        reps (int, optional):  Decide the times of decomposing the circuit.
+            Draw quantum circuit with composed circuit. Defaults to 2.
+
+    Returns:
+        QuantumCircuit: The decomposed circuit.
+    """
+
+    return qc.decompose(reps=reps)
