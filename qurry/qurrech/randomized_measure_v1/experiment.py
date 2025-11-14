@@ -14,12 +14,12 @@ from .arguments import EchoListenRandomizedV1Arguments, SHORT_NAME
 from ...qurrent.randomized_measure_v1.utils import circuit_method_core_v1
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
 from ...process.utils import qubit_selector
-from ...qurrium.utils.randomized import (
+from ...process.randomized_measure import (
+    check_random_unitary_seeds,
     generate_random_unitary,
     local_random_unitary_operators,
     local_random_unitary_pauli_coeff,
 )
-from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
     DEFAULT_PROCESS_BACKEND,

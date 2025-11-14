@@ -1,7 +1,8 @@
-"""ToolKits for Randomized Measure (:mod:`qurry.qurrium.utils.randomized`)
+"""Random Unitary Toolkit for Randomized Measurement
+(:mod:`qurry.process.randomized_measure.random_unitary`)
 
 We also make a short import path for :func:`~qiskit.quantum_info.random_unitary`
-as :func:`~qurry.qurrium.utils.randomized.random_unitary`,
+as :func:`~qurry.process.utils.randomized.random_unitary`,
 due to Qiskit usually relocate its module.
 
 """
@@ -11,7 +12,7 @@ import numpy as np
 
 from qiskit.quantum_info import random_unitary, Operator
 
-from .bloch_vector import qubit_operator_to_pauli_coeff
+from ..utils.bloch_vector import qubit_operator_to_pauli_coeff
 
 
 def generate_random_unitary(

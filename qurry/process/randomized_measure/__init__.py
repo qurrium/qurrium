@@ -123,4 +123,11 @@ from .wavefunction_overlap import randomized_overlap_echo
 from .wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
 )
+from .random_unitary import (
+    generate_random_unitary,
+    local_random_unitary_operators,
+    local_random_unitary_pauli_coeff,
+    local_unitary_op_to_list,
+    local_unitary_op_to_pauli_coeff,
+)
 from .utils import generate_random_unitary_seeds, check_random_unitary_seeds

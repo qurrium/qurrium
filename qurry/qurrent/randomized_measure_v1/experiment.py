@@ -13,13 +13,13 @@ from .analysis import EntropyMeasureRandomizedV1Analysis
 from .arguments import EntropyMeasureRandomizedV1Arguments, SHORT_NAME
 from .utils import circuit_method_core_v1, randomized_entangled_entropy_complex_v1
 from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...qurrium.utils.randomized import (
+from ...process.utils import qubit_selector
+from ...process.randomized_measure import (
+    check_random_unitary_seeds,
     generate_random_unitary,
     local_random_unitary_operators,
     local_random_unitary_pauli_coeff,
 )
-from ...process.utils import qubit_selector
-from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.entangled_entropy_v1 import (
     RandomizedEntangledEntropyMitigatedComplex,
     PostProcessingBackendLabel,
