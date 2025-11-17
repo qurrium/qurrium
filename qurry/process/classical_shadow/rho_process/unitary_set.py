@@ -64,7 +64,32 @@ def combine_gate_matrices(*gates: Gate) -> npt.NDArray[np.complex128]:
 
 
 def get_basis_allow_gates() -> dict[str, Gate]:
-    """Return a mapping of standard gate names to their corresponding gate objects."""
+    """Return a mapping of standard gate names to their corresponding gate objects.
+
+    The allowed gates include commonly used single-qubit gates,
+    which has defined in Qiskit with matrix representations.
+
+    The allowed gates are:
+    - HGate
+    - IGate
+    - RGate
+    - RXGate
+    - RYGate
+    - RZGate
+    - SGate
+    - SdgGate
+    - SXGate
+    - SXdgGate
+    - TGate
+    - TdgGate
+    - UGate
+    - XGate
+    - YGate
+    - ZGate
+
+    Returns:
+        dict[str, Gate]: A dictionary mapping gate names to Gate objects.
+    """
 
     lam = Parameter("λ")
     theta = Parameter("ϴ")
@@ -93,8 +118,27 @@ def get_basis_allow_gates() -> dict[str, Gate]:
 
 BASIS_ALLOW_GATES = get_basis_allow_gates()
 r"""A dictionary mapping standard gate names to their corresponding Gate objects.
-This dictionary includes commonly used single-qubit gates 
-such as H, I, RX, RY, RZ, S, T, U, X, Y, and Z gates.
+
+The allowed gates include commonly used single-qubit gates,
+which has defined in Qiskit with matrix representations.
+
+The allowed gates are:
+- HGate
+- IGate
+- RGate
+- RXGate
+- RYGate
+- RZGate
+- SGate
+- SdgGate
+- SXGate
+- SXdgGate
+- TGate
+- TdgGate
+- UGate
+- XGate
+- YGate
+- ZGate
 """
 
 
