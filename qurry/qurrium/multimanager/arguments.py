@@ -6,9 +6,9 @@ import json
 
 from qiskit.providers import Backend
 
+from ..container import BaseRunArgs
 from ...capsule import DEFAULT_ENCODING
 from ...tools.datetime import DatetimeDict
-from ...declare import BaseRunArgs
 
 PendingStrategyLiteral = Literal["onetime", "each", "tags"]
 """Type of pending strategy."""
