@@ -10,7 +10,8 @@ from .container import (
     RunArgsType,
     PassManagerType,
 )
+from .arguments import Commonparams, ArgumentsPrototype
 from .analysis import AnalysisPrototype, AnalyzeArgs, SpecificAnalsisArgs
-from .experiment import ExperimentPrototype, Commonparams, ArgumentsPrototype, AnalysesContainer
+from .experiment import ExperimentPrototype, AnalysesContainer
 from .multimanager import MultiManager
 from .qurrium import QurriumPrototype

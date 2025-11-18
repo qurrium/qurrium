@@ -8,7 +8,7 @@ import warnings
 import gc
 import tqdm
 
-from .arguments import CommonparamsDict, REQUIRED_FOLDER
+from ..arguments import CommonparamsDict, REQUIRED_FOLDER
 from ...tools import ParallelManager, set_pbar_description
 from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 
