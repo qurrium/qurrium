@@ -145,7 +145,7 @@ def mean_rho(
     )
 
     return ClassicalShadowBasic(
-        average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
+        average_snapshots_rho_list=rho_m_list,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
         shots=shots,

@@ -123,6 +123,7 @@ from .prediction_process import (
     worst_accuracy_predict_epsilon_calc,
     decide_num_of_estimators,
     prediction_algorithm,
+    EstimationOfObservable,
 )
 from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
 from .classical_shadow import (
@@ -131,10 +132,8 @@ from .classical_shadow import (
     estimation_of_given_operators,
     classical_shadow_complex,
     ClassicalShadowBasic,
-    ClassicalShadowEstimation,
     ClassicalShadowPurity,
-    ClassicalShadowComplex,
     PurityValueKind,
-    purity_value_kind,
+    verify_purity_value_kind,
     default_method_on_value_kind,
 )

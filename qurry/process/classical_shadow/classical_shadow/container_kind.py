@@ -8,7 +8,6 @@ import numpy.typing as npt
 
 from ..rho_process import RhoMethod, RhoMethodType, ShadowRandomBasisData
 from ..trace_process import TraceMethod, TraceMethodType
-from ..prediction_process import EstimationOfObservable, ListTraceMethodType
 
 
 PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]
@@ -74,8 +73,10 @@ This will depend on the rho_method and trace_method.
 """
 
 
-def purity_value_kind(rho_method: RhoMethodType, trace_method: TraceMethodType) -> PurityValueKind:
-    """Get the kind of purity value calculation.
+def verify_purity_value_kind(
+    rho_method: RhoMethodType, trace_method: TraceMethodType
+) -> PurityValueKind:
+    """Verify the kind of purity value calculation.
 
     Args:
         rho_method (RhoMethodType, optional):
@@ -173,13 +174,17 @@ def default_method_on_value_kind(value_kind: PurityValueKind) -> tuple[RhoMethod
 class ClassicalShadowBasic(TypedDict):
     """The basic information of the classical shadow."""
 
-    average_classical_snapshots_rho: dict[int, np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
-    """The dictionary of average classical snapshots, 
-    which uses the notation rho in 
+    average_snapshots_rho_list: list[npt.NDArray[np.complex128]]
+    """The list of average classical snapshots, which uses the notation rho in 
     `Predicting many properties of a quantum system from very few measurements
     <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-    The numpy.array shape is `(2, 2)`.
+    The numpy array shape is `(2, 2)`.
+    
+    Formally, this field is defined as `dict[int, npt.NDArray[np.complex128]]` 
+    with the name of `average_classical_snapshots_rho`, where the key is 
+    the index of the snapshot and the value is the corresponding rho matrix.
+    But it is just meaningless to use dictionary here.
     """
     classical_registers_actually: list[int]
     """The list of the selected_classical_registers."""
@@ -199,20 +204,33 @@ class ClassicalShadowBasic(TypedDict):
     """The mean of single classical snapshots."""
 
 
-class ClassicalShadowEstimation(ClassicalShadowBasic, EstimationOfObservable):
-    """The esitimations of the classical shadow from classical snapshots.
+def verify_classical_shadow_basic(cs_basic: ClassicalShadowBasic) -> None:
+    """Verify if the given ClassicalShadowBasic object is valid.
 
-    Here, we use the notations that use in the supplementary material of
-    `Predicting many properties of a quantum system from very few measurements
-    <https://doi.org/10.1038/s41567-020-0932-7>`_
+    Args:
+        cs_basic (ClassicalShadowBasic):
+            The ClassicalShadowBasic TypedDict object.
 
+    Raises:
+        ValueError: If the cs_basic argument is not a valid ClassicalShadowBasic object.
     """
+    if any(
+        key not in cs_basic
+        for key in [
+            "average_snapshots_rho_list",
+            "classical_registers_actually",
+            "taking_time",
+            "shots",
+            "snapshots",
+            "rho_method",
+            "random_basis_data",
+            "mean_of_rho",
+        ]
+    ):
+        raise ValueError("The cs_basic argument must be a valid ClassicalShadowBasic object.")
 
-    estimate_trace_method: ListTraceMethodType
-    """The method to use for the calculation of the trace of Rho."""
 
-
-class ClassicalShadowPurity(ClassicalShadowBasic):
+class ClassicalShadowPurity(TypedDict):
     """The expectation value of Rho."""
 
     purity: Union[float, np.float64]
@@ -225,10 +243,7 @@ class ClassicalShadowPurity(ClassicalShadowBasic):
 
     If it is not one of the defined kinds, it will be "unknown".
     """
+    taking_time: float
+    """The time taken for the calculation."""
     trace_method: TraceMethodType
     """The method to calculate the trace of rho."""
-
-
-# pylint:disable=duplicate-bases
-class ClassicalShadowComplex(ClassicalShadowEstimation, ClassicalShadowPurity):
-    """The expectation value of Rho and the purity calculated by classical shadow."""

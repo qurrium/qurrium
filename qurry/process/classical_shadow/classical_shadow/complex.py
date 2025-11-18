@@ -8,19 +8,14 @@ import tqdm
 import numpy as np
 import numpy.typing as npt
 
-from .container_kind import ClassicalShadowComplex, purity_value_kind
-from ..rho_process import (
-    rho_core,
-    RhoMethodType,
-    DEFAULT_RHO_METHOD,
-    ShadowBasisType,
-    DEFAULT_SHADOW_BASIS,
-    mean_rho_core,
-)
-from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
-from ..prediction_process import prediction_algorithm
+from .container_kind import ClassicalShadowBasic, ClassicalShadowPurity
+from .mean import mean_rho
+from .trace import inner_trace_rho_square
+from .estimation import inner_estimation_of_given_operators
+from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
+from ..trace_process import TraceMethodType, DEFAULT_TRACE_METHOD
+from ..prediction_process import EstimationOfObservable
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
-from ..utils import check_random_basis_array
 
 
 def classical_shadow_complex(
@@ -38,7 +33,7 @@ def classical_shadow_complex(
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
-) -> ClassicalShadowComplex:
+) -> tuple[ClassicalShadowBasic, Optional[ClassicalShadowPurity], Optional[EstimationOfObservable]]:
     r"""Calculate the expectation value of Rho and the purity by classical shadow.
 
     Reference:
@@ -233,69 +228,52 @@ def classical_shadow_complex(
             The progress bar. Defaults to None.
 
     Returns:
-        ClassicalShadowComplex:
-            The expectation value of Rho and the purity calculated by classical shadow.
+        A tuple of ClassicalShadowBasic, optional ClassicalShadowPurity, and
+        optional EstimationOfObservable.
     """
 
-    check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
-    if len(counts) < 2:
-        raise ValueError(
-            "The method of classical shadow require at least 2 counts for the calculation. "
-            + f"The number of counts is {len(counts)}."
-        )
-    kind_of_purity = purity_value_kind(rho_method, trace_method)
-    if given_operators is None or len(given_operators) == 0:
-        raise ValueError("The given_operators must be a non-empty list.")
-
-    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
-        shots=shots,
-        counts=counts,
-        random_unitary_array=random_basis_array,
-        selected_classical_registers=selected_classical_registers,
-        rho_method=rho_method,
-        shadow_basis=shadow_basis,
-    )
-    if pbar is not None:
-        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
-
-    expect_rho = mean_rho_core(
-        rho_m_list=rho_m_list,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
-    )
-
-    purity, entropy = all_trace_core(
+    cs_basic_obj = mean_rho(
         shots=shots,
         counts=counts,
         random_basis_array=random_basis_array,
-        rho_m_list=rho_m_list,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        shadow_basis=shadow_basis,
+        pbar=pbar,
+    )
+    cs_trace_obj = inner_trace_rho_square(
+        shots=shots,
+        counts=counts,
+        random_basis_array=random_basis_array,
+        cs_basic=cs_basic_obj,
         trace_method=trace_method,
     )
+    if all(
+        [
+            cs_trace_obj["trace_method"] == "skip_trace",
+            cs_trace_obj["taking_time"] == 0.0,
+            np.isnan(cs_trace_obj["purity"]),
+            np.isnan(cs_trace_obj["entropy"]),
+        ]
+    ):
+        cs_trace_obj = None
+    if pbar is not None and cs_trace_obj is not None:
+        pbar.set_description(
+            f"| taking time of trace of rho^2: {cs_trace_obj['taking_time']:.4f} sec"
+        )
 
-    average_classical_snapshots_rho = dict(enumerate(rho_m_list))
+    if given_operators is None or len(given_operators) == 0:
+        return cs_basic_obj, cs_trace_obj, None
 
-    all_prediction_results = prediction_algorithm(
-        classical_snapshots_rho=average_classical_snapshots_rho,
+    cs_estimation_obj = inner_estimation_of_given_operators(
+        cs_basic=cs_basic_obj,
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
         estimate_trace_method=estimate_trace_method,
     )
-    return ClassicalShadowComplex(
-        average_classical_snapshots_rho=average_classical_snapshots_rho,
-        classical_registers_actually=selected_classical_registers_sorted,
-        taking_time=taken,
-        shots=shots,
-        snapshots=len(rho_m_list),
-        rho_method=rho_method,
-        random_basis_data=shadow_basis_obj.export(),
-        # The mean of Rho
-        mean_of_rho=expect_rho,
-        # The trace of Rho square
-        purity=purity,
-        entropy=entropy,
-        purity_value_kind=kind_of_purity,
-        trace_method=trace_method,
-        # esitimation of given operators
-        **all_prediction_results,
-    )
+    if pbar is not None:
+        pbar.set_description(
+            f"| taking time of estimation: {cs_estimation_obj['taking_time']:.4f} sec"
+        )
+    return cs_basic_obj, cs_trace_obj, cs_estimation_obj

@@ -8,18 +8,56 @@ import tqdm
 import numpy as np
 import numpy.typing as npt
 
-from .container_kind import ClassicalShadowEstimation
-from ..rho_process import (
-    rho_core,
-    RhoMethodType,
-    DEFAULT_RHO_METHOD,
-    ShadowBasisType,
-    DEFAULT_SHADOW_BASIS,
-    mean_rho_core,
-)
-from ..prediction_process import prediction_algorithm
+from .container_kind import ClassicalShadowBasic, verify_classical_shadow_basic
+from .mean import mean_rho
+from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
+from ..prediction_process import prediction_algorithm, EstimationOfObservable
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
-from ..utils import check_random_basis_array
+
+
+def inner_estimation_of_given_operators(
+    cs_basic: ClassicalShadowBasic,
+    # estimation of given operators
+    given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
+    accuracy_prob_comp_delta: float = 0.01,
+    max_shadow_norm: Optional[float] = None,
+    # other config
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+) -> EstimationOfObservable:
+    r"""Calculate the expectation value of given operators from ClassicalShadowBasic.
+
+    Args:
+        cs_basic (ClassicalShadowBasic):
+            The ClassicalShadowBasic TypedDict object.
+
+        given_operators (list[npt.NDArray[np.complex128]]):
+            The list of the operators to estimate.
+        accuracy_prob_comp_delta (float, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (Optional[float], optional):
+            The maximum shadow norm. Defaults to None.
+            If it is None, it will be calculated by the largest shadow norm upper bound.
+            If it is not None, it must be a positive float number.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation. Defaults to DEFAULT_LIST_TRACE_METHOD.
+
+    Returns:
+        EstimationOfObservable: The estimation of the given operators.
+    """
+
+    verify_classical_shadow_basic(cs_basic)
+    if given_operators is None or len(given_operators) == 0:
+        raise ValueError("The given_operators must be a non-empty list.")
+
+    return prediction_algorithm(
+        classical_snapshots_rho=dict(enumerate(cs_basic["average_snapshots_rho_list"])),
+        given_operators=given_operators,
+        accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+        max_shadow_norm=max_shadow_norm,
+        estimate_trace_method=estimate_trace_method,
+    )
 
 
 def estimation_of_given_operators(
@@ -36,7 +74,7 @@ def estimation_of_given_operators(
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
-) -> ClassicalShadowEstimation:
+) -> tuple[ClassicalShadowBasic, EstimationOfObservable]:
     r"""Calculate the expectation value of given operators.
 
     Reference:
@@ -104,7 +142,6 @@ def estimation_of_given_operators(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-
         rho_method (RhoMethodType, optional):
             It can be either "multi_shots", "multi_shots_vectorized",
             "single_shots", or "single_shots_vectorized".
@@ -156,48 +193,29 @@ def estimation_of_given_operators(
             The progress bar. Defaults to None.
 
     Returns:
-        ClassicalShadowEstimation: The estimation of the given operators.
+        The ClassicalShadowBasic and the estimation of the given operators.
     """
 
-    check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
-    if given_operators is None or len(given_operators) == 0:
-        raise ValueError("The given_operators must be a non-empty list.")
-
-    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
+    cs_basic_obj = mean_rho(
         shots=shots,
         counts=counts,
-        random_unitary_array=random_basis_array,
+        random_basis_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         shadow_basis=shadow_basis,
+        pbar=pbar,
     )
-    if pbar is not None:
-        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
-
-    expect_rho = mean_rho_core(
-        rho_m_list=rho_m_list,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
-    )
-
-    average_classical_snapshots_rho = dict(enumerate(rho_m_list))
-    all_prediction_results = prediction_algorithm(
-        classical_snapshots_rho=average_classical_snapshots_rho,
+    cs_estimation_obj = inner_estimation_of_given_operators(
+        cs_basic=cs_basic_obj,
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
         estimate_trace_method=estimate_trace_method,
     )
 
-    return ClassicalShadowEstimation(
-        average_classical_snapshots_rho=average_classical_snapshots_rho,
-        classical_registers_actually=selected_classical_registers_sorted,
-        taking_time=taken,
-        shots=shots,
-        snapshots=len(rho_m_list),
-        rho_method=rho_method,
-        random_basis_data=shadow_basis_obj.export(),
-        # The mean of Rho
-        mean_of_rho=expect_rho,
-        # esitimation of given operators
-        **all_prediction_results,
-    )
+    if pbar is not None:
+        pbar.set_description(
+            f"| taking time of estimation: {cs_estimation_obj['taking_time']:.4f} sec"
+        )
+
+    return cs_basic_obj, cs_estimation_obj

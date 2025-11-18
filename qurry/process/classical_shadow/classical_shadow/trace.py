@@ -6,17 +6,66 @@
 from typing import Literal, Union, Optional, Iterable
 import tqdm
 
-from .container_kind import ClassicalShadowPurity, purity_value_kind
-from ..rho_process import (
-    rho_core,
-    RhoMethodType,
-    DEFAULT_RHO_METHOD,
-    ShadowBasisType,
-    DEFAULT_SHADOW_BASIS,
-    mean_rho_core,
+from .container_kind import (
+    ClassicalShadowBasic,
+    verify_classical_shadow_basic,
+    ClassicalShadowPurity,
+    verify_purity_value_kind,
 )
+from .mean import mean_rho
+from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
 from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHOD
-from ..utils import check_random_basis_array
+
+
+def inner_trace_rho_square(
+    shots: int,
+    counts: list[dict[str, int]],
+    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
+    cs_basic: ClassicalShadowBasic,
+    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+) -> ClassicalShadowPurity:
+    """Calculate the trace of Rho square from ClassicalShadowBasic.
+
+    Args:
+        shots (int):
+            The number of shots.
+        counts (list[dict[str, int]]):
+            The list of the counts.
+        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
+
+        cs_basic (ClassicalShadowBasic):
+            The ClassicalShadowBasic TypedDict object.
+
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho. Defaults to DEFAULT_TRACE_METHOD.
+
+    Returns:
+        ClassicalShadowPurity: The ClassicalShadowPurity TypedDict object.
+    """
+    verify_classical_shadow_basic(cs_basic)
+    if len(counts) < 2:
+        raise ValueError(
+            "The method of classical shadow require at least 2 counts for the calculation. "
+            + f"The number of counts is {len(counts)}."
+        )
+
+    purity, entropy, taken = all_trace_core(
+        shots=shots,
+        counts=counts,
+        random_basis_array=random_basis_array,
+        rho_m_list=cs_basic["average_snapshots_rho_list"],
+        selected_classical_registers_sorted=cs_basic["classical_registers_actually"],
+        trace_method=trace_method,
+    )
+
+    return ClassicalShadowPurity(
+        purity=purity,
+        entropy=entropy,
+        trace_method=trace_method,
+        taking_time=taken,
+        purity_value_kind=verify_purity_value_kind(cs_basic["rho_method"], trace_method),
+    )
 
 
 def trace_rho_square(
@@ -28,7 +77,7 @@ def trace_rho_square(
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
     pbar: Optional[tqdm.tqdm] = None,
-) -> ClassicalShadowPurity:
+) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity]:
     r"""Trace of Rho square.
 
     Args:
@@ -110,54 +159,29 @@ def trace_rho_square(
             The progress bar. Defaults to None.
 
     Returns:
-        float: The trace of Rho.
+        A tuple of ClassicalShadowBasic and ClassicalShadowPurity.
     """
 
-    check_random_basis_array(random_basis_array, len(counts), len(next(iter(counts[0].keys()))))
-    if len(counts) < 2:
-        raise ValueError(
-            "The method of classical shadow require at least 2 counts for the calculation. "
-            + f"The number of counts is {len(counts)}."
-        )
-
-    rho_m_list, selected_classical_registers_sorted, shadow_basis_obj, taken = rho_core(
-        shots=shots,
-        counts=counts,
-        random_unitary_array=random_basis_array,
-        selected_classical_registers=selected_classical_registers,
-        rho_method=rho_method,
-        shadow_basis=shadow_basis,
-    )
-    if pbar is not None:
-        pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
-
-    expect_rho = mean_rho_core(
-        rho_m_list=rho_m_list,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
-    )
-
-    purity, entropy = all_trace_core(
+    cs_basic_obj = mean_rho(
         shots=shots,
         counts=counts,
         random_basis_array=random_basis_array,
-        rho_m_list=rho_m_list,
-        selected_classical_registers_sorted=selected_classical_registers_sorted,
+        selected_classical_registers=selected_classical_registers,
+        rho_method=rho_method,
+        shadow_basis=shadow_basis,
+        pbar=pbar,
+    )
+    cs_trace_obj = inner_trace_rho_square(
+        shots=shots,
+        counts=counts,
+        random_basis_array=random_basis_array,
+        cs_basic=cs_basic_obj,
         trace_method=trace_method,
     )
 
-    return ClassicalShadowPurity(
-        average_classical_snapshots_rho=dict(enumerate(rho_m_list)),
-        classical_registers_actually=selected_classical_registers_sorted,
-        taking_time=taken,
-        shots=shots,
-        snapshots=len(rho_m_list),
-        rho_method=rho_method,
-        random_basis_data=shadow_basis_obj.export(),
-        # The mean of Rho
-        mean_of_rho=expect_rho,
-        # The trace of Rho square
-        purity=purity,
-        entropy=entropy,
-        trace_method=trace_method,
-        purity_value_kind=purity_value_kind(rho_method, trace_method),
-    )
+    if pbar is not None:
+        pbar.set_description(
+            f"| taking time of trace of rho^2: {cs_trace_obj['taking_time']:.4f} sec"
+        )
+
+    return cs_basic_obj, cs_trace_obj
