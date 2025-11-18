@@ -339,8 +339,7 @@ def mean_rho_core(
 
     Args:
         rho_m_list (list[npt.NDArray[np.complex128]]):
-            The dictionary of Rho M.
-            The dictionary of Rho M I.
+            The list of rho_m.
         selected_classical_registers_sorted (list[int]):
             The list of the selected_classical_registers.
 

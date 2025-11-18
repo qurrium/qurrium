@@ -4,6 +4,7 @@
 """
 
 from typing import Optional, TypedDict
+import time
 import warnings
 import numpy as np
 
@@ -152,6 +153,8 @@ class EstimationOfObservable(TypedDict):
     which is the significantly lower bound than the worst case scenario.
     """
 
+    taking_time: float
+    """The time taken for the calculation."""
     estimate_trace_method: ListTraceMethodType
     """The method to calculate the trace for searching estimators."""
 
@@ -553,16 +556,17 @@ def prediction_algorithm(
     num_classical_snapshot = len(classical_snapshots_rho)
     shape_of_classical_snapshots = next(iter(classical_snapshots_rho.values())).shape
     num_of_given_operators = len(given_operators)
+
     if any(shape_of_classical_snapshots != op.shape for op in given_operators):
         raise ValueError(
             "The shape of classical snapshots and the shape of given operators must be the same."
         )
-
     if num_classical_snapshot == 0 or num_of_given_operators == 0:
         raise ValueError(
             "The number of classical snapshots and "
             "the number of given operators must be greater than 0."
         )
+
     prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(estimate_trace_method)
 
     epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
@@ -592,10 +596,12 @@ def prediction_algorithm(
         ]
     )  # type: ignore
 
+    begin = time.time()
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
         np.array(given_operators),
         estimators,  # type: ignore
     )
+
     return EstimationOfObservable(
         given_operators=given_operators,
         estimate_of_given_operators=estimate_of_given_operators,
@@ -606,5 +612,6 @@ def prediction_algorithm(
         maximum_shadow_norm=max_shadow_norm,
         epsilon_upperbound=epsilon_upperbound,
         shadow_norm_upperbound=shadow_norm_upperbound,
+        taking_time=time.time() - begin,
         estimate_trace_method=estimate_trace_method,
     )

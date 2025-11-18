@@ -3,6 +3,7 @@
 
 """
 
+import time
 from typing import Literal, Union
 import warnings
 import numpy as np
@@ -231,7 +232,7 @@ def all_trace_core(
     rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
     selected_classical_registers_sorted: list[int],
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-) -> tuple[Union[float, np.float64], Union[float, np.float64]]:
+) -> tuple[Union[float, np.float64], Union[float, np.float64], float]:
     """Calculate the trace by all given methods.
 
     Args:
@@ -277,15 +278,17 @@ def all_trace_core(
             The default method is "bitwise_py", which is the fastest option.
 
     Returns:
-        tuple[Union[float, np.float64], Union[float, np.float64]]:
-            The purity and the second Renyi entropy.
+        tuple[Union[float, np.float64], Union[float, np.float64], float]:
+            The purity, the second Renyi entropy, and the time taken (in seconds).
     """
 
     if isinstance(trace_method, str):
         trace_method = TraceMethod.from_string(trace_method)
 
+    begin = time.time()
+
     if trace_method == TraceMethod.SKIP_TRACE:
-        return np.nan, np.nan
+        return np.nan, np.nan, 0.0
 
     if trace_method.is_nomatop_method():
         purity = trace_nomatop_core(
@@ -309,4 +312,4 @@ def all_trace_core(
 
     entropy = -np.log2(purity)
 
-    return purity, entropy
+    return purity, entropy, time.time() - begin
