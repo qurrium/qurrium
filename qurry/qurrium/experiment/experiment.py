@@ -4,18 +4,17 @@ import os
 import json
 import warnings
 from abc import abstractmethod, ABC
-from typing import Union, Optional, Any, Type, Literal, Generic
+from typing import Union, Optional, Any, Type, Generic
 from multiprocessing import get_context
 from pathlib import Path
 import tqdm
 
-from qiskit import transpile, QuantumCircuit
+from qiskit import QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
-from .arguments import Commonparams, _A, create_exp_args, create_exp_commons, create_exp_outfields
-from .beforewards import Before, create_beforewards
-from .afterwards import After, create_afterwards
+from .beforewards import Before
+from .afterwards import After
 from .analyses import AnalysesContainer, _R
 from .export import Export
 from .utils import (
@@ -23,14 +22,21 @@ from .utils import (
     memory_usage_factor_expect,
     implementation_check,
     summonner_check,
+    make_qasm_strings,
+    process_transpilation,
     make_statesheet,
     create_save_location,
     decide_folder_and_filename,
 )
-from ..utils import get_counts_and_exceptions, qasm_dumps, outfields_check, outfields_hint
+from ..utils import (
+    get_counts_and_exceptions,
+    outfields_check,
+    outfields_hint,
+    AvailableQASMVersions,
+)
 from ..container import WCKeyable, RunArgsType, TranspileArgs
+from ..arguments import Commonparams, _A, create_all_arguments
 from ...tools import (
-    ParallelManager,
     very_easy_chunk_size,
     DatetimeDict,
     set_pbar_description,
@@ -42,7 +48,7 @@ from ...tools import (
 )
 from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
-from ...exceptions import QurryResetSecurityActivated, QurryTranspileConfigurationIgnored
+from ...exceptions import QurryResetSecurityActivated
 
 
 class ExperimentPrototype(ABC, Generic[_A, _R]):
@@ -138,19 +144,14 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             reports (Optional[AnalysesContainer], optional):
                 The reports of the experiment. Defaults to None.
         """
-        self.args, arguments_deprecated = create_exp_args(arguments, self.arguments_instance)
-        self.commons, commonparams_deprecated = create_exp_commons(commonparams)
-        self.outfields = create_exp_outfields(outfields)
-        # Add deprecated arguments to outfields only if they are not empty
-        if len(arguments_deprecated):
-            self.outfields["arguments_deprecated"] = arguments_deprecated
-        if len(commonparams_deprecated):
-            self.outfields["commonparams_deprecated"] = commonparams_deprecated
+        self.args, self.commons, self.outfields = create_all_arguments(
+            arguments, commonparams, outfields, self.arguments_instance
+        )
         implementation_check(self.__name__, self.args, self.commons)
         summonner_check(self.commons.serial, self.commons.summoner_id, self.commons.summoner_name)
 
-        self.beforewards = create_beforewards(beforewards)
-        self.afterwards = create_afterwards(afterwards)
+        self.beforewards = Before.create(beforewards)
+        self.afterwards = After.create(afterwards)
         self.reports: AnalysesContainer[_R] = (
             reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
         )
@@ -199,7 +200,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         """Control the experiment's general parameters.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]): The circuits of the experiment.
+            targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             exp_id (Optional[str], optional):
                 If input is `None`, then create an new experiment.
                 If input is a existed experiment ID, then use it.
@@ -336,7 +337,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         summoner_id: Optional[str] = None,
         summoner_name: Optional[str] = None,
         # process tool
-        qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
+        qasm_version: AvailableQASMVersions = "qasm3",
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
@@ -384,7 +385,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
 
-            qasm_version (Literal["qasm2", "qasm3"], optional):
+            qasm_version (AvailableQASMVersions, optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
@@ -446,59 +447,22 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-        targets_keys, targets_values = zip(*targets)
-        targets_keys: tuple[WCKeyable, ...]
-        targets_values: tuple[QuantumCircuit, ...]
-
-        if multiprocess:
-            pool = ParallelManager()
-            current_exp.beforewards.circuit_qasm.extend(
-                pool.starmap(qasm_dumps, [(q, qasm_version) for q in cirqs])
-            )
-            current_exp.beforewards.target_qasm.extend(
-                zip(
-                    [str(k) for k in targets_keys],
-                    pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
-                )
-            )
-        else:
-            current_exp.beforewards.circuit_qasm.extend(
-                [qasm_dumps(q, qasm_version) for q in cirqs]
-            )
-            current_exp.beforewards.target_qasm.extend(
-                zip(
-                    [str(k) for k in targets_keys],
-                    [qasm_dumps(q, qasm_version) for q in targets_values],
-                )
-            )
+        circuit_qasm_strings, target_qasm_strings = make_qasm_strings(
+            cirqs, targets, qasm_version, multiprocess=multiprocess
+        )
+        current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
+        current_exp.beforewards.target_qasm.extend(target_qasm_strings)
 
         # transpile
-        if passmanager_pair is not None:
-            passmanager_name, passmanager = passmanager_pair
-            set_pbar_description(
-                pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
-            )
-            transpiled_circs = passmanager.run(
-                circuits=cirqs,
-                num_processes=None if multiprocess else 1,  # type: ignore
-            )
-            if len(current_exp.commons.transpile_args) > 0:
-                warnings.warn(
-                    f"Passmanager '{passmanager_name}' is given, "
-                    + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=QurryTranspileConfigurationIgnored,
-                )
-        else:
-            set_pbar_description(pbar, "Circuit transpiling...")
-            transpile_args = current_exp.commons.transpile_args.copy()
-            transpile_args.pop("num_processes", None)
-            transpiled_circs: list[QuantumCircuit] = transpile(
-                cirqs,
-                backend=current_exp.commons.backend,
-                num_processes=None if multiprocess else 1,
-                **current_exp.commons.transpile_args,
-            )
-
+        transpiled_circs = process_transpilation(
+            cirqs,
+            current_exp.commons.transpile_args.copy(),
+            current_exp.commons.backend,
+            passmanager_pair,
+            current_exp.exp_id,
+            multiprocess=multiprocess,
+            pbar=pbar,
+        )
         set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
 
@@ -601,14 +565,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         assert len(self.afterwards.result) == 1, "The job has been executed more than once."
 
         set_pbar_description(pbar, "Result loading...")
-        num = len(self.beforewards.circuit)
-        counts, exceptions = get_counts_and_exceptions(result=self.afterwards.result[-1], num=num)
+        counts, exceptions = get_counts_and_exceptions(
+            result=self.afterwards.result[-1], num=len(self.beforewards.circuit)
+        )
         if len(exceptions) > 0:
-            if "exceptions" not in self.outfields:
-                self.outfields["exceptions"] = {}
-            for result_id, exception_item in exceptions.items():
-                self.outfields["exceptions"][result_id] = exception_item
-
+            self.outfields["exceptions"] = {**self.outfields.get("exceptions", {}), **exceptions}
         set_pbar_description(pbar, "Counts loading...")
         self.afterwards.counts.extend(counts)
 
@@ -624,11 +585,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 set_pbar_description(pbar, "Running analysis for no input required...")
                 self.analyze()
 
-        if export:
+        if isinstance(save_location, (Path, str)) and export:
             # export may be slow, consider export at finish or something
-            if isinstance(save_location, (Path, str)):
-                set_pbar_description(pbar, "Setup data exporting...")
-                self.write(save_location=save_location)
+            set_pbar_description(pbar, "Setup data exporting...")
+            self.write(save_location=save_location)
 
         return self.exp_id
 

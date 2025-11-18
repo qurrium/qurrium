@@ -2,11 +2,11 @@
 
 import json
 from typing import Optional, NamedTuple, Any, Union
-from collections.abc import Hashable
 from pathlib import Path
 
 from qiskit import QuantumCircuit
 
+from ..container import WCKeyable
 from ..utils.qasm import qasm_loads
 from ...capsule import DEFAULT_ENCODING
 
@@ -46,14 +46,14 @@ class Before(NamedTuple):
     """
 
     # Experiment Preparation
-    target: list[tuple[Hashable, Union[QuantumCircuit, str]]]
+    target: list[tuple[WCKeyable, Union[QuantumCircuit, str]]]
     """The target circuits of experiment."""
     target_qasm: list[tuple[str, str]]
     """The OpenQASM of target circuits."""
+    circuit_qasm: list[str]
+    """The OpenQASM of circuits (not yet transpiled)."""
     circuit: list[QuantumCircuit]
     """The transpiled circuits of experiment."""
-    circuit_qasm: list[str]
-    """The OpenQASM of transpiled circuits."""
 
     # Export data
     job_id: list[str]
@@ -173,7 +173,7 @@ class Before(NamedTuple):
             print(f"The circuits {is_none_circuits} are not revived.")
         return revived_circuits
 
-    def revive_target(self, replace_target: bool = False) -> dict[Hashable, QuantumCircuit]:
+    def revive_target(self, replace_target: bool = False) -> dict[WCKeyable, QuantumCircuit]:
         """Revive the target circuits from the qasm, return the revived target.
 
         Args:
@@ -184,7 +184,7 @@ class Before(NamedTuple):
             ValueError: If the .target is not empty.
 
         Returns:
-            dict[Hashable, QuantumCircuit]: The revived target circuits.
+            dict[WCKeyable, QuantumCircuit]: The revived target circuits.
         """
         revived_target = {}
         if len(self.target) != 0:
@@ -196,29 +196,33 @@ class Before(NamedTuple):
             revived_target[key] = QuantumCircuit.from_qasm_str(qasm)
         return revived_target
 
+    @classmethod
+    def create(cls, beforewards: Optional["Before"]) -> "Before":
+        """Create a :class:`Before` object.
 
-def create_beforewards(beforewards: Optional[Before]) -> Before:
-    """Create a :class:`Before` object.
+        Args:
+            beforewards (Optional[Before]):
+                The Beforewards object to create. Defaults to None.
 
-    Args:
-        beforewards (Optional[Before]):
-            The Beforewards object to create. Defaults to None.
-    Returns:
-        Before: The Beforewards object.
-    Raises:
-        TypeError: If 'beforewards' is not a Before object or None.
-    """
+        Raises:
+            TypeError: If 'beforewards' is not a Before object or None.
 
-    if beforewards is None:
-        return Before(
-            target=[],
-            target_qasm=[],
-            circuit=[],
-            circuit_qasm=[],
-            job_id=[],
-            side_product={},
+        Returns:
+            Before: The Beforewards object.
+        """
+
+        if beforewards is None:
+            return Before(
+                target=[],
+                target_qasm=[],
+                circuit=[],
+                circuit_qasm=[],
+                job_id=[],
+                side_product={},
+            )
+        if isinstance(beforewards, Before):
+            return beforewards
+
+        raise TypeError(
+            f"beforewards must be a Before object or None, but got {type(beforewards)}."
         )
-    if isinstance(beforewards, Before):
-        return beforewards
-
-    raise TypeError(f"beforewards must be a Before object or None, but got {type(beforewards)}.")

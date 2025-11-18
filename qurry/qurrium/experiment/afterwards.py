@@ -2,7 +2,7 @@
 
 import gc
 import json
-from typing import NamedTuple, Any, Union
+from typing import NamedTuple, Any, Optional
 from pathlib import Path
 import warnings
 
@@ -97,22 +97,20 @@ class After(NamedTuple):
                 QurryResetSecurityActivated,
             )
 
+    @classmethod
+    def create(cls, afterwards: Optional["After"]) -> "After":
+        """Create an :class:`After` object.
 
-def create_afterwards(
-    after: Union[After, None] = None,
-) -> After:
-    """Create an :class:`After` object.
+        Args:
+            afterwards (Union[After, None], optional):
+                The After object to create. Defaults to None.
 
-    Args:
-        after (Union[After, None], optional):
-            The After object to create. Defaults to None.
+        Returns:
+            After: The After object.
+        """
+        if afterwards is None:
+            return After(**After.default_value())
+        if isinstance(afterwards, After):
+            return afterwards
 
-    Returns:
-        After: The After object.
-    """
-    if after is None:
-        return After(**After.default_value())
-    if isinstance(after, After):
-        return after
-
-    raise TypeError("The 'after' must be an instance of 'After' or None.")
+        raise TypeError("The 'afterwards' must be an instance of 'After' or None.")

@@ -4,23 +4,29 @@ import os
 import warnings
 from uuid import uuid4, UUID
 from typing import Optional, Union
-from collections.abc import Hashable
 from pathlib import Path
+import tqdm
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
+from qiskit.providers import Backend
+from qiskit.transpiler.passmanager import PassManager
 
-from .arguments import Commonparams, ArgumentsPrototype
 from .beforewards import Before
 from .afterwards import After
 from .analyses import AnalysesContainer
+from ..container import WCKeyable, TranspileArgs
+from ..arguments import Commonparams, ArgumentsPrototype
+from ..utils import qasm_dumps, AvailableQASMVersions
 from ..utils.iocontrol import RJUST_LEN
 from ...capsule.hoshi import Hoshi
+from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import (
     QurryHashIDInvalid,
     QurrySummonerInvalid,
     QurryInvalidInherition,
     UnconfiguredWarning,
+    QurryTranspileConfigurationIgnored,
 )
 
 
@@ -30,28 +36,33 @@ def exp_id_process(exp_id: Optional[str]) -> str:
     Args:
         exp_id (Optional[str]): The id of the experiment to be checked.
 
+    Raises:
+        TypeError: If the exp_id is not a string.
+        QurryHashIDInvalid: If the exp_id is not a valid UUID.
+
     Returns:
         str: The valid exp_id.
     """
 
     if exp_id is None:
         return str(uuid4())
+    if not isinstance(exp_id, str):
+        raise TypeError(f"exp_id must be str, not {type(exp_id)}.")
 
     try:
         UUID(exp_id, version=4)
     except ValueError as e:
-        exp_id = None
         warnings.warn(
             f"exp_id is not a valid UUID, it will be generated automatically.\n{e}",
             category=QurryHashIDInvalid,
         )
-    else:
-        return exp_id
-    return str(uuid4())
+        return str(uuid4())
+
+    return exp_id
 
 
 def memory_usage_factor_expect(
-    target: list[tuple[Hashable, Union[QuantumCircuit, str]]],
+    target: list[tuple[WCKeyable, Union[QuantumCircuit, str]]],
     circuits: list[QuantumCircuit],
     commonparams: Commonparams,
 ) -> int:
@@ -74,7 +85,9 @@ def memory_usage_factor_expect(
     The factor is used to estimate the memory usage of the experiment.
 
     Args:
-        circuits (list[QuantumCircuit]): The circuits to be estimated.
+        target (list[tuple[WCKeyable, Union[QuantumCircuit, str]]]):
+            The target circuits of the experiment.
+        circuits (list[QuantumCircuit]): The transpiled circuits of the experiment.
         commonparams (Commonparams): The common parameters of the experiment.
 
     Returns:
@@ -89,12 +102,21 @@ def memory_usage_factor_expect(
     return int(np.round(factor))
 
 
-def implementation_check(
-    name_exps: str,
-    args: ArgumentsPrototype,
-    commons: Commonparams,
-) -> None:
-    """Check whether the experiment is implemented correctly."""
+def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Commonparams) -> None:
+    """Check whether the experiment is implemented correctly.
+
+    Args:
+        name_exps (str): The name of the experiment.
+        args (ArgumentsPrototype): The arguments of the experiment.
+        commons (Commonparams): The common parameters of the experiment.
+
+    Raises:
+        QurryInvalidInherition:
+            If the experiment's arguments and common parameters have duplicate fields.
+        UnconfiguredWarning:
+            If the experiment's name is not configured.
+    """
+
     duplicate_fields = set(args._fields) & set(commons._fields)
     if len(duplicate_fields) > 0:
         raise QurryInvalidInherition(
@@ -110,9 +132,7 @@ def implementation_check(
 
 
 def summonner_check(
-    serial: Optional[int],
-    summoner_id: Optional[str],
-    summoner_name: Optional[str],
+    serial: Optional[int], summoner_id: Optional[str], summoner_name: Optional[str]
 ):
     """Check the summoner information taken from the experiment.
 
@@ -148,6 +168,108 @@ def summonner_check(
             "Summoner data is not completed, it will export in single experiment mode.",
         )
     return summon_fulfill
+
+
+def make_qasm_strings(
+    circuits: list[QuantumCircuit],
+    targets: list[tuple[WCKeyable, QuantumCircuit]],
+    qasm_version: AvailableQASMVersions = "qasm3",
+    multiprocess: bool = False,
+) -> tuple[list[str], list[tuple[str, str]]]:
+    """Make OpenQASM strings from the target circuits.
+
+    Args:
+        circuits (list[QuantumCircuit]):
+            The transpiled circuits of the experiment.
+        targets (list[tuple[WCKeyable, QuantumCircuit]]):
+            The target circuits of the experiment.
+        qasm_version (AvailableQASMVersions, optional):
+            The export version of OpenQASM. Defaults to 'qasm3'.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to False.
+
+    Returns:
+        A tuple containing the OpenQASM strings of the transpiled circuits
+        and a list of tuples of target keys and their OpenQASM strings.
+    """
+
+    if not multiprocess:
+        return [qasm_dumps(q, qasm_version) for q in circuits], [
+            (str(key), qasm_dumps(circuit, qasm_version)) for key, circuit in targets
+        ]
+
+    pm = ParallelManager()
+
+    circuit_qasm_strings = pm.starmap(qasm_dumps, [(q, qasm_version) for q in circuits])
+
+    def _target_dumps_worker(item: tuple[WCKeyable, QuantumCircuit]) -> tuple[str, str]:
+        key, circuit = item
+        return str(key), qasm_dumps(circuit, qasm_version)
+
+    target_qasm_strings = pm.map(_target_dumps_worker, targets)
+
+    return circuit_qasm_strings, target_qasm_strings
+
+
+def process_transpilation(
+    circuits: list[QuantumCircuit],
+    transpile_args: TranspileArgs,
+    backend: Backend,
+    passmanager_pair: Optional[tuple[str, PassManager]],
+    exp_id: str,
+    multiprocess: bool = False,
+    pbar: Optional[tqdm.tqdm] = None,
+) -> list[QuantumCircuit]:
+    """Process the transpilation of the circuits.
+
+    Args:
+        circuits (list[QuantumCircuit]):
+            The circuits to be transpiled.
+        transpile_args (TranspileArgs):
+            The transpile arguments.
+        backend (Backend):
+            The backend to be used for transpilation.
+        passmanager_pair (Optional[tuple[str, PassManager]]):
+            The passmanager name and the passmanager to be used.
+        exp_id (str):
+            The experiment ID, used for warning messages.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to False.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+
+    Returns:
+        list[QuantumCircuit]: The transpiled circuits.
+    """
+    if passmanager_pair is None:
+        set_pbar_description(pbar, "Circuit transpiling...")
+        transpile_args.pop("num_processes", None)
+        transpiled_circs = transpile(
+            circuits,
+            backend=backend,
+            num_processes=None if multiprocess else 1,
+            **transpile_args,
+        )
+        return transpiled_circs
+
+    passmanager_name, passmanager = passmanager_pair
+    if not isinstance(passmanager, PassManager):
+        raise TypeError(
+            "The passmanager must be an instance of PassManager, "
+            + f"not {type(passmanager)} in '{exp_id}'"
+        )
+    set_pbar_description(pbar, f"Circuit transpiling by passmanager '{passmanager_name}'...")
+    transpiled_circs = passmanager.run(
+        circuits=circuits,
+        num_processes=None if multiprocess else 1,  # type: ignore
+    )
+    if len(transpile_args) > 0:
+        warnings.warn(
+            f"Passmanager '{passmanager_name}' is given, "
+            + f"the transpile_args will be ignored in '{exp_id}'",
+            category=QurryTranspileConfigurationIgnored,
+        )
+    return transpiled_circs
 
 
 def make_statesheet(
