@@ -3,12 +3,20 @@
 
 """
 
-from typing import Optional
+from typing import Union, Optional, TypedDict
 import tqdm
+import numpy as np
 
 
 from ..availability import PostProcessingBackendLabel
 from .purity_echo_core import purity_echo_core, DEFAULT_PROCESS_BACKEND
+
+
+class HadamardOverlapResult(TypedDict):
+    """The return type of the post-processing for wavefunction overlap."""
+
+    echo: Union[np.float64, float]
+    """The Loschmidt Echo."""
 
 
 def hadamard_overlap_echo(
@@ -16,7 +24,7 @@ def hadamard_overlap_echo(
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> dict[str, float]:
+) -> HadamardOverlapResult:
     """Calculate overlap echo with more information combined.
     The echo we compute is the Loschmidt Echo.
 
@@ -35,7 +43,7 @@ def hadamard_overlap_echo(
         ValueError: Measure range does not contain subsystem.
 
     Returns:
-        dict[str, float]: Quantity of the experiment.
+        Quantity of the experiment.
     """
 
     if isinstance(pbar, tqdm.tqdm):

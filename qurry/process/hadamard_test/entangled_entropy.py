@@ -3,7 +3,7 @@
 
 """
 
-from typing import Optional
+from typing import Union, Optional, TypedDict
 import numpy as np
 import tqdm
 
@@ -12,12 +12,21 @@ from ..availability import PostProcessingBackendLabel
 from .purity_echo_core import purity_echo_core, DEFAULT_PROCESS_BACKEND
 
 
+class HadamardEntropyResult(TypedDict):
+    """The return type of the post-processing for entangled entropy."""
+
+    purity: Union[np.float64, float]
+    """The purity of the system."""
+    entropy: Union[np.float64, float]
+    """The entropy of the system."""
+
+
 def hadamard_entangled_entropy(
     shots: int,
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> dict[str, float]:
+) -> HadamardEntropyResult:
     """Calculate entangled entropy with more information combined.
     The entropy we compute is the Second Order Rényi Entropy.
 
@@ -36,7 +45,7 @@ def hadamard_entangled_entropy(
         ValueError: Measure range does not contain subsystem.
 
     Returns:
-        dict[str, float]: Quantity of the experiment.
+        Quantity of the experiment.
     """
 
     if isinstance(pbar, tqdm.tqdm):
