@@ -1,22 +1,14 @@
-"""Qurrech - Wave Function Overlap
-(:mod:`qurry.qurrech`)
-
-"""
+"""Qurrech - Wave Function Overlap (:mod:`qurry.qurrech`)"""
 
 from typing import Literal, Union, overload
 
 from .hadamard_test import EchoListenHadamard, EchoListenHadamardMeasureArgs
 from .randomized_measure import EchoListenRandomized, EchoListenRandomizedMeasureArgs
-from .randomized_measure_v1 import EchoListenRandomizedV1, EchoListenRandomizedV1MeasureArgs
 
 
 # pylint: disable=invalid-name
 @overload
 def EchoListen(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
-
-
-@overload
-def EchoListen(*args, method: Literal["randomized_v1"], **kwargs) -> EchoListenRandomizedV1: ...
 
 
 @overload
@@ -46,8 +38,6 @@ def EchoListen(
     """
     if method == "hadamard":
         return EchoListenHadamard(*args, **kwargs)
-    if method == "randomized_v1":
-        return EchoListenRandomizedV1(*args, **kwargs)
     return EchoListenRandomized(*args, **kwargs)
 
 
@@ -57,21 +47,11 @@ def WaveFunctionOverlap(*args, method: Literal["hadamard"], **kwargs) -> EchoLis
 
 @overload
 def WaveFunctionOverlap(
-    *args, method: Literal["randomized_v1"], **kwargs
-) -> EchoListenRandomizedV1: ...
-
-
-@overload
-def WaveFunctionOverlap(
     *args, method: Union[Literal["randomized", "base"], str] = "randomized", **kwargs
 ) -> EchoListenRandomized: ...
 
 
-def WaveFunctionOverlap(
-    *args,
-    method="randomized",
-    **kwargs,
-):
+def WaveFunctionOverlap(*args, method="randomized", **kwargs):
     """Call :func:`WaveFunctionOverlap` methods, another name of :func:`EchoListen`.
 
     Args:
@@ -88,6 +68,14 @@ def WaveFunctionOverlap(
     """
     if method == "hadamard":
         return EchoListenHadamard(*args, **kwargs)
-    if method == "randomized_v1":
-        return EchoListenRandomizedV1(*args, **kwargs)
     return EchoListenRandomized(*args, **kwargs)
+
+
+__all__ = [
+    "EchoListen",
+    "EchoListenHadamard",
+    "EchoListenHadamardMeasureArgs",
+    "EchoListenRandomized",
+    "EchoListenRandomizedMeasureArgs",
+    "WaveFunctionOverlap",
+]
