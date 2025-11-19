@@ -8,7 +8,7 @@ import tqdm
 
 from .container_kind import (
     ClassicalShadowBasic,
-    verify_classical_shadow_basic,
+    isvalid_classical_shadow_basic,
     ClassicalShadowPurity,
     verify_purity_value_kind,
 )
@@ -43,7 +43,7 @@ def inner_trace_rho_square(
     Returns:
         ClassicalShadowPurity: The ClassicalShadowPurity TypedDict object.
     """
-    verify_classical_shadow_basic(cs_basic)
+    isvalid_classical_shadow_basic(cs_basic)
     if len(counts) < 2:
         raise ValueError(
             "The method of classical shadow require at least 2 counts for the calculation. "

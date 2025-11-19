@@ -8,7 +8,7 @@ import tqdm
 import numpy as np
 import numpy.typing as npt
 
-from .container_kind import ClassicalShadowBasic, verify_classical_shadow_basic
+from .container_kind import ClassicalShadowBasic, isvalid_classical_shadow_basic
 from .mean import mean_rho
 from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
 from ..prediction_process import prediction_algorithm, EstimationOfObservable
@@ -47,7 +47,7 @@ def inner_estimation_of_given_operators(
         EstimationOfObservable: The estimation of the given operators.
     """
 
-    verify_classical_shadow_basic(cs_basic)
+    isvalid_classical_shadow_basic(cs_basic)
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 

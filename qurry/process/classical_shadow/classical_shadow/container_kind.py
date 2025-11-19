@@ -204,7 +204,7 @@ class ClassicalShadowBasic(TypedDict):
     """The mean of single classical snapshots."""
 
 
-def verify_classical_shadow_basic(cs_basic: ClassicalShadowBasic) -> None:
+def isvalid_classical_shadow_basic(cs_basic: ClassicalShadowBasic) -> None:
     """Verify if the given ClassicalShadowBasic object is valid.
 
     Args:
