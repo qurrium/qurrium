@@ -11,7 +11,7 @@ from ..availability import PostProcessingBackendLabel
 from .strop_core import string_operator_core, DEFAULT_PROCESS_BACKEND
 
 
-class StringOperator(TypedDict):
+class StringOperatorResult(TypedDict):
     """String Operator type."""
 
     order: Union[float, np.float64]
@@ -23,7 +23,7 @@ def string_operator_order(
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> StringOperator:
+) -> StringOperatorResult:
     """Calculate the order of the string operator.
 
     Reference:
