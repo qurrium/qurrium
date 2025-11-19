@@ -27,13 +27,15 @@ Reference:
 
 """
 
-from typing import TypeVar, Union
+from typing import TypeVar, Union, TypedDict
 import numpy as np
 import numpy.typing as npt
 
 AllowedMitigatedInput = Union[npt.NDArray[np.float64], float, np.float64]
+"""Allowed input type for the mitigation functions."""
 
 MitigatedInputT = TypeVar("MitigatedInputT", bound=AllowedMitigatedInput)
+"""Type variable for the mitigation functions."""
 
 
 def solve_p(
@@ -76,9 +78,21 @@ def mitigation_equation(
     ) / np.square(1 - p_series, dtype=np.float64)
 
 
+class MitigatedResult(TypedDict):
+    """The return type of the post-processing for entangled entropy with error mitigation."""
+
+    # mitigated info
+    errorRate: AllowedMitigatedInput
+    """The error rate of the measurement from depolarizing error migigation calculated."""
+    mitigatedPurity: AllowedMitigatedInput
+    """The mitigated purity."""
+    mitigatedEntropy: AllowedMitigatedInput
+    """The mitigated entropy."""
+
+
 def depolarizing_error_mitgation(
     meas_system: MitigatedInputT, all_system: MitigatedInputT, subsystem_size: int, system_size: int
-) -> dict[str, MitigatedInputT]:
+) -> MitigatedResult:
     """Depolarizing error mitigation.
 
     Args:
@@ -94,8 +108,8 @@ def depolarizing_error_mitgation(
     _, pn = solve_p(all_system, system_size)
     mitiga = mitigation_equation(pn, meas_system, subsystem_size)
 
-    return {
-        "errorRate": pn,
-        "mitigatedPurity": mitiga,
-        "mitigatedEntropy": -np.log2(mitiga, dtype=np.float64),  # type: ignore
-    }
+    return MitigatedResult(
+        errorRate=pn,
+        mitigatedPurity=mitiga,
+        mitigatedEntropy=-np.log2(mitiga, dtype=np.float64),
+    )
