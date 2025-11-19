@@ -11,7 +11,7 @@ from ..availability import PostProcessingBackendLabel
 from .magsq_core import magnetic_square_core, z_dir_magnetic_square_core, DEFAULT_PROCESS_BACKEND
 
 
-class MagnetSquare(TypedDict):
+class MagnetSquareResult(TypedDict):
     """Magnetization Square type."""
 
     magnet_square: Union[float, np.float64]
@@ -28,7 +28,7 @@ def magnet_square(
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> MagnetSquare:
+) -> MagnetSquareResult:
     """Calculate the magnet square.
 
     Args:
@@ -63,7 +63,7 @@ def z_dir_magnet_square(
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> MagnetSquare:
+) -> MagnetSquareResult:
     """Calculate the magnet square for Z direction.
 
     Signle counts is only working for Z direction.
