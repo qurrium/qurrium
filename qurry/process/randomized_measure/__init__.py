@@ -107,22 +107,19 @@ from .wavefunction_overlap_v1.echo_core import BACKEND_AVAILABLE as overlap_v1_a
 from .entangled_entropy import (
     randomized_entangled_entropy,
     randomized_entangled_entropy_mitigated,
-    EntangledEntropyResult,
-    EntangledEntropyResultMitigated,
-    ExistedAllSystemInfo,
-    ExistedAllSystemInfoInput,
+    TargetSystemResult,
+    AllSystemResult,
+    isvalid_all_system_result,
 )
 from .entangled_entropy_v1 import (
     randomized_entangled_entropy_v1,
     randomized_entangled_entropy_mitigated_v1,
-    RandomizedEntangledEntropyComplex,
-    RandomizedEntangledEntropyMitigatedComplex,
-    ExistingAllSystemSource,
+    TargetSystemResultV1,
+    AllSystemResultV1,
+    isvalid_all_system_result_v1,
 )
-from .wavefunction_overlap import randomized_overlap_echo
-from .wavefunction_overlap_v1 import (
-    randomized_overlap_echo_v1,
-)
+from .wavefunction_overlap import randomized_overlap_echo, WaveFuctionOverlapResult
+from .wavefunction_overlap_v1 import randomized_overlap_echo_v1, WaveFuctionOverlapResultV1
 from .random_unitary import (
     generate_random_unitary,
     local_random_unitary_operators,

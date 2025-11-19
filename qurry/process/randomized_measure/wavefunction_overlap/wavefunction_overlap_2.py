@@ -10,16 +10,13 @@ import tqdm
 from .echo_core_2 import overlap_echo_core_2, DEFAULT_PROCESS_BACKEND
 from ...availability import PostProcessingBackendLabel
 
-GenericFloatType = Union[np.float64, float]
-"""The generic float type by numpy or python."""
-
 
 class WaveFuctionOverlapResult(TypedDict):
     """The return type of the post-processing for wavefunction overlap."""
 
-    echo: np.float64
+    echo: Union[np.float64, float]
     """The overlap value."""
-    echoSD: np.float64
+    echoSD: Union[np.float64, float]
     """The overlap standard deviation."""
     echoCells: Union[dict[int, np.float64], dict[int, float]]
     """The overlap of each single count."""
@@ -30,10 +27,10 @@ class WaveFuctionOverlapResult(TypedDict):
     classical_registers_actually: list[int]
     """The list of the index of the selected classical registers which is actually used."""
     # refactored
-    counts_num: int
-    """The number of first counts and second counts."""
     taking_time: float
     """The calculation time."""
+    counts_num: int
+    """The number of first counts and second counts."""
 
 
 def randomized_overlap_echo(
@@ -116,7 +113,7 @@ def randomized_overlap_echo(
 
     num_classical_registers = len(list(first_counts[0].keys())[0])
 
-    quantity: WaveFuctionOverlapResult = {
+    return {
         "echo": echo,
         "echoSD": purity_sd,
         "echoCells": echo_cell_dict,
@@ -130,5 +127,3 @@ def randomized_overlap_echo(
         "counts_num": len(first_counts),
         "taking_time": taken,
     }
-
-    return quantity

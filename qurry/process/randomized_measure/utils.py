@@ -5,10 +5,12 @@
 
 from typing import Union, Optional
 from collections.abc import Sequence
+import hashlib
 import numpy as np
 
 
 SeedType = Union[int, np.random.Generator]
+"""The type of seed for random generator."""
 
 
 def generate_seeds_for_single_circ(
@@ -231,3 +233,44 @@ def check_random_unitary_seeds(
                     + f"not {type(random_unitary_seeds[i][j])} in {i}, {j}."
                 )
     return
+
+
+def generate_hash_from_trace_result(
+    purity_or_echo: Union[float, np.float64],
+    classical_registers_actually: list[int],
+    taking_time: float,
+    counts_num: int,
+    shots: int,
+    preparing_datetime: str,
+) -> str:
+    """Generate the hash string from the trace result.
+    We use SHA-1 algorithm to generate the hash string.
+
+    Args:
+        purity_or_echo (Union[float, np.float64]):
+            The purity or echo value.
+        classical_registers_actually (list[int]):
+            The list of the selected classical registers.
+        taking_time (float):
+            The time taken for the calculation.
+        counts_num (int):
+            The number of counts.
+        shots (int):
+            The number of shots.
+        preparing_datetime (str):
+            The datetime string when preparing the all system result.
+
+    Returns:
+        str: The generated hash string.
+    """
+    hash_input = (
+        f"purity_or_echo={purity_or_echo};"
+        + f"classical_registers_actually={classical_registers_actually};"
+        + f"taking_time={taking_time};"
+        + f"counts_num={counts_num};"
+        + f"shots={shots};"
+        + f"preparing_datetime={preparing_datetime}"
+    )
+    hash_object = hashlib.sha1(hash_input.encode())
+    hash_string = hash_object.hexdigest()
+    return hash_string

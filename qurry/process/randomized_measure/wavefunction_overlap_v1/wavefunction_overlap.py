@@ -4,12 +4,34 @@ This is a deprecated version of the wavefunction overlap.
 
 """
 
-from typing import Union, Optional
+from typing import Union, Optional, TypedDict
 import numpy as np
 import tqdm
 
 from .echo_core import overlap_echo_core, DEFAULT_PROCESS_BACKEND
 from ...availability import PostProcessingBackendLabel
+
+
+class WaveFuctionOverlapResultV1(TypedDict):
+    """The return type of the post-processing for wavefunction overlap."""
+
+    echo: Union[np.float64, float]
+    """The overlap value."""
+    echoSD: Union[np.float64, float]
+    """The overlap standard deviation."""
+    echoCells: Union[dict[int, np.float64], dict[int, float]]
+    """The overlap of each single count."""
+    degree: Optional[Union[tuple[int, int], int]]
+    """The range of partition."""
+    measureActually: tuple[int, int]
+    """The range of partition refer to all qubits."""
+    bitStringRange: Union[tuple[int, int], list[int]]
+    """The range of partition on the bitstring."""
+
+    countsNum: int
+    """The number of first counts and second counts."""
+    takingTime: float
+    """The calculation time."""
 
 
 def randomized_overlap_echo_v1(
@@ -20,7 +42,7 @@ def randomized_overlap_echo_v1(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     workers_num: Optional[int] = None,
     pbar: Optional[tqdm.tqdm] = None,
-) -> dict[str, float]:
+) -> WaveFuctionOverlapResultV1:
     """Calculate wavefunction overlap
     a.k.a. loschmidt echo when processes time evolution system.
 
@@ -77,7 +99,7 @@ def randomized_overlap_echo_v1(
             Defaults to None.
 
     Returns:
-        dict[str, float]: A dictionary contains purity, entropy,
+            A dictionary contains purity, entropy,
             a list of each overlap, puritySD, degree, actual measure range, bitstring range.
     """
 
@@ -105,11 +127,11 @@ def randomized_overlap_echo_v1(
 
     return {
         "echo": echo,
-        "echoCells": echo_cell_dict,
         "echoSD": purity_sd,
+        "echoCells": echo_cell_dict,
         "degree": degree,
         "measureActually": measure_range,
         "bitStringRange": bitstring_range,
         "countsNum": len(counts),
         "takingTime": taken,
-    }  # type: ignore
+    }
