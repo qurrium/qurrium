@@ -1,24 +1,20 @@
-"""Analysis Instance (:mod:`qurry.qurrium.analysis`)"""
+"""Analysis Instance (:mod:`qurry.qurrium.analysis.analysis`)"""
 
-from typing import Optional, NamedTuple, Iterable, Any, Generic, TypeVar, Type
+from typing import Optional, Iterable, Any, Generic, Self
 from abc import abstractmethod
 from pathlib import Path
 import json
 
-
-from ...capsule import jsonablize, DEFAULT_ENCODING
+from .declare import _RA
+from .ers import _RR, implementation_check_results, _REM, _REP, implementation_check_entries
+from ..arguments import _A, Commonparams
+from ...capsule import DEFAULT_ENCODING, jsonablize
 from ...capsule.hoshi import Hoshi
-from ...exceptions import QurryInvalidInherition
 from ...tools.datetime import current_time
+from ...exceptions import QurryInvalidInherition
 
 
-_RI = TypeVar("_RI", bound=NamedTuple)
-"""The input type of the analysis."""
-_RC = TypeVar("_RC", bound=NamedTuple)
-"""The content type of the analysis."""
-
-
-class AnalysisPrototype(Generic[_RI, _RC]):
+class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
     """The base instance for the analysis of
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
@@ -31,33 +27,27 @@ class AnalysisPrototype(Generic[_RI, _RC]):
     log: dict[str, Any]
     """Other info will be recorded."""
 
-    @classmethod
-    @abstractmethod
-    def input_type(cls) -> Type[_RI]:
-        """The input type of the analysis."""
-        raise NotImplementedError("input_type must be implemented in subclass.")
+    analyze_arguments: _RA
+    """The analyze arguments of the analysis."""
+    middleware_entries: _REM
+    """The middleware entries of the analysis."""
+    postprocess_entries: _REP
+    """The postprocess entries of the analysis."""
 
-    @property
-    def input_instance(self) -> Type[_RI]:
-        """The input instance of the analysis."""
-        return self.input_type()
+    outfields: dict[str, Any]
+    """The unused arguments of the analysis."""
 
-    @classmethod
-    @abstractmethod
-    def content_type(cls) -> Type[_RC]:
-        """The content type of the analysis."""
-        raise NotImplementedError("content_type must be implemented in subclass.")
-
-    @property
-    def content_instance(self) -> Type[_RC]:
-        """The content instance of the analysis."""
-        return self.content_type()
+    results: dict[str, _RR]
+    """The results of the analysis."""
 
     def __eq__(self, other) -> bool:
         """Check if two analysis instances are equal."""
-        if isinstance(other, self.__class__):
-            return self.input == other.input
-        return False
+        if not isinstance(other, self.__class__):
+            raise TypeError("Can only compare with the same AnalysisPrototype subclass.")
+        return (
+            self.middleware_entries == other.middleware_entries
+            and self.postprocess_entries == other.postprocess_entries
+        )
 
     @property
     @abstractmethod
@@ -65,55 +55,115 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         """The fields that will be stored as side product."""
         raise NotImplementedError("side_product_fields must be implemented in subclass.")
 
+    @classmethod
+    @abstractmethod
+    def _middleware_entries_type(cls) -> type[_REM]:
+        """The input type of the analysis."""
+        raise NotImplementedError("input_type must be implemented in subclass.")
+
+    @classmethod
+    @abstractmethod
+    def _postprocess_entries_type(cls) -> type[_REP]:
+        """The content type of the analysis."""
+        raise NotImplementedError("content_type must be implemented in subclass.")
+
+    @classmethod
+    @abstractmethod
+    def _available_results_types(cls) -> dict[str, type[_RR]]:
+        """The available results types of the analysis."""
+        raise NotImplementedError("available_results_types must be implemented in subclass.")
+
+    @classmethod
+    def is_auto_analysis(cls) -> bool:
+        """Check if the analysis is an auto analysis,
+        which means no postprocess and no middleware entries needed.
+
+        Returns:
+            bool: True if the analysis is an auto analysis, False otherwise.
+        """
+        # pylint: disable=protected-access
+        return (
+            len(cls._postprocess_entries_type()._dataclass_fields()) == 0
+            and len(cls._middleware_entries_type()._dataclass_fields()) == 0
+        )
+        # pylint: enable=protected-access
+
     def __init__(
         self,
+        analyze_arguments: _RA,
+        middleware_entries: _REM,
+        postprocess_entries: _REP,
+        results: dict[str, _RR],
+        outfields: dict[str, Any],
         *,
         serial: int,
-        log: Optional[dict[str, Any]] = None,
         datetime: Optional[str] = None,
-        **other_kwargs,
     ):
-        duplicate_fields = (
-            set(self.input_instance._fields)
-            & set(self.content_instance._fields)
-            & {"serial", "datetime", "log"}
-        )
-        if len(duplicate_fields) > 0:
+        if not hasattr(self, "quantities") and not callable(getattr(self, "quantities", None)):
             raise QurryInvalidInherition(
-                f"{self.input_instance} and {self.content_instance} "
-                f"should not have same fields: {duplicate_fields} "
-                f"for {self.__name__}."
+                f"{self.__name__} must have 'quantities' function defined in the subclass."
             )
+        implementation_check_entries(middleware_entries, postprocess_entries, self.__name__)
+        implementation_check_results(results, self._available_results_types(), self.__name__)
 
         self.serial = serial
         self.datetime = current_time() if datetime is None else datetime
-        self.log = log if isinstance(log, dict) else {}
 
-        lost_fields = [
-            k
-            for k in self.input_instance._fields + self.content_instance._fields
-            if k not in other_kwargs
-        ]
-        if len(lost_fields) > 0:
-            raise QurryInvalidInherition(
-                f"{self.__name__} should have all fields in "
-                f"{self.input_instance.__name__} and {self.content_instance.__name__}, "
-                f"but lost fields: {lost_fields}."
-            )
-        self.input: _RI = self.input_instance._make(
-            other_kwargs.pop(k) for k in self.input_instance._fields
-        )
-        """The input of the analysis."""
-        self.content: _RC = self.content_instance._make(
-            other_kwargs.pop(k) for k in self.content_instance._fields
-        )
-        """The content of the analysis."""
-        self.outfields = other_kwargs
+        self.analyze_arguments = analyze_arguments
+        self.middleware_entries = middleware_entries
+        self.postprocess_entries = postprocess_entries
+        self.results = results
+
+        self.outfields = outfields
+
+    @abstractmethod
+    @classmethod
+    def generate_entries(
+        cls,
+        arguments: _A,
+        commonparams: Commonparams,
+        counts: list[dict[str, int]],
+        analyze_arguments: _RA,
+    ) -> tuple[_RA, _REM, _REP]:
+        """Generate the middleware and input values for the analysis.
+
+        Args:
+            arguments (_A): The arguments of the experiment.
+            commonparams (Commonparams): The common parameters of the experiment.
+            counts (list[dict[str, int]]): The counts data from the experiment.
+            analyze_arguments (_RA): The analyze arguments of the analysis.
+
+        Returns:
+            A tuple containing the analyze arguments, middleware entries,
+            and postprocess entries for the analysis.
+        """
+        raise NotImplementedError("generate_input_values must be implemented in subclass.")
+
+    @classmethod
+    def perform_analysis(
+        cls,
+        arguments: _A,
+        commonparams: Commonparams,
+        counts: list[dict[str, int]],
+        analyze_arguments: _RA,
+    ) -> "AnalysisPrototype":
+        """Perform the analysis with the given arguments and common parameters.
+
+        Args:
+            arguments (_A): The arguments of the experiment.
+            commonparams (Commonparams): The common parameters of the experiment.
+            counts (list[dict[str, int]]): The counts data from the experiment.
+            analyze_arguments (_RA): The analyze arguments of the analysis.
+
+        Returns:
+            AnalysisPrototype: The analysis instance.
+        """
+        raise NotImplementedError("analyze must be implemented in subclass.")
 
     def __repr__(self) -> str:
         return (
             f"<{self.__name__}("
-            + f"serial={self.serial}, {self.input}, {self.content}), "
+            + f"serial={self.serial}, {self.postprocess_entries}, "
             + f"unused_args_num={len(self.outfields)}>"
         )
 
@@ -121,7 +171,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         if cycle:
             p.text(
                 f"<{self.__name__}("
-                + f"serial={self.serial}, {self.input}, {self.content}), "
+                + f"serial={self.serial}, {self.postprocess_entries}, "
                 + f"unused_args_num={len(self.outfields)}>"
             )
         else:
@@ -129,9 +179,7 @@ class AnalysisPrototype(Generic[_RI, _RC]):
                 p.breakable()
                 p.text(f"serial={self.serial},")
                 p.breakable()
-                p.text(f"{self.input},")
-                p.breakable()
-                p.text(f"{self.content}),")
+                p.text(f"{self.postprocess_entries},")
                 p.breakable()
                 p.text(f"unused_args_num={len(self.outfields)}")
                 p.breakable()
@@ -154,18 +202,29 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         info.newline(("itemize", "serial", self.serial, "", 1))
         info.newline(("itemize", "datetime", self.datetime, "", 1))
 
-        info.newline(("itemize", "input"))
-        for k, v in self.input._asdict().items():
+        info.newline(("itemize", "analyze_arguments"))
+        for k, v in self.analyze_arguments.items():
             info.newline(("itemize", str(k), str(v), (), 2))
+
+        info.newline(("itemize", "middleware_entries"))
+        for k, v in self.middleware_entries._asdict().items():
+            info.newline(("itemize", str(k), str(v), "", 2))
+
+        info.newline(("itemize", "postprocess_entries"))
+        for k, v in self.postprocess_entries._asdict().items():
+            info.newline(("itemize", str(k), str(v), "", 2))
+
+        info.newline(("itemize", "results"))
+        for k, v in self.results.items():
+            info.newline(("itemize", str(k)))
+            for field in v._fields:
+                if field in v.side_product_fields():
+                    info.newline(("itemize", str(field), str(getattr(v, field)), "", 4))
 
         info.newline(
             ("itemize", "outfields", len(self.outfields), "Number of unused arguments.", 1)
         )
         for k, v in self.outfields.items():
-            info.newline(("itemize", str(k), str(v), "", 2))
-
-        info.newline(("itemize", "content"))
-        for k, v in self.content._asdict().items():
             info.newline(("itemize", str(k), str(v), "", 2))
 
         info.newline(("itemize", "log"))
@@ -174,63 +233,25 @@ class AnalysisPrototype(Generic[_RI, _RC]):
 
         return info
 
-    def export(self, jsonable: bool = False) -> tuple[dict[str, Any], dict[str, Any]]:
-        """Export the analysis as main and side product dict.
-
-        Args:
-            jsonable (bool, optional):
-                If True, export as jsonable dict. Defaults to True.
-                If False, export as normal dict.
-
-        .. code-block:: python
-
-            main = { ...quantities, 'input': { ... }, 'header': { ... }, }
-            side = { 'dummyz1': ..., 'dummyz2': ..., ..., 'dummyzm': ... }
+    def export(self) -> dict[str, Any]:
+        """Export the analysis for file writing.
 
         Returns:
-            tuple[dict[str, Any], dict[str, Any]]: `main` and `side` product dict.
-
+            dict[str, Any]: The analysis as a dictionary for file writing.
         """
 
-        tales = {}
-        main = {}
-        for k, v in self.content._asdict().items():
-            if k in self.side_product_fields:
-                tales[k] = v
-            else:
-                main[k] = v
-        main["input"] = self.input._asdict()
-        main["header"] = {
-            "serial": self.serial,
-            "datetime": self.datetime,
-            "log": self.log,
+        return {
+            "__class__": self.__class__.__name__,
+            "header": {"serial": self.serial, "datetime": self.datetime},
+            "analyze_arguments": jsonablize(self.analyze_arguments),
+            "postprocess_entries": self.postprocess_entries.export(),
+            "middleware_entries": self.middleware_entries.export(),
+            "results": {k: v.export() for k, v in self.results.items()},
+            "outfields": jsonablize(self.outfields),
         }
 
-        if jsonable:
-            return jsonablize(main), jsonablize(tales)
-        return main, tales
-
     @classmethod
-    def deprecated_fields_converts(
-        cls, main: dict[str, Any], side: dict[str, Any]
-    ) -> tuple[dict[str, Any], dict[str, Any]]:
-        """Convert deprecated fields to new fields.
-
-        This method should be implemented in the subclass if there are deprecated fields
-        that need to be converted.
-
-        Args:
-            main (dict[str, Any]): The main product dict.
-            side (dict[str, Any]): The side product dict.
-
-        Returns:
-            tuple[dict[str, Any], dict[str, Any]]:
-                The converted main and side product dicts.
-        """
-        return main, side
-
-    @classmethod
-    def load(cls, main: dict[str, Any], side: dict[str, Any]):
+    def load(cls, raw_read: dict[str, Any]):
         """Read the analysis from main and side product dict.
 
         Args:
@@ -240,15 +261,62 @@ class AnalysisPrototype(Generic[_RI, _RC]):
         Returns:
             AnalysisPrototype: The analysis instance.
         """
-        main, side = cls.deprecated_fields_converts(main, side)
-        content = {k: v for k, v in main.items() if k not in ("input", "header")}
-        serial = main["header"].get("serial", 0)
-        log = main["header"].get("log", {})
-        datetime = main["header"].get("datetime", current_time())
-        return cls(serial=serial, log=log, datetime=datetime, **main["input"], **content, **side)
+        missing_keys = [
+            k
+            for k in [
+                "__class__",
+                "header",
+                "analyze_arguments",
+                "postprocess_entries",
+                "middleware_entries",
+                "results",
+            ]
+            if k not in raw_read
+        ]
+        if len(missing_keys) > 0:
+            raise ValueError(
+                f"The raw read dictionary is missing required keys. Missing keys: {missing_keys}"
+            )
+        if raw_read["__class__"] != cls.__name__:
+            raise ValueError(
+                f"The raw read dictionary class '{raw_read['__class__']}' does not match "
+                f"the expected class '{cls.__name__}'."
+            )
+
+        postprocess_entries = cls._postprocess_entries_type().load(raw_read["postprocess_entries"])
+        middleware_entries = cls._middleware_entries_type().load(raw_read["middleware_entries"])
+        results = {
+            k: cls._available_results_types()[k].load(v) for k, v in raw_read["results"].items()
+        }
+        outfields = raw_read.get("outfields", {})
+
+        return cls(
+            raw_read["analyze_arguments"],
+            middleware_entries,
+            postprocess_entries,
+            results,
+            outfields,
+            serial=raw_read["header"]["serial"],
+            datetime=raw_read["header"].get("datetime", None),
+        )
 
     @classmethod
-    def read(cls, file_index: dict[str, str], save_location: Path):
+    def object_hook(cls, dct: dict[str, Any]):
+        """Object hook for JSON deserialization.
+
+        Args:
+            dct (dict[str, Any]): The dictionary to deserialize.
+
+        Returns:
+            The deserialized analysis instance, or None if not applicable.
+        """
+        if any(k not in dct for k in ("files", "reports")):
+            return None
+
+        return {int(k): cls.load(v) for k, v in dct["reports"].items()}
+
+    @classmethod
+    def read(cls, file_index: dict[str, str], save_location: Path) -> dict[int, Self]:
         """Read the analysis from file index.
 
         Args:
@@ -256,31 +324,15 @@ class AnalysisPrototype(Generic[_RI, _RC]):
             save_location (Path): The save location.
 
         Returns:
-            dict[str, AnalysisPrototype]: The analysis instances in dictionary.
+            The analysis instances in dictionary.
         """
+        if "reports" not in file_index:
+            raise ValueError("The file index does not contain 'reports' key.")
 
-        export_material_set: dict[str, dict[str, dict[str, Any]]] = {
-            "reports": {},
-            "tales_report": {},
-        }
-        for filekey, filename in file_index.items():
-            filekey_split = filekey.split(".")
-            if filekey == "reports":
-                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
-                    tmp = json.load(f)
-                    export_material_set["reports"] = tmp["reports"]
+        with open(save_location / file_index["reports"], "r", encoding=DEFAULT_ENCODING) as f:
+            analyses_data = json.load(f, object_hook=cls.object_hook)
 
-            elif filekey_split[0] == "reports" and filekey_split[1] == "tales":
-                with open(save_location / filename, "r", encoding=DEFAULT_ENCODING) as f:
-                    export_material_set["tales_report"][filekey_split[2]] = json.load(f)
+        if analyses_data is None:
+            raise ValueError("Failed to load analyses data from the file.")
 
-        mains = export_material_set["reports"]
-        sides = {rk: {} for rk in export_material_set["reports"]}
-
-        for tk, tv in export_material_set["tales_report"].items():
-            for rk, rv in tv.items():
-                if rk not in sides:
-                    sides[rk] = {}
-                sides[rk][tk] = rv
-
-        return {int(k) if k.isdigit() else k: cls.load(v, sides[k]) for k, v in mains.items()}
+        return analyses_data
