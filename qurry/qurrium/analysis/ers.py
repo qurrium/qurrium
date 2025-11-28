@@ -5,29 +5,26 @@ from abc import abstractmethod
 from dataclasses import dataclass, fields
 import warnings
 
+from ..json_io import DataExportableLoadable
 from ...exceptions import QurryInvalidInherition
 
 
 @dataclass(frozen=True)
-class AnalyzeERABC:
+class AnalyzeERABC(DataExportableLoadable):
     """Construct the analyze entries's and results's parameters for specific options,
     which should be overwritable by the inherition class of this base class."""
 
     __name__ = "AnalyzeERABC"
 
     @property
-    def _fields(self) -> tuple[str, ...]:
+    def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(self.__dict__.keys())
 
     @classmethod
-    def _dataclass_fields(cls) -> tuple[str, ...]:
+    def dataclass_fields(cls) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
-
-    def _asdict(self) -> dict[str, Any]:
-        """The arguments as dictionary."""
-        return self.__dict__
 
     def __post_init__(self):
         """Post-initialization to ensure all fields are present."""
@@ -55,7 +52,7 @@ class AnalyzeERABC:
         Returns:
             A dictionary containing all fields of the results.
         """
-        return {field: getattr(self, field) for field in self._fields}
+        return {field: getattr(self, field) for field in self.fields}
 
     def export(self) -> dict[str, Any]:
         """Export the results for file writing.
@@ -82,16 +79,16 @@ class AnalyzeERABC:
         return data
 
     @classmethod
-    def load(cls, data: dict[str, Any]):
+    def load(cls, raw_dict: dict[str, Any]):
         """Load the results from a dictionary.
 
         Args:
-            data (dict[str, Any]): The data to load.
+            raw_dict (dict[str, Any]): The data to load.
 
         Returns:
-            AnalyzeResultsPrototype: The loaded results object.
+            The loaded results object.
         """
-        classname = data.pop("__class__", None)
+        classname = raw_dict.pop("__class__", None)
         if classname is None:
             raise ValueError("Data does not contain '__class__' key.")
         if classname != cls.__name__:
@@ -99,12 +96,12 @@ class AnalyzeERABC:
                 f"Data class '{classname}' does not match expected class '{cls.__name__}'."
             )
 
-        if set(data.keys()) != set(cls._dataclass_fields()):
+        if set(raw_dict.keys()) != set(cls.dataclass_fields()):
             raise ValueError(
-                f"Data fields mismatch: expected {cls._dataclass_fields()}, got {set(data.keys())}."
+                f"Data fields mismatch: expected {cls.dataclass_fields()}, got {set(raw_dict.keys())}."
             )
 
-        return cls(**cls.pre_load(data))
+        return cls(**cls.pre_load(raw_dict))
 
 
 @dataclass(frozen=True)
@@ -130,8 +127,8 @@ def implementation_check_entries(
         QurryInvalidInherition: If the derived class does not implement all required fields.
     """
     duplicate_fields = (
-        set(middleware_entries._fields)
-        & set(postprocess_entries._fields)
+        set(middleware_entries.fields)
+        & set(postprocess_entries.fields)
         & {"serial", "datetime", "log"}
     )
     if len(duplicate_fields) > 0:
@@ -167,7 +164,7 @@ class AnalyzeResultsPrototype(AnalyzeERABC):
         """
         main_result = {}
         side_product = {}
-        for field in self._fields:
+        for field in self.fields:
             if field in self.side_product_fields():
                 side_product[field] = getattr(self, field)
             else:
@@ -178,7 +175,7 @@ class AnalyzeResultsPrototype(AnalyzeERABC):
         """String representation of the AnalyzeResultsPrototype."""
         field_strs = [
             f"{field}={getattr(self, field)!r}"
-            for field in self._fields
+            for field in self.fields
             if field not in self.side_product_fields()
         ]
         field_strs += [f"side_product_fields={self.side_product_fields()!r}"]

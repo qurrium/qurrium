@@ -1,20 +1,19 @@
 """Analysis Instance (:mod:`qurry.qurrium.analysis.analysis`)"""
 
-from typing import Optional, Iterable, Any, Generic, Self
+from typing import Optional, Iterable, Any, Generic, TypeVar
 from abc import abstractmethod
-from pathlib import Path
-import json
 
 from .declare import _RA
 from .ers import _RR, implementation_check_results, _REM, _REP, implementation_check_entries
+from ..json_io import DataExportableLoadable
 from ..arguments import _A, Commonparams
-from ...capsule import DEFAULT_ENCODING, jsonablize
+from ...capsule import jsonablize
 from ...capsule.hoshi import Hoshi
 from ...tools.datetime import current_time
 from ...exceptions import QurryInvalidInherition
 
 
-class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
+class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadable):
     """The base instance for the analysis of
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
@@ -83,8 +82,8 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
         """
         # pylint: disable=protected-access
         return (
-            len(cls._postprocess_entries_type()._dataclass_fields()) == 0
-            and len(cls._middleware_entries_type()._dataclass_fields()) == 0
+            len(cls._postprocess_entries_type().dataclass_fields()) == 0
+            and len(cls._middleware_entries_type().dataclass_fields()) == 0
         )
         # pylint: enable=protected-access
 
@@ -207,17 +206,16 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
             info.newline(("itemize", str(k), str(v), (), 2))
 
         info.newline(("itemize", "middleware_entries"))
-        for k, v in self.middleware_entries._asdict().items():
-            info.newline(("itemize", str(k), str(v), "", 2))
+        for k in self.middleware_entries.fields:
+            info.newline(("itemize", str(k), getattr(self.middleware_entries, k), "", 2))
 
         info.newline(("itemize", "postprocess_entries"))
-        for k, v in self.postprocess_entries._asdict().items():
-            info.newline(("itemize", str(k), str(v), "", 2))
-
+        for k in self.postprocess_entries.fields:
+            info.newline(("itemize", str(k), getattr(self.postprocess_entries, k), "", 2))
         info.newline(("itemize", "results"))
         for k, v in self.results.items():
             info.newline(("itemize", str(k)))
-            for field in v._fields:
+            for field in v.fields:
                 if field in v.side_product_fields():
                     info.newline(("itemize", str(field), str(getattr(v, field)), "", 4))
 
@@ -251,15 +249,14 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
         }
 
     @classmethod
-    def load(cls, raw_read: dict[str, Any]):
-        """Read the analysis from main and side product dict.
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load the analysis from a raw read dictionary.
 
         Args:
-            main (dict[str, Any]): The main product dict.
-            side (dict[str, Any]): The side product dict.
+            raw_dict (dict[str, Any]): The raw read dictionary.
 
         Returns:
-            AnalysisPrototype: The analysis instance.
+            The analysis instance.
         """
         missing_keys = [
             k
@@ -271,68 +268,35 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR]):
                 "middleware_entries",
                 "results",
             ]
-            if k not in raw_read
+            if k not in raw_dict
         ]
         if len(missing_keys) > 0:
             raise ValueError(
                 f"The raw read dictionary is missing required keys. Missing keys: {missing_keys}"
             )
-        if raw_read["__class__"] != cls.__name__:
+        if raw_dict["__class__"] != cls.__name__:
             raise ValueError(
-                f"The raw read dictionary class '{raw_read['__class__']}' does not match "
+                f"The raw read dictionary class '{raw_dict['__class__']}' does not match "
                 f"the expected class '{cls.__name__}'."
             )
 
-        postprocess_entries = cls._postprocess_entries_type().load(raw_read["postprocess_entries"])
-        middleware_entries = cls._middleware_entries_type().load(raw_read["middleware_entries"])
+        postprocess_entries = cls._postprocess_entries_type().load(raw_dict["postprocess_entries"])
+        middleware_entries = cls._middleware_entries_type().load(raw_dict["middleware_entries"])
         results = {
-            k: cls._available_results_types()[k].load(v) for k, v in raw_read["results"].items()
+            k: cls._available_results_types()[k].load(v) for k, v in raw_dict["results"].items()
         }
-        outfields = raw_read.get("outfields", {})
+        outfields = raw_dict.get("outfields", {})
 
         return cls(
-            raw_read["analyze_arguments"],
+            raw_dict["analyze_arguments"],
             middleware_entries,
             postprocess_entries,
             results,
             outfields,
-            serial=raw_read["header"]["serial"],
-            datetime=raw_read["header"].get("datetime", None),
+            serial=raw_dict["header"]["serial"],
+            datetime=raw_dict["header"].get("datetime", None),
         )
 
-    @classmethod
-    def object_hook(cls, dct: dict[str, Any]):
-        """Object hook for JSON deserialization.
 
-        Args:
-            dct (dict[str, Any]): The dictionary to deserialize.
-
-        Returns:
-            The deserialized analysis instance, or None if not applicable.
-        """
-        if any(k not in dct for k in ("files", "reports")):
-            return None
-
-        return {int(k): cls.load(v) for k, v in dct["reports"].items()}
-
-    @classmethod
-    def read(cls, file_index: dict[str, str], save_location: Path) -> dict[int, Self]:
-        """Read the analysis from file index.
-
-        Args:
-            file_index (dict[str, str]): The file index.
-            save_location (Path): The save location.
-
-        Returns:
-            The analysis instances in dictionary.
-        """
-        if "reports" not in file_index:
-            raise ValueError("The file index does not contain 'reports' key.")
-
-        with open(save_location / file_index["reports"], "r", encoding=DEFAULT_ENCODING) as f:
-            analyses_data = json.load(f, object_hook=cls.object_hook)
-
-        if analyses_data is None:
-            raise ValueError("Failed to load analyses data from the file.")
-
-        return analyses_data
+_R = TypeVar("_R", bound=AnalysisPrototype)
+"""Type variable for :class:`~qurry.qurrium.analysis.AnalysisPrototype`."""
