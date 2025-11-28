@@ -1,68 +1,33 @@
-"""The module of exporting the experiment data. (:mod:`qurry.qurrium.experiment.export`)"""
+"""The instance for exporting data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
-from typing import Optional, NamedTuple, Union, Any
-from collections.abc import Hashable
+from typing import Union, Any
+from dataclasses import dataclass
 from pathlib import Path
-import warnings
-import gc
-import tqdm
 
-from ..arguments import CommonparamsDict, REQUIRED_FOLDER
-from ...tools import ParallelManager, set_pbar_description
+from ..json_io import WrittenContentType
 from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 
 
-class Export(NamedTuple):
-    """Data-stored namedtuple with all experiments data which is jsonable."""
-
-    exp_id: str
-    """ID of experiment, which will be packed into `.args.json`."""
-    exp_name: str
-    """Name of the experiment, which will be packed into `.args.json`. 
-    If this experiment is called by multimanager, 
-    then this name will never apply as filename."""
-    # Arguments for multi-experiment
-    serial: Optional[int]
-    """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
-    which will be packed into `.args.json`."""
-    summoner_id: Optional[str]
-    """ID of experiment of the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
-    which will be packed into `.args.json`."""
-    summoner_name: Optional[str]
-    """Name of experiment of the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
-    which will be packed into `.args.json`."""
-
-    filename: str
-    """The name of file to be exported, it will be decided by
-    :meth:`~qurry.qurrium.experiment.experiment.ExperimentPrototype.export` when it's called.
-    """
-    files: dict[str, str]
-    """The list of file to be exported.
+@dataclass(frozen=True)
+class Export:
+    """Data-stored namedtuple with all experiments data which is jsonable.
 
     ### Single experiment:
 
-    For the :meth:`write` function actually exports 4 different files
-    respecting to `adventure`, `legacy`, `tales`, and `reports` like:
+    For the :meth:`write` function actually exports 5 different files
+    respecting to `args`, `advent`, `legacy`, `tales`, and `myths` like:
 
     .. code-block:: python
 
         files = {
             'folder': './bla_exp/',
             'qurryinfo': './bla_exp/qurryinfo.json',
-
             'args': './bla_exp/args/bla_exp.id={exp_id}.args.json',
             'advent': './bla_exp/advent/bla_exp.id={exp_id}.advent.json',
             'legacy': './bla_exp/legacy/bla_exp.id={exp_id}.legacy.json',
-            'tales.dummyx1': './bla_exp/tales/bla_exp.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './bla_exp/tales/bla_exp.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './bla_exp/tales/bla_exp.id={exp_id}.dummyxn.json',
-            'reports': './bla_exp/reports/bla_exp.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': './bla_exp/tales/bla_exp.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': './bla_exp/tales/bla_exp.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': './bla_exp/tales/bla_exp.id={exp_id}.dummyzm.reports.json',
+            'tales': './bla_exp/tales/bla_exp.id={exp_id}.tales.json',
+            'myths': './bla_exp/myths/bla_exp.id={exp_id}.myths.json',
         }
 
     which `bla_exp` is the example filename.
@@ -79,115 +44,58 @@ class Export(NamedTuple):
         files = {
             'folder': './BLABLA_project/',
             'qurryinfo': './BLABLA_project/qurryinfo.json',
-
             'args': './BLABLA_project/args/index={serial}.id={exp_id}.args.json',
             'advent': './BLABLA_project/advent/index={serial}.id={exp_id}.advent.json',
             'legacy': './BLABLA_project/legacy/index={serial}.id={exp_id}.legacy.json',
-            'tales.dummyx1': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx1.json',
-            'tales.dummyx2': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyx2.json',
-            ...
-            'tales.dummyxn': './BLABLA_project/tales/index={serial}.id={exp_id}.dummyxn.json',
-            'reports': './BLABLA_project/reports/index={serial}.id={exp_id}.reports.json',
-            'reports.tales.dummyz1': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz1.reports.json',
-            'reports.tales.dummyz2': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyz2.reports.json',
-            ...
-            'reports.tales.dummyzm': 
-                './BLABLA_project/tales/index={serial}.id={exp_id}.dummyzm.reports.json',
+            'tales': './BLABLA_project/tales/index={serial}.id={exp_id}.tales.json',
+            'myths':
+                './BLABLA_project/myths/index={serial}.id={exp_id}.myths.json',
         }
 
-    which `BLBLA_project` is the example 
-    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager` name 
-    stored at `summoner_name` in 
+    which `BLBLA_project` is the example
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager` name
+    stored at `summoner_name` in
     :class:`~qurry.qurrium.experiment.arguments.Commonparams.summoner_name`.
     At this senerio, the `exp_name` will never apply as filename.
-
     """
 
-    args: dict[str, Any]
-    """Construct the experiment's parameters, which will be packed into `.args.json`."""
-    commons: CommonparamsDict
-    """Construct the experiment's common parameters, which will be packed into `.args.json`."""
-    outfields: dict[str, Any]
-    """Recording the data of other unused arguments, which will be packed into `.args.json`."""
+    exp_id: str
+    """The id of experiment used in filenames."""
+    identifier: str
+    """The identifier of experiment used in filenames."""
+    folder: str
+    """The folder of experiment."""
+    save_location: Union[Path, str]
+    """The save location of experiment used in filenames."""
 
-    adventures: dict[str, Any]
-    """Recording the data of 'beforeward', which will be packed into `.advent.json`. 
-    *~ A Great Adventure begins ~*"""
-    legacy: dict[str, Any]
-    """Recording the data of 'afterward', which will be packed into `.legacy.json`. 
-    *~ The Legacy remains from the achievement of ancestors ~*"""
-    tales: dict[str, Any]
-    """Recording the data of 'side_product' in 'afterward' and 'beforewards' for API, 
-    which will be packed into `.*.tales.json`. 
-    *~ Tales of braves circulate ~*"""
+    folder_filenames_writtens: list[tuple[str, str, WrittenContentType[Any]]]
+    """The written contents of experiment used in exporting."""
 
-    reports: dict[Hashable, dict[str, Any]]
-    """Recording the data of 'reports', which will be packed into `.reports.json`. 
-
-    ### Reports format:
-
-    .. code-block:: python
-
-        reports = {
-            1: { ...quantities, 'input': { ... }, 'header': { ... }, },
-            2: { ...quantities, 'input': { ... }, 'header': { ... }, },
-            ...
-            {serial}: { ...quantities, 'input': { ... }, 'header': { ... }, },
+    def __post_init__(self):
+        invalid_filenames = {
+            key: fname
+            for key, fname, writtens in self.folder_filenames_writtens
+            if any(k not in fname for k in [self.identifier, self.exp_id])
         }
-
-    *~ The guild concludes the results. ~*"""
-    tales_reports: dict[str, dict[Hashable, dict[str, Any]]]
-    """Recording the data of 'side_product' in 'reports' for API, 
-    which will be packed into `.*.reprts.json`. 
-
-    ### Tales Reports format:
-
-    .. code-block:: python
-
-        tales_reports = {
-            'dummyz1': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
-            'dummyz2': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
-            ...
-            'dummyz': {
-                1: { ... },
-                2: { ... },
-                ...
-                {serial}: { ... },
-            },
+        if invalid_filenames:
+            raise ValueError(
+                "The identifier or exp_id must be included in all filenames. "
+                + f"Invalid filenames: {invalid_filenames}"
+            )
+        invalid_written_contents = {
+            key: writtens.keys()
+            for key, fname, writtens in self.folder_filenames_writtens
+            if "files" in writtens
         }
+        if invalid_written_contents:
+            raise ValueError(
+                "The written_contents must not contain 'files' key, "
+                + "which is reserved for internal use. "
+                + f"Invalid written_contents: {invalid_written_contents.keys()}"
+            )
 
-    *~ Tales of braves circulate ~*"""
-
-    def write(
-        self,
-        multiprocess: bool = False,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> tuple[str, dict[str, str]]:
+    def write(self) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
-
-        Hint:
-            This function will traversal all objects in the export_set,
-            so it will ensure the jsonable of all objects.
-            And this will reduce the performance of exporting.
-
-        Args:
-            multiprocess (bool, optional):
-                Whether to use multiprocess to export, Defaults to False.
-                It's dangerous to use multiprocess to export. It may cause memory leak.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for exporting. Defaults to None.
 
         Returns:
             tuple[str, dict[str, str]]:
@@ -195,97 +103,29 @@ class Export(NamedTuple):
                 the second element is the dictionary of files of experiment.
         """
 
-        export_set: dict[
-            str,
-            Union[
-                dict[str, Any],
-                list[Any],
-                tuple[Any, ...],
-                dict[Hashable, dict[str, Any]],
-            ],
-        ] = {}
-        # args ...............  # arguments, commonparams, outfields, files
-        export_set["args"] = {
-            "arguments": self.args,
-            "commonparams": self.commons,
-            "outfields": self.outfields,
-            "files": self.files,
-        }
-        # advent .............  # adventures
-        export_set["advent"] = {
-            "files": self.files,
-            "adventures": self.adventures,
-        }
-        # legacy .............  # legacy
-        export_set["legacy"] = {
-            "files": self.files,
-            "legacy": self.legacy,
-        }
-        # tales ..............  # tales
-        for tk, tv in self.tales.items():
-            export_set[f"tales.{tk}"] = tv if isinstance(tv, (dict, list, tuple)) else [tv]
-            if f"tales.{tk}" not in self.files:
-                warnings.warn(f"tales.{tk} is not in export_names, it's not exported.")
-        # reports ............  # reports
-        export_set["reports"] = {
-            "files": self.files,
-            "reports": self.reports,
-        }
-        # reports.tales ......  # tales_reports
-        for tk, tv in self.tales_reports.items():
-            export_set[f"reports.tales.{tk}"] = tv if isinstance(tv, (dict, list, tuple)) else [tv]
-            if f"reports.tales.{tk}" not in self.files:
-                warnings.warn(f"reports.tales.{tk} is not in export_names, it's not exported.")
-        # Exportation
-        set_pbar_description(
-            pbar,
-            (
-                "Exporting "
-                + (f"{self.summoner_name}/" if self.summoner_name else "")
-                + f"{self.exp_name}..."
-            ),
-        )
-        folder = Path(self.commons["save_location"]) / Path(self.files["folder"])
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-        for k in REQUIRED_FOLDER:
-            if not os.path.exists(folder / k):
-                os.mkdir(folder / k)
+        folder_path = Path(self.folder)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
 
-        if multiprocess:
-            pool = ParallelManager()
-            pool.starmap(
-                quickJSON,
-                [
-                    (
-                        content,
-                        str(Path(self.commons["save_location"]) / self.files[filekey]),
-                        DEFAULT_MODE,
-                        DEFAULT_INDENT,
-                        DEFAULT_ENCODING,
-                        True,
-                        # although it reduces the performance for it will traversal all object,
-                        # but it will ensure the jsonable
-                        # since all objects are not jsonable by default.
-                        Path("./"),
-                    )
-                    for filekey, content in export_set.items()
-                ],
+        files = {
+            "folder": folder_path,
+            "qurryinfo": folder_path / "qurryinfo.json",
+        }
+        for key, fname, writtens in self.folder_filenames_writtens:
+            files[key] = folder_path / key / fname
+            if not os.path.exists(folder_path / key):
+                os.mkdir(folder_path / key)
+        files_str = {k: str(v) for k, v in files.items()}
+
+        for key, fname, writtens in self.folder_filenames_writtens:
+            writtens.update({"files": files_str})
+            quickJSON(
+                content=writtens,
+                filename=files[key],
+                mode=DEFAULT_MODE,
+                indent=DEFAULT_INDENT,
+                encoding=DEFAULT_ENCODING,
+                save_location=self.save_location,
             )
-        else:
-            for filekey, content in export_set.items():
-                quickJSON(
-                    content=content,
-                    filename=str(Path(self.commons["save_location"]) / self.files[filekey]),
-                    mode=DEFAULT_MODE,
-                    indent=DEFAULT_INDENT,
-                    encoding=DEFAULT_ENCODING,
-                    jsonable=True,
-                    # although it reduces the performance for it will traversal all object,
-                    # but it will ensure the jsonable since all objects are not jsonable by default.
-                    save_location=Path("./"),
-                )
 
-        del export_set
-        gc.collect()
-        return self.exp_id, self.files
+        return self.exp_id, files_str

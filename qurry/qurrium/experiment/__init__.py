@@ -1,7 +1,6 @@
 """Experiment Instance and Analysis Container (:mod:`qurry.qurrium.experiment`)"""
 
 from .experiment import ExperimentPrototype
-from .analyses import AnalysesContainer
 from .export import Export
 from .beforewards import Before
 from .afterwards import After

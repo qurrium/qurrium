@@ -14,7 +14,7 @@ from qiskit.transpiler.passmanager import PassManager
 
 from .beforewards import Before
 from .afterwards import After
-from .analyses import AnalysesContainer
+from ..analysis import AnalysesContainer
 from ..container import WCKeyable, TranspileArgs
 from ..arguments import Commonparams, ArgumentsPrototype
 from ..utils import qasm_dumps, AvailableQASMVersions

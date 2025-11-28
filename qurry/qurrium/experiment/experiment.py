@@ -4,7 +4,7 @@ import os
 import json
 import warnings
 from abc import abstractmethod, ABC
-from typing import Union, Optional, Any, Type, Generic
+from typing import Union, Optional, Any, Generic
 from multiprocessing import get_context
 from pathlib import Path
 import tqdm
@@ -14,8 +14,9 @@ from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
 from .beforewards import Before
+from .tales import Tales, _SP
 from .afterwards import After
-from .analyses import AnalysesContainer, _R
+from ..analysis.container import AnalysesContainer, _R
 from .export import Export
 from .utils import (
     exp_id_process,
@@ -57,26 +58,47 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     __name__ = "ExperimentPrototype"
     """Name of the QurryExperiment which could be overwritten."""
 
-    @property
+    @classmethod
     @abstractmethod
-    def arguments_instance(self) -> Type[_A]:
-        """The arguments instance for this experiment."""
+    def arguments_type(cls) -> type[_A]:
+        """The arguments type for this experiment."""
         raise NotImplementedError("This method should be implemented.")
 
     @property
+    def arguments_instance(self) -> type[_A]:
+        """The arguments instance for this experiment."""
+        return self.arguments_type()
+
+    @classmethod
     @abstractmethod
-    def analysis_instance(self) -> Type[_R]:
-        """The analysis instance for this experiment."""
+    def analysis_type(cls) -> type[_R]:
+        """The analysis type for this experiment."""
         raise NotImplementedError("This method should be implemented.")
+
+    @property
+    def analysis_instance(self) -> type[_R]:
+        """The analysis instance for this experiment."""
+        return self.analysis_type()
+
+    @classmethod
+    def side_product_type(cls) -> type[Tales]:
+        """The side product container type for this experiment."""
+        return Tales
+
+    @property
+    def side_product_instance(self) -> type[Tales]:
+        """The side product container instance for this experiment."""
+        return self.side_product_type()
 
     @property
     def is_auto_analysis(self) -> bool:
-        """Check if the experiment has auto analysis.
+        """Check if the experiment has auto analysis,
+        which means no postprocess and no middleware entries needed.
 
         Returns:
             bool: True if the experiment has auto analysis, False otherwise.
         """
-        return len(self.analysis_instance.input_type()._fields) == 0
+        return self.analysis_type().is_auto_analysis()
 
     @property
     def is_hold_by_multimanager(self) -> bool:
@@ -126,8 +148,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         commonparams: Union[Commonparams, dict[str, Any]],
         outfields: dict[str, Any],
         beforewards: Optional[Before] = None,
+        side_products: Optional[_SP] = None,
         afterwards: Optional[After] = None,
-        reports: Optional[AnalysesContainer] = None,
+        reports: Optional[AnalysesContainer[_R]] = None,
     ) -> None:
         """Initialize the experiment.
 
@@ -152,9 +175,12 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         self.beforewards = Before.create(beforewards)
         self.afterwards = After.create(afterwards)
-        self.reports: AnalysesContainer[_R] = (
-            reports if isinstance(reports, AnalysesContainer) else AnalysesContainer()
+        self.side_products = (
+            self.side_product_instance(side_products.items())
+            if side_products is not None
+            else self.side_product_instance()
         )
+        self.reports = AnalysesContainer.create(reports, analysis_instance=self.analysis_instance)
         """The reports of the experiment."""
 
     @classmethod
@@ -443,7 +469,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         cirqs, side_prodict = current_exp.method(
             targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
-        current_exp.beforewards.side_product.update(side_prodict)
+        current_exp.side_products.update(side_prodict)
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
@@ -648,15 +674,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         self.commons.datetimes.add_serial(f"replace-{old_backend_name}-to-{new_backend_name}")
         self.commons = self.commons._replace(backend=backend)
 
-    def __getitem__(self, key) -> Any:
-        if key in self.beforewards._fields:
-            return getattr(self.beforewards, key)
-        if key in self.afterwards._fields:
-            return getattr(self.afterwards, key)
-        raise KeyError(
-            f"{key} is not a valid field of " + f"'{Before.__name__}' and '{After.__name__}'."
-        )
-
     @abstractmethod
     def analyze(self) -> _R:
         """Analyzing the example circuit results in specific method.
@@ -759,41 +776,37 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         if self.commons.save_location != save_location:
             self.commons = self.commons._replace(save_location=save_location)
 
-        adventures, tales = self.beforewards.export(export_transpiled_circuit)
-        legacy = self.afterwards.export()
-        reports, tales_reports = self.reports.export()
-
         # multi-experiment mode
-        folder, filename = decide_folder_and_filename(self.commons, self.args)
-        files = {
-            "folder": folder,
-            "qurryinfo": folder + "qurryinfo.json",
-            "args": folder + f"args/{filename}.args.json",
-            "advent": folder + f"advent/{filename}.advent.json",
-            "legacy": folder + f"legacy/{filename}.legacy.json",
-        }
-        for k in tales:
-            files[f"tales.{k}"] = folder + f"tales/{filename}.{k}.json"
-        files["reports"] = folder + f"reports/{filename}.reports.json"
-        for k in tales_reports:
-            files[f"reports.tales.{k}"] = folder + f"tales/{filename}.{k}.reports.json"
+        save_loc_folder, exp_identifier = decide_folder_and_filename(self.commons, self.args)
+        folder_filenames_writtens = [
+            (
+                *self.args.folder_and_filename(exp_identifier),
+                self.args.content_writing(),
+            ),
+            (
+                *self.beforewards.folder_and_filename(exp_identifier),
+                self.beforewards.content_writing(export_transpiled_circuit),
+            ),
+            (
+                *self.afterwards.folder_and_filename(exp_identifier),
+                self.afterwards.content_writing(),
+            ),
+            (
+                *self.side_products.folder_and_filename(exp_identifier),
+                self.side_products.content_writing(),
+            ),
+            (
+                *self.reports.folder_and_filename(exp_identifier),
+                self.reports.content_writing(),
+            ),
+        ]
 
         return Export(
             exp_id=str(self.commons.exp_id),
-            exp_name=str(self.args.exp_name),
-            serial=(None if self.commons.serial is None else int(self.commons.serial)),
-            summoner_id=(None if self.commons.summoner_id else str(self.commons.summoner_id)),
-            summoner_name=(None if self.commons.summoner_name else str(self.commons.summoner_name)),
-            filename=str(filename),
-            files={k: str(Path(v)) for k, v in files.items()},
-            args=self.args._asdict(),
-            commons=self.commons.export(),
-            outfields=self.outfields,
-            adventures=adventures,
-            legacy=legacy,
-            tales=tales,
-            reports=reports,
-            tales_reports=tales_reports,
+            identifier=exp_identifier,
+            folder=save_loc_folder,
+            save_location=save_location,
+            folder_filenames_writtens=folder_filenames_writtens,
         )
 
     def write(
@@ -801,7 +814,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         save_location: Optional[Union[Path, str]] = None,
         export_transpiled_circuit: bool = False,
         qurryinfo_hold_access: Optional[str] = None,
-        multiprocess: bool = True,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
@@ -820,8 +832,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 then export by :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 It should be ONLY control by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`. Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
@@ -832,7 +842,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         # experiment write
         export_material = self.export(save_location, export_transpiled_circuit)
-        exp_id, files = export_material.write(multiprocess, pbar)
+        exp_id, files = export_material.write()
 
         assert "qurryinfo" in files, "qurryinfo location is not in files."
         # qurryinfo write
@@ -881,17 +891,26 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         if not os.path.exists(save_location):
             raise FileNotFoundError(f"'save_location' does not exist, '{save_location}'.")
 
-        reading_return_args = Commonparams.read_with_arguments(
-            exp_id=exp_id, file_index=file_index, save_location=save_location
+        arguments, commonparams, outfields = cls.arguments_type().read(
+            file_index=file_index, save_location=save_location, exp_id=exp_id
         )
         exp_instance = cls(
-            **reading_return_args,
+            arguments=arguments,
+            commonparams=commonparams,
+            outfields=outfields,
+            side_products=cls.side_product_type().read(
+                file_index=file_index, save_location=save_location
+            ),
             beforewards=Before.read(file_index=file_index, save_location=save_location),
             afterwards=After.read(file_index=file_index, save_location=save_location),
         )
-        reports_read = exp_instance.analysis_instance.read(
-            file_index=file_index, save_location=save_location
-        )
+        if exp_instance.reports.analysis_instance != cls.analysis_type():
+            raise ValueError(
+                "The analysis type of the experiment is not compatible with "
+                + f"the current class analysis type, {exp_instance.reports.analysis_instance} "
+                + f"vs {cls.analysis_type()}."
+            )
+        reports_read = exp_instance.reports.read(file_index=file_index, save_location=save_location)
         exp_instance.reports.update(reports_read)
 
         return exp_instance
