@@ -1,21 +1,14 @@
 """The Common Parameters (:mod:`qurry.qurrium.arguments.commonparams`)"""
 
-import json
 from typing import Union, Optional, NamedTuple, TypedDict, Any
 from pathlib import Path
 
 from qiskit.providers import Backend
 
-from .utils import (
-    v5_to_v7_field_transpose,
-    v7_to_v9_field_transpose,
-    raw_commons_process,
-    filter_deprecated_args,
-)
+from .utils import raw_commons_process, filter_deprecated_args
 from ..container import BaseRunArgs, TranspileArgs, WCKeyable
-from ...tools.backend import backend_name_getter
-from ...tools.datetime import DatetimeDict
-from ...capsule import jsonablize, DEFAULT_ENCODING
+from ...tools import DatetimeDict, backend_name_getter
+from ...capsule import jsonablize
 
 
 class CommonparamsDict(TypedDict):
@@ -53,8 +46,8 @@ class CommonparamsDict(TypedDict):
     """The datetime of experiment."""
 
 
-class CommonparamsReadReturn(TypedDict):
-    """The return type of :meth:`Commonparams.read_with_arguments`.
+class ArgumentsReadReturn(TypedDict):
+    """The return type of :meth:`ArgumentsPrototype.read_with_arguments`.
 
     This includes the experiment's arguments,
     the experiment's common parameters, and the experiment's side product.
@@ -132,51 +125,6 @@ class Commonparams(NamedTuple):
             "summoner_id": None,
             "summoner_name": None,
             "datetimes": DatetimeDict(),
-        }
-
-    @classmethod
-    def read_with_arguments(
-        cls,
-        exp_id: str,
-        file_index: dict[str, str],
-        save_location: Path,
-    ) -> CommonparamsReadReturn:
-        """Read the exported experiment file.
-
-        This includes the experiment's arguments,
-        the experiment's common parameters, and the experiment's side product.
-
-        Attention, those result are unprocessed, so we define them as `dict[str, Any]`.
-
-        Args:
-            exp_id (str): The ID of experiment.
-            file_index (dict[str, str]): The index of exported experiment file.
-            save_location (Path): The location of exported experiment file.
-
-        Returns:
-            CommonparamsReadReturn
-                The experiment's arguments,
-                the experiment's common parameters,
-                and the experiment's side product.
-        """
-        raw_data = {}
-        with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
-            raw_data = json.load(f)
-        data_args: dict[str, dict[str, Any]] = {
-            "arguments": raw_data["arguments"],
-            "commonparams": raw_data["commonparams"],
-            "outfields": raw_data["outfields"],
-        }
-
-        data_args = v5_to_v7_field_transpose(data_args)
-        data_args = v7_to_v9_field_transpose(data_args)
-
-        assert data_args["commonparams"]["exp_id"] == exp_id, "The exp_id is not match."
-
-        return {
-            "arguments": data_args["arguments"],
-            "commonparams": data_args["commonparams"],
-            "outfields": data_args["outfields"],
         }
 
     def export(self) -> CommonparamsDict:

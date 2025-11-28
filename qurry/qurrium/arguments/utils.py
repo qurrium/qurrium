@@ -5,9 +5,6 @@ from typing import Union, Any, Optional
 from ...tools.datetime import DatetimeDict, current_time
 
 
-REQUIRED_FOLDER = ["args", "advent", "legacy", "tales", "reports"]
-"""The required folder for exporting experiment."""
-
 V5_TO_V7_FIELD = {
     "expName": "exp_name",
     "expID": "exp_id",

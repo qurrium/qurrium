@@ -1,15 +1,30 @@
 """The Arguments of Experiment (:mod:`qurry.qurrium.experiment.arguments`)"""
 
 from typing import Union, Any, TypeVar
-from collections.abc import Iterable
+from pathlib import Path
 from dataclasses import dataclass, fields
+import json
 
-from .utils import filter_deprecated_args, create_exp_outfields
+
+from .utils import (
+    filter_deprecated_args,
+    v5_to_v7_field_transpose,
+    v7_to_v9_field_transpose,
+    create_exp_outfields,
+)
 from .commonparams import Commonparams
+from ..json_io import FileReadableWritableObj, WrittenContentType
+from ...capsule import jsonablize, DEFAULT_ENCODING
+
+
+FOLDER_NAME = "args"
+"""Folder name for arguments and common parameters export."""
+FILENAME_TEMPLATE = "{}.args.json"
+"""Filename template for arguments and common parameters export."""
 
 
 @dataclass(frozen=True)
-class ArgumentsPrototype:
+class ArgumentsPrototype(FileReadableWritableObj):
     """Construct the experiment's parameters for specific options,
     which is overwritable by the inherition class."""
 
@@ -30,41 +45,118 @@ class ArgumentsPrototype:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
 
-    @classmethod
-    def _make(cls, iterable: Iterable):
-        """Make the arguments."""
-        return cls(*iterable)
-
-    @classmethod
-    def _filter(cls, *args, **kwargs):
-        """Filter the arguments of the experiment.
-
-        Args:
-            *args: The arguments of the experiment.
-            **kwargs: The keyword arguments of the experiment.
+    def export(self) -> dict[str, Any]:
+        """Export the experiment's arguments.
 
         Returns:
-            tuple[ArgumentsPrototype, Commonparams, dict[str, Any]]:
-                The arguments of the experiment,
-                the common parameters of the experiment,
-                and the side product of the experiment.
+            dict[str, Any]: The experiment's arguments.
         """
-        if len(args) > 0:
-            raise ValueError("args filter can't be initialized with positional arguments.")
-        infields = {}
-        commonsinput = {}
-        outfields = {}
-        for k, v in kwargs.items():
-            # pylint: disable=protected-access
-            if k in cls._dataclass_fields():
-                # pylint: enable=protected-access
-                infields[k] = v
-            elif k in Commonparams._fields:
-                commonsinput[k] = v
-            else:
-                outfields[k] = v
+        return jsonablize(self._asdict())
 
-        return (cls(**infields), Commonparams(**commonsinput), outfields)  # type: ignore
+    @classmethod
+    def folder_and_filename(cls, identifier: str) -> tuple[str, str]:
+        """Get the folder name and filename for the given analysis ID.
+
+        Args:
+            identifier (str): Identifier for the experiments.
+
+        Returns:
+            tuple[str, str]: The folder name and filename for the experiments.
+        """
+        return FOLDER_NAME, FILENAME_TEMPLATE.format(identifier)
+
+    def content_writing(
+        self,
+        commonparams_export: Union[dict[str, Any], None] = None,
+        sideproduct_export: Union[dict[str, Any], None] = None,
+    ) -> WrittenContentType[dict[str, Any]]:
+        """Get the content to be written to files.
+
+        Returns:
+            WritingContentType: The content to be written to files.
+        """
+        if commonparams_export is None:
+            raise ValueError("commonparams_export can't be None.")
+        if sideproduct_export is None:
+            raise ValueError("sideproduct_export can't be None.")
+
+        return {
+            "arguments": self.export(),
+            "commonparams": commonparams_export,
+            "sideproduct": sideproduct_export,
+        }
+
+    @classmethod
+    def content_loading(cls, raw_read: dict[str, Any]):
+        """The object hook for json.load.
+        Handle the raw read dictionary with specific structure,
+        which is same with the one used in :meth:`FileWritableObj.content_writing`.
+
+        Args:
+            raw_read (dict[str, Any]): The raw read dictionary.
+
+        Returns:
+            tuple["ArgumentsPrototype", "Commonparams", dict[str, Any]]:
+                The experiment's arguments,
+                the experiment's common parameters,
+                and the experiment's side product.
+        """
+        missing_fields = [
+            k for k in ["arguments", "commonparams", "sideproduct"] if k not in raw_read
+        ]
+        if missing_fields:
+            raise ValueError(
+                f"Invalid raw_read for ArgumentsPrototype loading. Missing fields: {missing_fields}"
+            )
+        data_args: dict[str, dict[str, Any]] = {
+            "arguments": raw_read["arguments"],
+            "commonparams": raw_read["commonparams"],
+            "outfields": raw_read["outfields"],
+        }
+
+        data_args = v5_to_v7_field_transpose(data_args)
+        data_args = v7_to_v9_field_transpose(data_args)
+
+        return (
+            cls(**data_args["arguments"]),
+            Commonparams(**data_args["commonparams"]),
+            data_args["outfields"],
+        )
+
+    @classmethod
+    def read(cls, file_index: dict[str, str], save_location: Path, exp_id: Union[str, None] = None):
+        """Read the exported experiment file.
+
+        Args:
+            file_index (dict[str, str]): The index of exported experiment file.
+            save_location (Path): The location of exported experiment file.
+            exp_id (Union[str, None], optional): The experiment ID. Defaults to None.
+        """
+        if "args" not in file_index:
+            raise KeyError("The file index does not contain 'args' key.")
+        if exp_id is None:
+            raise ValueError("exp_id must be provided to read the arguments.")
+
+        with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
+            arguments, commonparams, outfields = json.load(f, object_hook=cls.content_loading)
+
+        assert isinstance(arguments, cls), (
+            f"Expected arguments to be of type {cls}, got {type(arguments)}"
+        )
+        assert isinstance(commonparams, Commonparams), (
+            f"Expected commonparams to be of type Commonparams, got {type(commonparams)}"
+        )
+        assert isinstance(outfields, dict), (
+            f"Expected outfields to be of type dict, got {type(outfields)}"
+        )
+
+        if commonparams.exp_id != exp_id:
+            raise ValueError(
+                f"The exp_id from commonparams '{commonparams.exp_id}'"
+                + f" does not match the provided exp_id '{exp_id}'."
+            )
+
+        return arguments, commonparams, outfields
 
     @classmethod
     def create(cls, arguments: Union["_A", dict[str, Any]]):
