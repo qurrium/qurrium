@@ -1,0 +1,97 @@
+"""The abstract base classes for JSON I/O. (:mod:`qurry.qurrium.json_io.abc`)"""
+
+from typing import Any, TypeVar
+from abc import abstractmethod, ABC
+from pathlib import Path
+from dataclasses import is_dataclass
+
+
+class DataExportable(ABC):
+    """The abstract base class for exporting content."""
+
+    @abstractmethod
+    def export(self) -> dict[str, Any]:
+        """Export data for file writing.
+
+        Returns:
+            dict[str, Any]: The data to be exported.
+        """
+
+
+_MappingLike = TypeVar("_MappingLike", bound=dict)
+WrittenContentType = dict[str, _MappingLike]
+"""The type for writing content dictionary."""
+
+
+class FileWritableObj(DataExportable, ABC):
+    """The abstract base class for exporting experiment data."""
+
+    @abstractmethod
+    @classmethod
+    def folder_and_filename(cls, identifier: str) -> tuple[str, str]:
+        """Get the folder name and filename with given identifier.
+
+        Args:
+            identifier (str): Identifier for the experiments.
+
+        Returns:
+            tuple[str, str]: The folder name and filename
+        """
+
+    @abstractmethod
+    def content_writing(self) -> WrittenContentType:
+        """Get the content to be written to files.
+
+        Returns:
+            WritedContentType: The content to be written to files.
+        """
+
+
+class DataLoadable(ABC):
+    """The abstract base class for importing content."""
+
+    @classmethod
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load from a raw dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+
+        if is_dataclass(cls):
+            return cls(**raw_dict)
+
+        raise NotImplementedError(f"The load method is not implemented for {cls.__name__}.")
+
+
+class FileReadableObj(DataLoadable, ABC):
+    """The abstract base class for importing experiment data."""
+
+    @abstractmethod
+    @classmethod
+    def content_loading(cls, raw_read: dict[str, Any]):
+        """The object hook for json.load.
+        Handle the raw read dictionary with specific structure,
+        which is same with the one used in :meth:`FileWritableObj.content_writing`.
+
+        Args:
+            raw_read (dict[str, Any]): The raw read dictionary.
+        """
+
+    @abstractmethod
+    @classmethod
+    def read(cls, file_index: dict[str, str], save_location: Path):
+        """Read the exported experiment file.
+
+        Args:
+            file_index (dict[str, str]): The index of exported experiment file.
+            save_location (Path): The location of exported experiment file.
+        """
+
+
+class DataExportableLoadable(DataExportable, DataLoadable, ABC):
+    """The abstract base class for exporting content."""
+
+
+class FileReadableWritableObj(FileWritableObj, FileReadableObj, ABC):
+    """The abstract base class for importing and exporting experiment data."""
