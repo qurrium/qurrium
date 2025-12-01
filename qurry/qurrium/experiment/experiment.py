@@ -180,7 +180,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             if side_products is not None
             else self.side_product_instance()
         )
-        self.reports = AnalysesContainer.create(reports, analysis_instance=self.analysis_instance)
+        self.reports: AnalysesContainer[_R] = AnalysesContainer.create(
+            reports, analysis_instance=self.analysis_instance
+        )
         """The reports of the experiment."""
 
     @classmethod

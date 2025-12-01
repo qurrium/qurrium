@@ -138,14 +138,18 @@ def bitstring_mapping_getter(
     .. code-block:: python
 
         {
+            "registers_mapping": {
+                2: 0,
+                3: 1
+            },  # qubit index to original classical index
             "bitstring_mapping": {
                 0: 5,
                 1: 6,
-            },  # original index to shifted index
+            },  # original classical index to shifted index, which the index on full bitstring
             "final_mapping": {
                 2: 5,
                 3: 6
-            }, # qubit index to shifted index
+            },  # qubit index to shifted index, which the index on full bitstring
         }
 
     The `bitstring_mapping` is the mapping of the original index to the shifted index.
