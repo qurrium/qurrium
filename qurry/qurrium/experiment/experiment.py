@@ -307,7 +307,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         outfield_maybe, outfields_unknown = outfields_check(
-            outfields, arguments._fields + commonparams._fields
+            outfields, arguments.fields + commonparams._fields
         )
         outfields_hint(outfield_maybe, outfields_unknown, mute_outfields_warning)
 

@@ -11,7 +11,13 @@ from .container import (
     PassManagerType,
 )
 from .arguments import Commonparams, ArgumentsPrototype
-from .analysis import AnalysisPrototype, AnalyzeArgs, SpecificAnalsisArgs
-from .experiment import ExperimentPrototype, AnalysesContainer
+from .analysis import (
+    AnalysisPrototype,
+    AnalyzeArgs,
+    SpecificAnalsisArgs,
+    AnalyzeResultsPrototype,
+    AnalyzeEntriesPrototype,
+)
+from .experiment import ExperimentPrototype
 from .multimanager import MultiManager
 from .qurrium import QurriumPrototype

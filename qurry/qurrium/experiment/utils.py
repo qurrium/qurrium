@@ -117,7 +117,7 @@ def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Comm
             If the experiment's name is not configured.
     """
 
-    duplicate_fields = set(args._fields) & set(commons._fields)
+    duplicate_fields = set(args.fields) & set(commons._fields)
     if len(duplicate_fields) > 0:
         raise QurryInvalidInherition(
             f"{name_exps}.arguments which and {name_exps}.commonparams "
@@ -307,7 +307,7 @@ def make_statesheet(
         name="Hoshi" if hoshi else "QurryExperimentSheet",
     )
     info.newline(("itemize", "arguments"))
-    for k, v in args._asdict().items():
+    for k, v in args.asdict().items():
         info.newline(("itemize", str(k), str(v), "", 2))
 
     info.newline(("itemize", "commonparams"))

@@ -152,7 +152,7 @@ class AnalyzeResultsPrototype(AnalyzeERABC):
     which is overwritable by the inherition class."""
 
     @abstractmethod
-    def side_product_fields(self) -> list[str]:
+    def side_product_fields(self) -> tuple[str, ...]:
         """The fields that will be stored as side product."""
         raise NotImplementedError("side_product_fields must be implemented in subclass.")
 

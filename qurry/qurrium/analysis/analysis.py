@@ -1,6 +1,6 @@
 """Analysis Instance (:mod:`qurry.qurrium.analysis.analysis`)"""
 
-from typing import Optional, Iterable, Any, Generic, TypeVar
+from typing import Optional, Any, Generic, TypeVar
 from abc import abstractmethod
 
 from .declare import _RA
@@ -48,27 +48,21 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
             and self.postprocess_entries == other.postprocess_entries
         )
 
-    @property
-    @abstractmethod
-    def side_product_fields(self) -> Iterable[str]:
-        """The fields that will be stored as side product."""
-        raise NotImplementedError("side_product_fields must be implemented in subclass.")
-
     @classmethod
     @abstractmethod
-    def _middleware_entries_type(cls) -> type[_REM]:
+    def middleware_entries_type(cls) -> type[_REM]:
         """The input type of the analysis."""
         raise NotImplementedError("input_type must be implemented in subclass.")
 
     @classmethod
     @abstractmethod
-    def _postprocess_entries_type(cls) -> type[_REP]:
+    def postprocess_entries_type(cls) -> type[_REP]:
         """The content type of the analysis."""
         raise NotImplementedError("content_type must be implemented in subclass.")
 
     @classmethod
     @abstractmethod
-    def _available_results_types(cls) -> dict[str, type[_RR]]:
+    def available_results_types(cls) -> dict[str, type[_RR]]:
         """The available results types of the analysis."""
         raise NotImplementedError("available_results_types must be implemented in subclass.")
 
@@ -82,8 +76,8 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
         """
         # pylint: disable=protected-access
         return (
-            len(cls._postprocess_entries_type().dataclass_fields()) == 0
-            and len(cls._middleware_entries_type().dataclass_fields()) == 0
+            len(cls.postprocess_entries_type().dataclass_fields()) == 0
+            and len(cls.middleware_entries_type().dataclass_fields()) == 0
         )
         # pylint: enable=protected-access
 
@@ -93,7 +87,7 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
         middleware_entries: _REM,
         postprocess_entries: _REP,
         results: dict[str, _RR],
-        outfields: dict[str, Any],
+        outfields: Optional[dict[str, Any]] = None,
         *,
         serial: int,
         datetime: Optional[str] = None,
@@ -103,7 +97,7 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
                 f"{self.__name__} must have 'quantities' function defined in the subclass."
             )
         implementation_check_entries(middleware_entries, postprocess_entries, self.__name__)
-        implementation_check_results(results, self._available_results_types(), self.__name__)
+        implementation_check_results(results, self.available_results_types(), self.__name__)
 
         self.serial = serial
         self.datetime = current_time() if datetime is None else datetime
@@ -113,7 +107,7 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
         self.postprocess_entries = postprocess_entries
         self.results = results
 
-        self.outfields = outfields
+        self.outfields = outfields if isinstance(outfields, dict) else {}
 
     @abstractmethod
     @classmethod
@@ -145,6 +139,9 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: _RA,
+        serial: int,
+        outfields: Optional[dict[str, Any]] = None,
+        datetime: Optional[str] = None,
     ) -> "AnalysisPrototype":
         """Perform the analysis with the given arguments and common parameters.
 
@@ -153,6 +150,11 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
             commonparams (Commonparams): The common parameters of the experiment.
             counts (list[dict[str, int]]): The counts data from the experiment.
             analyze_arguments (_RA): The analyze arguments of the analysis.
+            serial (int): The serial number of the analysis.
+            outfields (Optional[dict[str, Any]], optional):
+                The unused arguments of the analysis. Defaults to None.
+            datetime (Optional[str], optional):
+                The datetime of the analysis. Defaults to None.
 
         Returns:
             AnalysisPrototype: The analysis instance.
@@ -280,10 +282,10 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
                 f"the expected class '{cls.__name__}'."
             )
 
-        postprocess_entries = cls._postprocess_entries_type().load(raw_dict["postprocess_entries"])
-        middleware_entries = cls._middleware_entries_type().load(raw_dict["middleware_entries"])
+        postprocess_entries = cls.postprocess_entries_type().load(raw_dict["postprocess_entries"])
+        middleware_entries = cls.middleware_entries_type().load(raw_dict["middleware_entries"])
         results = {
-            k: cls._available_results_types()[k].load(v) for k, v in raw_dict["results"].items()
+            k: cls.available_results_types()[k].load(v) for k, v in raw_dict["results"].items()
         }
         outfields = raw_dict.get("outfields", {})
 

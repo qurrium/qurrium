@@ -32,18 +32,43 @@ class ArgumentsPrototype(FileReadableWritableObj):
     """Name of experiment."""
 
     @property
-    def _fields(self) -> tuple[str, ...]:
+    def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(self.__dict__.keys())
 
-    def _asdict(self) -> dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
         return self.__dict__
 
     @classmethod
-    def _dataclass_fields(cls) -> tuple[str, ...]:
+    def dataclass_fields(cls) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        """Filter the arguments of the experiment.
+
+        Returns:
+            tuple["ArgumentsPrototype", "Commonparams", dict[str, Any]]:
+                The experiment's arguments,
+                the experiment's common parameters,
+                and the experiment's side product.
+        """
+        if len(args) > 0:
+            raise ValueError("args filter can't be initialized with positional arguments.")
+        infields = {}
+        commonsinput = {}
+        outfields = {}
+        for k, v in kwargs.items():
+            if k in cls.dataclass_fields():
+                infields[k] = v
+            elif k in Commonparams._fields:
+                commonsinput[k] = v
+            else:
+                outfields[k] = v
+
+        return (cls(**infields), Commonparams(**commonsinput), outfields)
 
     def export(self) -> dict[str, Any]:
         """Export the experiment's arguments.
@@ -51,7 +76,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         Returns:
             dict[str, Any]: The experiment's arguments.
         """
-        return jsonablize(self._asdict())
+        return jsonablize(self.asdict())
 
     @classmethod
     def folder_and_filename(cls, identifier: str) -> tuple[str, str]:
@@ -178,7 +203,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         if isinstance(arguments, dict):
             # pylint: disable=protected-access
             arg_parsed, arguments_deprecated = filter_deprecated_args(
-                arguments, cls._dataclass_fields()
+                arguments, cls.dataclass_fields()
             )
             # pylint: enable=protected-access
             return cls(**arg_parsed), arguments_deprecated
