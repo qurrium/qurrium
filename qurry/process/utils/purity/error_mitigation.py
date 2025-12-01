@@ -82,11 +82,11 @@ class MitigatedResult(TypedDict):
     """The return type of the post-processing for entangled entropy with error mitigation."""
 
     # mitigated info
-    errorRate: AllowedMitigatedInput
+    error_rate: AllowedMitigatedInput
     """The error rate of the measurement from depolarizing error migigation calculated."""
-    mitigatedPurity: AllowedMitigatedInput
+    mitigated_purity: AllowedMitigatedInput
     """The mitigated purity."""
-    mitigatedEntropy: AllowedMitigatedInput
+    mitigated_entropy: AllowedMitigatedInput
     """The mitigated entropy."""
 
 
@@ -109,7 +109,7 @@ def depolarizing_error_mitgation(
     mitiga = mitigation_equation(pn, meas_system, subsystem_size)
 
     return MitigatedResult(
-        errorRate=pn,
-        mitigatedPurity=mitiga,
-        mitigatedEntropy=-np.log2(mitiga, dtype=np.float64),
+        error_rate=pn,
+        mitigated_purity=mitiga,
+        mitigated_entropy=-np.log2(mitiga, dtype=np.float64),
     )

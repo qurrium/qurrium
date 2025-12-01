@@ -157,9 +157,9 @@ def randomized_entangled_entropy(
     return TargetSystemResult(
         purity=purity,
         entropy=entropy,
-        puritySD=purity_sd,
-        entropySD=entropy_sd,
-        purityCells=purity_cell_dict,
+        purity_sd=purity_sd,
+        entropy_sd=entropy_sd,
+        purity_cells=purity_cell_dict,
         # new added
         num_classical_registers=num_classical_registers,
         classical_registers=(

@@ -14,11 +14,11 @@ class TargetSystemResult(TypedDict):
     """The purity of the system."""
     entropy: Union[np.float64, float]
     """The entropy of the system."""
-    puritySD: Union[np.float64, float]
+    purity_sd: Union[np.float64, float]
     """The standard deviation of the purity."""
-    entropySD: Union[np.float64, float]
+    entropy_sd: Union[np.float64, float]
     """The standard deviation of the entropy."""
-    purityCells: Union[dict[int, np.float64], dict[int, float]]
+    purity_cells: Union[dict[int, np.float64], dict[int, float]]
     """The purity of each single count."""
 
     num_classical_registers: int
@@ -45,7 +45,6 @@ class AllSystemResult(TargetSystemResult):
     """The name of source of all system.
 
     - independent: The all system is calculated independently.
-    - null_counts: No counts exist.
     """
 
 
@@ -55,6 +54,7 @@ def isvalid_all_system_result(all_sys_result: AllSystemResult) -> None:
     Args:
         all_sys_result (AllSystemResult):
             The AllSystemResult TypedDict object.
+
     Raises:
         ValueError: If the all_sys_result argument is not a valid AllSystemResult object.
     """
@@ -63,9 +63,9 @@ def isvalid_all_system_result(all_sys_result: AllSystemResult) -> None:
         for key in [
             "purity",
             "entropy",
-            "puritySD",
-            "entropySD",
-            "purityCells",
+            "purity_sd",
+            "entropy_sd",
+            "purity_cells",
             "num_classical_registers",
             "classical_registers",
             "classical_registers_actually",
