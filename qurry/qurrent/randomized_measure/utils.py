@@ -1,86 +1,15 @@
-"""EntropyMeasureRandomized - Utility
-(:mod:`qurry.qurrent.randomized_measure.utils`)
-
-"""
-
-from typing import Optional
-from collections.abc import Hashable, Iterable
-import tqdm
+"""EntropyMeasureRandomized - Utility (:mod:`qurry.qurrent.randomized_measure.utils`)"""
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Operator
 
-from .analysis import EntropyMeasureRandomizedAnalysis
-from ...process.randomized_measure.entangled_entropy import (
-    randomized_entangled_entropy_mitigated,
-    EntangledEntropyResultMitigated,
-    ExistedAllSystemInfo,
-    ExistedAllSystemInfoInput,
-    PostProcessingBackendLabel,
-    DEFAULT_PROCESS_BACKEND,
-)
-
-
-def randomized_entangled_entropy_complex(
-    shots: int,
-    counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
-    all_system_source: Optional[EntropyMeasureRandomizedAnalysis] = None,
-    backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
-) -> EntangledEntropyResultMitigated:
-    """Randomized entangled entropy with complex.
-
-    Args:
-        shots (int):
-            The number of shots.
-        counts (list[dict[str, int]]):
-            The counts of the experiment.
-        selected_classical_registers (Optional[Iterable[int]], optional):
-            The selected classical registers. Defaults to None.
-        all_system_source (Optional[EntropyRandomizedAnalysis], optional):
-            The source of all system. Defaults to None.
-        backend (PostProcessingBackendLabel, optional):
-            The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
-            The progress bar. Defaults to None.
-
-    Returns:
-        EntangledEntropyResultMitigated: The result of the entangled entropy.
-    """
-
-    if all_system_source is None:
-        existed_all_system = None
-    elif isinstance(all_system_source, EntropyMeasureRandomizedAnalysis):
-        checked_input: ExistedAllSystemInfoInput = {}
-        for k in ExistedAllSystemInfo._fields:
-            checked_input[k] = (
-                f"serial={all_system_source.serial}, datetime={all_system_source.datetime}"
-                if k == "source"
-                else getattr(all_system_source.content, k)
-            )
-
-        existed_all_system = ExistedAllSystemInfo(**checked_input)
-    else:
-        raise ValueError(
-            "all_system_source should be None or EntropyMeasureRandomizedAnalysis, "
-            + f"but get {type(all_system_source)}."
-        )
-
-    return randomized_entangled_entropy_mitigated(
-        shots=shots,
-        counts=counts,
-        selected_classical_registers=selected_classical_registers,
-        backend=backend,
-        existed_all_system=existed_all_system,
-        pbar=pbar,
-    )
+from ...qurrium import WCKeyable
 
 
 def circuit_method_compose(
     idx: int,
     target_circuit: QuantumCircuit,
-    target_key: Hashable,
+    target_key: WCKeyable,
     exp_name: str,
     registers_mapping: dict[int, int],
     single_unitary_dict: dict[int, Operator],
@@ -92,7 +21,7 @@ def circuit_method_compose(
             Index of the quantum circuit.
         target_circuit (QuantumCircuit):
             Target circuit.
-        target_key (Hashable):
+        target_key (WCKeyable):
             Target key.
         exp_name (str):
             Experiment name.
@@ -140,7 +69,7 @@ def circuit_method_compose(
 def randomized_circuit_method(
     idx: int,
     target_circuit: QuantumCircuit,
-    target_key: Hashable,
+    target_key: WCKeyable,
     exp_name: str,
     registers_mapping: dict[int, int],
     single_unitary_dict: dict[int, Operator],
@@ -152,7 +81,7 @@ def randomized_circuit_method(
             Index of the quantum circuit.
         target_circuit (QuantumCircuit):
             Target circuit.
-        target_key (Hashable):
+        target_key (WCKeyable):
             Target key.
         exp_name (str):
             Experiment name.

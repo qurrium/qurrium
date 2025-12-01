@@ -1,23 +1,16 @@
-"""EntropyMeasureRandomized - Arguments
-(:mod:`qurry.qurrent.randomized_measure.arguments`)
+"""EntropyMeasureRandomized - Arguments (:mod:`qurry.qurrent.randomized_measure.arguments`)"""
 
-"""
-
-from typing import Optional, Union, Iterable
+from typing import Optional, Union
 from collections.abc import Hashable
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...process.randomized_measure.entangled_entropy import (
-    PostProcessingBackendLabel,
-)
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs
 
 
 @dataclass(frozen=True)
-class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
+class EMRArguments(ArgumentsPrototype):
     """Input fields for
     :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
@@ -89,7 +82,7 @@ class EntropyMeasureRandomizedArguments(ArgumentsPrototype):
             )
 
 
-class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
+class EMRMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
@@ -132,7 +125,7 @@ class EntropyMeasureRandomizedMeasureArgs(BasicArgs, total=False):
     """
 
 
-class EntropyMeasureRandomizedOutputArgs(OutputArgs):
+class EMROutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.output`."""
 
@@ -171,22 +164,10 @@ class EntropyMeasureRandomizedOutputArgs(OutputArgs):
     """
 
 
-class EntropyMeasureRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrent.randomized_measure.experiment.\
-EntropyMeasureRandomizedExperiment.analyze`.
-    """
-
-    selected_qubits: Optional[list[int]]
-    """The selected qubits."""
-    independent_all_system: bool
-    """If True, then calculate the all system independently."""
-    backend: PostProcessingBackendLabel
-    """The backend for the process."""
-    counts_used: Optional[Iterable[int]]
-    """The index of the counts used."""
-
-
 SHORT_NAME = "qurrent_randomized"
 """The short name of
-:class:`~qurry.qurrent.randomized_measure.experiment.EntropyMeasureRandomizedExperiment`."""
+:class:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized`."""
+
+ACRONYM = "EMR"
+"""The abbreviation of
+:class:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized`."""

@@ -30,7 +30,7 @@
 
 from typing import Literal, Union, overload
 
-from .randomized_measure import EntropyMeasureRandomized, EntropyMeasureRandomizedMeasureArgs
+from .randomized_measure import EntropyMeasureRandomized, EMRMeasureArgs
 from .hadamard_test import EntropyMeasureHadamard, EMHMeasureArgs
 
 
@@ -72,5 +72,5 @@ __all__ = [
     "EntropyMeasureHadamard",
     "EMHMeasureArgs",
     "EntropyMeasureRandomized",
-    "EntropyMeasureRandomizedMeasureArgs",
+    "EMRMeasureArgs",
 ]

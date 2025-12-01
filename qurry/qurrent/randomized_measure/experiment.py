@@ -1,16 +1,15 @@
 """EntropyMeasureRandomized - Experiment (:mod:`qurry.qurrent.randomized_measure.experiment`)"""
 
-from typing import Union, Optional, Type, Any
+from typing import Union, Optional, Any
 from collections.abc import Iterable, Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
 
-from .analysis import EntropyMeasureRandomizedAnalysis
-from .arguments import EntropyMeasureRandomizedArguments, SHORT_NAME
-from .utils import randomized_circuit_method, randomized_entangled_entropy_complex
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...qurrium.utils import bitstring_mapping_getter
+from .analysis import EMRAnalysis
+from .arguments import EMRArguments, SHORT_NAME
+from .utils import randomized_circuit_method
+from ...qurrium import ExperimentPrototype, Commonparams
 from ...process.randomized_measure.random_unitary import (
     generate_random_unitary,
     local_unitary_op_to_list,
@@ -19,7 +18,6 @@ from ...process.randomized_measure.random_unitary import (
 from ...process.utils import qubit_mapper
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.entangled_entropy import (
-    EntangledEntropyResultMitigated,
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
@@ -27,25 +25,20 @@ from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
-class EntropyMeasureRandomizedExperiment(
-    ExperimentPrototype[
-        EntropyMeasureRandomizedArguments,
-        EntropyMeasureRandomizedAnalysis,
-    ]
-):
+class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
     """The instance of experiment."""
 
-    __name__ = "EntropyMeasureRandomizedExperiment"
+    __name__ = "EMRExperiment"
 
-    @property
-    def arguments_instance(self) -> Type[EntropyMeasureRandomizedArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[EMRArguments]:
         """The arguments instance for this experiment."""
-        return EntropyMeasureRandomizedArguments
+        return EMRArguments
 
-    @property
-    def analysis_instance(self) -> Type[EntropyMeasureRandomizedAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[EMRAnalysis]:
         """The analysis instance for this experiment."""
-        return EntropyMeasureRandomizedAnalysis
+        return EMRAnalysis
 
     @classmethod
     def params_control(
@@ -58,7 +51,7 @@ class EntropyMeasureRandomizedExperiment(
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
-    ) -> tuple[EntropyMeasureRandomizedArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[EMRArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
 
         Args:
@@ -150,7 +143,7 @@ class EntropyMeasureRandomizedExperiment(
         check_random_unitary_seeds(times, len(unitary_located), random_unitary_seeds)
 
         # pylint: disable=protected-access
-        return EntropyMeasureRandomizedArguments._filter(
+        return EMRArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key],
             times=times,
@@ -167,7 +160,7 @@ class EntropyMeasureRandomizedExperiment(
     def method(
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: EntropyMeasureRandomizedArguments,
+        arguments: EMRArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -262,7 +255,7 @@ class EntropyMeasureRandomizedExperiment(
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EntropyMeasureRandomizedAnalysis:
+    ) -> EMRAnalysis:
         """Calculate entangled entropy with more information combined.
 
         Args:
@@ -280,6 +273,7 @@ class EntropyMeasureRandomizedExperiment(
         Returns:
             EntropyMeasureRandomizedAnalysis: The result of the analysis.
         """
+
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
         assert self.args.registers_mapping is not None, "registers_mapping should be not None."
@@ -296,16 +290,11 @@ class EntropyMeasureRandomizedExperiment(
         else:
             counts = self.afterwards.counts
 
-        bitstring_mapping, final_mapping = bitstring_mapping_getter(
-            counts, self.args.registers_mapping
-        )
-
         available_all_system_source = [
             k
             for k, v in self.reports.items()
-            if (
-                v.content.all_system_source == "independent"
-                and v.content.counts_used == counts_used
+            if v.is_independent_all_system(
+                list(range(len(counts))) if counts_used is None else counts_used
             )
         ]
         all_system_source = (
@@ -314,74 +303,22 @@ class EntropyMeasureRandomizedExperiment(
             else None
         )
 
-        selected_qubits = [qi % self.args.actual_num_qubits for qi in selected_qubits]
-        if len(set(selected_qubits)) != len(selected_qubits):
-            raise ValueError(
-                f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
-            )
-        qs = self.quantities(
-            shots=self.commons.shots,
-            counts=counts,
-            selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
-            all_system_source=all_system_source,
-            backend=backend,
-            pbar=pbar,
-        )
-
         serial = len(self.reports)
-        analysis = self.analysis_instance(
-            serial=serial,
-            num_qubits=self.args.actual_num_qubits,
-            selected_qubits=selected_qubits,
-            registers_mapping=self.args.registers_mapping,
-            bitstring_mapping=bitstring_mapping,
-            shots=self.commons.shots,
-            unitary_located=self.args.unitary_located,
-            counts_used=counts_used,
-            **qs,
-        )
-
-        self.reports[serial] = analysis
-        return analysis
-
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        counts: Optional[list[dict[str, int]]] = None,
-        selected_classical_registers: Optional[Iterable[int]] = None,
-        all_system_source: Optional[EntropyMeasureRandomizedAnalysis] = None,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> EntangledEntropyResultMitigated:
-        """Randomized entangled entropy with complex.
-
-        Args:
-            shots (int):
-                The number of shots.
-            counts (list[dict[str, int]]):
-                The counts of the experiment.
-            selected_classical_registers (Optional[Iterable[int]], optional):
-                The selected classical registers. Defaults to None.
-            all_system_source (Optional[EntropyRandomizedAnalysis], optional):
-                The source of all system. Defaults to None.
-            backend (PostProcessingBackendLabel, optional):
-                The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
-
-        Returns:
-            EntangledEntropyResultMitigated: The result of the entangled entropy.
-        """
-
-        if shots is None or counts is None:
-            raise ValueError("shots and counts should be given.")
-
-        return randomized_entangled_entropy_complex(
-            shots=shots,
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
             counts=counts,
-            selected_classical_registers=selected_classical_registers,
-            all_system_source=all_system_source,
-            backend=backend,
-            pbar=pbar,
+            analyze_arguments={
+                "selected_qubits": list(selected_qubits),
+                "independent_all_system": independent_all_system,
+                "backend": backend,
+                "counts_used": counts_used,
+            },
+            serial=serial,
+            existed_all_system=all_system_source.get_all_system_result()
+            if all_system_source is not None
+            else None,
         )
+
+        self.reports[analysis.serial] = analysis
+        return analysis

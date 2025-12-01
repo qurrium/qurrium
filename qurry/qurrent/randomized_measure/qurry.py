@@ -1,38 +1,31 @@
-"""EntropyMeasureRandomized - Qurrium
-(:mod:`qurry.qurrent.randomized_measure.qurry`)
-
-"""
+"""EntropyMeasureRandomized - Qurrium (:mod:`qurry.qurrent.randomized_measure.qurry`)"""
 
 from typing import Union, Optional, Type, Literal, Iterable
-from collections.abc import Hashable
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    EntropyMeasureRandomizedMeasureArgs,
-    EntropyMeasureRandomizedOutputArgs,
-    EntropyMeasureRandomizedAnalyzeArgs,
-)
+from .arguments import SHORT_NAME, ACRONYM, EMRMeasureArgs, EMROutputArgs
+from .analysis import EMRAnalyzeArgs
 from .experiment import (
-    EntropyMeasureRandomizedExperiment,
+    EMRExperiment,
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType, SpecificAnalsisArgs
+from ...qurrium import (
+    QurriumPrototype,
+    RunArgsType,
+    TranspileArgs,
+    PassManagerType,
+    SpecificAnalsisArgs,
+    WCKeyable,
+)
 
 
 class EntropyMeasureRandomized(
-    QurriumPrototype[
-        EntropyMeasureRandomizedExperiment,
-        EntropyMeasureRandomizedMeasureArgs,
-        EntropyMeasureRandomizedOutputArgs,
-        EntropyMeasureRandomizedAnalyzeArgs,
-    ]
+    QurriumPrototype[EMRExperiment, EMRMeasureArgs, EMROutputArgs, EMRAnalyzeArgs]
 ):
     """Randomized Measure for entangled entropy.
     The entropy we compute is the Second Order Rényi Entropy.
@@ -112,15 +105,18 @@ class EntropyMeasureRandomized(
 
     __name__ = "EntropyRandomizedMeasure"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[EntropyMeasureRandomizedExperiment]:
+    def experiment_instance(self) -> Type[EMRExperiment]:
         """The container class responding to this QurryV5 class."""
-        return EntropyMeasureRandomizedExperiment
+        return EMRExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         times: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -139,11 +135,11 @@ class EntropyMeasureRandomized(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EntropyMeasureRandomizedOutputArgs:
+    ) -> EMROutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -243,7 +239,7 @@ class EntropyMeasureRandomized(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         times: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -266,7 +262,7 @@ class EntropyMeasureRandomized(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -370,7 +366,7 @@ class EntropyMeasureRandomized(
         *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs[EntropyMeasureRandomizedAnalyzeArgs] = None,
+        specific_analysis_args: SpecificAnalsisArgs[EMRAnalyzeArgs] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments
@@ -388,9 +384,7 @@ class EntropyMeasureRandomized(
                 The name of analysis. Defaults to 'report'.
             no_serialize (bool, optional):
                 Whether to serialize the analysis. Defaults to False.
-            specific_analysis_args (
-                SpecificAnalsisArgs[EntropyMeasureRandomizedAnalyzeArgs], optional
-            ):
+            specific_analysis_args (SpecificAnalsisArgs[EMRAnalyzeArgs], optional):
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
