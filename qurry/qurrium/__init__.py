@@ -15,8 +15,9 @@ from .analysis import (
     AnalysisPrototype,
     AnalyzeArgs,
     SpecificAnalsisArgs,
-    AnalyzeResultsPrototype,
-    AnalyzeEntriesPrototype,
+    AnalysisResultsPrototype,
+    AnalysisMiddlewarePrototype,
+    ProcessEntriesPrototype,
 )
 from .experiment import ExperimentPrototype
 from .multimanager import MultiManager

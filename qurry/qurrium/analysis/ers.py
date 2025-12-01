@@ -1,7 +1,6 @@
 """The Entries and Result definitions for analysis. (:mod:`qurry.qurrium.analysis.ers`)"""
 
 from typing import Any, TypeVar
-from abc import abstractmethod
 from dataclasses import dataclass, fields
 import warnings
 
@@ -10,11 +9,11 @@ from ...exceptions import QurryInvalidInherition
 
 
 @dataclass(frozen=True)
-class AnalyzeERABC(DataExportableLoadable):
+class AnalysisERABC(DataExportableLoadable):
     """Construct the analyze entries's and results's parameters for specific options,
     which should be overwritable by the inherition class of this base class."""
 
-    __name__ = "AnalyzeERABC"
+    __name__ = "AnalysisERABC"
 
     @property
     def fields(self) -> tuple[str, ...]:
@@ -26,11 +25,15 @@ class AnalyzeERABC(DataExportableLoadable):
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
 
+    def asdict(self):
+        """The arguments as dictionary."""
+        return self.__dict__
+
     def __post_init__(self):
         """Post-initialization to ensure all fields are present."""
-        if self.__name__ == "AnalyzeERABC":
+        if self.__name__ == "AnalysisERABC":
             warnings.warn(
-                "AnalyzeERABC is a base class and should be inherited. "
+                "AnalysisERABC is a base class and should be inherited. "
                 "Direct instantiation is discouraged. "
                 "If you finish the inherition but still see this warning, "
                 "then change the __name__ attribute of your derived class.",
@@ -105,22 +108,35 @@ class AnalyzeERABC(DataExportableLoadable):
 
 
 @dataclass(frozen=True)
-class AnalyzeEntriesPrototype(AnalyzeERABC):
-    """Construct the analyze entries's parameters for specific options,
-    which is overwritable by the inherition class."""
+class AnalysisMiddlewarePrototype(AnalysisERABC):
+    """The middleware information between :func:`~qurry.qurrium.qurrium.QurriumPrototype.analyze`
+    and actual post-processing function."""
+
+
+_RM = TypeVar("_RM", bound=AnalysisMiddlewarePrototype)
+"""Type variable for :cls:`AnalysisMiddlewarePrototype`."""
+
+
+@dataclass(frozen=True)
+class ProcessEntriesPrototype(AnalysisERABC):
+    """The entries for post-processing."""
+
+
+_PE = TypeVar("_PE", bound=ProcessEntriesPrototype)
+"""Type variable for :cls:`ProcessEntriesPrototype`."""
 
 
 def implementation_check_entries(
-    middleware_entries: AnalyzeEntriesPrototype,
-    postprocess_entries: AnalyzeEntriesPrototype,
+    middleware_entries: AnalysisMiddlewarePrototype,
+    postprocess_entries: ProcessEntriesPrototype,
     analysis_name: str,
 ) -> None:
     """Check whether the derived class implements all required fields
     from the base class.
 
     Args:
-        middleware_entries (AnalyzeEntriesPrototype): The middleware entries to check.
-        postprocess_entries (AnalyzeEntriesPrototype): The postprocess entries to check.
+        middleware_entries (AnalysisMiddlewarePrototype): The middleware entries to check.
+        postprocess_entries (ProcessEntriesPrototype): The postprocess entries to check.
         analysis_name (str): The name of the analysis.
 
     Raises:
@@ -139,22 +155,13 @@ def implementation_check_entries(
         )
 
 
-_REM = TypeVar("_REM", bound=AnalyzeEntriesPrototype)
-"""Type variable for :class:`AnalyzeEntriesPrototype` during transformation."""
-
-_REP = TypeVar("_REP", bound=AnalyzeEntriesPrototype)
-"""Type variable for :class:`AnalyzeEntriesPrototype` for post-processing function."""
-
-
 @dataclass(frozen=True, repr=False)
-class AnalyzeResultsPrototype(AnalyzeERABC):
-    """Construct the analyze results's parameters for specific options,
-    which is overwritable by the inherition class."""
+class AnalysisResultsPrototype(AnalysisERABC):
+    """The content of the analysis results."""
 
-    @abstractmethod
     def side_product_fields(self) -> tuple[str, ...]:
         """The fields that will be stored as side product."""
-        raise NotImplementedError("side_product_fields must be implemented in subclass.")
+        return ()
 
     def main_and_side_product(self) -> tuple[dict[str, Any], dict[str, Any]]:
         """Export the results as two dictionaries: main results and side products.
@@ -182,7 +189,7 @@ class AnalyzeResultsPrototype(AnalyzeERABC):
         return f"{self.__class__.__name__}({', '.join(field_strs)})"
 
 
-_RR = TypeVar("_RR", bound=AnalyzeResultsPrototype)
+_RR = TypeVar("_RR", bound=AnalysisResultsPrototype)
 """Type variable for :class:`AnalyzeResultsPrototype` during transformation."""
 
 

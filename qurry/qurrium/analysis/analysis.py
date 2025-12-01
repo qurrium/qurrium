@@ -4,7 +4,7 @@ from typing import Optional, Any, Generic, TypeVar
 from abc import abstractmethod
 
 from .declare import _RA
-from .ers import _RR, implementation_check_results, _REM, _REP, implementation_check_entries
+from .ers import _RR, implementation_check_results, _RM, _PE, implementation_check_entries
 from ..json_io import DataExportableLoadable
 from ..arguments import _A, Commonparams
 from ...capsule import jsonablize
@@ -13,7 +13,7 @@ from ...tools.datetime import current_time
 from ...exceptions import QurryInvalidInherition
 
 
-class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadable):
+class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableLoadable):
     """The base instance for the analysis of
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
@@ -28,9 +28,9 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
 
     analyze_arguments: _RA
     """The analyze arguments of the analysis."""
-    middleware_entries: _REM
+    middleware_entries: _RM
     """The middleware entries of the analysis."""
-    postprocess_entries: _REP
+    postprocess_entries: _PE
     """The postprocess entries of the analysis."""
 
     outfields: dict[str, Any]
@@ -50,13 +50,13 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
 
     @classmethod
     @abstractmethod
-    def middleware_entries_type(cls) -> type[_REM]:
+    def middleware_entries_type(cls) -> type[_RM]:
         """The input type of the analysis."""
         raise NotImplementedError("input_type must be implemented in subclass.")
 
     @classmethod
     @abstractmethod
-    def postprocess_entries_type(cls) -> type[_REP]:
+    def postprocess_entries_type(cls) -> type[_PE]:
         """The content type of the analysis."""
         raise NotImplementedError("content_type must be implemented in subclass.")
 
@@ -84,8 +84,8 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
     def __init__(
         self,
         analyze_arguments: _RA,
-        middleware_entries: _REM,
-        postprocess_entries: _REP,
+        middleware_entries: _RM,
+        postprocess_entries: _PE,
         results: dict[str, _RR],
         outfields: Optional[dict[str, Any]] = None,
         *,
@@ -117,7 +117,7 @@ class AnalysisPrototype(Generic[_A, _RA, _REM, _REP, _RR], DataExportableLoadabl
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: _RA,
-    ) -> tuple[_RA, _REM, _REP]:
+    ) -> tuple[_RA, _RM, _PE]:
         """Generate the middleware and input values for the analysis.
 
         Args:
