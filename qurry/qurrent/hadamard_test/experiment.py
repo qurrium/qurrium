@@ -1,50 +1,43 @@
 """EntropyMeasureHadamard - Experiment (:mod:`qurry.qurrent.hadamard_test.experiment`)"""
 
-from typing import Optional, Type, Any
-from collections.abc import Hashable
+from typing import Optional, Any
 import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-from .analysis import EntropyMeasureHadamardAnalysis
-from .arguments import EntropyMeasureHadamardArguments, SHORT_NAME
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from .analysis import EMHAnalysis
+from .arguments import EMHArguments, SHORT_NAME
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_selector
-from ...process.hadamard_test import hadamard_entangled_entropy
 
 
-class EntropyMeasureHadamardExperiment(
-    ExperimentPrototype[
-        EntropyMeasureHadamardArguments,
-        EntropyMeasureHadamardAnalysis,
-    ]
-):
+class EntropyMeasureHadamardExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
     """The instance of experiment."""
 
     __name__ = "EntropyMeasureHadamardExperiment"
 
-    @property
-    def arguments_instance(self) -> Type[EntropyMeasureHadamardArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[EMHArguments]:
         """The arguments instance for this experiment."""
-        return EntropyMeasureHadamardArguments
+        return EMHArguments
 
-    @property
-    def analysis_instance(self) -> Type[EntropyMeasureHadamardAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[EMHAnalysis]:
         """The analysis instance for this experiment."""
-        return EntropyMeasureHadamardAnalysis
+        return EMHAnalysis
 
     @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         degree: Optional[tuple[int, int]] = None,
         **custom_kwargs: Any,
-    ) -> tuple[EntropyMeasureHadamardArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[EMHArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             exp_name (str, optional):
                 The name of the experiment.
@@ -74,7 +67,7 @@ class EntropyMeasureHadamardExperiment(
         exp_name = f"{exp_name}.degree_{degree[0]}_{degree[1]}.{SHORT_NAME}"
 
         # pylint: disable=protected-access
-        return EntropyMeasureHadamardArguments._filter(
+        return EMHArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key],
             degree=degree,
@@ -85,15 +78,15 @@ class EntropyMeasureHadamardExperiment(
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: EntropyMeasureHadamardArguments,
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
+        arguments: EMHArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arguments (EntropyMeasureHadamardArguments):
                 The arguments of the experiment.
@@ -150,10 +143,7 @@ class EntropyMeasureHadamardExperiment(
 
         return [qc_exp1], {}
 
-    def analyze(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> EntropyMeasureHadamardAnalysis:
+    def analyze(self, pbar: Optional[tqdm.tqdm] = None) -> EMHAnalysis:
         """Calculate entangled entropy with more information combined.
 
         Args:
@@ -168,45 +158,13 @@ class EntropyMeasureHadamardExperiment(
         if pbar is not None:
             pbar.set_description("Calculating entangled entropy")
 
-        shots = self.commons.shots
-        counts = self.afterwards.counts
-
-        qs = self.quantities(
-            shots=shots,
-            counts=counts,
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
+            counts=self.afterwards.counts,
+            analyze_arguments={},
+            serial=len(self.reports),
         )
 
-        serial = len(self.reports)
-        analysis = self.analysis_instance(
-            serial=serial,
-            shots=shots,
-            **qs,  # type: ignore
-        )
-
-        self.reports[serial] = analysis
-        return analysis
-
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        counts: Optional[list[dict[str, int]]] = None,
-    ) -> dict[str, float]:
-        """Calculate entangled entropy with more information combined.
-
-        Args:
-            shots (int): Shots of the experiment on quantum machine.
-            counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-
-        Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
-        """
-
-        if shots is None or counts is None:
-            raise ValueError("shots and counts should be specified.")
-
-        return hadamard_entangled_entropy(
-            shots=shots,
-            counts=counts,
-        )
+        self.reports[analysis.serial] = analysis
+        return self.reports[analysis.serial]

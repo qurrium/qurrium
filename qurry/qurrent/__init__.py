@@ -31,7 +31,7 @@
 from typing import Literal, Union, overload
 
 from .randomized_measure import EntropyMeasureRandomized, EntropyMeasureRandomizedMeasureArgs
-from .hadamard_test import EntropyMeasureHadamard, EntropyMeasureHadamardMeasureArgs
+from .hadamard_test import EntropyMeasureHadamard, EMHMeasureArgs
 
 
 # pylint: disable=invalid-name
@@ -70,7 +70,7 @@ def EntropyMeasure(*args, method="randomized", **kwargs):
 __all__ = [
     "EntropyMeasure",
     "EntropyMeasureHadamard",
-    "EntropyMeasureHadamardMeasureArgs",
+    "EMHMeasureArgs",
     "EntropyMeasureRandomized",
     "EntropyMeasureRandomizedMeasureArgs",
 ]

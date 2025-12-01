@@ -5,29 +5,23 @@
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    EntropyMeasureHadamardMeasureArgs,
-    EntropyMeasureHadamardOutputArgs,
-    EntropyMeasureHadamardAnalyzeArgs,
-)
+from .arguments import SHORT_NAME, EMHMeasureArgs, EMHOutputArgs
+from .analysis import EMHAnalyzeArgs
 from .experiment import EntropyMeasureHadamardExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
 class EntropyMeasureHadamard(
     QurriumPrototype[
         EntropyMeasureHadamardExperiment,
-        EntropyMeasureHadamardMeasureArgs,
-        EntropyMeasureHadamardOutputArgs,
-        EntropyMeasureHadamardAnalyzeArgs,
+        EMHMeasureArgs,
+        EMHOutputArgs,
+        EMHAnalyzeArgs,
     ]
 ):
     """Hadamard test for entanglement entropy.
@@ -48,7 +42,7 @@ class EntropyMeasureHadamard(
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         degree: Optional[Union[int, tuple[int, int]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -62,11 +56,11 @@ class EntropyMeasureHadamard(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EntropyMeasureHadamardOutputArgs:
+    ) -> EMHOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             degree (Optional[Union[int, tuple[int, int]]], optional):
                 The degree of the experiment.
@@ -125,7 +119,7 @@ class EntropyMeasureHadamard(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         degree: Optional[Union[int, tuple[int, int]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -143,7 +137,7 @@ class EntropyMeasureHadamard(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             degree (Optional[Union[int, tuple[int, int]]], optional):
                 The degree of the experiment.

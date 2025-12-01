@@ -3,7 +3,7 @@
 
 """
 
-from .analysis import EntropyMeasureHadamardAnalysis
-from .arguments import EntropyMeasureHadamardMeasureArgs
+from .analysis import EMHAnalysis
+from .arguments import EMHMeasureArgs
 from .experiment import EntropyMeasureHadamardExperiment
 from .qurry import EntropyMeasureHadamard

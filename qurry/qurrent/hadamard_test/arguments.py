@@ -4,17 +4,15 @@
 """
 
 from typing import Optional, Union
-from collections.abc import Hashable
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 
 @dataclass(frozen=True)
-class EntropyMeasureHadamardArguments(ArgumentsPrototype):
+class EMHArguments(ArgumentsPrototype):
     """Arguments for
     :class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard`."""
 
@@ -27,31 +25,23 @@ class EntropyMeasureHadamardArguments(ArgumentsPrototype):
     """The degree range."""
 
 
-class EntropyMeasureHadamardMeasureArgs(BasicArgs, total=False):
+class EMHMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, Hashable]]
+    wave: Optional[Union[QuantumCircuit, WCKeyable]]
     """The key or the circuit to execute."""
     degree: Optional[Union[int, tuple[int, int]]]
     """The degree range."""
 
 
-class EntropyMeasureHadamardOutputArgs(OutputArgs):
+class EMHOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.output`."""
 
     degree: Optional[Union[int, tuple[int, int]]]
     """The degree range."""
-
-
-class EntropyMeasureHadamardAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
-    and :meth:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard.analyze`.
-
-    The post-processing of Hadamard test does not need any input.
-    """
 
 
 SHORT_NAME = "qurrent_hadamard"
