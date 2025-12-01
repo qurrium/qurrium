@@ -1,7 +1,4 @@
-"""EntropyMeasureHadamard - Arguments
-(:mod:`qurry.qurrent.hadamard_test.arguments`)
-
-"""
+"""EntropyMeasureHadamard - Arguments (:mod:`qurry.qurrent.hadamard_test.arguments`)"""
 
 from typing import Optional, Union
 from dataclasses import dataclass
@@ -46,4 +43,8 @@ class EMHOutputArgs(OutputArgs):
 
 SHORT_NAME = "qurrent_hadamard"
 """The short name of 
-:class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard`."""
+:class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""
+
+ACRONYM = "EMH"
+"""The abbreviation of
+:class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""

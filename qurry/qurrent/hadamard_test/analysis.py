@@ -8,8 +8,9 @@ from ...qurrium import (
     Commonparams,
     AnalysisPrototype,
     AnalyzeArgs,
-    AnalyzeEntriesPrototype,
-    AnalyzeResultsPrototype,
+    AnalysisMiddlewarePrototype,
+    ProcessEntriesPrototype,
+    AnalysisResultsPrototype,
 )
 from ...process.hadamard_test import hadamard_entangled_entropy
 
@@ -23,42 +24,39 @@ class EMHAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 @dataclass(frozen=True)
-class EMHAnalyzeMiddlewareEntries(AnalyzeEntriesPrototype):
-    """To set the analysis."""
+class EMHAnalysisMiddleware(AnalysisMiddlewarePrototype):
+    """The middleware entries between analyze and actual post-processing function."""
+
+    __name__ = "EMHAnalysisMiddleware"
 
 
 @dataclass(frozen=True)
-class EMHAnalyzePostProcessingEntries(AnalyzeEntriesPrototype):
-    """The input entries for post-processing."""
+class EMHProcessEntries(ProcessEntriesPrototype):
+    """The entries for post-processing."""
+
+    __name__ = "EMHProcessEntries"
 
 
 @dataclass(frozen=True)
-class EMHAnalyzeResults(AnalyzeResultsPrototype):
-    """The content of the analysis."""
+class EMHDefaultResults(AnalysisResultsPrototype):
+    """The default results of :cls:`~qurry.qurrent.hadamard_test.analysis.EMHAnalysis`,
+    which contains only purity and entanglement entropy."""
 
     purity: float
     """The purity of the system."""
     entropy: float
     """The entanglement entropy of the system."""
 
-    __name__ = "EntropyMeasureHadamardAnalyzeResults"
-
-    def side_product_fields(self) -> tuple[str, ...]:
-        """The fields that will be stored as side product.
-
-        Hint:
-            In Hadamard test, all fields are main results.
-        """
-        return ()
+    __name__ = "EMHDefaultResults"
 
 
 class EMHAnalysis(
     AnalysisPrototype[
         EMHArguments,
         EMHAnalyzeArgs,
-        EMHAnalyzeMiddlewareEntries,
-        EMHAnalyzePostProcessingEntries,
-        EMHAnalyzeResults,
+        EMHAnalysisMiddleware,
+        EMHProcessEntries,
+        EMHDefaultResults,
     ]
 ):
     """The instance for the analysis of
@@ -68,19 +66,19 @@ class EMHAnalysis(
     __name__ = "EMHAnalysis"
 
     @classmethod
-    def middleware_entries_type(cls) -> type[EMHAnalyzeMiddlewareEntries]:
+    def middleware_entries_type(cls) -> type[EMHAnalysisMiddleware]:
         """The middleware entries type for this analysis."""
-        return EMHAnalyzeMiddlewareEntries
+        return EMHAnalysisMiddleware
 
     @classmethod
-    def postprocess_entries_type(cls) -> type[EMHAnalyzePostProcessingEntries]:
+    def postprocess_entries_type(cls) -> type[EMHProcessEntries]:
         """The post-processing entries type for this analysis."""
-        return EMHAnalyzePostProcessingEntries
+        return EMHProcessEntries
 
     @classmethod
-    def results_type(cls) -> dict[str, type[AnalyzeResultsPrototype]]:
+    def results_type(cls) -> dict[str, type[AnalysisResultsPrototype]]:
         """The results type for this analysis."""
-        return {"default": EMHAnalyzeResults}
+        return {"default": EMHDefaultResults}
 
     @classmethod
     def quantities(cls, shots: int, counts: list[dict[str, int]]):
@@ -104,7 +102,7 @@ class EMHAnalysis(
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: EMHAnalyzeArgs,
-    ) -> tuple[EMHAnalyzeArgs, EMHAnalyzeMiddlewareEntries, EMHAnalyzePostProcessingEntries]:
+    ) -> tuple[EMHAnalyzeArgs, EMHAnalysisMiddleware, EMHProcessEntries]:
         """Generate the entries for analysis.
 
         Hint:
@@ -123,8 +121,8 @@ class EMHAnalysis(
                 EMHAnalyzePostProcessingEntries,
             ]: The generated entries for analysis.
         """
-        middleware_entries = EMHAnalyzeMiddlewareEntries()
-        postprocess_entries = EMHAnalyzePostProcessingEntries()
+        middleware_entries = EMHAnalysisMiddleware()
+        postprocess_entries = EMHProcessEntries()
 
         return analyze_arguments, middleware_entries, postprocess_entries
 
@@ -163,7 +161,7 @@ class EMHAnalysis(
             shots=commonparams.shots,
             counts=counts,
         )
-        results = EMHAnalyzeResults(
+        results = EMHDefaultResults(
             purity=float(hadamard_results_dict["purity"]),
             entropy=float(hadamard_results_dict["entropy"]),
         )

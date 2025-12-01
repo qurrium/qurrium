@@ -1,7 +1,4 @@
-"""EntropyMeasureHadamard - Qurrium
-(:mod:`qurry.qurrent.hadamard_test.qurry`)
-
-"""
+"""EntropyMeasureHadamard - Qurrium (:mod:`qurry.qurrent.hadamard_test.qurry`)"""
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal
@@ -10,19 +7,14 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import SHORT_NAME, EMHMeasureArgs, EMHOutputArgs
+from .arguments import SHORT_NAME, ACRONYM, EMHMeasureArgs, EMHOutputArgs
 from .analysis import EMHAnalyzeArgs
-from .experiment import EntropyMeasureHadamardExperiment
+from .experiment import EMHExperiment
 from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
 class EntropyMeasureHadamard(
-    QurriumPrototype[
-        EntropyMeasureHadamardExperiment,
-        EMHMeasureArgs,
-        EMHOutputArgs,
-        EMHAnalyzeArgs,
-    ]
+    QurriumPrototype[EMHExperiment, EMHMeasureArgs, EMHOutputArgs, EMHAnalyzeArgs]
 ):
     """Hadamard test for entanglement entropy.
 
@@ -34,11 +26,14 @@ class EntropyMeasureHadamard(
 
     __name__ = "EntropyMeasureHadamard"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[EntropyMeasureHadamardExperiment]:
+    def experiment_instance(self) -> Type[EMHExperiment]:
         """The container class responding to this Qurrium class."""
-        return EntropyMeasureHadamardExperiment
+        return EMHExperiment
 
     def measure_to_output(
         self,

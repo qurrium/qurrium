@@ -11,10 +11,10 @@ from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_selector
 
 
-class EntropyMeasureHadamardExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
+class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
     """The instance of experiment."""
 
-    __name__ = "EntropyMeasureHadamardExperiment"
+    __name__ = "EMHExperiment"
 
     @classmethod
     def arguments_type(cls) -> type[EMHArguments]:
