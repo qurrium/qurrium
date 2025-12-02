@@ -140,19 +140,18 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
     """The range of the unitary operator."""
 
     @classmethod
-    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
-        """Pre-process the data before loading
-        to recover their type from json-serializable formats.
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load the results from a dictionary.
 
         Args:
-            data (dict[str, Any]): The data to pre-process.
+            raw_dict (dict[str, Any]): The data to load.
 
         Returns:
-            dict[str, Any]: The pre-processed data.
+            The loaded results object.
         """
         preprocessed_data = {}
         for field in cls.dataclass_fields():
-            value = data.get(field, None)
+            value = raw_dict.get(field, None)
             if field in {"registers_mapping", "bitstring_mapping", "final_mapping"} and isinstance(
                 value, dict
             ):
@@ -162,7 +161,7 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
             else:
                 preprocessed_data[field] = value
 
-        return preprocessed_data
+        return cls(**preprocessed_data)
 
 
 @dataclass(frozen=True)
@@ -171,8 +170,6 @@ class EMRProcessEntries(ProcessEntriesPrototype):
 
     __name__ = "EMRProcessEntries"
 
-    selected_qubits: list[int]
-    """The selected qubits."""
     selected_classical_registers: list[int]
     """The selected classical registers."""
     existed_all_system: Optional[AllSystemResult]
@@ -180,46 +177,40 @@ class EMRProcessEntries(ProcessEntriesPrototype):
     backend: PostProcessingBackendLabel
     """The backend for the process."""
 
-    def pre_export(self) -> dict[str, Any]:
-        """Pre-process the results before exporting
-        to transform some fields to json-serializable formats.
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
 
         Returns:
-            A dictionary containing all fields of the process entries.
+            dict[str, Any]: The data to be exported.
         """
-        if self.existed_all_system is None:
-            return super().pre_export()
 
         return {
-            "selected_qubits": self.selected_qubits,
             "selected_classical_registers": self.selected_classical_registers,
-            "existed_all_system": EMRAllSystemResult(**self.existed_all_system).pre_export(),
+            "existed_all_system": EMRAllSystemResult(**self.existed_all_system).export()
+            if self.existed_all_system is not None
+            else None,
             "backend": self.backend,
         }
 
     @classmethod
-    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
-        """Pre-process the data before loading
-        to recover their type from json-serializable formats.
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load the results from a dictionary.
 
         Args:
-            data (dict[str, Any]): The data to pre-process.
-
-        Returns:
-            dict[str, Any]: The pre-processed data.
+            raw_dict (dict[str, Any]): The data to load.
         """
-        preprocessed_data = super().pre_load(data)
-        if preprocessed_data["existed_all_system"] is None:
-            return preprocessed_data
 
-        existed_all_system_data = data.get("existed_all_system")
-        preprocessed_data["existed_all_system"] = (
-            EMRAllSystemResult.pre_load(existed_all_system_data)
+        if raw_dict["existed_all_system"] is None:
+            return cls(**raw_dict)
+
+        existed_all_system_data = raw_dict.get("existed_all_system")
+        raw_dict["existed_all_system"] = (
+            EMRAllSystemResult.load(existed_all_system_data)
             if existed_all_system_data is not None
             else None
         )
 
-        return preprocessed_data
+        return cls(**raw_dict)
 
 
 @dataclass(frozen=True)
@@ -260,12 +251,11 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         """
         return ("purity_cells",)
 
-    def pre_export(self) -> dict[str, Any]:
-        """Pre-process the results before exporting
-        to transform some fields to json-serializable formats.
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
 
         Returns:
-            A dictionary containing all fields of the results.
+            dict[str, Any]: The data to be exported.
         """
         export_content = {}
         for field in self.fields:
@@ -282,19 +272,18 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         return export_content
 
     @classmethod
-    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
-        """Pre-process the data before loading
-        to recover their type from json-serializable formats.
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load the results from a dictionary.
 
         Args:
-            data (dict[str, Any]): The data to pre-process.
+            raw_dict (dict[str, Any]): The data to load.
 
         Returns:
-            dict[str, Any]: The pre-processed data.
+            The loaded results object.
         """
         preprocessed_data = {}
         for field in cls.dataclass_fields():
-            value = data.get(field, None)
+            value = raw_dict.get(field, None)
             if field in {"purity_cells"} and isinstance(value, dict):
                 preprocessed_data[field] = {int(k): float(v) for k, v in value.items()}
             elif field in {"classical_registers", "classical_registers_actually"} and isinstance(
@@ -304,7 +293,7 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
             else:
                 preprocessed_data[field] = value
 
-        return preprocessed_data
+        return cls(**preprocessed_data)
 
 
 @dataclass(frozen=True)
@@ -337,12 +326,11 @@ class EMRMitigatedResult(AnalysisResultsPrototype):
     mitigated_entropy: AllowedMitigatedInput
     """The mitigated entanglement entropy of the subsystem."""
 
-    def pre_export(self) -> dict[str, Any]:
-        """Pre-process the results before exporting
-        to transform some fields to json-serializable formats.
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
 
         Returns:
-            A dictionary containing all fields of the results.
+            dict[str, Any]: The data to be exported.
         """
 
         export_content = {}
@@ -484,7 +472,6 @@ class EMRAnalysis(
                 unitary_located=arguments.unitary_located,
             ),
             EMRProcessEntries(
-                selected_qubits=selected_qubits,
                 selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
                 existed_all_system=existed_all_system,
                 backend=analyze_arguments.get("backend", DEFAULT_PROCESS_BACKEND),

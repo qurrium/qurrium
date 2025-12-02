@@ -10,9 +10,8 @@ from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 @dataclass(frozen=True)
 class EMRArguments(ArgumentsPrototype):
-    """Input fields for
-    :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
-    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
+    """Arguments for
+    :class:`~qurry.qurrent.randomized_measure.experiment.EMRExperiment`."""
 
     exp_name: str
     """The name of the experiment.
@@ -167,7 +166,8 @@ class EMROutputArgs(OutputArgs):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.process.randomized_measure.utils.generate_random_unitary_seeds`
     in :mod:`qurry.process.randomized_measure.utils`.
 
     .. code-block:: python
