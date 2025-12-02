@@ -246,8 +246,7 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         """The fields that will be stored as side product.
 
         Hint:
-            In Entropy Measure Randomized,
-            side products are basically the results are not scalar values.
+            Currently, only :attr:`purity_cells` is stored as side product.
         """
         return ("purity_cells",)
 
@@ -257,19 +256,18 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         Returns:
             dict[str, Any]: The data to be exported.
         """
-        export_content = {}
-        for field in self.fields:
-            value = getattr(self, field)
-            if isinstance(value, dict):
-                export_content[field] = {str(k): float(v) for k, v in value.items()}
-            elif isinstance(value, list):
-                export_content[field] = [int(v) for v in value]
-            elif value is None:
-                export_content[field] = None
-            else:
-                export_content[field] = float(value)
 
-        return export_content
+        return {
+            "purity": float(self.purity),
+            "entropy": float(self.entropy),
+            "purity_sd": float(self.purity_sd),
+            "entropy_sd": float(self.entropy_sd),
+            "purity_cells": {k: float(v) for k, v in self.purity_cells.items()},
+            "num_classical_registers": self.num_classical_registers,
+            "classical_registers": self.classical_registers,
+            "classical_registers_actually": self.classical_registers_actually,
+            "taking_time": self.taking_time,
+        }
 
     @classmethod
     def load(cls, raw_dict: dict[str, Any]):
@@ -281,19 +279,26 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         Returns:
             The loaded results object.
         """
-        preprocessed_data = {}
-        for field in cls.dataclass_fields():
-            value = raw_dict.get(field, None)
-            if field in {"purity_cells"} and isinstance(value, dict):
-                preprocessed_data[field] = {int(k): float(v) for k, v in value.items()}
-            elif field in {"classical_registers", "classical_registers_actually"} and isinstance(
-                value, list
-            ):
-                preprocessed_data[field] = [int(v) for v in value]
-            else:
-                preprocessed_data[field] = value
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
 
-        return cls(**preprocessed_data)
+        return cls(
+            purity=raw_dict["purity"],
+            entropy=raw_dict["entropy"],
+            purity_sd=raw_dict["purity_sd"],
+            entropy_sd=raw_dict["entropy_sd"],
+            purity_cells={int(k): float(v) for k, v in raw_dict["purity_cells"].items()},
+            num_classical_registers=raw_dict["num_classical_registers"],
+            classical_registers=(
+                None
+                if raw_dict.get("classical_registers") is None
+                else [int(v) for v in raw_dict["classical_registers"]]
+            ),
+            classical_registers_actually=[int(v) for v in raw_dict["classical_registers_actually"]],
+            taking_time=raw_dict["taking_time"],
+            counts_num=raw_dict["counts_num"],
+        )
 
 
 @dataclass(frozen=True)

@@ -75,7 +75,7 @@ class EMRArguments(ArgumentsPrototype):
         Args:
             raw_dict (dict[str, Any]): The raw read dictionary.
         """
-        missing_fields = [key for key in cls.dataclass_fields() if key not in raw_dict]
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
         if missing_fields:
             raise ValueError(f"Missing fields for {cls.__name__}: {', '.join(missing_fields)}")
 
