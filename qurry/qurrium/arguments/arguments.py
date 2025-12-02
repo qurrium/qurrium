@@ -143,7 +143,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         data_args = v7_to_v9_field_transpose(data_args)
 
         return (
-            cls(**data_args["arguments"]),
+            cls.load(**data_args["arguments"]),
             Commonparams(**data_args["commonparams"]),
             data_args["outfields"],
         )
