@@ -54,8 +54,7 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
             ValueError: The number of target circuits should be 1.
 
         Returns:
-            tuple[EntropyMeasureHadamardArguments, Commonparams, dict[str, Any]]:
-                The arguments of the experiment, the common parameters, and the custom parameters.
+            The arguments of the experiment, the common parameters, and the custom parameters.
         """
         if len(targets) != 1:
             raise ValueError("The number of target circuits should be 1.")
@@ -66,14 +65,12 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
 
         exp_name = f"{exp_name}.degree_{degree[0]}_{degree[1]}.{SHORT_NAME}"
 
-        # pylint: disable=protected-access
         return EMHArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key],
             degree=degree,
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(

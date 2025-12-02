@@ -17,7 +17,7 @@ from ...process.hadamard_test import hadamard_entangled_entropy
 
 class EMHAnalyzeArgs(AnalyzeArgs, total=False):
     """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
-    and :meth:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard.analyze`.
+    and :meth:`~qurry.qurrent.hadamard_test.experiment.EMHExperiment.analyze`.
 
     The post-processing of Hadamard test does not need any input.
     """
@@ -39,7 +39,7 @@ class EMHProcessEntries(ProcessEntriesPrototype):
 
 @dataclass(frozen=True)
 class EMHDefaultResults(AnalysisResultsPrototype):
-    """The default results of :cls:`~qurry.qurrent.hadamard_test.analysis.EMHAnalysis`,
+    """The default results of :class:`~qurry.qurrent.hadamard_test.analysis.EMHAnalysis`,
     which contains only purity and entanglement entropy."""
 
     purity: float
@@ -60,7 +60,7 @@ class EMHAnalysis(
     ]
 ):
     """The instance for the analysis of
-    :class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamardExperiment`.
+    :class:`~qurry.qurrent.hadamard_test.experiment.EMHExperiment`.
     """
 
     __name__ = "EMHAnalysis"
@@ -76,7 +76,7 @@ class EMHAnalysis(
         return EMHProcessEntries
 
     @classmethod
-    def results_type(cls) -> dict[str, type[AnalysisResultsPrototype]]:
+    def available_results_types(cls) -> dict[str, type[AnalysisResultsPrototype]]:
         """The results type for this analysis."""
         return {"default": EMHDefaultResults}
 
@@ -115,11 +115,7 @@ class EMHAnalysis(
             analyze_arguments (EMHAnalyzeArgs): The analyze arguments.
 
         Returns:
-            tuple[
-                EMHAnalyzeArgs,
-                EMHAnalyzeMiddlewareEntries,
-                EMHAnalyzePostProcessingEntries,
-            ]: The generated entries for analysis.
+            The generated entries for analysis.
         """
         middleware_entries = EMHAnalysisMiddleware()
         postprocess_entries = EMHProcessEntries()

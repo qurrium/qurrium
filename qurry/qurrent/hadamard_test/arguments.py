@@ -10,8 +10,7 @@ from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 @dataclass(frozen=True)
 class EMHArguments(ArgumentsPrototype):
-    """Arguments for
-    :class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard`."""
+    """Arguments for :class:`~qurry.qurrent.hadamard_test.experiment.EMHExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -24,7 +23,7 @@ class EMHArguments(ArgumentsPrototype):
 
 class EMHMeasureArgs(BasicArgs, total=False):
     """Input fields for
-    :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.measure`
+    :meth:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, WCKeyable]]
@@ -35,16 +34,14 @@ class EMHMeasureArgs(BasicArgs, total=False):
 
 class EMHOutputArgs(OutputArgs):
     """Output arguments for
-    :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.output`."""
+    :meth:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard.output`."""
 
     degree: Optional[Union[int, tuple[int, int]]]
     """The degree range."""
 
 
 SHORT_NAME = "qurrent_hadamard"
-"""The short name of 
-:class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""
+"""The short name of :class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""
 
 ACRONYM = "EMH"
-"""The abbreviation of
-:class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""
+"""The abbreviation of :class:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard`."""
