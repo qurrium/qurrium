@@ -1,19 +1,16 @@
 """EchoListenHadamard - Arguments (:mod:`qurry.qurrech.hadamard_test.arguments`)"""
 
 from typing import Optional, Union
-from collections.abc import Hashable
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 
 @dataclass(frozen=True)
-class EchoListenHadamardArguments(ArgumentsPrototype):
-    """Arguments for
-    :class:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment`."""
+class ELHArguments(ArgumentsPrototype):
+    """Arguments for :class:`~qurry.qurrech.hadamard_test.experiment.ELHExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -24,20 +21,20 @@ class EchoListenHadamardArguments(ArgumentsPrototype):
     """The degree range."""
 
 
-class EchoListenHadamardMeasureArgs(BasicArgs, total=False):
+class ELHMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave1: Optional[Union[QuantumCircuit, Hashable]]
+    wave1: Optional[Union[QuantumCircuit, WCKeyable]]
     """The key or the circuit to execute."""
-    wave2: Optional[Union[QuantumCircuit, Hashable]]
+    wave2: Optional[Union[QuantumCircuit, WCKeyable]]
     """The key or the circuit to execute."""
     degree: Union[int, tuple[int, int], None]
     """The degree range."""
 
 
-class EchoListenHadamardOutputArgs(OutputArgs):
+class ELHOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard.output`."""
 
@@ -45,14 +42,8 @@ class EchoListenHadamardOutputArgs(OutputArgs):
     """The degree range."""
 
 
-class EchoListenHadamardAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
-    and :meth:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment.analyze`.
-
-    The post-processing of Hadamard test does not need any input.
-    """
-
-
 SHORT_NAME = "qurrech_hadamard"
-"""The short name of 
-:class:`~qurry.qurrech.hadamard_test.experiment.EchoListenHadamardExperiment`."""
+"""The short name of :class:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard`."""
+
+ACRONYM = "ELH"
+"""The abbreviation of :class:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard`."""

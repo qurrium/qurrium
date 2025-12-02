@@ -1,46 +1,44 @@
 """EchoListenHadamard - Qurrium (:mod:`qurry.qurrech.hadamard_test.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
+from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    EchoListenHadamardMeasureArgs,
-    EchoListenHadamardOutputArgs,
-    EchoListenHadamardAnalyzeArgs,
+from .arguments import SHORT_NAME, ACRONYM, ELHMeasureArgs, ELHOutputArgs
+from .analysis import ELHAnalyzeArgs
+from .experiment import ELHxperiment
+from ...qurrium import (
+    QurriumPrototype,
+    RunArgsType,
+    TranspileArgs,
+    PassManagerType,
+    WCKeyable,
 )
-from .experiment import EchoListenHadamardExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
 
 
 class EchoListenHadamard(
-    QurriumPrototype[
-        EchoListenHadamardExperiment,
-        EchoListenHadamardMeasureArgs,
-        EchoListenHadamardOutputArgs,
-        EchoListenHadamardAnalyzeArgs,
-    ]
+    QurriumPrototype[ELHxperiment, ELHMeasureArgs, ELHOutputArgs, ELHAnalyzeArgs]
 ):
     """The experiment for calculating entangled entropy with more information combined."""
 
-    __name__ = "EchoHadamardTest"
+    __name__ = "EchoListenHadamard"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[EchoListenHadamardExperiment]:
+    def experiment_instance(self) -> type[ELHxperiment]:
         """The experiment instance for this experiment."""
-        return EchoListenHadamardExperiment
+        return ELHxperiment
 
     def measure_to_output(
         self,
-        wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
-        wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         degree: Union[int, tuple[int, int], None] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -54,13 +52,13 @@ class EchoListenHadamard(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EchoListenHadamardOutputArgs:
+    ) -> ELHOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave1 (Union[QuantumCircuit, Hashable]):
+            wave1 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, Hashable]):
+            wave2 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             degree (Optional[Union[int, tuple[int, int]]], optional):
                 The degree of the experiment.
@@ -121,8 +119,8 @@ class EchoListenHadamard(
 
     def measure(
         self,
-        wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
-        wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         degree: Union[int, tuple[int, int], None] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -139,9 +137,10 @@ class EchoListenHadamard(
     ) -> str:
         """Execute the experiment.
 
-            wave1 (Union[QuantumCircuit, Hashable]):
+        Args:
+            wave1 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, Hashable]):
+            wave2 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             degree (Optional[Union[int, tuple[int, int]]], optional):
                 The degree of the experiment.

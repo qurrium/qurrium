@@ -1,47 +1,43 @@
 """EchoListenHadamard - Experiment (:mod:`qurry.qurrech.hadamard_test.experiment`)"""
 
-from typing import Optional, Type, Any
-from collections.abc import Hashable
+from typing import Optional, Any
 import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-from .analysis import EchoListenHadamardAnalysis
-from .arguments import EchoListenHadamardArguments, SHORT_NAME
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
+from .analysis import ELHAnalysis
+from .arguments import ELHArguments, SHORT_NAME
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_selector
-from ...process.hadamard_test import hadamard_overlap_echo as overlap_echo
 
 
-class EchoListenHadamardExperiment(
-    ExperimentPrototype[EchoListenHadamardArguments, EchoListenHadamardAnalysis]
-):
-    """The experiment for calculating entangled entropy with more information combined."""
+class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
+    """The instance of experiment."""
 
-    __name__ = "EchoListenHadamardExperiment"
+    __name__ = "ELHxperiment"
 
-    @property
-    def arguments_instance(self) -> Type[EchoListenHadamardArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[ELHArguments]:
         """The arguments instance for this experiment."""
-        return EchoListenHadamardArguments
+        return ELHArguments
 
-    @property
-    def analysis_instance(self) -> Type[EchoListenHadamardAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[ELHAnalysis]:
         """The analysis instance for this experiment."""
-        return EchoListenHadamardAnalysis
+        return ELHAnalysis
 
     @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         degree: Optional[tuple[int, int]] = None,
         **custom_kwargs: Any,
-    ) -> tuple[EchoListenHadamardArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[ELHArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             exp_name (str, optional):
                 The name of the experiment.
@@ -80,27 +76,25 @@ class EchoListenHadamardExperiment(
 
         exp_name = f"{exp_name}.degree_{degree[0]}_{degree[1]}.{SHORT_NAME}"
 
-        # pylint: disable=protected-access
-        return EchoListenHadamardArguments._filter(
+        return ELHArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key_01, target_key_02],
             degree=degree,
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: EchoListenHadamardArguments,
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
+        arguments: ELHArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arguments (EchoListenHadamardArguments):
                 The arguments of the experiment.
@@ -168,11 +162,8 @@ class EchoListenHadamardExperiment(
 
         return [qc_exp1], {}
 
-    def analyze(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> EchoListenHadamardAnalysis:
-        """Calculate entangled entropy with more information combined.
+    def analyze(self, pbar: Optional[tqdm.tqdm] = None) -> ELHAnalysis:
+        """Calculate the analysis of wave function overlap.
 
         Args:
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
@@ -187,45 +178,13 @@ class EchoListenHadamardExperiment(
         if pbar is not None:
             pbar.set_description("Calculating wave function overlap")
 
-        shots = self.commons.shots
-        counts = self.afterwards.counts
-
-        qs = self.quantities(
-            shots=shots,
-            counts=counts,
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
+            counts=self.afterwards.counts,
+            analyze_arguments={},
+            serial=len(self.reports),
         )
 
-        serial = len(self.reports)
-        analysis = self.analysis_instance(
-            serial=serial,
-            shots=shots,
-            **qs,  # type: ignore
-        )
-
-        self.reports[serial] = analysis
+        self.reports[analysis.serial] = analysis
         return analysis
-
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        counts: Optional[list[dict[str, int]]] = None,
-    ) -> dict[str, float]:
-        """Calculate entangled entropy with more information combined.
-
-        Args:
-            shots (int): Shots of the experiment on quantum machine.
-            counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-
-        Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
-        """
-
-        if shots is None or counts is None:
-            raise ValueError("shots and counts should be specified.")
-
-        return overlap_echo(
-            shots=shots,
-            counts=counts,
-        )
