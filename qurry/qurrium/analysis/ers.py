@@ -36,10 +36,14 @@ def erabc_load(
         func (Callable): The original load function.
     """
 
-    def wrapper(cls: type["AnalysisERABC"], raw_dict: dict[str, Any]) -> dict[str, Any]:
+    def wrapper(
+        cls: type["AnalysisERABC"], raw_dict: dict[str, Any], *args: Any, **kwargs: Any
+    ) -> dict[str, Any]:
         """The wrapped load function including class name check."""
 
-        classname = raw_dict.pop("__class__", None)
+        raw_dict_copy = raw_dict.copy()
+
+        classname = raw_dict_copy.pop("__class__", None)
         if classname is None:
             raise ValueError("Data does not contain '__class__' key.")
         if classname != cls.__name__:
@@ -47,12 +51,13 @@ def erabc_load(
                 f"Data class '{classname}' does not match expected class '{cls.__name__}'."
             )
 
-        if set(raw_dict.keys()) != set(cls.dataclass_fields()):
+        if set(raw_dict_copy.keys()) != set(cls.dataclass_fields()):
             raise ValueError(
-                f"Data fields mismatch: expected {cls.dataclass_fields()}, got {set(raw_dict.keys())}."
+                "Data fields mismatch: expected "
+                + f"{cls.dataclass_fields()}, got {set(raw_dict_copy.keys())}."
             )
 
-        result = func(cls, raw_dict)
+        result = func(cls, raw_dict_copy, *args, **kwargs)
 
         return result
 
