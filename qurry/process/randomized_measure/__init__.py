@@ -118,7 +118,7 @@ from .entangled_entropy_v1 import (
     AllSystemResultV1,
     isvalid_all_system_result_v1,
 )
-from .wavefunction_overlap import randomized_overlap_echo, WaveFuctionOverlapResult
+from .wavefunction_overlap import randomized_overlap_echo, WaveFunctionOverlapResult
 from .wavefunction_overlap_v1 import randomized_overlap_echo_v1, WaveFuctionOverlapResultV1
 from .random_unitary import (
     generate_random_unitary,

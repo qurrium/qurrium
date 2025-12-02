@@ -11,14 +11,14 @@ from .echo_core_2 import overlap_echo_core_2, DEFAULT_PROCESS_BACKEND
 from ...availability import PostProcessingBackendLabel
 
 
-class WaveFuctionOverlapResult(TypedDict):
+class WaveFunctionOverlapResult(TypedDict):
     """The return type of the post-processing for wavefunction overlap."""
 
     echo: Union[np.float64, float]
     """The overlap value."""
-    echoSD: Union[np.float64, float]
+    echo_sd: Union[np.float64, float]
     """The overlap standard deviation."""
-    echoCells: Union[dict[int, np.float64], dict[int, float]]
+    echo_cells: Union[dict[int, np.float64], dict[int, float]]
     """The overlap of each single count."""
     num_classical_registers: int
     """The number of classical registers."""
@@ -40,7 +40,7 @@ def randomized_overlap_echo(
     selected_classical_registers: Optional[Iterable[int]] = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
-) -> WaveFuctionOverlapResult:
+) -> WaveFunctionOverlapResult:
     """Calculate wavefunction overlap
     a.k.a. loschmidt echo when processes time evolution system.
 
@@ -115,8 +115,8 @@ def randomized_overlap_echo(
 
     return {
         "echo": echo,
-        "echoSD": purity_sd,
-        "echoCells": echo_cell_dict,
+        "echo_sd": purity_sd,
+        "echo_cells": echo_cell_dict,
         "num_classical_registers": num_classical_registers,
         "classical_registers": (
             selected_classical_registers
