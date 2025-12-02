@@ -142,7 +142,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
 
         check_random_unitary_seeds(times, len(unitary_located), random_unitary_seeds)
 
-        # pylint: disable=protected-access
         return EMRArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key],
@@ -154,7 +153,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
             random_unitary_seeds=random_unitary_seeds,
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(

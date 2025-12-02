@@ -139,6 +139,31 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
     unitary_located: Optional[list[int]] = None
     """The range of the unitary operator."""
 
+    @classmethod
+    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Pre-process the data before loading
+        to recover their type from json-serializable formats.
+
+        Args:
+            data (dict[str, Any]): The data to pre-process.
+
+        Returns:
+            dict[str, Any]: The pre-processed data.
+        """
+        preprocessed_data = {}
+        for field in cls.dataclass_fields():
+            value = data.get(field, None)
+            if field in {"registers_mapping", "bitstring_mapping", "final_mapping"} and isinstance(
+                value, dict
+            ):
+                preprocessed_data[field] = {int(k): int(v) for k, v in value.items()}
+            elif field == "unitary_located" and isinstance(value, list):
+                preprocessed_data[field] = [int(v) for v in value]
+            else:
+                preprocessed_data[field] = value
+
+        return preprocessed_data
+
 
 @dataclass(frozen=True)
 class EMRProcessEntries(ProcessEntriesPrototype):
@@ -155,10 +180,51 @@ class EMRProcessEntries(ProcessEntriesPrototype):
     backend: PostProcessingBackendLabel
     """The backend for the process."""
 
+    def pre_export(self) -> dict[str, Any]:
+        """Pre-process the results before exporting
+        to transform some fields to json-serializable formats.
+
+        Returns:
+            A dictionary containing all fields of the process entries.
+        """
+        if self.existed_all_system is None:
+            return super().pre_export()
+
+        return {
+            "selected_qubits": self.selected_qubits,
+            "selected_classical_registers": self.selected_classical_registers,
+            "existed_all_system": EMRAllSystemResult(**self.existed_all_system).pre_export(),
+            "backend": self.backend,
+        }
+
+    @classmethod
+    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Pre-process the data before loading
+        to recover their type from json-serializable formats.
+
+        Args:
+            data (dict[str, Any]): The data to pre-process.
+
+        Returns:
+            dict[str, Any]: The pre-processed data.
+        """
+        preprocessed_data = super().pre_load(data)
+        if preprocessed_data["existed_all_system"] is None:
+            return preprocessed_data
+
+        existed_all_system_data = data.get("existed_all_system")
+        preprocessed_data["existed_all_system"] = (
+            EMRAllSystemResult.pre_load(existed_all_system_data)
+            if existed_all_system_data is not None
+            else None
+        )
+
+        return preprocessed_data
+
 
 @dataclass(frozen=True)
 class EMRTargetSystemResult(AnalysisResultsPrototype):
-    """The target system result of :cls:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
+    """The target system result of :class:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
 
     __name__ = "EMRTargetSystemResult"
 
@@ -194,10 +260,56 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         """
         return ("purity_cells",)
 
+    def pre_export(self) -> dict[str, Any]:
+        """Pre-process the results before exporting
+        to transform some fields to json-serializable formats.
+
+        Returns:
+            A dictionary containing all fields of the results.
+        """
+        export_content = {}
+        for field in self.fields:
+            value = getattr(self, field)
+            if isinstance(value, dict):
+                export_content[field] = {str(k): float(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                export_content[field] = [int(v) for v in value]
+            elif value is None:
+                export_content[field] = None
+            else:
+                export_content[field] = float(value)
+
+        return export_content
+
+    @classmethod
+    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Pre-process the data before loading
+        to recover their type from json-serializable formats.
+
+        Args:
+            data (dict[str, Any]): The data to pre-process.
+
+        Returns:
+            dict[str, Any]: The pre-processed data.
+        """
+        preprocessed_data = {}
+        for field in cls.dataclass_fields():
+            value = data.get(field, None)
+            if field in {"purity_cells"} and isinstance(value, dict):
+                preprocessed_data[field] = {int(k): float(v) for k, v in value.items()}
+            elif field in {"classical_registers", "classical_registers_actually"} and isinstance(
+                value, list
+            ):
+                preprocessed_data[field] = [int(v) for v in value]
+            else:
+                preprocessed_data[field] = value
+
+        return preprocessed_data
+
 
 @dataclass(frozen=True)
 class EMRAllSystemResult(EMRTargetSystemResult):
-    """The all system result of :cls:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
+    """The all system result of :class:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
 
     __name__ = "EMRAllSystemResult"
 
@@ -214,7 +326,7 @@ class EMRAllSystemResult(EMRTargetSystemResult):
 
 @dataclass(frozen=True)
 class EMRMitigatedResult(AnalysisResultsPrototype):
-    """The mitigated result of :cls:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
+    """The mitigated result of :class:`~qurry.qurrent.randomized_measure.analysis.EMRAnalysis`."""
 
     __name__ = "EMRMitigatedResult"
 
@@ -224,6 +336,23 @@ class EMRMitigatedResult(AnalysisResultsPrototype):
     """The mitigated purity of the subsystem."""
     mitigated_entropy: AllowedMitigatedInput
     """The mitigated entanglement entropy of the subsystem."""
+
+    def pre_export(self) -> dict[str, Any]:
+        """Pre-process the results before exporting
+        to transform some fields to json-serializable formats.
+
+        Returns:
+            A dictionary containing all fields of the results.
+        """
+
+        export_content = {}
+        for field in self.fields:
+            value = getattr(self, field)
+            export_content[field] = (
+                value.tolist() if isinstance(value, np.ndarray) else float(value)
+            )
+
+        return export_content
 
 
 class EMRAnalysis(
@@ -236,7 +365,7 @@ class EMRAnalysis(
     ]
 ):
     """The container for the analysis of
-    :class:`~qurry.qurrent.randomized_measure.experiment.EntropyRandomizedExperiment`."""
+    :class:`~qurry.qurrent.randomized_measure.experiment.EMRExperiment`."""
 
     __name__ = "EMRAnalysis"
 
@@ -251,7 +380,7 @@ class EMRAnalysis(
         return EMRProcessEntries
 
     @classmethod
-    def results_type(
+    def available_results_types(
         cls,
     ) -> dict[
         str, Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]]
