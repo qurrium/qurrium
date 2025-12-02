@@ -14,7 +14,7 @@ from .arguments import Commonparams, ArgumentsPrototype
 from .analysis import (
     AnalysisPrototype,
     AnalyzeArgs,
-    SpecificAnalsisArgs,
+    SpecificAnalyzeArgs,
     AnalysisResultsPrototype,
     AnalysisMiddlewarePrototype,
     ProcessEntriesPrototype,

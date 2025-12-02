@@ -2,7 +2,7 @@
 
 import warnings
 from abc import abstractmethod, ABC
-from typing import Literal, Union, Optional, Any, Type, Generic
+from typing import Literal, Union, Optional, Any, Generic
 from pathlib import Path
 import tqdm
 
@@ -22,7 +22,7 @@ from ..container import (
     WaveContainer,
     WCKeyable,
 )
-from ..analysis import SpecificAnalsisArgs, _RA
+from ..analysis import SpecificAnalyzeArgs, _RA
 from ..runner import RemoteAccessor, retrieve_counter
 from ..multimanager import (
     MultiManager,
@@ -95,7 +95,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
     @property
     @abstractmethod
-    def experiment_instance(self) -> Type[_E]:
+    def experiment_instance(self) -> type[_E]:
         """The instance of experiment."""
         raise NotImplementedError("The experiment is not defined.")
 
@@ -638,7 +638,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs[_RA] = None,
+        specific_analysis_args: SpecificAnalyzeArgs[_RA] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         **analysis_args: Any,

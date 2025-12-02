@@ -19,7 +19,7 @@ from .beforewards import Before
 from .afterwards import After
 from .process import datetimedict_process
 from .utils import experiment_writer, multimanager_report_naming
-from ..analysis import AnalyzeArgs, SpecificAnalsisArgs
+from ..analysis import AnalyzeArgs, SpecificAnalyzeArgs
 from ..container import BaseRunArgs
 from ..utils import naming, IOComplex
 from ...tools import (
@@ -841,7 +841,7 @@ class MultiManager(Generic[_E]):
         self,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs = None,
+        specific_analysis_args: SpecificAnalyzeArgs = None,
         **analysis_args: Union[dict[str, Any], AnalyzeArgs],
     ) -> str:
         """Analyze the experiments.

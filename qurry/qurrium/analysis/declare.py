@@ -13,7 +13,7 @@ _RA = TypeVar("_RA", bound=AnalyzeArgs)
 and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """
 
-SpecificAnalsisArgs = Optional[dict[str, Union[_RA, dict[str, Any], bool]]]
+SpecificAnalyzeArgs = Optional[dict[str, Union[_RA, dict[str, Any], bool]]]
 """The type hint for :meth:`~qurry.qurrium.multimanager.multimanager.analyze` 
 and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """
