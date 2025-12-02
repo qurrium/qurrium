@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Arguments (:mod:`qurry.qurrent.hadamard_test.arguments`)"""
 
-from typing import Any, Optional, Union
+from typing import Any, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -39,9 +39,9 @@ class EMHMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, WCKeyable]]
+    wave: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
-    degree: Optional[Union[int, tuple[int, int]]]
+    degree: Union[int, tuple[int, int], None]
     """The degree range."""
 
 
@@ -49,7 +49,7 @@ class EMHOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrent.hadamard_test.qurry.EntropyMeasureHadamard.output`."""
 
-    degree: Optional[Union[int, tuple[int, int]]]
+    degree: Union[int, tuple[int, int], None]
     """The degree range."""
 
 

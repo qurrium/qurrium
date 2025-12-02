@@ -1,12 +1,11 @@
 """EntropyMeasureRandomized - Arguments (:mod:`qurry.qurrent.randomized_measure.arguments`)"""
 
-from typing import Any, Optional, Union
-from collections.abc import Hashable
+from typing import Any, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 
-from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 
 @dataclass(frozen=True)
@@ -44,7 +43,7 @@ class EMRArguments(ArgumentsPrototype):
     """The actual number of qubits."""
     unitary_located: list[int]
     """The range of the unitary operator."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None] = None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -102,18 +101,18 @@ class EMRMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, Hashable]]
+    wave: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Optional[Union[tuple[int, int], int, list[int]]]
+    measure: Union[tuple[int, int], int, list[int], None]
     """The measure range."""
-    unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -147,13 +146,13 @@ class EMROutputArgs(OutputArgs):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Optional[Union[tuple[int, int], int, list[int]]]
+    measure: Union[tuple[int, int], int, list[int], None]
     """The measure range."""
-    unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
