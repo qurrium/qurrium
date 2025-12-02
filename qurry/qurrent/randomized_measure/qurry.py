@@ -103,7 +103,7 @@ class EntropyMeasureRandomized(
 
     """
 
-    __name__ = "EntropyRandomizedMeasure"
+    __name__ = "EntropyMeasureRandomized"
     short_name = SHORT_NAME
     """The short name of this Qurrium class."""
     acronym = ACRONYM
