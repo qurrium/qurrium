@@ -114,7 +114,7 @@ class AnalysisMiddlewarePrototype(AnalysisERABC):
 
 
 _RM = TypeVar("_RM", bound=AnalysisMiddlewarePrototype)
-"""Type variable for :cls:`AnalysisMiddlewarePrototype`."""
+"""Type variable for :class:`AnalysisMiddlewarePrototype`."""
 
 
 @dataclass(frozen=True)
@@ -123,7 +123,7 @@ class ProcessEntriesPrototype(AnalysisERABC):
 
 
 _PE = TypeVar("_PE", bound=ProcessEntriesPrototype)
-"""Type variable for :cls:`ProcessEntriesPrototype`."""
+"""Type variable for :class:`ProcessEntriesPrototype`."""
 
 
 def implementation_check_entries(
