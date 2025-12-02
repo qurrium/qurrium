@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Arguments (:mod:`qurry.qurrent.hadamard_test.arguments`)"""
 
-from typing import Optional, Union
+from typing import Any, Optional, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -12,13 +12,26 @@ from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 class EMHArguments(ArgumentsPrototype):
     """Arguments for :class:`~qurry.qurrent.hadamard_test.experiment.EMHExperiment`."""
 
-    exp_name: str = "exps"
+    exp_name: str
     """The name of the experiment.
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    degree: Optional[tuple[int, int]] = None
+    degree: tuple[int, int]
     """The degree range."""
+
+    @classmethod
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load from a raw dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            degree=tuple(raw_dict["degree"]),
+        )
 
 
 class EMHMeasureArgs(BasicArgs, total=False):

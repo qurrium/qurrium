@@ -184,7 +184,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-        assert arguments.unitary_located is not None, "unitary_located should be specified."
         unitary_dicts = generate_random_unitary(
             times=arguments.times,
             unitary_located=arguments.unitary_located,
@@ -192,7 +191,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         )
 
         set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-        assert arguments.registers_mapping is not None, "registers_mapping should be specified."
         if multiprocess:
             pool = ParallelManager()
             circ_list = pool.starmap(
@@ -274,7 +272,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
 
         if selected_qubits is None:
             raise ValueError("selected_qubits should be specified.")
-        assert self.args.registers_mapping is not None, "registers_mapping should be not None."
 
         if isinstance(counts_used, Iterable):
             if max(counts_used) >= len(self.afterwards.counts):

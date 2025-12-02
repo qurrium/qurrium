@@ -97,10 +97,6 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
                 The circuits of the experiment and the arguments of the experiment.
         """
 
-        assert isinstance(arguments.degree, tuple), (
-            f"The degree should be a tuple, got {arguments.degree}."
-        )
-
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
         num_qubits = target_circuit.num_qubits

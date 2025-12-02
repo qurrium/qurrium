@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Arguments (:mod:`qurry.qurrent.randomized_measure.arguments`)"""
 
-from typing import Optional, Union
+from typing import Any, Optional, Union
 from collections.abc import Hashable
 from dataclasses import dataclass
 
@@ -15,17 +15,17 @@ class EMRArguments(ArgumentsPrototype):
     :meth:`~qurry.qurrent.randomized_measure.qurry.EntropyMeasureRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    exp_name: str = "exps"
+    exp_name: str
     """The name of the experiment.
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    times: int = 100
+    times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    qubits_measured: Optional[list[int]] = None
+    qubits_measured: list[int]
     """The measure range."""
-    registers_mapping: Optional[dict[int, int]] = None
+    registers_mapping: dict[int, int]
     """The mapping of the classical registers of measurement with quantum registers.
 
     .. code-block:: python
@@ -40,9 +40,9 @@ class EMRArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the classical register with the numerical order.
     """
-    actual_num_qubits: int = 0
+    actual_num_qubits: int
     """The actual number of qubits."""
-    unitary_located: Optional[list[int]] = None
+    unitary_located: list[int]
     """The range of the unitary operator."""
     random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
     """The seeds for all random unitary operator.
@@ -70,16 +70,31 @@ class EMRArguments(ArgumentsPrototype):
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
-    def __post_init__(self):
-        if self.registers_mapping is not None:
-            super().__setattr__(
-                "registers_mapping", {int(k): int(v) for k, v in self.registers_mapping.items()}
-            )
+    @classmethod
+    def load(cls, raw_dict: dict[str, Any]):
+        """Load from a raw dictionary.
 
-        if self.random_unitary_seeds is not None:
-            super().__setattr__(
-                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
-            )
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+        missing_fields = [key for key in cls.dataclass_fields() if key not in raw_dict]
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {', '.join(missing_fields)}")
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            times=raw_dict["times"],
+            qubits_measured=raw_dict["qubits_measured"],
+            registers_mapping={int(k): int(v) for k, v in raw_dict["registers_mapping"].items()},
+            actual_num_qubits=raw_dict["actual_num_qubits"],
+            unitary_located=raw_dict["unitary_located"],
+            random_unitary_seeds={
+                int(k): {int(kk): vv for kk, vv in v.items()}
+                for k, v in raw_dict["random_unitary_seeds"].items()
+            }
+            if raw_dict.get("random_unitary_seeds") is not None
+            else None,
+        )
 
 
 class EMRMeasureArgs(BasicArgs, total=False):
