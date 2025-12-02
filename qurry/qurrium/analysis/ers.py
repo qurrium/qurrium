@@ -1,6 +1,7 @@
 """The Entries and Result definitions for analysis. (:mod:`qurry.qurrium.analysis.ers`)"""
 
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Callable
+from abc import ABCMeta
 from dataclasses import dataclass, fields
 import warnings
 
@@ -8,8 +9,83 @@ from ..json_io import DataExportableLoadable
 from ...exceptions import QurryInvalidInherition
 
 
+def erabc_export(
+    func: Callable[["AnalysisERABC"], dict[str, Any]],
+) -> Callable[["AnalysisERABC"], dict[str, Any]]:
+    """The decorator for export method of :class:`AnalysisERABC` to include class name.
+
+    Args:
+        func (Callable): The original export function.
+    """
+
+    def wrapper(self: "AnalysisERABC", *args: Any, **kwargs: Any) -> dict[str, Any]:
+        """The wrapped export function including class name."""
+        result = func(self, *args, **kwargs)
+        result.update({"__class__": self.__class__.__name__})
+        return result
+
+    return wrapper
+
+
+def erabc_load(
+    func: Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]],
+) -> Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]]:
+    """The decorator for load method of :class:`AnalysisERABC` to check class name.
+
+    Args:
+        func (Callable): The original load function.
+    """
+
+    def wrapper(cls: type["AnalysisERABC"], raw_dict: dict[str, Any]) -> dict[str, Any]:
+        """The wrapped load function including class name check."""
+
+        classname = raw_dict.pop("__class__", None)
+        if classname is None:
+            raise ValueError("Data does not contain '__class__' key.")
+        if classname != cls.__name__:
+            raise ValueError(
+                f"Data class '{classname}' does not match expected class '{cls.__name__}'."
+            )
+
+        if set(raw_dict.keys()) != set(cls.dataclass_fields()):
+            raise ValueError(
+                f"Data fields mismatch: expected {cls.dataclass_fields()}, got {set(raw_dict.keys())}."
+            )
+
+        result = func(cls, raw_dict)
+
+        return result
+
+    return wrapper
+
+
+class AnalysisERABCMeta(ABCMeta):
+    """Metaclass to automatically apply decorator."""
+
+    def __new__(mcs, name, bases, namespace, **kwargs):
+        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if "export" in namespace:
+            original_export = namespace["export"]
+
+            if not hasattr(original_export, "_erabc_exported_decorated"):
+                decorated_export = erabc_export(original_export)
+                decorated_export._erabc_exported_decorated = True
+                setattr(cls, "export", decorated_export)
+
+        if "load" in namespace:
+            original_load = namespace["load"]
+
+            if not hasattr(original_load, "_erabc_loaded_decorated"):
+                decorated_load = erabc_load(original_load)
+                decorated_load._erabc_loaded_decorated = True
+                setattr(cls, "load", decorated_load)
+
+        return cls
+
+
 @dataclass(frozen=True)
-class AnalysisERABC(DataExportableLoadable):
+class AnalysisERABC(DataExportableLoadable, metaclass=AnalysisERABCMeta):
     """Construct the analyze entries's and results's parameters for specific options,
     which should be overwritable by the inherition class of this base class."""
 
@@ -18,7 +94,7 @@ class AnalysisERABC(DataExportableLoadable):
     @property
     def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
-        return tuple(self.__dict__.keys())
+        return self.dataclass_fields()
 
     @classmethod
     def dataclass_fields(cls) -> tuple[str, ...]:
@@ -48,38 +124,13 @@ class AnalysisERABC(DataExportableLoadable):
                     f"but received '{type(value)}'."
                 )
 
-    def pre_export(self) -> dict[str, Any]:
-        """Pre-process the results before exporting
-        to transform some fields to json-serializable formats.
-
-        Returns:
-            A dictionary containing all fields of the results.
-        """
-        return {field: getattr(self, field) for field in self.fields}
-
     def export(self) -> dict[str, Any]:
         """Export the results for file writing.
 
         Returns:
-            A tuple containing the class name and the results as a dictionary.
+            dict[str, Any]: The data to be exported.
         """
-        serialized_data = {"__class__": self.__class__.__name__}
-        serialized_data.update(self.pre_export())
-
-        return serialized_data
-
-    @classmethod
-    def pre_load(cls, data: dict[str, Any]) -> dict[str, Any]:
-        """Pre-process the data before loading
-        to recover their type from json-serializable formats.
-
-        Args:
-            data (dict[str, Any]): The data to pre-process.
-
-        Returns:
-            dict[str, Any]: The pre-processed data.
-        """
-        return data
+        return {field: getattr(self, field) for field in self.fields}
 
     @classmethod
     def load(cls, raw_dict: dict[str, Any]):
@@ -91,20 +142,7 @@ class AnalysisERABC(DataExportableLoadable):
         Returns:
             The loaded results object.
         """
-        classname = raw_dict.pop("__class__", None)
-        if classname is None:
-            raise ValueError("Data does not contain '__class__' key.")
-        if classname != cls.__name__:
-            raise ValueError(
-                f"Data class '{classname}' does not match expected class '{cls.__name__}'."
-            )
-
-        if set(raw_dict.keys()) != set(cls.dataclass_fields()):
-            raise ValueError(
-                f"Data fields mismatch: expected {cls.dataclass_fields()}, got {set(raw_dict.keys())}."
-            )
-
-        return cls(**cls.pre_load(raw_dict))
+        return cls(**raw_dict)
 
 
 @dataclass(frozen=True)
