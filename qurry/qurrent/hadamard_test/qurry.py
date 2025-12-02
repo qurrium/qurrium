@@ -1,7 +1,7 @@
 """EntropyMeasureHadamard - Qurrium (:mod:`qurry.qurrent.hadamard_test.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Type, Literal
+from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -31,7 +31,7 @@ class EntropyMeasureHadamard(
     """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[EMHExperiment]:
+    def experiment_instance(self) -> type[EMHExperiment]:
         """The container class responding to this Qurrium class."""
         return EMHExperiment
 

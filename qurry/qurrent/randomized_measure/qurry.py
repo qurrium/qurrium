@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Qurrium (:mod:`qurry.qurrent.randomized_measure.qurry`)"""
 
-from typing import Union, Optional, Type, Literal, Iterable
+from typing import Union, Optional, Literal, Iterable
 from pathlib import Path
 import tqdm
 
@@ -19,7 +19,7 @@ from ...qurrium import (
     RunArgsType,
     TranspileArgs,
     PassManagerType,
-    SpecificAnalsisArgs,
+    SpecificAnalyzeArgs,
     WCKeyable,
 )
 
@@ -110,7 +110,7 @@ class EntropyMeasureRandomized(
     """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[EMRExperiment]:
+    def experiment_instance(self) -> type[EMRExperiment]:
         """The container class responding to this QurryV5 class."""
         return EMRExperiment
 
@@ -366,7 +366,7 @@ class EntropyMeasureRandomized(
         *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs[EMRAnalyzeArgs] = None,
+        specific_analysis_args: SpecificAnalyzeArgs[EMRAnalyzeArgs] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments
