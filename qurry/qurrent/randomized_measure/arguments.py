@@ -69,8 +69,8 @@ class EMRArguments(ArgumentsPrototype):
     """
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
-        """Load from a raw dictionary.
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The raw read dictionary.
