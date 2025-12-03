@@ -5,7 +5,6 @@ from pathlib import Path
 from dataclasses import dataclass, fields
 import json
 
-
 from .utils import (
     filter_deprecated_args,
     v5_to_v7_field_transpose,
@@ -71,7 +70,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         return (cls(**infields), Commonparams(**commonsinput), outfields)
 
     def export(self) -> dict[str, Any]:
-        """Export the experiment's arguments.
+        """Export the experiment's arguments after serializing.
 
         Returns:
             dict[str, Any]: The experiment's arguments.
@@ -90,7 +89,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         """
         return FOLDER_NAME, FILENAME_TEMPLATE.format(identifier)
 
-    def content_writing(
+    def content_dumping(
         self,
         commonparams_export: Union[dict[str, Any], None] = None,
         sideproduct_export: Union[dict[str, Any], None] = None,
@@ -113,9 +112,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for json.load.
-        Handle the raw read dictionary with specific structure,
-        which is same with the one used in :meth:`FileWritableObj.content_writing`.
+        """The object hook for :func:`~json.load`.
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
@@ -126,12 +123,11 @@ class ArgumentsPrototype(FileReadableWritableObj):
                 the experiment's common parameters,
                 and the experiment's side product.
         """
-        missing_fields = [
-            k for k in ["arguments", "commonparams", "sideproduct"] if k not in raw_read
-        ]
+        missing_fields = {"arguments", "commonparams", "sideproduct"} - set(raw_read.keys())
         if missing_fields:
             raise ValueError(
-                f"Invalid raw_read for ArgumentsPrototype loading. Missing fields: {missing_fields}"
+                "Invalid raw_read for ArgumentsPrototype loading. "
+                + f"Missing fields: {', '.join(missing_fields)}"
             )
         data_args: dict[str, dict[str, Any]] = {
             "arguments": raw_read["arguments"],
@@ -143,7 +139,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         data_args = v7_to_v9_field_transpose(data_args)
 
         return (
-            cls.load(**data_args["arguments"]),
+            cls.ingest(**data_args["arguments"]),
             Commonparams(**data_args["commonparams"]),
             data_args["outfields"],
         )

@@ -783,23 +783,23 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         folder_filenames_writtens = [
             (
                 *self.args.folder_and_filename(exp_identifier),
-                self.args.content_writing(),
+                self.args.content_dumping(),
             ),
             (
                 *self.beforewards.folder_and_filename(exp_identifier),
-                self.beforewards.content_writing(export_transpiled_circuit),
+                self.beforewards.content_dumping(export_transpiled_circuit),
             ),
             (
                 *self.afterwards.folder_and_filename(exp_identifier),
-                self.afterwards.content_writing(),
+                self.afterwards.content_dumping(),
             ),
             (
                 *self.side_products.folder_and_filename(exp_identifier),
-                self.side_products.content_writing(),
+                self.side_products.content_dumping(),
             ),
             (
                 *self.reports.folder_and_filename(exp_identifier),
-                self.reports.content_writing(),
+                self.reports.content_dumping(),
             ),
         ]
 

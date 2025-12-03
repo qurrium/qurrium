@@ -11,10 +11,10 @@ class DataExportable(ABC):
 
     @abstractmethod
     def export(self) -> dict[str, Any]:
-        """Export data for file writing.
+        """Export the serializable data.
 
         Returns:
-            dict[str, Any]: The data to be exported.
+            dict[str, Any]: The serializable data.
         """
 
 
@@ -39,7 +39,7 @@ class FileWritableObj(DataExportable, ABC):
         """
 
     @abstractmethod
-    def content_writing(self) -> WrittenContentType:
+    def content_dumping(self) -> WrittenContentType:
         """Get the content to be written to files.
 
         Returns:
@@ -47,32 +47,32 @@ class FileWritableObj(DataExportable, ABC):
         """
 
 
-class DataLoadable(ABC):
+class DataIngestible(ABC):
     """The abstract base class for importing content."""
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
-        """Load from a raw dictionary.
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
 
         Args:
-            raw_dict (dict[str, Any]): The raw read dictionary.
+            raw_dict (dict[str, Any]): The raw serialized dictionary.
         """
 
         if is_dataclass(cls):
             return cls(**raw_dict)
 
-        raise NotImplementedError(f"The load method is not implemented for {cls.__name__}.")
+        raise NotImplementedError(f"The ingest method is not implemented for {cls.__name__}.")
 
 
-class FileReadableObj(DataLoadable, ABC):
+class FileReadableObj(DataIngestible, ABC):
     """The abstract base class for importing experiment data."""
 
     @abstractmethod
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for json.load.
+        """The object hook for :func:`~json.load`.
         Handle the raw read dictionary with specific structure,
-        which is same with the one used in :meth:`FileWritableObj.content_writing`.
+        which is same with the one used in :meth:`FileWritableObj.content_dumping`.
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
@@ -89,7 +89,7 @@ class FileReadableObj(DataLoadable, ABC):
         """
 
 
-class DataExportableLoadable(DataExportable, DataLoadable, ABC):
+class DataExportableIngestible(DataExportable, DataIngestible, ABC):
     """The abstract base class for exporting content."""
 
 

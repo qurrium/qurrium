@@ -26,10 +26,10 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         super().__init__()
 
     def export(self):
-        """Export the analyses for file writing.
+        """Export the serializable data.
 
         Returns:
-            dict[int, dict[str, Any]]: The exported analyses.
+            dict[str, Any]: The serializable data.
         """
 
         return {k: v.export() for k, v in self.items()}
@@ -46,7 +46,7 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         """
         return FOLDER_NAME, FILENAME_TEMPLATE.format(identifier)
 
-    def content_writing(self) -> WrittenContentType[dict[int, dict[str, Any]]]:
+    def content_dumping(self) -> WrittenContentType[dict[int, dict[str, Any]]]:
         """Get the content to be written to files.
 
         Returns:
@@ -55,9 +55,8 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         return {"reports": self.export()}
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
-        """Load from a raw dictionary.
-        Also works for the inner process in object_hook in json.load.
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The dictionary to deserialize.
@@ -66,11 +65,11 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
             The deserialized analysis instance, or None if not applicable.
         """
 
-        return {int(k): cls.load(v) for k, v in raw_dict.items()}
+        return {int(k): cls.ingest(v) for k, v in raw_dict.items()}
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for json.load.
+        """The object hook for :func:`~json.load`.
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
@@ -81,7 +80,7 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         if "report" not in raw_read:
             raise KeyError("The 'report' field is missing in the raw read data.")
 
-        return cls.load(raw_read["report"])
+        return cls.ingest(raw_read["report"])
 
     @classmethod
     def read(cls, file_index: dict[str, str], save_location: Path):
@@ -123,7 +122,7 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
     def create(
         cls, reports: Optional["AnalysesContainer[_R]"], *, analysis_instance: type[_R]
     ) -> "AnalysesContainer[_R]":
-        """Create an AnalysesContainer from the given reports.
+        """Create an :class:`AnalysesContainer` from the given reports.
 
         Args:
             reports (Optional[AnalysesContainer[_R]]): The reports to be parsed.

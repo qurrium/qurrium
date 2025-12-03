@@ -5,7 +5,7 @@ from abc import ABCMeta
 from dataclasses import dataclass, fields
 import warnings
 
-from ..json_io import DataExportableLoadable
+from ..json_io import DataExportableIngestible
 from ...exceptions import QurryInvalidInherition
 
 
@@ -27,10 +27,10 @@ def erabc_export(
     return wrapper
 
 
-def erabc_load(
+def erabc_ingest(
     func: Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]],
 ) -> Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]]:
-    """The decorator for load method of :class:`AnalysisERABC` to check class name.
+    """The decorator for ingest method of :class:`AnalysisERABC` to check class name.
 
     Args:
         func (Callable): The original load function.
@@ -78,19 +78,19 @@ class AnalysisERABCMeta(ABCMeta):
                 decorated_export._erabc_exported_decorated = True
                 setattr(cls, "export", decorated_export)
 
-        if "load" in namespace:
-            original_load = namespace["load"]
+        if "ingest" in namespace:
+            original_ingest = namespace["ingest"]
 
-            if not hasattr(original_load, "_erabc_loaded_decorated"):
-                decorated_load = erabc_load(original_load)
-                decorated_load._erabc_loaded_decorated = True
-                setattr(cls, "load", decorated_load)
+            if not hasattr(original_ingest, "_erabc_ingested_decorated"):
+                decorated_ingest = erabc_ingest(original_ingest)
+                decorated_ingest._erabc_ingested_decorated = True
+                setattr(cls, "ingest", decorated_ingest)
 
         return cls
 
 
 @dataclass(frozen=True)
-class AnalysisERABC(DataExportableLoadable, metaclass=AnalysisERABCMeta):
+class AnalysisERABC(DataExportableIngestible, metaclass=AnalysisERABCMeta):
     """Construct the analyze entries's and results's parameters for specific options,
     which should be overwritable by the inherition class of this base class."""
 
@@ -130,22 +130,22 @@ class AnalysisERABC(DataExportableLoadable, metaclass=AnalysisERABCMeta):
                 )
 
     def export(self) -> dict[str, Any]:
-        """Export the results for file writing.
+        """Export the serializable data.
 
         Returns:
-            dict[str, Any]: The data to be exported.
+            dict[str, Any]: The serializable data.
         """
         return {field: getattr(self, field) for field in self.fields}
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
-        """Load the results from a dictionary.
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
 
         Args:
-            raw_dict (dict[str, Any]): The data to load.
-
+            raw_dict (dict[str, Any]): The raw serialized dictionary.
+        
         Returns:
-            The loaded results object.
+            The class instance created from the raw dictionary.
         """
         return cls(**raw_dict)
 

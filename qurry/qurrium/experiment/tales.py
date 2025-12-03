@@ -42,7 +42,7 @@ class Tales(dict[str, Any], FileReadableWritableObj):
         """
         return FOLDER_NAME, FILENAME_TEMPLATE.format(identifier)
 
-    def content_writing(self) -> WrittenContentType[dict[str, Any]]:
+    def content_dumping(self) -> WrittenContentType[dict[str, Any]]:
         """Get the content to be written to files.
 
         Returns:
@@ -51,8 +51,8 @@ class Tales(dict[str, Any], FileReadableWritableObj):
         return {"side_products": self.export()}
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
-        """Load from a raw dictionary.
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The raw read dictionary.
@@ -61,7 +61,7 @@ class Tales(dict[str, Any], FileReadableWritableObj):
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for json.load.
+        """The object hook for :func:`~json.load`.
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_writing`.
 
@@ -75,7 +75,7 @@ class Tales(dict[str, Any], FileReadableWritableObj):
             raise KeyError("The 'side_products' field is missing in the raw read data.")
 
         side_products_dict: dict[str, Any] = raw_read["side_products"]
-        return cls.load(side_products_dict)
+        return cls.ingest(side_products_dict)
 
     @classmethod
     def read(cls, file_index: dict[str, str], save_location: Path) -> "Tales":

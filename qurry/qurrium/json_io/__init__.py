@@ -2,8 +2,8 @@
 
 from .abc import (
     DataExportable,
-    DataLoadable,
-    DataExportableLoadable,
+    DataIngestible,
+    DataExportableIngestible,
     FileWritableObj,
     FileReadableObj,
     FileReadableWritableObj,

@@ -70,7 +70,7 @@ class After(FileReadableWritableObj):
         """
         return {"counts": self.counts}
 
-    def content_writing(self) -> WrittenContentType[dict[str, list[dict[str, int]]]]:
+    def content_dumping(self) -> WrittenContentType[dict[str, list[dict[str, int]]]]:
         """Get the content to be written to files.
 
         Returns:
@@ -80,7 +80,7 @@ class After(FileReadableWritableObj):
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for json.load.
+        """The object hook for :func:`~json.load`.
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_writing`.
 
@@ -97,7 +97,7 @@ class After(FileReadableWritableObj):
         for k, dv in cls.default_value().items():
             if k not in legacy_dict:
                 legacy_dict[k] = dv
-        return cls.load(legacy_dict)
+        return cls.ingest(legacy_dict)
 
     @classmethod
     def read(cls, file_index: dict[str, str], save_location: Path) -> "After":

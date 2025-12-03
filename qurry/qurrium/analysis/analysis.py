@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 from .declare import _RA
 from .ers import _RR, implementation_check_results, _RM, _PE, implementation_check_entries
-from ..json_io import DataExportableLoadable
+from ..json_io import DataExportableIngestible
 from ..arguments import _A, Commonparams
 from ...capsule import jsonablize
 from ...capsule.hoshi import Hoshi
@@ -13,7 +13,7 @@ from ...tools.datetime import current_time
 from ...exceptions import QurryInvalidInherition
 
 
-class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableLoadable):
+class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestible):
     """The base instance for the analysis of
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
@@ -251,7 +251,7 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableLoadable)
         }
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any]):
         """Load the analysis from a raw read dictionary.
 
         Args:
@@ -260,32 +260,26 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableLoadable)
         Returns:
             The analysis instance.
         """
-        missing_keys = [
-            k
-            for k in [
-                "__class__",
-                "header",
-                "analyze_arguments",
-                "postprocess_entries",
-                "middleware_entries",
-                "results",
-            ]
-            if k not in raw_dict
-        ]
-        if len(missing_keys) > 0:
-            raise ValueError(
-                f"The raw read dictionary is missing required keys. Missing keys: {missing_keys}"
-            )
+        missing_keys = {
+            "__class__",
+            "header",
+            "analyze_arguments",
+            "postprocess_entries",
+            "middleware_entries",
+            "results",
+        } - set(raw_dict.keys())
+        if missing_keys:
+            raise ValueError(f"Missing fields for {cls.__name__}: {', '.join(missing_keys)}")
         if raw_dict["__class__"] != cls.__name__:
             raise ValueError(
                 f"The raw read dictionary class '{raw_dict['__class__']}' does not match "
                 f"the expected class '{cls.__name__}'."
             )
 
-        postprocess_entries = cls.postprocess_entries_type().load(raw_dict["postprocess_entries"])
-        middleware_entries = cls.middleware_entries_type().load(raw_dict["middleware_entries"])
+        postprocess_entries = cls.postprocess_entries_type().ingest(raw_dict["postprocess_entries"])
+        middleware_entries = cls.middleware_entries_type().ingest(raw_dict["middleware_entries"])
         results = {
-            k: cls.available_results_types()[k].load(v) for k, v in raw_dict["results"].items()
+            k: cls.available_results_types()[k].ingest(v) for k, v in raw_dict["results"].items()
         }
         outfields = raw_dict.get("outfields", {})
 
