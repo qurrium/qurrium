@@ -138,9 +138,23 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
     """
     unitary_located: Optional[list[int]] = None
     """The range of the unitary operator."""
+    counts_used: Optional[Iterable[int]] = None
+    """The index of the counts used. If not specified, then use all counts."""
+
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
+
+        Returns:
+            dict[str, Any]: The data to be exported.
+        """
+
+        return {
+            **self.asdict(),
+            "counts_used": list(self.counts_used) if self.counts_used is not None else None,
+        }
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any]):
         """Load the results from a dictionary.
 
         Args:
@@ -149,19 +163,27 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
         Returns:
             The loaded results object.
         """
-        preprocessed_data = {}
-        for field in cls.dataclass_fields():
-            value = raw_dict.get(field, None)
-            if field in {"registers_mapping", "bitstring_mapping", "final_mapping"} and isinstance(
-                value, dict
-            ):
-                preprocessed_data[field] = {int(k): int(v) for k, v in value.items()}
-            elif field == "unitary_located" and isinstance(value, list):
-                preprocessed_data[field] = [int(v) for v in value]
-            else:
-                preprocessed_data[field] = value
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
 
-        return cls(**preprocessed_data)
+        return cls(
+            num_qubits=raw_dict["num_qubits"],
+            selected_qubits=raw_dict["selected_qubits"],
+            registers_mapping={int(k): int(v) for k, v in raw_dict["registers_mapping"].items()},
+            bitstring_mapping={int(k): int(v) for k, v in raw_dict["bitstring_mapping"].items()},
+            final_mapping={int(k): int(v) for k, v in raw_dict["final_mapping"].items()},
+            unitary_located=(
+                None
+                if raw_dict.get("unitary_located") is None
+                else [int(v) for v in raw_dict["unitary_located"]]
+            ),
+            counts_used=(
+                None
+                if raw_dict.get("counts_used") is None
+                else [int(v) for v in raw_dict["counts_used"]]
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -186,26 +208,31 @@ class EMRProcessEntries(ProcessEntriesPrototype):
 
         return {
             "selected_classical_registers": self.selected_classical_registers,
-            "existed_all_system": EMRAllSystemResult(**self.existed_all_system).export()
-            if self.existed_all_system is not None
-            else None,
+            "existed_all_system": (
+                EMRAllSystemResult(**self.existed_all_system).export()
+                if self.existed_all_system is not None
+                else None
+            ),
             "backend": self.backend,
         }
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any]):
         """Load the results from a dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The data to load.
         """
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
 
         if raw_dict["existed_all_system"] is None:
             return cls(**raw_dict)
 
         existed_all_system_data = raw_dict.get("existed_all_system")
         raw_dict["existed_all_system"] = (
-            EMRAllSystemResult.load(existed_all_system_data)
+            EMRAllSystemResult.ingest(existed_all_system_data)
             if existed_all_system_data is not None
             else None
         )
@@ -270,7 +297,7 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         }
 
     @classmethod
-    def load(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any]):
         """Load the results from a dictionary.
 
         Args:
@@ -428,7 +455,7 @@ class EMRAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: EMRAnalyzeArgs,
         existed_all_system: Optional[AllSystemResult] = None,
-    ) -> tuple[EMRAnalyzeArgs, EMRMiddleware, EMRProcessEntries]:
+    ) -> tuple[EMRAnalyzeArgs, EMRMiddleware, EMRProcessEntries, list[dict[str, int]]]:
         """Generate the entries for analysis.
 
         Args:
@@ -440,7 +467,7 @@ class EMRAnalysis(
                 The source of all system. Defaults to None.
 
         Returns:
-            The generated entries for analysis.
+            The generated entries for analysis and the possibly filtered counts.
         """
         if arguments.registers_mapping is None:
             raise ValueError("The `registers_mapping` must be provided in arguments.")
@@ -453,7 +480,9 @@ class EMRAnalysis(
                 )
             counts = [counts[i] for i in counts_used]
         elif counts_used is not None:
-            raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
+            raise TypeError(
+                f"counts_used should be Iterable[int] or None, but got {type(counts_used)}."
+            )
 
         bitstring_mapping, final_mapping = bitstring_mapping_getter(
             counts, arguments.registers_mapping
@@ -475,12 +504,14 @@ class EMRAnalysis(
                 bitstring_mapping=bitstring_mapping,
                 final_mapping=final_mapping,
                 unitary_located=arguments.unitary_located,
+                counts_used=counts_used,
             ),
             EMRProcessEntries(
                 selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
                 existed_all_system=existed_all_system,
                 backend=analyze_arguments.get("backend", DEFAULT_PROCESS_BACKEND),
             ),
+            counts,
         )
 
     @classmethod
@@ -513,16 +544,18 @@ class EMRAnalysis(
         Returns:
             The result of the analysis.
         """
-        analyze_arguments, middleware_entries, postprocess_entries = cls.generate_entries(
-            arguments,
-            commonparams,
-            counts,
-            analyze_arguments,
-            existed_all_system,
+        analyze_arguments, middleware_entries, postprocess_entries, selected_counts = (
+            cls.generate_entries(
+                arguments,
+                commonparams,
+                counts,
+                analyze_arguments,
+                existed_all_system,
+            )
         )
         tgt_sys_dict, all_sys_dict, mitigated_dict = cls.quantities(
             shots=commonparams.shots,
-            counts=counts,
+            counts=selected_counts,
             selected_classical_registers=postprocess_entries.selected_classical_registers,
             existed_all_system=postprocess_entries.existed_all_system,
             backend=postprocess_entries.backend,

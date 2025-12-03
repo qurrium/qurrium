@@ -270,26 +270,11 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
             EntropyMeasureRandomizedAnalysis: The result of the analysis.
         """
 
-        if selected_qubits is None:
-            raise ValueError("selected_qubits should be specified.")
-
-        if isinstance(counts_used, Iterable):
-            if max(counts_used) >= len(self.afterwards.counts):
-                raise ValueError(
-                    "counts_used should be less than "
-                    f"{len(self.afterwards.counts)}, but get {max(counts_used)}."
-                )
-            counts = [self.afterwards.counts[i] for i in counts_used]
-        elif counts_used is not None:
-            raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
-        else:
-            counts = self.afterwards.counts
-
         available_all_system_source = [
             k
             for k, v in self.reports.items()
             if v.is_independent_all_system(
-                list(range(len(counts))) if counts_used is None else counts_used
+                range(len(self.afterwards.counts)) if counts_used is None else counts_used
             )
         ]
         all_system_source = (
@@ -302,17 +287,17 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         analysis = self.analysis_type().perform_analysis(
             arguments=self.args,
             commonparams=self.commons,
-            counts=counts,
+            counts=self.afterwards.counts,
             analyze_arguments={
-                "selected_qubits": list(selected_qubits),
+                "selected_qubits": list(selected_qubits) if selected_qubits is not None else None,
                 "independent_all_system": independent_all_system,
                 "backend": backend,
                 "counts_used": counts_used,
             },
             serial=serial,
-            existed_all_system=all_system_source.get_all_system_result()
-            if all_system_source is not None
-            else None,
+            existed_all_system=(
+                all_system_source.get_all_system_result() if all_system_source is not None else None
+            ),
         )
 
         self.reports[analysis.serial] = analysis
