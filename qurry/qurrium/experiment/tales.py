@@ -1,7 +1,7 @@
 """The Side Product Container (:mod:`qurry.qurrium.experiment.tales`)"""
 
 import json
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Generic, cast
 from pathlib import Path
 
 from ...capsule import jsonablize
@@ -14,12 +14,53 @@ FOLDER_NAME = "tales"
 FILENAME_TEMPLATE = "{}.tales.json"
 """Filename template for side products export."""
 
+_SPT = TypeVar("_SPT", bound=dict[str, Any])
+"""Type variable for side product types. This made for :class:`~typing.TypedDict`.
+For example:
 
-class Tales(dict[str, Any], FileReadableWritableObj):
-    """A customized dictionary for storing side products."""
+.. code-block:: python
+
+    from typing import TypedDict
+
+    class MySchema(TypedDict):
+        count: int
+        name: str
+
+    tales: Tales[MySchema] = Tales({"count": 42, "name": "test"})
+    typed_data = tales.as_typed()
+    print(typed_data["count"])
+
+>>> 42
+
+"""
+
+
+class Tales(Generic[_SPT], dict[str, Any], FileReadableWritableObj):
+    """A customized dictionary for storing side products.
+    
+    This supports type checking with :class:`~typing.TypedDict`.
+    
+    .. code-block:: python
+
+        from typing import TypedDict
+
+        class MySchema(TypedDict):
+            count: int
+            name: str
+
+        tales: Tales[MySchema] = Tales({"count": 42, "name": "test"})
+        typed_data = tales.as_typed()
+        print(typed_data["count"])
+
+    >>> 42
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def as_typed(self) -> _SPT:
+        """Return self as the typed version for type checking."""
+        return cast(_SPT, self)
 
     def export(self) -> dict[str, Any]:
         """Export the side products for file writing.
