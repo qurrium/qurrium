@@ -87,8 +87,7 @@ class ELHAnalysis(
             counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
 
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
+            A dictionary contains wavefunction overlap or Loschmidt echo.
         """
 
         return hadamard_overlap_echo(shots=shots, counts=counts)

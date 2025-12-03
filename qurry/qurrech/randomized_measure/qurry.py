@@ -5,7 +5,6 @@
 
 from pathlib import Path
 from typing import Union, Optional, Any, Type, Literal, Iterable
-from collections.abc import Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -18,18 +17,24 @@ from .arguments import (
     EchoListenRandomizedAnalyzeArgs,
 )
 from .experiment import (
-    EchoListenRandomizedExperiment,
+    ELRExperiment,
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...qurrium import QurriumPrototype
+from ...qurrium import (
+    QurriumPrototype,
+    WCKeyable,
+    TranspileArgs,
+    RunArgsType,
+    PassManagerType,
+    SpecificAnalyzeArgs,
+)
 from ...qurrium.utils import passmanager_processor
-from ...declare import RunArgsType, TranspileArgs, PassManagerType, SpecificAnalsisArgs
 
 
 class EchoListenRandomized(
     QurriumPrototype[
-        EchoListenRandomizedExperiment,
+        ELRExperiment,
         EchoListenRandomizedMeasureArgs,
         EchoListenRandomizedOutputArgs,
         EchoListenRandomizedAnalyzeArgs,
@@ -67,14 +72,14 @@ class EchoListenRandomized(
     short_name = SHORT_NAME
 
     @property
-    def experiment_instance(self) -> Type[EchoListenRandomizedExperiment]:
+    def experiment_instance(self) -> Type[ELRExperiment]:
         """The container class responding to this Qurrium class."""
-        return EchoListenRandomizedExperiment
+        return ELRExperiment
 
     def measure_to_output(
         self,
-        wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
-        wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         times: int = 100,
         measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
         measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -102,9 +107,9 @@ class EchoListenRandomized(
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave1 (Union[QuantumCircuit, Hashable]):
+            wave1 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, Hashable]):
+            wave2 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -240,8 +245,8 @@ class EchoListenRandomized(
 
     def measure(
         self,
-        wave1: Optional[Union[QuantumCircuit, Hashable]] = None,
-        wave2: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         times: int = 100,
         measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
         measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -269,9 +274,9 @@ class EchoListenRandomized(
         """Execute the experiment.
 
         Args:
-            wave1 (Union[QuantumCircuit, Hashable]):
+            wave1 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, Hashable]):
+            wave2 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -404,7 +409,7 @@ class EchoListenRandomized(
         *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs[EchoListenRandomizedAnalyzeArgs] = None,
+        specific_analysis_args: SpecificAnalyzeArgs[EchoListenRandomizedAnalyzeArgs] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments

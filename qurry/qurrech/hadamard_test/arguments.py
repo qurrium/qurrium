@@ -1,6 +1,6 @@
 """EchoListenHadamard - Arguments (:mod:`qurry.qurrech.hadamard_test.arguments`)"""
 
-from typing import Optional, Union
+from typing import Any, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -12,13 +12,26 @@ from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 class ELHArguments(ArgumentsPrototype):
     """Arguments for :class:`~qurry.qurrech.hadamard_test.experiment.ELHExperiment`."""
 
-    exp_name: str = "exps"
+    exp_name: str
     """The name of the experiment.
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    degree: Optional[tuple[int, int]] = None
+    degree: tuple[int, int]
     """The degree range."""
+
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            degree=tuple(raw_dict["degree"]),
+        )
 
 
 class ELHMeasureArgs(BasicArgs, total=False):
@@ -26,9 +39,9 @@ class ELHMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurrech.hadamard_test.qurry.EchoListenHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave1: Optional[Union[QuantumCircuit, WCKeyable]]
+    wave1: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
-    wave2: Optional[Union[QuantumCircuit, WCKeyable]]
+    wave2: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
     degree: Union[int, tuple[int, int], None]
     """The degree range."""

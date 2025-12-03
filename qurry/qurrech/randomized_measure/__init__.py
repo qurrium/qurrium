@@ -3,7 +3,7 @@
 
 """
 
-from .analysis import EchoListenRandomizedAnalysis
+from .analysis import ELRAnalysis
 from .arguments import EchoListenRandomizedMeasureArgs
-from .experiment import EchoListenRandomizedExperiment
+from .experiment import ELRExperiment
 from .qurry import EchoListenRandomized

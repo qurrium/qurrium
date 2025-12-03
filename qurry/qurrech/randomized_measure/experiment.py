@@ -1,7 +1,7 @@
 """EchoListenRandomized - Experiment (:mod:`qurry.qurrech.randomized_measure.experiment`)"""
 
-from typing import Union, Optional, Any, Type, Literal
-from collections.abc import Iterable, Hashable
+from typing import Union, Optional, Any, Literal
+from collections.abc import Iterable
 from pathlib import Path
 import warnings
 import tqdm
@@ -10,18 +10,18 @@ from qiskit import transpile, QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
-from .analysis import EchoListenRandomizedAnalysis
-from .arguments import EchoListenRandomizedArguments, SHORT_NAME
+from .analysis import ELRAnalysis
+from .arguments import ELRArguments, SHORT_NAME
 from .utils import (
     overlapping_given_check,
     overlapping_size_check,
     unitary_full_cover_check,
     create_config,
 )
-from ...qurrent.randomized_measure.utils import randomized_circuit_method
-from ...qurrium.experiment import ExperimentPrototype, Commonparams, memory_usage_factor_expect
-from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps, bitstring_mapping_getter
-from ...process.utils import single_counts_recount_pyrust
+from ...qurrent.randomized_measure.utils import make_samplied_circuit
+from ...qurrium import ExperimentPrototype, Commonparams, RunArgsType, TranspileArgs, WCKeyable
+from ...qurrium.experiment import memory_usage_factor_expect
+from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure import (
     check_random_unitary_seeds,
@@ -29,40 +29,30 @@ from ...process.randomized_measure import (
     local_unitary_op_to_list,
     local_unitary_op_to_pauli_coeff,
 )
-from ...process.randomized_measure.wavefunction_overlap import (
-    randomized_overlap_echo,
-    DEFAULT_PROCESS_BACKEND,
-    WaveFuctionOverlapResult,
-)
+from ...process.randomized_measure.wavefunction_overlap import DEFAULT_PROCESS_BACKEND
 from ...tools import ParallelManager, set_pbar_description, backend_name_getter
-from ...declare import RunArgsType, TranspileArgs
-from ...exceptions import (
-    SeperatedExecutingOverlapResult,
-    QurryTranspileConfigurationIgnored,
-)
+from ...exceptions import SeperatedExecutingOverlapResult, QurryTranspileConfigurationIgnored
 
 
-class EchoListenRandomizedExperiment(
-    ExperimentPrototype[EchoListenRandomizedArguments, EchoListenRandomizedAnalysis]
-):
+class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
     """The instance of experiment."""
 
-    __name__ = "EchoListenRandomizedExperiment"
+    __name__ = "ELRExperiment"
 
-    @property
-    def arguments_instance(self) -> Type[EchoListenRandomizedArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[ELRArguments]:
         """The arguments instance for this experiment."""
-        return EchoListenRandomizedArguments
+        return ELRArguments
 
-    @property
-    def analysis_instance(self) -> Type[EchoListenRandomizedAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[ELRAnalysis]:
         """The analysis instance for this experiment."""
-        return EchoListenRandomizedAnalysis
+        return ELRAnalysis
 
     @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         times: int = 100,
         measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -73,11 +63,11 @@ class EchoListenRandomizedExperiment(
         second_backend: Optional[Union[Backend, str]] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
-    ) -> tuple[EchoListenRandomizedArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[ELRArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             exp_name (str, optional):
                 The name of the experiment.
@@ -204,8 +194,7 @@ class EchoListenRandomizedExperiment(
                 f"second_backend should be Backend or not given, but got {type(second_backend)}."
             )
 
-        # pylint: disable=protected-access
-        return EchoListenRandomizedArguments._filter(
+        return ELRArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key_1, target_key_2],
             times=times,
@@ -221,20 +210,19 @@ class EchoListenRandomizedExperiment(
             random_unitary_seeds=random_unitary_seeds,
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: EchoListenRandomizedArguments,
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
+        arguments: ELRArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = True,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arguments (EchoListenRandomizedArguments):
                 The arguments of the experiment.
@@ -255,19 +243,14 @@ class EchoListenRandomizedExperiment(
         target_key_2 = "" if isinstance(target_key_2, int) else str(target_key_2)
 
         set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-        assert arguments.unitary_located_mapping_1 is not None, (
-            "unitary_located_1 should be specified."
-        )
-        assert arguments.unitary_located_mapping_2 is not None, (
-            "unitary_located_2 should be specified."
-        )
         assert len(arguments.unitary_located_mapping_1) == len(
             arguments.unitary_located_mapping_2
         ), (
             "The number of unitary_located_mapping_1 and "
             + "unitary_located_mapping_2 should be the same, "
             + f"but got {len(arguments.unitary_located_mapping_1)} "
-            + f"and {len(arguments.unitary_located_mapping_2)}."
+            + f"and {len(arguments.unitary_located_mapping_2)}. "
+            + "This should be ensured in the function 'params_control'."
         )
         unitary_dicts_source = generate_random_unitary(
             arguments.times,
@@ -286,12 +269,10 @@ class EchoListenRandomizedExperiment(
             }
 
         set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
-        assert arguments.registers_mapping_1 is not None, "registers_mapping_1 should be specified."
-        assert arguments.registers_mapping_2 is not None, "registers_mapping_2 should be specified."
         if multiprocess:
             pool = ParallelManager()
             circ_list = pool.starmap(
-                randomized_circuit_method,
+                make_samplied_circuit,
                 [
                     (
                         n_u_i,
@@ -328,7 +309,7 @@ class EchoListenRandomizedExperiment(
 
         else:
             circ_list = [
-                randomized_circuit_method(
+                make_samplied_circuit(
                     n_u_i,
                     target_circuit_1,
                     target_key_1,
@@ -338,7 +319,7 @@ class EchoListenRandomizedExperiment(
                 )
                 for n_u_i in range(arguments.times)
             ] + [
-                randomized_circuit_method(
+                make_samplied_circuit(
                     n_u_i + arguments.times,
                     target_circuit_2,
                     target_key_2,
@@ -368,7 +349,7 @@ class EchoListenRandomizedExperiment(
     @classmethod
     def build(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -378,7 +359,7 @@ class EchoListenRandomizedExperiment(
         tags: Optional[tuple[str, ...]] = None,
         # multimanager
         serial: Optional[int] = None,
-        summoner_id: Optional[Hashable] = None,
+        summoner_id: Optional[str] = None,
         summoner_name: Optional[str] = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
@@ -393,7 +374,7 @@ class EchoListenRandomizedExperiment(
         """Construct the experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -421,7 +402,7 @@ class EchoListenRandomizedExperiment(
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[Hashable], optional):
+            summoner_id (Optional[str], optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -486,21 +467,21 @@ class EchoListenRandomizedExperiment(
                 )
         assert isinstance(current_exp.commons.backend, Backend), (
             f"Invalid backend: {current_exp.commons.backend} as "
-            + f"type {type(current_exp.commons.backend)}."
+            + f"type {type(current_exp.commons.backend)}. "
         )
 
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
         current_exp.beforewards.target.extend(targets)
-        cirqs, side_prodict = current_exp.method(
+        cirqs, side_products = current_exp.method(
             targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
-        current_exp.beforewards.side_product.update(side_prodict)
+        current_exp.side_products.update(side_products)
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
         targets_keys, targets_values = zip(*targets)
-        targets_keys: tuple[Hashable, ...]
+        targets_keys: tuple[WCKeyable, ...]
         targets_values: tuple[QuantumCircuit, ...]
 
         if multiprocess:
@@ -667,7 +648,8 @@ class EchoListenRandomizedExperiment(
             f"Current backend {self.commons.backend} needs to be backend not "
             + f"{type({self.commons.backend})}."
         )
-        assert hasattr(self.commons.backend, "run"), "Current backend is not runnable."
+        if not hasattr(self.commons.backend, "run"):
+            raise ValueError("Current backend is not runnable.")
 
         if self.args.second_backend is None:
             set_pbar_description(pbar, "Executing with single backend...")
@@ -811,7 +793,7 @@ class EchoListenRandomizedExperiment(
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EchoListenRandomizedAnalysis:
+    ) -> ELRAnalysis:
         """Calculate wave function overlap with more information combined.
 
         Args:
@@ -834,153 +816,18 @@ class EchoListenRandomizedExperiment(
             EchoListenRandomizedAnalysis: The result of the experiment
         """
 
-        shots = self.commons.shots
-        assert self.args.registers_mapping_1 is not None, "registers_mapping_1 should be not None."
-        assert self.args.registers_mapping_2 is not None, "registers_mapping_2 should be not None."
-        existed_classical_registers = list(self.args.registers_mapping_1.values())
-        existed_classical_registers_check = list(self.args.registers_mapping_2.values())
-        assert existed_classical_registers == existed_classical_registers_check, (
-            "The classical registers of two circuits should be the same, "
-            + f"but got {existed_classical_registers} and {existed_classical_registers_check}."
-            + f"from registers_mapping_1: {self.args.registers_mapping_1} and "
-            + f"registers_mapping_2: {self.args.registers_mapping_2}."
-        )
-        assert existed_classical_registers == list(range(len(existed_classical_registers))), (
-            "The classical registers should be continuous, "
-            + f"but got {existed_classical_registers}."
-        )
-
-        classical_registers_num = len(existed_classical_registers)
-        selected_classical_registers = (
-            list(self.args.registers_mapping_1.values())
-            if selected_classical_registers is None
-            else [ci % classical_registers_num for ci in selected_classical_registers]
-        )
-        assert len(set(selected_classical_registers)) == len(selected_classical_registers), (
-            "The selected_classical_registers should not have duplicated elements, "
-            + f"but got {selected_classical_registers}."
-        )
-        not_existed_classical_registers = [
-            ci for ci in selected_classical_registers if ci not in existed_classical_registers
-        ]
-        if not_existed_classical_registers:
-            raise ValueError(
-                f"Some classical registers {not_existed_classical_registers} "
-                + "are not existed in the register mapping of two circuit. "
-                + f"registers_mapping_1: {self.args.registers_mapping_1}, "
-                + f"registers_mapping_2: {self.args.registers_mapping_2}, "
-                + f"selected: {selected_classical_registers}"
-            )
-
-        first_countses = self.afterwards.counts[: self.args.times]
-        second_countses = self.afterwards.counts[self.args.times :]
-        assert len(first_countses) == len(second_countses), (
-            "The number of first and second counts should be the same, "
-            + f"but got {len(first_countses)} and {len(second_countses)}. "
-            + f"from counts with length {len(self.afterwards.counts)}, "
-            + f"times: {self.args.times}."
-        )
-
-        bitstring_mapping_1, final_mapping_1 = bitstring_mapping_getter(
-            first_countses, self.args.registers_mapping_1
-        )
-        bitstring_mapping_2, final_mapping_2 = bitstring_mapping_getter(
-            second_countses, self.args.registers_mapping_2
-        )
-
-        actual_bitstring_1_num_and_list = (
-            len(list(first_countses[0].keys())[0]),
-            list(final_mapping_1.values()),
-        )
-        first_counts_of_last_clreg = [
-            single_counts_recount_pyrust(
-                counts,
-                actual_bitstring_1_num_and_list[0],
-                actual_bitstring_1_num_and_list[1],
-            )
-            for counts in first_countses
-        ]
-
-        actual_bitstring_2_num_and_list = (
-            len(list(second_countses[0].keys())[0]),
-            list(final_mapping_2.values()),
-        )
-        second_counts_of_last_clreg = [
-            single_counts_recount_pyrust(
-                counts,
-                actual_bitstring_2_num_and_list[0],
-                actual_bitstring_2_num_and_list[1],
-            )
-            for counts in second_countses
-        ]
-
-        qs = self.quantities(
-            shots=shots,
-            first_counts=first_counts_of_last_clreg,
-            second_counts=second_counts_of_last_clreg,
-            selected_classical_registers=selected_classical_registers,
-            backend=backend,
-            pbar=pbar,
-        )
-
         serial = len(self.reports)
-        analysis = self.analysis_instance(
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
+            counts=self.afterwards.counts,
+            analyze_arguments={
+                "selected_classical_registers": selected_classical_registers,
+                "backend": backend,
+                "counts_used": counts_used,
+            },
             serial=serial,
-            shots=shots,
-            registers_mapping_1=self.args.registers_mapping_1,
-            registers_mapping_2=self.args.registers_mapping_2,
-            unitary_located_mapping_1=self.args.unitary_located_mapping_1,
-            unitary_located_mapping_2=self.args.unitary_located_mapping_2,
-            bitstring_mapping_1=bitstring_mapping_1,
-            bitstring_mapping_2=bitstring_mapping_2,
-            counts_used=counts_used,
-            **qs,  # type: ignore
         )
 
         self.reports[serial] = analysis
         return analysis
-
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        first_counts: Optional[list[dict[str, int]]] = None,
-        second_counts: Optional[list[dict[str, int]]] = None,
-        selected_classical_registers: Optional[Iterable[int]] = None,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> WaveFuctionOverlapResult:
-        """Calculate entangled entropy with more information combined.
-
-        Args:
-            shots (int):
-                Shots of the experiment on quantum machine.
-            first_counts (list[dict[str, int]]):
-                Counts of the experiment on quantum machine.
-            second_counts (list[dict[str, int]]):
-                Counts of the experiment on quantum machine.
-            selected_classical_registers (Optional[Iterable[int]], optional):
-                The list of **the index of the selected_classical_registers**.
-            backend (ExistingProcessBackendLabel, optional):
-                Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API,
-                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
-                This function will update the progress bar description.
-                Defaults to None.
-
-        Returns:
-            WaveFuctionOverlapResult: A dictionary contains purity, entropy,
-                a list of each overlap, puritySD, degree, actual measure range, bitstring range.
-        """
-        if first_counts is None or second_counts is None or shots is None:
-            raise ValueError("first_counts, second_counts, and shots must be specified.")
-
-        return randomized_overlap_echo(
-            shots=shots,
-            first_counts=first_counts,
-            second_counts=second_counts,
-            selected_classical_registers=selected_classical_registers,
-            backend=backend,
-            pbar=pbar,
-        )

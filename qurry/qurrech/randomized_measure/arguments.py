@@ -1,42 +1,34 @@
-"""EchoListenRandomized - Arguments
-(:mod:`qurry.qurrech.randomized_measure.arguments`)
+"""EchoListenRandomized - Arguments (:mod:`qurry.qurrech.randomized_measure.arguments`)"""
 
-"""
-
-from typing import Optional, Union, Iterable, Any
-from collections.abc import Hashable
+from typing import Any, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 from qiskit.transpiler.passmanager import PassManager
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...process.randomized_measure.wavefunction_overlap import (
-    PostProcessingBackendLabel,
-)
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, TranspileArgs, WCKeyable
 from ...tools import backend_name_getter
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs, TranspileArgs
 
 
 @dataclass(frozen=True)
-class EchoListenRandomizedArguments(ArgumentsPrototype):
+class ELRArguments(ArgumentsPrototype):
     """Arguments for
-    :class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""
+    :class:`~qurry.qurrech.randomized_measure.experiment.ELRExperiment`."""
 
-    exp_name: str = "exps"
+    exp_name: str
     """The name of the experiment.
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    times: int = 100
+    times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    qubits_measured_1: Optional[list[int]] = None
+    qubits_measured_1: list[int]
     """The measure range for the first quantum circuit."""
-    qubits_measured_2: Optional[list[int]] = None
+    qubits_measured_2: list[int]
     """The measure range for the second quantum circuit."""
-    registers_mapping_1: Optional[dict[int, int]] = None
+    registers_mapping_1: dict[int, int]
     """The mapping of the classical registers with quantum registers.
     for the first quantum circuit.
 
@@ -52,7 +44,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the classical register with the numerical order.
     """
-    registers_mapping_2: Optional[dict[int, int]] = None
+    registers_mapping_2: dict[int, int]
     """The mapping of the classical registers with quantum registers.
     for the second quantum circuit.
 
@@ -68,11 +60,11 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the classical register with the numerical order.
     """
-    actual_num_qubits_1: int = 0
+    actual_num_qubits_1: int
     """The actual number of qubits of the first quantum circuit."""
-    actual_num_qubits_2: int = 0
+    actual_num_qubits_2: int
     """The actual number of qubits of the second quantum circuit."""
-    unitary_located_mapping_1: Optional[dict[int, int]] = None
+    unitary_located_mapping_1: dict[int, int]
     """The range of the unitary operator for the first quantum circuit.
 
     .. code-block:: python
@@ -87,7 +79,7 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the unitary operator with the numerical order.
     """
-    unitary_located_mapping_2: Optional[dict[int, int]] = None
+    unitary_located_mapping_2: dict[int, int]
     """The range of the unitary operator for the second quantum circuit.
 
     .. code-block:: python
@@ -102,16 +94,16 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the unitary operator with the numerical order.
     """
-    second_backend: Optional[Union[Backend, str]] = None
+    second_backend: Union[Backend, str]
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Optional[TranspileArgs] = None
+    second_transpile_args: Union[TranspileArgs, None]
     """Arguments of :func:`~qiskit.compiler.transpile` 
     or :class:`~qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
     And it only works when the second backend is given.
     """
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None] = None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -137,37 +129,9 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
 
-    def __post_init__(self):
-        if self.registers_mapping_1 is not None:
-            super().__setattr__(
-                "registers_mapping_1", {int(k): int(v) for k, v in self.registers_mapping_1.items()}
-            )
-
-        if self.registers_mapping_2 is not None:
-            super().__setattr__(
-                "registers_mapping_2", {int(k): int(v) for k, v in self.registers_mapping_2.items()}
-            )
-
-        if self.unitary_located_mapping_1 is not None:
-            super().__setattr__(
-                "unitary_located_mapping_1",
-                {int(k): int(v) for k, v in self.unitary_located_mapping_1.items()},
-            )
-
-        if self.unitary_located_mapping_2 is not None:
-            super().__setattr__(
-                "unitary_located_mapping_2",
-                {int(k): int(v) for k, v in self.unitary_located_mapping_2.items()},
-            )
-
-        if self.random_unitary_seeds is not None:
-            super().__setattr__(
-                "random_unitary_seeds", {int(k): v for k, v in self.random_unitary_seeds.items()}
-            )
-
-    def _asdict(self) -> dict[str, Any]:
+    def export(self) -> dict[str, Any]:
         """The arguments as dictionary."""
-        tmp = self.__dict__.copy()
+        tmp = self.asdict()
         if isinstance(self.second_backend, Backend):
             tmp["second_backend"] = backend_name_getter(self.second_backend)
         elif isinstance(self.second_backend, str):
@@ -176,38 +140,80 @@ class EchoListenRandomizedArguments(ArgumentsPrototype):
             tmp["second_backend"] = None
         return tmp
 
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {', '.join(missing_fields)}")
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            times=raw_dict["times"],
+            qubits_measured_1=raw_dict["qubits_measured_1"],
+            qubits_measured_2=raw_dict["qubits_measured_2"],
+            registers_mapping_1={
+                int(k): int(v) for k, v in raw_dict["registers_mapping_1"].items()
+            },
+            registers_mapping_2={
+                int(k): int(v) for k, v in raw_dict["registers_mapping_2"].items()
+            },
+            actual_num_qubits_1=raw_dict["actual_num_qubits_1"],
+            actual_num_qubits_2=raw_dict["actual_num_qubits_2"],
+            unitary_located_mapping_1={
+                int(k): int(v) for k, v in raw_dict["unitary_located_mapping_1"].items()
+            },
+            unitary_located_mapping_2={
+                int(k): int(v) for k, v in raw_dict["unitary_located_mapping_2"].items()
+            },
+            second_backend=raw_dict["second_backend"],
+            second_transpile_args=raw_dict["second_transpile_args"],
+            random_unitary_seeds=(
+                {
+                    int(k): {int(kk): vv for kk, vv in v.items()}
+                    for k, v in raw_dict["random_unitary_seeds"].items()
+                }
+                if raw_dict.get("random_unitary_seeds") is not None
+                else None
+            ),
+        )
+
 
 class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave1: Optional[Union[QuantumCircuit, Hashable]]
+    wave1: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
-    wave2: Optional[Union[QuantumCircuit, Hashable]]
+    wave2: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure_1: Optional[Union[tuple[int, int], int, list[int]]]
+    measure_1: Union[tuple[int, int], int, list[int], None]
     """The measure range for the first quantum circuit."""
-    measure_2: Optional[Union[tuple[int, int], int, list[int]]]
+    measure_2: Union[tuple[int, int], int, list[int], None]
     """The measure range for the second quantum circuit."""
-    unitary_loc_1: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc_1: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator for the first quantum circuit."""
-    unitary_loc_2: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc_2: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    second_backend: Optional[Backend]
+    second_backend: Union[Backend, str, None]
     """The extra backend for the second group of quantum circuits.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Optional[TranspileArgs]
+    second_transpile_args: Union[TranspileArgs, None]
     """The transpile arguments for the second group of quantum circuits."""
-    second_passmanager: Optional[Union[str, PassManager, tuple[str, PassManager]]]
+    second_passmanager: Union[None, str, PassManager, tuple[str, PassManager]]
     """The passmanager for the second quantum circuit."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -241,23 +247,23 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure_1: Optional[Union[tuple[int, int], int, list[int]]]
+    measure_1: Union[tuple[int, int], int, list[int], None]
     """The measure range for the first quantum circuit."""
-    measure_2: Optional[Union[tuple[int, int], int, list[int]]]
+    measure_2: Union[tuple[int, int], int, list[int], None]
     """The measure range for the second quantum circuit."""
-    unitary_loc_1: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc_1: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator for the first quantum circuit."""
-    unitary_loc_2: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc_2: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Confirm that not all unitary operator are covered by the measure."""
-    second_backend: Optional[Backend]
+    second_backend: Union[Backend, str, None]
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Optional[TranspileArgs]
+    second_transpile_args: Union[TranspileArgs, None]
     """The transpile arguments for the second group of quantum circuits."""
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]]
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -272,7 +278,8 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
         }
 
     If you want to generate the seeds for all random unitary operator,
-    you can use the function :func:`generate_random_unitary_seeds` 
+    you can use the function 
+    :func:`~qurry.process.randomized_measure.utils.generate_random_unitary_seeds`
     in :mod:`qurry.process.randomized_measure.utils`.
 
     .. code-block:: python
@@ -281,25 +288,12 @@ class EchoListenRandomizedOutputArgs(OutputArgs):
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
-    second_passmanager_pair: Optional[tuple[str, PassManager]]
+    second_passmanager_pair: Union[tuple[str, PassManager], None]
     """The passmanager for the second quantum circuit."""
 
 
-class EchoListenRandomizedAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment.analyze`.
-    """
-
-    selected_classical_registers: Optional[Iterable[int]]
-    """The list of **the index of the selected_classical_registers**.
-    It's not the qubit index of first or second quantum circuit,
-    but their corresponding classical registers."""
-    backend: PostProcessingBackendLabel
-    """The backend for the process."""
-    counts_used: Optional[Iterable[int]]
-    """The index of the counts used."""
-
-
 SHORT_NAME = "qurrech_randomized"
-"""The short name of
-:class:`~qurry.qurrech.randomized_measure.experiment.EchoListenRandomizedExperiment`."""
+"""The short name of :class:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized`."""
+
+ACRONYM = "ELR"
+"""The abbreviation of :class:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized`."""

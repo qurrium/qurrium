@@ -2,7 +2,7 @@
 
 from typing import Literal, Union, overload
 
-from .hadamard_test import EchoListenHadamard, EchoListenHadamardMeasureArgs
+from .hadamard_test import EchoListenHadamard, ELHMeasureArgs
 from .randomized_measure import EchoListenRandomized, EchoListenRandomizedMeasureArgs
 
 
@@ -20,7 +20,7 @@ def EchoListen(
 def EchoListen(
     *args,
     method="randomized",
-    **kwargs,
+    **kwargs
 ):
     """Call :func:`EchoListen` methods.
 
@@ -74,7 +74,7 @@ def WaveFunctionOverlap(*args, method="randomized", **kwargs):
 __all__ = [
     "EchoListen",
     "EchoListenHadamard",
-    "EchoListenHadamardMeasureArgs",
+    "ELHMeasureArgs",
     "EchoListenRandomized",
     "EchoListenRandomizedMeasureArgs",
     "WaveFunctionOverlap",
