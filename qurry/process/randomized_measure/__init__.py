@@ -125,6 +125,6 @@ from .random_unitary import (
     local_random_unitary_operators,
     local_random_unitary_pauli_coeff,
     local_unitary_op_to_list,
-    local_unitary_op_to_pauli_coeff,
+    local_unitary_op_to_bloch_vector,
 )
 from .utils import generate_random_unitary_seeds, check_random_unitary_seeds

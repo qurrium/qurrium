@@ -7,12 +7,12 @@ due to Qiskit usually relocate its module.
 
 """
 
-from typing import Union, Optional
+from typing import Optional
 import numpy as np
 
 from qiskit.quantum_info import random_unitary, Operator
 
-from ..utils.bloch_vector import qubit_operator_to_pauli_coeff
+from ..utils import density_matrix_to_bloch_vector
 
 
 def generate_random_unitary(
@@ -48,42 +48,6 @@ def generate_random_unitary(
     }
 
 
-def local_random_unitary_operators(
-    unitary_loc: tuple[int, int],
-    unitary_op_list: Union[list[np.ndarray], dict[int, Operator]],
-) -> dict[int, list[list[complex]]]:
-    """Transform a list of unitary operators in :class:`~qiskit.quantum_info.operator.Operator`
-    into a list of unitary operators in :class:`list[list[complex]]`.
-
-    Args:
-        unitary_loc (tuple[int, int]): The location of unitary operator.
-        unitary_op_list (Union[list[np.ndarray], dict[int, Operator]]):
-            The list of unitary operators.
-
-    Returns:
-        The dictionary of unitary operators in :class:`list[list[complex]]`.
-    """
-    return {i: np.array(unitary_op_list[i]).tolist() for i in range(*unitary_loc)}
-
-
-def local_random_unitary_pauli_coeff(
-    unitary_loc: tuple[int, int],
-    unitary_op_dict: dict[int, list[list[complex]]],
-) -> dict[int, list[tuple[Union[float, np.float64], Union[float, np.float64]]]]:
-    """Transform a list of unitary operators in :class:`~numpy.ndarray`
-    into a list of pauli coefficients.
-
-    Args:
-        unitary_loc (tuple[int, int]): The location of unitary operator.
-        unitary_op_dict (dict[int, list[list[complex]]]):
-            The list of unitary operators or dictionary of unitary operators.
-
-    Returns:
-        The list of pauli coefficients.
-    """
-    return {i: qubit_operator_to_pauli_coeff(unitary_op_dict[i]) for i in range(*unitary_loc)}
-
-
 def local_unitary_op_to_list(
     single_unitary_op_dict: dict[int, Operator],
 ) -> dict[int, list[list[complex]]]:
@@ -102,9 +66,9 @@ def local_unitary_op_to_list(
     return {i: np.array(op).tolist() for i, op in single_unitary_op_dict.items()}
 
 
-def local_unitary_op_to_pauli_coeff(
+def local_unitary_op_to_bloch_vector(
     single_unitary_op_list_dict: dict[int, list[list[complex]]],
-) -> dict[int, list[tuple[Union[float, np.float64], Union[float, np.float64]]]]:
+) -> dict[int, tuple[float, float, float]]:
     """Transform a dictionary of local unitary operators in :class:`list[list[complex]]`
     with the qubit index as key to a dictionary of pauli coefficients.
 
@@ -115,6 +79,6 @@ def local_unitary_op_to_pauli_coeff(
         The dictionary of pauli coefficients.
     """
     return {
-        i: qubit_operator_to_pauli_coeff(np.array(op))
+        i: density_matrix_to_bloch_vector(np.array(op))
         for i, op in single_unitary_op_list_dict.items()
     }
