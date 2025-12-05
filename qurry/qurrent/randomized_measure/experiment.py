@@ -1,27 +1,22 @@
 """EntropyMeasureRandomized - Experiment (:mod:`qurry.qurrent.randomized_measure.experiment`)"""
 
 from typing import Union, Optional, Any
-from collections.abc import Iterable, Hashable
+from collections.abc import Iterable
 import tqdm
 
 from qiskit import QuantumCircuit
 
 from .analysis import EMRAnalysis
 from .arguments import EMRArguments, SHORT_NAME
-from .utils import randomized_circuit_method
-from ...qurrium import ExperimentPrototype, Commonparams
-from ...process.randomized_measure.random_unitary import (
-    generate_random_unitary,
-    local_unitary_op_to_list,
-    local_unitary_op_to_pauli_coeff,
-)
+from .tales import EMRTales, EMRTalesTypes
+from .utils import method_process
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_mapper
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
 
@@ -41,9 +36,15 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         return EMRAnalysis
 
     @classmethod
+    def side_product_type(cls) -> type[EMRTales]:
+        return EMRTales
+
+    side_products: EMRTales
+
+    @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         times: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
@@ -55,7 +56,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         """Handling all arguments and initializing a single experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             exp_name (str, optional):
                 The name of the experiment.
@@ -157,15 +158,15 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMRArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
-    ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
+        multiprocess: bool = False,
+    ) -> tuple[list[QuantumCircuit], EMRTalesTypes]:
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arguments (EntropyMeasureRandomizedArguments):
                 The arguments of the experiment.
@@ -173,76 +174,13 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
+                Whether to use multiprocessing. Defaults to `False`.
 
         Returns:
-            tuple[list[QuantumCircuit], dict[str, Any]]:
-                The circuits of the experiment and the side products.
+            The circuits of the experiment and the side products.
         """
-        side_product = {}
-        target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
 
-        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-        unitary_dicts = generate_random_unitary(
-            times=arguments.times,
-            unitary_located=arguments.unitary_located,
-            random_unitary_seeds=arguments.random_unitary_seeds,
-        )
-
-        set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-        if multiprocess:
-            pool = ParallelManager()
-            circ_list = pool.starmap(
-                randomized_circuit_method,
-                [
-                    (
-                        n_u_i,
-                        target_circuit,
-                        target_key,
-                        arguments.exp_name,
-                        arguments.registers_mapping,
-                        unitary_dicts[n_u_i],
-                    )
-                    for n_u_i in range(arguments.times)
-                ],
-            )
-            set_pbar_description(pbar, "Writing 'unitaryOP'.")
-            unitary_operator_list = pool.starmap(
-                local_unitary_op_to_list,
-                [(unitary_dicts[n_u_i],) for n_u_i in range(arguments.times)],
-            )
-            set_pbar_description(pbar, "Writing 'randomized'.")
-            randomized_list = pool.starmap(
-                local_unitary_op_to_pauli_coeff,
-                [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
-            )
-        else:
-            circ_list = [
-                randomized_circuit_method(
-                    n_u_i,
-                    target_circuit,
-                    target_key,
-                    arguments.exp_name,
-                    arguments.registers_mapping,
-                    unitary_dicts[n_u_i],
-                )
-                for n_u_i in range(arguments.times)
-            ]
-            set_pbar_description(pbar, "Writing 'unitaryOP'.")
-            unitary_operator_list = [
-                local_unitary_op_to_list(unitary_dicts[n_u_i]) for n_u_i in range(arguments.times)
-            ]
-            set_pbar_description(pbar, "Writing 'randomized'.")
-            randomized_list = [
-                local_unitary_op_to_pauli_coeff(unitary_operator_list[n_u_i])
-                for n_u_i in range(arguments.times)
-            ]
-
-        side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-        side_product["randomized"] = dict(enumerate(randomized_list))
-
-        return circ_list, side_product
+        return method_process(targets, arguments, pbar, multiprocess)
 
     def analyze(
         self,
