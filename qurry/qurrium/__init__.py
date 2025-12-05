@@ -19,6 +19,6 @@ from .analysis import (
     AnalysisMiddlewarePrototype,
     ProcessEntriesPrototype,
 )
-from .experiment import ExperimentPrototype
+from .experiment import ExperimentPrototype, Tales
 from .multimanager import MultiManager
 from .qurrium import QurriumPrototype

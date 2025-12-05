@@ -3,6 +3,7 @@
 from .experiment import ExperimentPrototype
 from .export import Export
 from .beforewards import Before
+from .tales import Tales
 from .afterwards import After
 from .utils import (
     exp_id_process,

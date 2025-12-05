@@ -14,7 +14,7 @@ FOLDER_NAME = "tales"
 FILENAME_TEMPLATE = "{}.tales.json"
 """Filename template for side products export."""
 
-_SPT = TypeVar("_SPT", bound=dict[str, Any])
+_SPT = TypeVar("_SPT")
 """Type variable for side product types. This made for :class:`~typing.TypedDict`.
 For example:
 
@@ -35,11 +35,11 @@ For example:
 """
 
 
-class Tales(Generic[_SPT], dict[str, Any], FileReadableWritableObj):
+class Tales(dict, FileReadableWritableObj, Generic[_SPT]):
     """A customized dictionary for storing side products.
-    
+
     This supports type checking with :class:`~typing.TypedDict`.
-    
+
     .. code-block:: python
 
         from typing import TypedDict
@@ -61,6 +61,13 @@ class Tales(Generic[_SPT], dict[str, Any], FileReadableWritableObj):
     def as_typed(self) -> _SPT:
         """Return self as the typed version for type checking."""
         return cast(_SPT, self)
+
+    @classmethod
+    def remain_keys(cls) -> tuple[str, ...]:
+        """The keys that will be remained in the side product container,
+        which denotes with the typed dictionary.
+        """
+        return ()
 
     def export(self) -> dict[str, Any]:
         """Export the side products for file writing.
