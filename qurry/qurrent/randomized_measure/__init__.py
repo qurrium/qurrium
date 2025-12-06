@@ -6,6 +6,7 @@
 """
 
 from .experiment import EMRExperiment
+from .tales import EntropyMeasureTales, EntropyMeasureTalesTypes
 from .arguments import EMRMeasureArgs
 from .analysis import EMRAnalysis
 from .qurry import EntropyMeasureRandomized

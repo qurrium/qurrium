@@ -7,9 +7,9 @@ from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.quantum_info import Operator
 
 from .arguments import EMRArguments
-from .tales import EMRTalesTypes
+from .tales import EntropyMeasureTalesTypes
 from ...qurrium import WCKeyable
-from ...process.randomized_measure.random_unitary import (
+from ...process.randomized_measure import (
     generate_random_unitary,
     local_unitary_op_to_list,
     local_unitary_op_to_bloch_vector,
@@ -72,6 +72,27 @@ def make_samplied_circuit(
     return qc_exp1
 
 
+def make_unitary_op_pauli_coeff(
+    idx: int, single_unitary_dict: dict[int, Operator]
+) -> tuple[int, dict[int, list[list[complex]]], dict[int, tuple[float, float, float]]]:
+    """Build the unitary operator and pauli coeff for the experiment.
+
+    Args:
+        idx (int):
+            Index of the quantum circuit.
+        single_unitary_dict (dict[int, Operator]):
+            The dictionary of the unitary operator.
+
+    Returns:
+        A tuple containing the index, the dictionary of unitary operators,
+        and the dictionary of pauli coefficients.
+    """
+
+    unitary_op = local_unitary_op_to_list(single_unitary_dict)
+
+    return idx, unitary_op, local_unitary_op_to_bloch_vector(unitary_op)
+
+
 def make_samplied_circuit_unitary_op_pauli_coeff(
     idx: int,
     target_circuit: QuantumCircuit,
@@ -107,9 +128,7 @@ def make_samplied_circuit_unitary_op_pauli_coeff(
         and the dictionary of pauli coefficients.
     """
 
-    unitary_op = local_unitary_op_to_list(single_unitary_dict)
-    pauli_coeff = local_unitary_op_to_bloch_vector(unitary_op)
-
+    idx, unitary_op, pauli_coeff = make_unitary_op_pauli_coeff(idx, single_unitary_dict)
     return (
         idx,
         make_samplied_circuit(
@@ -130,7 +149,7 @@ def method_process(
     arguments: EMRArguments,
     pbar: Optional[tqdm.tqdm] = None,
     multiprocess: bool = False,
-) -> tuple[list[QuantumCircuit], EMRTalesTypes]:
+) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
     """The process method for building the circuits of the experiment.
 
     Args:
@@ -186,12 +205,10 @@ def method_process(
             )
             for n_u_i in range(arguments.times)
         ]
-    result_list.sort(key=lambda x: x[0])
 
     assert [x[0] for x in result_list] == list(range(arguments.times)), (
         "The indices of the results are not correct."
-        + f" Get {[x[0] for x in result_list]},"
-        + f" expect {list(range(arguments.times))}."
+        + f" Get {[x[0] for x in result_list]}, expect {list(range(arguments.times))}."
     )
 
     return [x[1] for x in result_list], {

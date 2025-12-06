@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit
 
 from .analysis import EMRAnalysis
 from .arguments import EMRArguments, SHORT_NAME
-from .tales import EMRTales, EMRTalesTypes
+from .tales import EntropyMeasureTales, EntropyMeasureTalesTypes
 from .utils import method_process
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_mapper
@@ -17,7 +17,7 @@ from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
+from ...exceptions import UnitaryOperatorNotFullCovering
 
 
 class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
@@ -36,10 +36,10 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         return EMRAnalysis
 
     @classmethod
-    def side_product_type(cls) -> type[EMRTales]:
-        return EMRTales
+    def side_product_type(cls) -> type[EntropyMeasureTales]:
+        return EntropyMeasureTales
 
-    side_products: EMRTales
+    side_products: EntropyMeasureTales
 
     @classmethod
     def params_control(
@@ -131,7 +131,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
             qi for qi in qubits_measured if qi not in unitary_located
         ]
         if len(measured_but_not_unitary_located) > 0 and not unitary_loc_not_cover_measure:
-            raise RandomizedMeasureUnitaryOperatorNotFullCovering(
+            raise UnitaryOperatorNotFullCovering(
                 f"Some qubits {measured_but_not_unitary_located} are measured "
                 + "but not random unitary located. "
                 + f"unitary_loc: {unitary_loc}, measure: {measure} "
@@ -162,7 +162,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         arguments: EMRArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = False,
-    ) -> tuple[list[QuantumCircuit], EMRTalesTypes]:
+    ) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
         """The method to construct circuit.
 
         Args:

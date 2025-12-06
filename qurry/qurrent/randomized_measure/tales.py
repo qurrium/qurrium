@@ -6,8 +6,8 @@ from ...qurrium import Tales
 from ...capsule import jsonablize
 
 
-class EMRTalesTypes(TypedDict):
-    """The typed dictionary for :class:`EMRTales`."""
+class EntropyMeasureTalesTypes(TypedDict):
+    """The typed dictionary for :class:`EntropyMeasureTales`."""
 
     unitary_operator: dict[int, dict[int, list[list[complex]]]]
     """The dictionary of unitary operators."""
@@ -15,8 +15,9 @@ class EMRTalesTypes(TypedDict):
     """The dictionary of bloch vectors."""
 
 
-class EMRTales(Tales[EMRTalesTypes]):
-    """The tales for :class:`~qurry.qurrent.randomized_measure.experiment.EMRExperiment`."""
+class EntropyMeasureTales(Tales[EntropyMeasureTalesTypes]):
+    """The tales for :class:`~qurry.qurrent.randomized_measure.experiment.EMRExperiment` and
+    :class:`~qurry.qurrech.randomized_measure.experiment.ELRExperiment`."""
 
     @classmethod
     def remain_keys(cls) -> tuple[str, ...]:
