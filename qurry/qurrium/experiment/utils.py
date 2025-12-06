@@ -27,6 +27,9 @@ from ...exceptions import (
     QurryInvalidInherition,
     UnconfiguredWarning,
     QurryTranspileConfigurationIgnored,
+    UnrunableBackendError,
+    ABOUT_UNRUNNABLE_IBM_BACKEND,
+    ABOUT_UNRUNNABLE_THIRD_PARTY,
 )
 
 
@@ -444,3 +447,39 @@ def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) 
         folder = folder_with_repeat_times(args.exp_name, repeat_times)
     filename = f"{args.exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}.id={commons.exp_id}"
     return folder, filename
+
+
+def ensure_runnable_backend(backend: Union[Backend, str]) -> None:
+    """Ensure the backend is runnable.
+
+    Args:
+        backend (Union[Backend, str]): The backend to be checked.
+
+    Raises:
+        ValueError: If the backend is given as a string.
+        ValueError: If the backend is not an instance of Backend.
+        UnrunableBackendError: If the backend is unrunable.
+    """
+
+    if isinstance(backend, str):
+        raise ValueError(
+            "The backend is given as a string. "
+            + "If you just read the experiment from output files, "
+            + "please replace it first by method 'replace_backend' of the experiment instance."
+        )
+    if not isinstance(backend, Backend):
+        raise ValueError(
+            f"Require a valid backend to run the experiment. Got {backend} as {type(backend)}."
+        )
+
+    if not hasattr(backend, "run"):
+        raise UnrunableBackendError(ABOUT_UNRUNNABLE_THIRD_PARTY.format(backend))
+    try:
+        # pylint: disable=import-outside-toplevel
+        from qiskit_ibm_runtime import IBMBackend
+        # pylint: enable=import-outside-toplevel
+
+        if isinstance(backend, IBMBackend):
+            raise UnrunableBackendError(ABOUT_UNRUNNABLE_IBM_BACKEND.format(backend))
+    except ImportError:
+        pass

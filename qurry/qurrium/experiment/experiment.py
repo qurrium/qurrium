@@ -28,6 +28,7 @@ from .utils import (
     make_statesheet,
     create_save_location,
     decide_folder_and_filename,
+    ensure_runnable_backend,
 )
 from ..utils import (
     get_counts_and_exceptions,
@@ -331,7 +332,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: _A,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
         Where should be overwritten by each construction of new measurement.
@@ -449,20 +450,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             pbar=pbar,
             **custom_and_main_kwargs,
         )
-        if not isinstance(current_exp.commons.backend, Backend):
-            if isinstance(backend, Backend):
-                set_pbar_description(pbar, "Backend replacing...")
-                current_exp.replace_backend(backend)
-            else:
-                raise ValueError(
-                    "No vaild backend to run, exisited backend: "
-                    + f"{current_exp.commons.backend} as type "
-                    + f"{type(current_exp.commons.backend)}, "
-                    + f"given backend: {backend} as type {type(backend)}."
-                )
         assert isinstance(current_exp.commons.backend, Backend), (
             f"Invalid backend: {current_exp.commons.backend} as "
-            + f"type {type(current_exp.commons.backend)}."
+            + f"type {type(current_exp.commons.backend)}. "
+            + "This should be ensure in the function '_params_control_core'."
         )
 
         # circuit
@@ -538,21 +529,14 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
-        Raises:
-            ValueError: No circuit ready.
-            ValueError: The circuit has not been constructed yet.
-
         Returns:
             str: The ID of the experiment.
         """
         if len(self.beforewards.circuit) == 0:
             raise ValueError("The circuit has not been constructed yet.")
 
-        assert isinstance(self.commons.backend, Backend), (
-            f"Current backend {self.commons.backend} needs to be backend not "
-            + f"{type({self.commons.backend})}."
-        )
-        assert hasattr(self.commons.backend, "run"), "Current backend is not runnable."
+        ensure_runnable_backend(self.commons.backend)
+        assert isinstance(self.commons.backend, Backend), "Backend should be ensured at this point."
 
         set_pbar_description(pbar, "Executing...")
         event_name, date = self.commons.datetimes.add_serial("run")
