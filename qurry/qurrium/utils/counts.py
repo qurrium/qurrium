@@ -6,7 +6,7 @@ from typing import Union, Optional
 from qiskit.result import Result
 from qiskit.exceptions import QiskitError
 
-from ...exceptions import QurryCountLost
+from ..exceptions import CountsLost
 
 
 def get_counts_and_exceptions(
@@ -49,7 +49,7 @@ def get_counts_and_exceptions(
             idx_list = result_idx_list
 
     if result is None:
-        exceptions["None"] = QurryCountLost("Result is None")
+        exceptions["None"] = CountsLost("Result is None")
         print("| Failed Job result skip.")
         for _ in idx_list:
             counts.append({})

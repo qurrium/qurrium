@@ -7,10 +7,10 @@ from .declare import _RA
 from .ers import _RR, implementation_check_results, _RM, _PE, implementation_check_entries
 from ..json_io import DataExportableIngestible
 from ..arguments import _A, Commonparams
+from ..exceptions import InvalidInherition
 from ...capsule import jsonablize
 from ...capsule.hoshi import Hoshi
 from ...tools.datetime import current_time
-from ...exceptions import QurryInvalidInherition
 
 
 class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestible):
@@ -93,7 +93,7 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
         datetime: Optional[str] = None,
     ):
         if not hasattr(self, "quantities") and not callable(getattr(self, "quantities", None)):
-            raise QurryInvalidInherition(
+            raise InvalidInherition(
                 f"{self.__name__} must have 'quantities' function defined in the subclass."
             )
         implementation_check_entries(middleware_entries, postprocess_entries, self.__name__)

@@ -8,8 +8,8 @@ from qiskit import QuantumCircuit
 from ..experiment import ExperimentPrototype
 from ..multimanager import MultiManager, ExperimentContainer
 from ..multimanager.arguments import PendingStrategyLiteral
+from ..exceptions import TooManyPendingTagsWarning
 from ...tools import qurry_progressbar, DatetimeDict
-from ...exceptions import QurryPendingTagTooMany
 
 
 @overload
@@ -160,7 +160,7 @@ def pending_tag_packings(
             "The max number of tags is 8, "
             + f"but the number of pending tags is {len(all_pending_tags)}, "
             + "the rest will be ignored.",
-            category=QurryPendingTagTooMany,
+            category=TooManyPendingTagsWarning,
         )
 
     return all_pending_tags

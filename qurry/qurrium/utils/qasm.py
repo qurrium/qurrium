@@ -7,16 +7,12 @@ from qiskit import QuantumCircuit, __version__ as qiskit_version
 from qiskit.qasm3 import dumps as dumps_qasm3, QASM3Error, loads as loads_qasm3
 from qiskit.qasm2 import dumps as dumps_qasm2, QASM2Error, loads as loads_qasm2
 
-from ...exceptions import OpenQASMProcessingWarning, OpenQASM3Issue13362Warning
+from ..exceptions import (
+    OpenQASMProcessingWarning,
+    OpenQASM3Issue13362Warning,
+    MSG_OPENQASM3_ISSUE_13362,
+)
 
-MSG_OPENQASM3_ISSUE_13362 = """
-You will need to upgrade your Qiskit 
-version to 1.3.2 for fixing this issue.
-The issues report: https://github.com/Qiskit/qiskit/issues/13362, 
-Pull Requests merged: 
-1. https://github.com/Qiskit/qiskit/pull/13633, 
-2. https://github.com/Qiskit/qiskit/pull/13663
-"""
 
 AvailableQASMVersions = Literal["qasm2", "qasm3"]
 """The available OpenQASM versions."""

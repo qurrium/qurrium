@@ -19,18 +19,18 @@ from ..container import WCKeyable, TranspileArgs
 from ..arguments import Commonparams, ArgumentsPrototype
 from ..utils import qasm_dumps, AvailableQASMVersions
 from ..utils.iocontrol import RJUST_LEN
-from ...capsule.hoshi import Hoshi
-from ...tools import ParallelManager, set_pbar_description
-from ...exceptions import (
-    QurryHashIDInvalid,
-    QurrySummonerInvalid,
-    QurryInvalidInherition,
+from ..exceptions import (
+    InvalidExpIdReplacementWarning,
+    InvalidSummonerConfiguration,
+    InvalidInherition,
     UnconfiguredWarning,
-    QurryTranspileConfigurationIgnored,
+    TranspileConfigurationIgnored,
     UnrunableBackendError,
     ABOUT_UNRUNNABLE_IBM_BACKEND,
     ABOUT_UNRUNNABLE_THIRD_PARTY,
 )
+from ...capsule.hoshi import Hoshi
+from ...tools import ParallelManager, set_pbar_description
 
 
 def exp_id_process(exp_id: Optional[str]) -> str:
@@ -57,7 +57,7 @@ def exp_id_process(exp_id: Optional[str]) -> str:
     except ValueError as e:
         warnings.warn(
             f"exp_id is not a valid UUID, it will be generated automatically.\n{e}",
-            category=QurryHashIDInvalid,
+            category=InvalidExpIdReplacementWarning,
         )
         return str(uuid4())
 
@@ -122,7 +122,7 @@ def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Comm
 
     duplicate_fields = set(args.fields) & set(commons._fields)
     if len(duplicate_fields) > 0:
-        raise QurryInvalidInherition(
+        raise InvalidInherition(
             f"{name_exps}.arguments which and {name_exps}.commonparams "
             f"should not have same fields: {duplicate_fields}."
         )
@@ -167,7 +167,7 @@ def summonner_check(
         for k, v in summon_check.items():
             summon_msg.newline(("itemize", k, str(v), f"fulfilled: {v is not None}", 2))
         summon_msg.print()
-        raise QurrySummonerInvalid(
+        raise InvalidSummonerConfiguration(
             "Summoner data is not completed, it will export in single experiment mode.",
         )
     return summon_fulfill
@@ -270,7 +270,7 @@ def process_transpilation(
         warnings.warn(
             f"Passmanager '{passmanager_name}' is given, "
             + f"the transpile_args will be ignored in '{exp_id}'",
-            category=QurryTranspileConfigurationIgnored,
+            category=TranspileConfigurationIgnored,
         )
     return transpiled_circs
 

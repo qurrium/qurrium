@@ -11,8 +11,8 @@ from qiskit.providers import Backend
 from ..experiment import ExperimentPrototype
 from ..multimanager import MultiManager, ExperimentContainer
 from ..multimanager.beforewards import TagListKeyable
+from ..exceptions import QurryDummyRunnerWarning
 from ...tools.backend import backend_name_getter
-from ...exceptions import QurryDummyRunnerWarning
 
 
 class Runner(ABC):

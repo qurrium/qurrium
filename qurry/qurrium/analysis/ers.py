@@ -6,7 +6,7 @@ from dataclasses import dataclass, fields
 import warnings
 
 from ..json_io import DataExportableIngestible
-from ...exceptions import QurryInvalidInherition
+from ..exceptions import InvalidInherition
 
 
 def erabc_export(
@@ -191,7 +191,7 @@ def implementation_check_entries(
         & {"serial", "datetime", "log"}
     )
     if len(duplicate_fields) > 0:
-        raise QurryInvalidInherition(
+        raise InvalidInherition(
             f"{postprocess_entries}, and {middleware_entries} "
             f"should not have same fields: {duplicate_fields} "
             f"for {analysis_name}."

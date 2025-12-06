@@ -5,6 +5,7 @@ from typing import Union, Optional, Any
 from qiskit.providers import Backend
 
 from .runner import DummyRunner
+from ..exceptions import ExtraPackageRequired
 from ..multimanager import MultiManager, ExperimentContainer
 from ..multimanager.beforewards import TagListKeyable
 from ..multimanager.arguments import (
@@ -13,7 +14,6 @@ from ..multimanager.arguments import (
     PendingStrategyLiteral,
 )
 from ...capsule.hoshi import Hoshi
-from ...exceptions import QurryExtraPackageRequired, QurryInvalidArgument
 
 
 def acessibility() -> dict[PendingTargetProviderLiteral, bool]:
@@ -29,7 +29,7 @@ def acessibility() -> dict[PendingTargetProviderLiteral, bool]:
         from .ibmruntime_runner import IBMRuntimeRunner
 
         result["IBMRuntime"] = True
-    except QurryExtraPackageRequired:
+    except ExtraPackageRequired:
         result["IBMRuntime"] = False
 
     return result
@@ -90,7 +90,7 @@ class RemoteAccessor:
         # pylint: disable=import-outside-toplevel
         if backend_type == "IBMRuntime":
             if not BACKEND_AVAILABLE["IBMRuntime"]:
-                raise QurryExtraPackageRequired(
+                raise ExtraPackageRequired(
                     "Backend 'IBMRuntime' is not available, "
                     + "please install 'qiskit_ibm_runtime' first."
                 )
@@ -109,7 +109,7 @@ class RemoteAccessor:
                     + "which is different from 'IBMRuntimeBackend'."
                 )
             if provider is None:
-                raise QurryInvalidArgument(
+                raise ValueError(
                     "You must provide `QiskitRuntimeService` from 'qiskit_ibm_runtime' "
                     + "as the provider for 'IBMRuntime' jobstype."
                 )
@@ -125,7 +125,7 @@ class RemoteAccessor:
 
         else:
             if backend is None:
-                raise QurryInvalidArgument(
+                raise ValueError(
                     "You must provide the backend for the jobstype " + "which is not 'IBMRuntime'."
                 )
             self.multirunner = DummyRunner(
@@ -134,7 +134,7 @@ class RemoteAccessor:
             )
 
             print(BACKEND_AVAILABLE_MESSAGE)
-            raise QurryInvalidArgument(f"{backend_type} which is not supported.")
+            raise ValueError(f"{backend_type} which is not supported.")
         # pylint: enable=import-outside-toplevel
 
         self.jobs = []

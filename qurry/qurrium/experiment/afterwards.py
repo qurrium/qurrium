@@ -10,8 +10,8 @@ from dataclasses import dataclass, fields
 from qiskit.result import Result
 
 from ..json_io import FileReadableWritableObj, WrittenContentType
+from ..exceptions import ResetSecurityActivated, ResetAccomplished
 from ...capsule import DEFAULT_ENCODING
-from ...exceptions import QurryResetSecurityActivated, QurryResetAccomplished
 
 
 FOLDER_NAME = "legacy"
@@ -134,14 +134,14 @@ class After(FileReadableWritableObj):
             if not mute_warning:
                 warnings.warn(
                     "The result of experiment is cleared.",
-                    QurryResetAccomplished,
+                    ResetAccomplished,
                 )
             gc.collect()
         else:
             warnings.warn(
                 "'clear_result' is called, but does not execute to prevent executing accidentally."
                 + "If you are sure to clear the result, please set .(security=True).",
-                QurryResetSecurityActivated,
+                ResetSecurityActivated,
             )
 
     @classmethod

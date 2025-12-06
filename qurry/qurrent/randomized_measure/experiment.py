@@ -10,6 +10,7 @@ from .analysis import EMRAnalysis
 from .arguments import EMRArguments, SHORT_NAME
 from .tales import EntropyMeasureTales, EntropyMeasureTalesTypes
 from .utils import method_process
+from .exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...process.utils import qubit_mapper
 from ...process.randomized_measure import check_random_unitary_seeds
@@ -17,7 +18,6 @@ from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
-from ...exceptions import UnitaryOperatorNotFullCovering
 
 
 class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):

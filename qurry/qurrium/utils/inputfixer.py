@@ -23,7 +23,7 @@ http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance
 
 import warnings
 from typing import Any, Sequence
-from ...exceptions import QurryUnrecongnizedArguments
+from ..exceptions import UnknownArgumentsKept
 
 try:
     from pyxdameraulevenshtein import damerau_levenshtein_distance
@@ -175,6 +175,6 @@ def outfields_hint(
             + "]. Unknown: ["
             + ", ".join([f"'{k}'" for k in outfields_unknown])
             + "].",
-            QurryUnrecongnizedArguments,
+            UnknownArgumentsKept,
         )
     return

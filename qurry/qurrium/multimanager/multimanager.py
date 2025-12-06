@@ -22,6 +22,7 @@ from .utils import experiment_writer, multimanager_report_naming
 from ..analysis import AnalyzeArgs, SpecificAnalyzeArgs
 from ..container import BaseRunArgs
 from ..utils import naming, IOComplex
+from ..exceptions import ResetAccomplished, ResetSecurityActivated
 from ...tools import (
     qurry_progressbar,
     GeneralSimulator,
@@ -31,7 +32,6 @@ from ...tools import (
 )
 from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_INDENT
 from ...capsule.mori import TagList, GitSyncControl
-from ...exceptions import QurryResetAccomplished, QurryResetSecurityActivated
 
 
 class MultiManager(Generic[_E]):
@@ -86,12 +86,12 @@ class MultiManager(Generic[_E]):
             self.afterwards = self.afterwards._replace(retrievedResult=TagList(), allCounts={})
             gc.collect()
             if not mute_warning:
-                warnings.warn("Afterwards reset accomplished.", QurryResetAccomplished)
+                warnings.warn("Afterwards reset accomplished.", ResetAccomplished)
         else:
             warnings.warn(
                 "Reset does not execute to prevent executing accidentally, "
                 + "if you are sure to do this, then use '.reset(security=True)'.",
-                QurryResetSecurityActivated,
+                ResetSecurityActivated,
             )
 
     def clear_all_exps_result(
@@ -119,13 +119,13 @@ class MultiManager(Generic[_E]):
             if not mute_warning:
                 warnings.warn(
                     "All experiments' results are cleared.",
-                    QurryResetAccomplished,
+                    ResetAccomplished,
                 )
         else:
             warnings.warn(
                 "Reset does not execute to prevent executing accidentally, "
                 + "if you are sure to do this, then use '.reset(security=True)'.",
-                QurryResetSecurityActivated,
+                ResetSecurityActivated,
             )
 
     def __getitem__(self, key) -> Any:
