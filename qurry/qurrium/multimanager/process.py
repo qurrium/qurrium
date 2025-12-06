@@ -26,7 +26,7 @@ def multiprocess_exporter(
     Returns:
         tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
     """
-    qurryinfo_exp_id, qurryinfo_files = exps_export.write(multiprocess=False, pbar=None)
+    qurryinfo_exp_id, qurryinfo_files = exps_export.write()
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )
@@ -75,7 +75,7 @@ def multiprocess_writer(
         save_location=save_location,
         export_transpiled_circuit=export_transpiled_circuit,
     )
-    qurryinfo_exp_id, qurryinfo_files = export_instance.write(multiprocess=False, pbar=None)
+    qurryinfo_exp_id, qurryinfo_files = export_instance.write()
     assert id_exec == qurryinfo_exp_id, (
         f"{id_exec} is not equal to {qurryinfo_exp_id}" + " which is not supported."
     )

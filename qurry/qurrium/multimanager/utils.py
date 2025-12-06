@@ -101,7 +101,6 @@ def experiment_writer(
                 save_location=multicommons.save_location,
                 qurryinfo_hold_access=multicommons.summoner_id,
                 export_transpiled_circuit=export_transpiled_circuit,
-                multiprocess=True,
                 pbar=single_exporting_progress,
             )
             assert id_exec == tmp_export_info[0], (
