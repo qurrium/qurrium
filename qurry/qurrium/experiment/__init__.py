@@ -10,6 +10,8 @@ from .utils import (
     memory_usage_factor_expect,
     implementation_check,
     summonner_check,
+    make_qasm_strings,
+    process_transpilation,
     make_statesheet,
     create_save_location,
     decide_folder_and_filename,
