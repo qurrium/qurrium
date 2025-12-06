@@ -8,9 +8,8 @@ from qiskit.providers import Backend
 
 from .import_simulator import SIM_DEFAULT_SOURCE as sim_default_source, GeneralSimulator
 from .import_fake import FAKE_BACKENDV2_SOURCES as fake_default_source, fack_backend_loader
-
+from ..exceptions import QurryDeprecatedWarning
 from ...capsule.hoshi import Hoshi
-from ...exceptions import QurryDeprecatedWarning
 
 
 BackendDict = dict[
@@ -152,8 +151,8 @@ class BackendWrapper:
 
         if hasattr(self.backend_dict["sim"]["sim"], "available_devices"):
             assert isinstance(
-                self.backend_dict["sim"]["sim"].available_devices,
-                Callable,  # type: ignore
+                self.backend_dict["sim"]["sim"].available_devices,  # type: ignore
+                Callable,
             ), "The available_devices should be a callable."
 
             self.is_aer_gpu = (

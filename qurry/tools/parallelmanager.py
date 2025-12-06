@@ -10,7 +10,7 @@ from multiprocessing import cpu_count, get_context
 from tqdm.contrib.concurrent import process_map
 
 from .progressbar import default_setup
-from ..exceptions import QurryWarning, QurryError
+from .exceptions import WrongWorkerNumReplaced, ParallelManagerRuntimeError
 
 
 CPU_COUNT_UNSAFE = cpu_count()
@@ -51,7 +51,7 @@ def workers_distribution(
             f"| Available worker number {CPU_COUNT} is equal orsmaller than 2."
             + "This computer may not be able to run this program for "
             + "the program will allocate all available threads.",
-            category=QurryWarning,
+            category=WrongWorkerNumReplaced,
         )
         default = DEFAULT_POOL_SIZE
 
@@ -61,13 +61,13 @@ def workers_distribution(
         if workers_num > CPU_COUNT:
             warnings.warn(
                 f"| Worker number {workers_num} is larger than cpu count {CPU_COUNT}.",
-                category=QurryWarning,
+                category=WrongWorkerNumReplaced,
             )
             launch_worker = default
         elif workers_num < 1:
             warnings.warn(
                 f"| Worker number {workers_num} is smaller than 1. Use single worker.",
-                category=QurryWarning,
+                category=WrongWorkerNumReplaced,
             )
             launch_worker = 1
         else:
@@ -137,7 +137,7 @@ class ParallelManager:
             with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
                 return pool.starmap(func, args_list)
         except RuntimeError as e:
-            raise QurryError(
+            raise ParallelManagerRuntimeError(
                 "Failed to use multiprocessing with the given start method. "
                 f"Please check the start method: {start_method}. "
                 "And refer to the above error message for more details."
@@ -169,7 +169,7 @@ class ParallelManager:
             with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
                 return pool.map(func, arg_list)
         except RuntimeError as e:
-            raise QurryError(
+            raise ParallelManagerRuntimeError(
                 "Failed to use multiprocessing with the given start method. "
                 f"Please check the start method: {start_method}. "
                 "And refer to the above error message for more details."

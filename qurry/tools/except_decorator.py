@@ -5,7 +5,7 @@ import warnings
 import inspect
 from typing import Callable, Union, Type, TypeVar
 
-from ..exceptions import QurryUnprovenFeatureWarning
+from .exceptions import QurryUnprovenFeatureWarning
 
 U = TypeVar("U", bound=Union[Type, Callable])
 

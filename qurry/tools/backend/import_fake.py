@@ -12,7 +12,7 @@ import warnings
 from qiskit.providers import BackendV2, Backend
 
 from .utils import backend_name_getter, shorten_name
-from ...exceptions import QurryDependenciesNotWorking, QurryDependenciesFailureError
+from ..exceptions import OptionalDependenciesNotWorking, RequiredDependenciesFailureError
 
 # pylint: disable=ungrouped-imports
 ImportPointType = Literal[
@@ -52,7 +52,7 @@ try:
     if major == "18" and minor == "0":
         warnings.warn(
             QISKIT_IBM_RUNTIME_ISSUE_1318,
-            category=QurryDependenciesNotWorking,
+            category=OptionalDependenciesNotWorking,
         )
 
     from qiskit_ibm_runtime.fake_provider import (  # type: ignore
@@ -143,17 +143,17 @@ def fack_backend_loader():
     """
 
     if FAKE_DEFAULT_SOURCE is None:
-        warnings.warn(LUCKY_MSG, category=QurryDependenciesNotWorking)
+        warnings.warn(LUCKY_MSG, category=OptionalDependenciesNotWorking)
         return {}, {}
 
     _fake_provider_v2_becalled = FAKE_PROVIDERFORV2_SOURCES.get(FAKE_DEFAULT_SOURCE, None)
 
     if _fake_provider_v2_becalled is None:
-        raise QurryDependenciesFailureError(LUCKY_MSG)
+        raise RequiredDependenciesFailureError(LUCKY_MSG)
     try:
         _fake_provider = _fake_provider_v2_becalled()
     except FileNotFoundError as err1318:
-        raise QurryDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
+        raise RequiredDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
 
     backend_fake: dict[str, Backend] = {
         backend_name_getter(b): b for b in _fake_provider.backends()
