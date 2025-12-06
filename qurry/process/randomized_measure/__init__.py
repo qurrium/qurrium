@@ -122,8 +122,6 @@ from .wavefunction_overlap import randomized_overlap_echo, WaveFunctionOverlapRe
 from .wavefunction_overlap_v1 import randomized_overlap_echo_v1, WaveFuctionOverlapResultV1
 from .random_unitary import (
     generate_random_unitary,
-    local_random_unitary_operators,
-    local_random_unitary_pauli_coeff,
     local_unitary_op_to_list,
     local_unitary_op_to_bloch_vector,
 )
