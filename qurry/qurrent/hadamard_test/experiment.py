@@ -78,7 +78,7 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMHArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 

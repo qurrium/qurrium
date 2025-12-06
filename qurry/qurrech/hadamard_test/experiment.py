@@ -89,7 +89,7 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELHArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
