@@ -94,7 +94,7 @@ class ELRArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the unitary operator with the numerical order.
     """
-    second_backend: Union[Backend, str]
+    second_backend: Union[Backend, str, None]
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
@@ -182,8 +182,33 @@ class ELRArguments(ArgumentsPrototype):
             ),
         )
 
+    def replace_second_backend(self, backend: Union[Backend, str, None]) -> "ELRArguments":
+        """Return a new instance with replaced second_backend.
 
-class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
+        Args:
+            backend (Union[Backend, str, None]): The backend to replace.
+
+        Returns:
+            ELRArguments: The new instance with replaced second_backend.
+        """
+        return ELRArguments(
+            exp_name=self.exp_name,
+            times=self.times,
+            qubits_measured_1=self.qubits_measured_1,
+            qubits_measured_2=self.qubits_measured_2,
+            registers_mapping_1=self.registers_mapping_1,
+            registers_mapping_2=self.registers_mapping_2,
+            actual_num_qubits_1=self.actual_num_qubits_1,
+            actual_num_qubits_2=self.actual_num_qubits_2,
+            unitary_located_mapping_1=self.unitary_located_mapping_1,
+            unitary_located_mapping_2=self.unitary_located_mapping_2,
+            second_backend=backend,
+            second_transpile_args=self.second_transpile_args,
+            random_unitary_seeds=self.random_unitary_seeds,
+        )
+
+
+class ELRMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
@@ -240,7 +265,7 @@ class EchoListenRandomizedMeasureArgs(BasicArgs, total=False):
     """
 
 
-class EchoListenRandomizedOutputArgs(OutputArgs):
+class ELROutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurrech.randomized_measure.qurry.EchoListenRandomized.output`."""
 

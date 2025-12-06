@@ -3,7 +3,7 @@
 from typing import Literal, Union, overload
 
 from .hadamard_test import EchoListenHadamard, ELHMeasureArgs
-from .randomized_measure import EchoListenRandomized, EchoListenRandomizedMeasureArgs
+from .randomized_measure import EchoListenRandomized, ELRMeasureArgs
 
 
 # pylint: disable=invalid-name
@@ -76,6 +76,6 @@ __all__ = [
     "EchoListenHadamard",
     "ELHMeasureArgs",
     "EchoListenRandomized",
-    "EchoListenRandomizedMeasureArgs",
+    "ELRMeasureArgs",
     "WaveFunctionOverlap",
 ]

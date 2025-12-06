@@ -17,21 +17,18 @@ from .utils import (
     overlapping_size_check,
     unitary_full_cover_check,
     create_config,
+    method_process,
 )
-from ...qurrent.randomized_measure.utils import make_samplied_circuit
+from .exceptions import SeperatedExecutingOverlapResult
+from ...qurrent.randomized_measure import EntropyMeasureTales, EntropyMeasureTalesTypes
 from ...qurrium import ExperimentPrototype, Commonparams, RunArgsType, TranspileArgs, WCKeyable
-from ...qurrium.experiment import memory_usage_factor_expect
-from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
+from ...qurrium.experiment import memory_usage_factor_expect, make_qasm_strings
+from ...qurrium.utils import get_counts_and_exceptions
+from ...qurrium.exceptions import TranspileConfigurationIgnored
 from ...process.availability import PostProcessingBackendLabel
-from ...process.randomized_measure import (
-    check_random_unitary_seeds,
-    generate_random_unitary,
-    local_unitary_op_to_list,
-    local_unitary_op_to_pauli_coeff,
-)
+from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap import DEFAULT_PROCESS_BACKEND
-from ...tools import ParallelManager, set_pbar_description, backend_name_getter
-from ...exceptions import SeperatedExecutingOverlapResult, QurryTranspileConfigurationIgnored
+from ...tools import set_pbar_description, backend_name_getter
 
 
 class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
@@ -50,6 +47,12 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         return ELRAnalysis
 
     @classmethod
+    def side_product_type(cls) -> type[EntropyMeasureTales]:
+        return EntropyMeasureTales
+
+    side_products: EntropyMeasureTales
+
+    @classmethod
     def params_control(
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
@@ -60,7 +63,8 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        second_backend: Optional[Union[Backend, str]] = None,
+        second_backend: Optional[Backend] = None,
+        second_transpile_args: Optional[TranspileArgs] = None,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
     ) -> tuple[ELRArguments, Commonparams, dict[str, Any]]:
@@ -101,10 +105,13 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            second_backend (Optional[Union[Backend, str]], optional):
+            second_backend (Optional[Backend], optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to None.
+            second_transpile_args (Optional[TranspileArgs], optional):
+                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
+                for the second quantum circuit. Defaults to None.
             random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -207,6 +214,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
             unitary_located_mapping_1=unitary_located_mapping_1,
             unitary_located_mapping_2=unitary_located_mapping_2,
             second_backend=second_backend,
+            second_transpile_args=second_transpile_args,
             random_unitary_seeds=random_unitary_seeds,
             **custom_kwargs,
         )
@@ -217,8 +225,8 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELRArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
-    ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
+        multiprocess: bool = False,
+    ) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
         """The method to construct circuit.
 
         Args:
@@ -233,118 +241,42 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
-            tuple[list[QuantumCircuit], dict[str, Any]]:
-                The circuits of the experiment and the side products.
+            The circuits of the experiment and the side products.
         """
-        side_product = {}
-        target_key_1, target_circuit_1 = targets[0]
-        target_key_1 = "" if isinstance(target_key_1, int) else str(target_key_1)
-        target_key_2, target_circuit_2 = targets[1]
-        target_key_2 = "" if isinstance(target_key_2, int) else str(target_key_2)
 
-        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
-        assert len(arguments.unitary_located_mapping_1) == len(
-            arguments.unitary_located_mapping_2
-        ), (
-            "The number of unitary_located_mapping_1 and "
-            + "unitary_located_mapping_2 should be the same, "
-            + f"but got {len(arguments.unitary_located_mapping_1)} "
-            + f"and {len(arguments.unitary_located_mapping_2)}. "
-            + "This should be ensured in the function 'params_control'."
-        )
-        unitary_dicts_source = generate_random_unitary(
-            arguments.times,
-            list(range(len(arguments.unitary_located_mapping_1))),
-            arguments.random_unitary_seeds,
-        )
-        unitary_dict = {}
-        for n_u_i in range(arguments.times):
-            unitary_dict[n_u_i] = {
-                qi: unitary_dicts_source[n_u_i][ui]
-                for qi, ui in arguments.unitary_located_mapping_1.items()
-            }
-            unitary_dict[n_u_i + arguments.times] = {
-                qi: unitary_dicts_source[n_u_i][ui]
-                for qi, ui in arguments.unitary_located_mapping_2.items()
-            }
+        return method_process(targets, arguments, pbar, multiprocess)
 
-        set_pbar_description(pbar, f"Building {arguments.times * 2} circuits.")
-        if multiprocess:
-            pool = ParallelManager()
-            circ_list = pool.starmap(
-                make_samplied_circuit,
-                [
-                    (
-                        n_u_i,
-                        target_circuit_1,
-                        target_key_1,
-                        arguments.exp_name,
-                        arguments.registers_mapping_1,
-                        unitary_dict[n_u_i],
-                    )
-                    for n_u_i in range(arguments.times)
-                ]
-                + [
-                    (
-                        n_u_i + arguments.times,
-                        target_circuit_2,
-                        target_key_2,
-                        arguments.exp_name,
-                        arguments.registers_mapping_2,
-                        unitary_dict[n_u_i + arguments.times],
-                    )
-                    for n_u_i in range(arguments.times)
-                ],
-            )
-            set_pbar_description(pbar, "Writing 'unitaryOP'.")
-            unitary_operator_list = pool.starmap(
-                local_unitary_op_to_list,
-                [(unitary_dicts_source[n_u_i],) for n_u_i in range(arguments.times)],
-            )
-            set_pbar_description(pbar, "Writing 'randomized'.")
-            randomized_list = pool.starmap(
-                local_unitary_op_to_pauli_coeff,
-                [(unitary_operator_list[n_u_i],) for n_u_i in range(arguments.times)],
-            )
+    def replace_second_backend(self, backend: Optional[Backend]) -> None:
+        """Replace the second backend of the experiment.
 
+        Args:
+            backend (Backend): The new backend.
+
+        Raises:
+            ValueError: If the new backend is not a valid backend.
+            ValueError: If the new backend is not a runnable backend.
+        """
+        if backend is None:
+            if self.args.second_backend is None:
+                return
+            self.commons.datetimes.add_serial("remove-second-backend")
+            self.args = self.args.replace_second_backend(None)
+            return
+
+        if not isinstance(backend, Backend):
+            raise ValueError(f"Require a valid backend, but new backend: {backend} does not.")
+        if not hasattr(backend, "run"):
+            raise ValueError(f"Require a runnable backend, but new backend: {backend} does not.")
+
+        old_backend = self.args.second_backend
+        if old_backend is None:
+            new_backend_name = backend_name_getter(backend)
+            self.commons.datetimes.add_serial(f"add-second-backend-{new_backend_name}")
         else:
-            circ_list = [
-                make_samplied_circuit(
-                    n_u_i,
-                    target_circuit_1,
-                    target_key_1,
-                    arguments.exp_name,
-                    arguments.registers_mapping_1,
-                    unitary_dict[n_u_i],
-                )
-                for n_u_i in range(arguments.times)
-            ] + [
-                make_samplied_circuit(
-                    n_u_i + arguments.times,
-                    target_circuit_2,
-                    target_key_2,
-                    arguments.exp_name,
-                    arguments.registers_mapping_2,
-                    unitary_dict[n_u_i + arguments.times],
-                )
-                for n_u_i in range(arguments.times)
-            ]
-            set_pbar_description(pbar, "Writing 'unitaryOP'.")
-            unitary_operator_list = [
-                local_unitary_op_to_list(unitary_dicts_source[n_u_i])
-                for n_u_i in range(arguments.times)
-            ]
-            set_pbar_description(pbar, "Writing 'randomized'.")
-            randomized_list = [
-                local_unitary_op_to_pauli_coeff(unitary_operator_list[n_u_i])
-                for n_u_i in range(arguments.times)
-            ]
-        assert len(circ_list) == 2 * arguments.times, "The number of circuits is not correct."
-
-        side_product["unitaryOP"] = dict(enumerate(unitary_operator_list))
-        side_product["randomized"] = dict(enumerate(randomized_list))
-
-        return circ_list, side_product
+            old_backend_name = backend_name_getter(old_backend)
+            new_backend_name = backend_name_getter(backend)
+            self.commons.datetimes.add_serial(f"replace-{old_backend_name}-to-{new_backend_name}")
+        self.args = self.args.replace_second_backend(backend)
 
     @classmethod
     def build(
@@ -480,31 +412,11 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-        targets_keys, targets_values = zip(*targets)
-        targets_keys: tuple[WCKeyable, ...]
-        targets_values: tuple[QuantumCircuit, ...]
-
-        if multiprocess:
-            pool = ParallelManager()
-            current_exp.beforewards.circuit_qasm.extend(
-                pool.starmap(qasm_dumps, ((q, qasm_version) for q in cirqs))
-            )
-            current_exp.beforewards.target_qasm.extend(
-                zip(
-                    (str(k) for k in targets_keys),
-                    pool.starmap(qasm_dumps, [(q, qasm_version) for q in targets_values]),
-                )
-            )
-        else:
-            current_exp.beforewards.circuit_qasm.extend(
-                (qasm_dumps(q, qasm_version) for q in cirqs)
-            )
-            current_exp.beforewards.target_qasm.extend(
-                zip(
-                    (str(k) for k in targets_keys),
-                    (qasm_dumps(q, qasm_version) for q in targets_values),
-                )
-            )
+        circuit_qasm_strings, target_qasm_strings = make_qasm_strings(
+            cirqs, targets, qasm_version, multiprocess=multiprocess
+        )
+        current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
+        current_exp.beforewards.target_qasm.extend(target_qasm_strings)
 
         transpiled_circs: list[QuantumCircuit] = []
         # transpile
@@ -518,7 +430,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
                     + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=QurryTranspileConfigurationIgnored,
+                    category=TranspileConfigurationIgnored,
                 )
         else:
             set_pbar_description(pbar, "Circuit transpiling...")
@@ -548,7 +460,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
                     + f"the second_transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=QurryTranspileConfigurationIgnored,
+                    category=TranspileConfigurationIgnored,
                 )
         elif current_exp.args.second_transpile_args is not None:
             second_transpile_args = current_exp.args.second_transpile_args.copy()
@@ -577,7 +489,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 warnings.warn(
                     f"Passmanager '{passmanager_name}' is given, "
                     + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=QurryTranspileConfigurationIgnored,
+                    category=TranspileConfigurationIgnored,
                 )
         else:
             set_pbar_description(pbar, "Circuit transpiling...")

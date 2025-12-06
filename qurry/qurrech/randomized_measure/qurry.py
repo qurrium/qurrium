@@ -1,7 +1,4 @@
-"""EchoListenRandomized - Qurrium
-(:mod:`qurry.qurrech.randomized_measure.qurry`)
-
-"""
+"""EchoListenRandomized - Qurrium (:mod:`qurry.qurrech.randomized_measure.qurry`)"""
 
 from pathlib import Path
 from typing import Union, Optional, Any, Type, Literal, Iterable
@@ -10,17 +7,9 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    EchoListenRandomizedMeasureArgs,
-    EchoListenRandomizedOutputArgs,
-    EchoListenRandomizedAnalyzeArgs,
-)
-from .experiment import (
-    ELRExperiment,
-    PostProcessingBackendLabel,
-    DEFAULT_PROCESS_BACKEND,
-)
+from .arguments import SHORT_NAME, ACRONYM, ELRMeasureArgs, ELROutputArgs
+from .analysis import ELRAnalyzeArgs
+from .experiment import ELRExperiment, PostProcessingBackendLabel, DEFAULT_PROCESS_BACKEND
 from ...qurrium import (
     QurriumPrototype,
     WCKeyable,
@@ -33,12 +22,7 @@ from ...qurrium.utils import passmanager_processor
 
 
 class EchoListenRandomized(
-    QurriumPrototype[
-        ELRExperiment,
-        EchoListenRandomizedMeasureArgs,
-        EchoListenRandomizedOutputArgs,
-        EchoListenRandomizedAnalyzeArgs,
-    ]
+    QurriumPrototype[ELRExperiment, ELRMeasureArgs, ELROutputArgs, ELRAnalyzeArgs]
 ):
     """Randomized Measure for wave function overlap.
     a.k.a. loschmidt echo when processes time evolution system.
@@ -70,6 +54,9 @@ class EchoListenRandomized(
 
     __name__ = "EchoListenRandomized"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
     def experiment_instance(self) -> Type[ELRExperiment]:
@@ -103,7 +90,7 @@ class EchoListenRandomized(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> EchoListenRandomizedOutputArgs:
+    ) -> ELROutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
@@ -409,7 +396,7 @@ class EchoListenRandomized(
         *,
         analysis_name: str = "report",
         no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalyzeArgs[EchoListenRandomizedAnalyzeArgs] = None,
+        specific_analysis_args: SpecificAnalyzeArgs[ELRAnalyzeArgs] = None,
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments
@@ -426,9 +413,7 @@ class EchoListenRandomized(
                 The name of analysis. Defaults to 'report'.
             no_serialize (bool, optional):
                 Whether to serialize the analysis. Defaults to False.
-            specific_analysis_args (
-                SpecificAnalsisArgs[EchoListenRandomizedAnalyzeArgs], optional
-            ):
+            specific_analysis_args (SpecificAnalyzeArgs[ELRAnalyzeArgs], optional):
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
