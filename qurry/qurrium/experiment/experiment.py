@@ -1,7 +1,6 @@
 """ExperimentPrototype - The instance of experiment (:mod:`qurry.qurrium.experiment.experiment`)"""
 
 import os
-import json
 import warnings
 from abc import abstractmethod, ABC
 from typing import Union, Optional, Any, Generic
@@ -16,7 +15,7 @@ from qiskit.transpiler.passmanager import PassManager
 from .beforewards import Before
 from .tales import Tales, _SP
 from .afterwards import After
-from .export import Export
+from .export import Export, QurryInfo
 from .utils import (
     exp_id_process,
     memory_usage_factor_expect,
@@ -49,7 +48,6 @@ from ...tools import (
     qurry_progressbar,
     GeneralSimulator,
 )
-from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING
 from ...capsule.hoshi import Hoshi
 
 
@@ -799,7 +797,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         self,
         save_location: Optional[Union[Path, str]] = None,
         export_transpiled_circuit: bool = False,
-        qurryinfo_hold_access: Optional[str] = None,
+        qurryinfo_lock: Optional[str] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
@@ -813,11 +811,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Whether to export the transpiled circuit as txt. Defaults to False.
                 When set to True, the transpiled circuit will be exported as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
-            qurryinfo_hold_access (str, optional):
-                Whether to hold the I/O of `qurryinfo`,
+            qurryinfo_lock (str, optional):
+                If set to the same as `self.commons.summoner_id`,
                 then export by :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
-                It should be ONLY control by
-                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`. Defaults to None.
+                Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
@@ -829,25 +826,17 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         # experiment write
         export_material = self.export(save_location, export_transpiled_circuit)
         exp_id, files = export_material.write()
+        assert "qurryinfo" in files, (
+            "qurryinfo must be in the exported files. It should be ensured."
+        )
 
-        assert "qurryinfo" in files, "qurryinfo location is not in files."
-        # qurryinfo write
-        real_save_location = Path(self.commons.save_location)
-        if (
-            qurryinfo_hold_access == self.commons.summoner_id
-            and self.commons.summoner_id is not None
-        ):
-            # if qurryinfo_hold_access is set, then export by MultiManager
+        if qurryinfo_lock == self.commons.summoner_id and self.commons.summoner_id is not None:
             return exp_id, files
-        qurryinfo_location = real_save_location / files["qurryinfo"]
 
-        if os.path.exists(qurryinfo_location):
-            with open(qurryinfo_location, "r", encoding=DEFAULT_ENCODING) as f:
-                qurryinfo_found: dict[str, dict[str, str]] = dict(json.load(f))
-                qurryinfo_found[exp_id] = files
-            quickJSON(qurryinfo_found, str(qurryinfo_location), DEFAULT_MODE)
-        else:
-            quickJSON({exp_id: files}, str(qurryinfo_location), DEFAULT_MODE)
+        real_save_location = Path(self.commons.save_location)
+        qurry_info = QurryInfo.read(real_save_location)
+        qurry_info.update({exp_id: files})
+        qurry_info.write(real_save_location)
 
         return exp_id, files
 
@@ -948,18 +937,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         export_location = save_location / name_or_id
         if not os.path.exists(export_location):
             raise FileNotFoundError(f"'ExportLoaction' does not exist, '{export_location}'.")
-        qurryinfo_location = export_location / "qurryinfo.json"
-        if not os.path.exists(qurryinfo_location):
-            raise FileNotFoundError(
-                f"'qurryinfo.json' does not exist at '{save_location}'. "
-                + "It's required for loading all experiment data."
-            )
 
-        qurryinfo: dict[str, dict[str, str]] = {}
-        with open(qurryinfo_location, "r", encoding=DEFAULT_ENCODING) as f:
-            qurryinfo_found: dict[str, dict[str, str]] = json.load(f)
-            qurryinfo.update(qurryinfo_found)
-
+        qurryinfo: QurryInfo = QurryInfo.read(save_location=export_location)
         num_exps = len(qurryinfo)
         if not multiprocess or len(qurryinfo) == 1:
             return [

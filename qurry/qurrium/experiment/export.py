@@ -1,12 +1,123 @@
 """The instance for exporting data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
-from typing import Union, Any
+from typing import Union, Any, Literal
 from dataclasses import dataclass
 from pathlib import Path
+import json
 
 from ..json_io import WrittenContentType
-from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
+from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
+
+
+class QurryInfo(dict[str, dict[str, str]]):
+    """The type for qurryinfo dictionary."""
+
+    def __init__(self, *, qurryinfo_dict: Union[dict[str, dict[str, str]], None] = None):
+        if qurryinfo_dict is None:
+            super().__init__()
+            return
+
+        invalid_types_1, invalid_types_2, invalid_types_3 = [], {}, {}
+        for k, v in qurryinfo_dict.items():
+            if not isinstance(k, str):
+                invalid_types_1.append(k)
+            if not isinstance(v, dict):
+                invalid_types_2[k] = v
+            invalid_inner_keys = [kk for kk, vv in v.items() if not isinstance(vv, str)]
+            if invalid_inner_keys:
+                invalid_types_3[k] = invalid_inner_keys
+        if invalid_types_1 or invalid_types_2 or invalid_types_3:
+            raise TypeError(
+                "The qurryinfo_dict has invalid types. "
+                + f"Invalid outer keys (not str): {invalid_types_1}. "
+                + f"Invalid outer values (not dict): {invalid_types_2}. "
+                + f"Invalid inner keys (not str): {invalid_types_3}."
+            )
+
+        missing_keys = [
+            k for k, v in qurryinfo_dict.items() if not {"folder", "qurryinfo"}.issubset(v.keys())
+        ]
+        if missing_keys:
+            raise KeyError(
+                "The raw_dict has missing required keys 'folder' or 'qurryinfo' in inner dict. "
+                + f"Missing keys in outer keys: {missing_keys}."
+            )
+        super().__init__(qurryinfo_dict)
+
+    def export(self) -> dict[str, dict[str, str]]:
+        """Export the serializable data.
+
+        Returns:
+            dict[str, dict[str, str]]: The serializable data.
+        """
+        return jsonablize(self)
+
+    def write(self, save_location: Union[Path, str]) -> None:
+        """Write the qurryinfo to the specified location.
+
+        Args:
+            save_location (Union[Path, str]):
+                The location to save the qurryinfo.
+        """
+        qurryinfo_location = Path(save_location) / "qurryinfo.json"
+        if not os.path.exists(qurryinfo_location):
+            raise FileNotFoundError(
+                f"'qurryinfo.json' does not exist at '{save_location}'. "
+                + "It's required for loading all experiment data."
+            )
+
+        quickJSON(
+            content=self.export(),
+            filename=qurryinfo_location,
+            mode=DEFAULT_MODE,
+            indent=DEFAULT_INDENT,
+            encoding=DEFAULT_ENCODING,
+        )
+
+    def update(self, other: Union[dict[str, dict[str, str]], "QurryInfo"]) -> None:
+        """Update the qurryinfo with another dictionary.
+
+        Args:
+            other (Union[dict[str, dict[str, str]], "QurryInfo"]):
+                The other dictionary to update the qurryinfo.
+        """
+        if not isinstance(other, self.__class__):
+            other = self.__class__(qurryinfo_dict=other)
+
+        for k, v in other.items():
+            if k not in self:
+                self[k] = v
+            else:
+                self[k].update(v)
+
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, dict[str, str]]):
+        """Ingest from a serialized dictionary.
+
+        Args:
+            raw_dict (dict[str, dict[str, str]]):
+                The raw serialized dictionary.
+        """
+
+        return cls(qurryinfo_dict=raw_dict)
+
+    @classmethod
+    def read(cls, save_location: Union[Path, str]) -> "QurryInfo":
+        """Read the qurryinfo from the specified location.
+
+        Args:
+            save_location (Union[Path, str]):
+                The location to read the qurryinfo.
+
+        Returns:
+            QurryInfo: The qurryinfo object.
+        """
+        filepath = Path(save_location) / "qurryinfo.json"
+
+        with open(filepath, "r", encoding=DEFAULT_ENCODING) as f:
+            new_instance = json.load(f, object_hook=cls.ingest)
+        return new_instance
 
 
 @dataclass(frozen=True)
@@ -94,7 +205,7 @@ class Export:
                 + f"Invalid written_contents: {invalid_written_contents.keys()}"
             )
 
-    def write(self) -> tuple[str, dict[str, str]]:
+    def write(self) -> tuple[str, dict[Union[str, Literal["folder", "qurryinfo"]], str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
         Returns:

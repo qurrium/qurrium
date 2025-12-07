@@ -6,9 +6,9 @@ from .arguments import MultiCommonparams
 from .beforewards import Before
 from .container import ExperimentContainer, _E, QuantityContainer
 from .process import multiprocess_exporter_wrapper
+from ..experiment import QurryInfo
 from ..utils.iocontrol import RJUST_LEN, serial_naming
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE, very_easy_chunk_distribution
-from ...capsule import quickJSON, DEFAULT_MODE, DEFAULT_ENCODING, DEFAULT_INDENT
 
 
 def experiment_writer(
@@ -17,7 +17,7 @@ def experiment_writer(
     multicommons: MultiCommonparams,
     export_transpiled_circuit: bool = False,
     multiprocess: bool = False,
-) -> dict[str, dict[str, str]]:
+) -> QurryInfo:
     """Write the experiment.
 
     Args:
@@ -38,8 +38,6 @@ def experiment_writer(
         and the values are the dictionaries of the exported information.
     """
 
-    all_qurryinfo_loc = multicommons.export_location / "qurryinfo.json"
-
     if multiprocess:
         respect_memory_array = [
             (id_exec, int(experiment_container[id_exec].memory_usage_factor))
@@ -53,7 +51,7 @@ def experiment_writer(
         tmp_export_info = experiment_container[respect_memory_array[0][0]].write(
             save_location=multicommons.save_location,
             export_transpiled_circuit=export_transpiled_circuit,
-            qurryinfo_hold_access=multicommons.summoner_id,
+            qurryinfo_lock=multicommons.summoner_id,
             pbar=None,
         )
 
@@ -84,13 +82,13 @@ def experiment_writer(
                 desc="Exporting experiments...",
                 bar_format="qurry-barless",
             )
-            all_qurryinfo = dict(export_imap_result)
+            qurryinfo_dict = dict(export_imap_result)
 
-        all_qurryinfo[tmp_export_info[0]] = tmp_export_info[1]
-        all_qurryinfo = dict(sorted(all_qurryinfo.items(), key=lambda x: exps_serial[x[0]]))
+        qurryinfo_dict[tmp_export_info[0]] = tmp_export_info[1]
+        qurryinfo_dict = dict(sorted(qurryinfo_dict.items(), key=lambda x: exps_serial[x[0]]))
 
     else:
-        all_qurryinfo = {}
+        qurryinfo_dict = {}
         single_exporting_progress = qurry_progressbar(
             beforewards.exps_config,
             desc="Exporting experiments...",
@@ -99,27 +97,21 @@ def experiment_writer(
         for id_exec in single_exporting_progress:
             tmp_export_info = experiment_container[id_exec].write(
                 save_location=multicommons.save_location,
-                qurryinfo_hold_access=multicommons.summoner_id,
+                qurryinfo_lock=multicommons.summoner_id,
                 export_transpiled_circuit=export_transpiled_circuit,
                 pbar=single_exporting_progress,
             )
             assert id_exec == tmp_export_info[0], (
                 f"ID is not consistent: {id_exec} != {tmp_export_info[0]}."
             )
-            all_qurryinfo[id_exec] = tmp_export_info[1]
+            qurryinfo_dict[id_exec] = tmp_export_info[1]
 
     # for id_exec, files in all_qurryinfo_items:
-    print(f"| Exporting {all_qurryinfo_loc}...")
-    quickJSON(
-        content=all_qurryinfo,
-        filename=all_qurryinfo_loc,
-        mode=DEFAULT_MODE,
-        jsonable=False,
-        indent=DEFAULT_INDENT,
-        encoding=DEFAULT_ENCODING,
-    )
-    print(f"| Exporting {all_qurryinfo_loc} done.")
-    return all_qurryinfo
+    qurryinfo = QurryInfo.read(save_location=multicommons.export_location)
+    qurryinfo.update(qurryinfo_dict)
+    qurryinfo.write(save_location=multicommons.export_location)
+
+    return qurryinfo
 
 
 def multimanager_report_naming(

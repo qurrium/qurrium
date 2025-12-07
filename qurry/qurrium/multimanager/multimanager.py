@@ -21,6 +21,7 @@ from .process import datetimedict_process
 from .utils import experiment_writer, multimanager_report_naming
 from ..analysis import AnalyzeArgs, SpecificAnalyzeArgs
 from ..container import BaseRunArgs
+from ..experiment import QurryInfo
 from ..utils import naming, IOComplex
 from ..exceptions import ResetAccomplished, ResetSecurityActivated
 from ...tools import (
@@ -59,7 +60,7 @@ class MultiManager(Generic[_E]):
     mute_auto_lock: bool = False
     """Whether mute the auto-lock message."""
 
-    qurryinfo: dict[str, dict[str, str]] = {}
+    qurryinfo: QurryInfo
     """The qurryinfo of the multi-experiment.
 
     This is a dictionary with experiment IDs as keys,
@@ -184,6 +185,7 @@ class MultiManager(Generic[_E]):
             raise ValueError(f"gitignore must be list or GitSyncControl, not {type(gitignore)}.")
 
         self.exps = ExperimentContainer()
+        self.qurryinfo = QurryInfo()
 
         self.naming_complex = naming_complex
         self.multicommons = multicommons
@@ -625,13 +627,19 @@ class MultiManager(Generic[_E]):
                         if path.exists():
                             path.unlink()
 
-        reading_results: list[_E] = experiment_instance.read(  # type: ignore
+        reading_results: list[_E] = experiment_instance.read(
             save_location=current_multimanager.multicommons.save_location,
             name_or_id=current_multimanager.multicommons.summoner_name,
             multiprocess=multiprocess,
         )
         for read_exps in reading_results:
             current_multimanager.exps[read_exps.commons.exp_id] = read_exps
+
+        current_multimanager.qurryinfo.update(
+            QurryInfo.read(
+                save_location=current_multimanager.multicommons.export_location,
+            )
+        )
 
         return current_multimanager
 
@@ -789,7 +797,6 @@ class MultiManager(Generic[_E]):
 
         # experiments
         if not skip_exps:
-            self.qurryinfo.clear()
             self.qurryinfo.update(
                 experiment_writer(
                     experiment_container=self.exps,
