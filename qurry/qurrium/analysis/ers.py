@@ -171,6 +171,9 @@ _RM = TypeVar("_RM", bound=AnalysisMiddlewarePrototype)
 @dataclass(frozen=True)
 class ProcessEntriesPrototype(AnalysisERABC):
     """The entries for post-processing."""
+    
+    shots: int
+    """The number of shots."""
 
 
 _PE = TypeVar("_PE", bound=ProcessEntriesPrototype)

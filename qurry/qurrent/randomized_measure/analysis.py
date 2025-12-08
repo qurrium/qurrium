@@ -403,7 +403,8 @@ class EMRAnalysis(
     def available_results_types(
         cls,
     ) -> dict[
-        str, Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]]
+        Union[str, Literal["target_system", "all_system", "mitigated"]],
+        Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]],
     ]:
         """The results type for this analysis."""
         return {
@@ -507,6 +508,7 @@ class EMRAnalysis(
                 counts_used=counts_used,
             ),
             EMRProcessEntries(
+                shots=commonparams.shots,
                 selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
                 existed_all_system=existed_all_system,
                 backend=analyze_arguments.get("backend", DEFAULT_PROCESS_BACKEND),

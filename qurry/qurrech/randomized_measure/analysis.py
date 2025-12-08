@@ -572,6 +572,7 @@ class ELRAnalysis(
                 counts_used=counts_used,
             ),
             ELRProcessEntries(
+                shots=commonparams.shots,
                 selected_classical_registers=selected_classical_registers,
             ),
             first_counts,

@@ -1,6 +1,6 @@
 """EchoListenHadamard - Analysis (:mod:`qurry.qurrech.hadamard_test.analysis`)"""
 
-from typing import Optional, Any
+from typing import Optional, Any, Union, Literal
 from dataclasses import dataclass
 
 from .arguments import ELHArguments
@@ -24,10 +24,10 @@ class ELHAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 @dataclass(frozen=True)
-class ELHAnalysisMiddleware(AnalysisMiddlewarePrototype):
+class ELHMiddleware(AnalysisMiddlewarePrototype):
     """The middleware entries between analyze and actual post-processing function."""
 
-    __name__ = "ELHAnalysisMiddleware"
+    __name__ = "ELHMiddleware"
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,7 @@ class ELHAnalysis(
     AnalysisPrototype[
         ELHArguments,
         ELHAnalyzeArgs,
-        ELHAnalysisMiddleware,
+        ELHMiddleware,
         ELHProcessEntries,
         ELHDefaultResults,
     ]
@@ -64,9 +64,9 @@ class ELHAnalysis(
     __name__ = "ELHAnalysis"
 
     @classmethod
-    def middleware_entries_type(cls) -> type[ELHAnalysisMiddleware]:
+    def middleware_entries_type(cls) -> type[ELHMiddleware]:
         """The middleware entries type for this analysis."""
-        return ELHAnalysisMiddleware
+        return ELHMiddleware
 
     @classmethod
     def postprocess_entries_type(cls) -> type[ELHProcessEntries]:
@@ -74,7 +74,9 @@ class ELHAnalysis(
         return ELHProcessEntries
 
     @classmethod
-    def available_results_types(cls):
+    def available_results_types(
+        cls,
+    ) -> dict[Union[str, Literal["default"]], type[ELHDefaultResults]]:
         """The results type for this analysis."""
         return {"default": ELHDefaultResults}
 
@@ -99,7 +101,7 @@ class ELHAnalysis(
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: ELHAnalyzeArgs,
-    ) -> tuple[ELHAnalyzeArgs, ELHAnalysisMiddleware, ELHProcessEntries]:
+    ) -> tuple[ELHAnalyzeArgs, ELHMiddleware, ELHProcessEntries]:
         """Generate the entries for analysis.
 
         Hint:
@@ -114,8 +116,8 @@ class ELHAnalysis(
         Returns:
             The generated entries for analysis.
         """
-        middleware_entries = ELHAnalysisMiddleware()
-        postprocess_entries = ELHProcessEntries()
+        middleware_entries = ELHMiddleware()
+        postprocess_entries = ELHProcessEntries(shots=commonparams.shots)
 
         return analyze_arguments, middleware_entries, postprocess_entries
 

@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Analysis (:mod:`qurry.qurrent.hadamard_test.analysis`)"""
 
-from typing import Optional, Any
+from typing import Optional, Any, Union, Literal
 from dataclasses import dataclass
 
 from .arguments import EMHArguments
@@ -24,10 +24,10 @@ class EMHAnalyzeArgs(AnalyzeArgs, total=False):
 
 
 @dataclass(frozen=True)
-class EMHAnalysisMiddleware(AnalysisMiddlewarePrototype):
+class EMHMiddleware(AnalysisMiddlewarePrototype):
     """The middleware entries between analyze and actual post-processing function."""
 
-    __name__ = "EMHAnalysisMiddleware"
+    __name__ = "EMHMiddleware"
 
 
 @dataclass(frozen=True)
@@ -54,7 +54,7 @@ class EMHAnalysis(
     AnalysisPrototype[
         EMHArguments,
         EMHAnalyzeArgs,
-        EMHAnalysisMiddleware,
+        EMHMiddleware,
         EMHProcessEntries,
         EMHDefaultResults,
     ]
@@ -66,9 +66,9 @@ class EMHAnalysis(
     __name__ = "EMHAnalysis"
 
     @classmethod
-    def middleware_entries_type(cls) -> type[EMHAnalysisMiddleware]:
+    def middleware_entries_type(cls) -> type[EMHMiddleware]:
         """The middleware entries type for this analysis."""
-        return EMHAnalysisMiddleware
+        return EMHMiddleware
 
     @classmethod
     def postprocess_entries_type(cls) -> type[EMHProcessEntries]:
@@ -76,7 +76,9 @@ class EMHAnalysis(
         return EMHProcessEntries
 
     @classmethod
-    def available_results_types(cls) -> dict[str, type[AnalysisResultsPrototype]]:
+    def available_results_types(
+        cls,
+    ) -> dict[Union[str, Literal["default"]], type[EMHDefaultResults]]:
         """The results type for this analysis."""
         return {"default": EMHDefaultResults}
 
@@ -102,7 +104,7 @@ class EMHAnalysis(
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: EMHAnalyzeArgs,
-    ) -> tuple[EMHAnalyzeArgs, EMHAnalysisMiddleware, EMHProcessEntries]:
+    ) -> tuple[EMHAnalyzeArgs, EMHMiddleware, EMHProcessEntries]:
         """Generate the entries for analysis.
 
         Hint:
@@ -117,8 +119,8 @@ class EMHAnalysis(
         Returns:
             The generated entries for analysis.
         """
-        middleware_entries = EMHAnalysisMiddleware()
-        postprocess_entries = EMHProcessEntries()
+        middleware_entries = EMHMiddleware()
+        postprocess_entries = EMHProcessEntries(shots=commonparams.shots)
 
         return analyze_arguments, middleware_entries, postprocess_entries
 
