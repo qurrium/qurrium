@@ -22,8 +22,12 @@ from .utils import (
 from .exceptions import SeperatedExecutingOverlapResult
 from ...qurrent.randomized_measure import EntropyMeasureTales, EntropyMeasureTalesTypes
 from ...qurrium import ExperimentPrototype, Commonparams, RunArgsType, TranspileArgs, WCKeyable
-from ...qurrium.experiment import memory_usage_factor_expect, make_qasm_strings
 from ...qurrium.utils import get_counts_and_exceptions
+from ...qurrium.experiment import (
+    memory_usage_factor_expect,
+    make_qasm_strings,
+    ensure_runnable_backend,
+)
 from ...qurrium.exceptions import TranspileConfigurationIgnored
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure import check_random_unitary_seeds
@@ -556,12 +560,8 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         if len(self.beforewards.circuit) == 0:
             raise ValueError("The circuit has not been constructed yet.")
 
-        assert isinstance(self.commons.backend, Backend), (
-            f"Current backend {self.commons.backend} needs to be backend not "
-            + f"{type({self.commons.backend})}."
-        )
-        if not hasattr(self.commons.backend, "run"):
-            raise ValueError("Current backend is not runnable.")
+        ensure_runnable_backend(self.commons.backend)
+        assert isinstance(self.commons.backend, Backend), "Backend should be ensured at this point."
 
         if self.args.second_backend is None:
             set_pbar_description(pbar, "Executing with single backend...")
@@ -581,50 +581,42 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
             result_1 = execution_1.result()
             self.afterwards.result.append(result_1)
 
-        elif not isinstance(self.args.second_backend, Backend):
-            raise ValueError(
-                "second_backend should be Backend or not given, "
-                + f"but got {type(self.args.second_backend)}."
+            return self.exp_id
+
+        ensure_runnable_backend(self.args.second_backend)
+
+        if backend_name_getter(self.args.second_backend) == backend_name_getter(
+            self.commons.backend
+        ):
+            warnings.warn(
+                f"The second backend {self.args.second_backend} is seem to be "
+                + f"the same as the first backend {self.commons.backend}. "
+                + "But since they will excute separately, "
+                + "it will return different results although the same backend",
+                category=SeperatedExecutingOverlapResult,
             )
 
-        elif not hasattr(self.args.second_backend, "run"):
-            raise ValueError("second_backend is not runnable.")
-
-        else:
-            if backend_name_getter(self.args.second_backend) == backend_name_getter(
-                self.commons.backend
-            ):
-                warnings.warn(
-                    f"The second backend {self.args.second_backend} is seem to be "
-                    + f"the same as the first backend {self.commons.backend}. "
-                    + "But since they will excute separately, "
-                    + "it will return different results although the same backend",
-                    category=SeperatedExecutingOverlapResult,
-                )
-
-            set_pbar_description(pbar, "Executing with two backends...")
-            event_name, date = self.commons.datetimes.add_serial("run")
-            execution_1: Job = self.commons.backend.run(  # type: ignore
-                self.beforewards.circuit[: self.args.times],
-                shots=self.commons.shots,
-                **self.commons.run_args,
-            )
-            execution_2: Job = self.args.second_backend.run(  # type: ignore
-                self.beforewards.circuit[self.args.times :],
-                shots=self.commons.shots,
-                **self.commons.run_args,
-            )
-            # commons
-            set_pbar_description(
-                pbar, f"Executing completed '{event_name}', denoted date: {date}..."
-            )
-            # beforewards
-            self.beforewards.job_id.append(f"{execution_1.job_id()}_{execution_2.job_id()}")
-            # afterwards
-            result_1 = execution_1.result()
-            self.afterwards.result.append(result_1)
-            result_2 = execution_2.result()
-            self.afterwards.result.append(result_2)
+        set_pbar_description(pbar, "Executing with two backends...")
+        event_name, date = self.commons.datetimes.add_serial("run")
+        execution_1: Job = self.commons.backend.run(  # type: ignore
+            self.beforewards.circuit[: self.args.times],
+            shots=self.commons.shots,
+            **self.commons.run_args,
+        )
+        execution_2: Job = self.args.second_backend.run(  # type: ignore
+            self.beforewards.circuit[self.args.times :],
+            shots=self.commons.shots,
+            **self.commons.run_args,
+        )
+        # commons
+        set_pbar_description(pbar, f"Executing completed '{event_name}', denoted date: {date}...")
+        # beforewards
+        self.beforewards.job_id.append(f"{execution_1.job_id()}_{execution_2.job_id()}")
+        # afterwards
+        result_1 = execution_1.result()
+        self.afterwards.result.append(result_1)
+        result_2 = execution_2.result()
+        self.afterwards.result.append(result_2)
 
         return self.exp_id
 
@@ -648,6 +640,11 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         Returns:
             str: The ID of the experiment.
         """
+        if len(self.afterwards.result) > 2:
+            raise ValueError(
+                "The number of results should be one or two, "
+                + f"but got {len(self.afterwards.result)}."
+            )
 
         if len(self.afterwards.result) == 1:
             set_pbar_description(pbar, "Result loading from single job...")
@@ -661,10 +658,9 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                     self.outfields["exceptions"][result_id] = exception_item
 
             set_pbar_description(pbar, "Counts loading from single job...")
-            for _c in counts_1:
-                self.afterwards.counts.append(_c)
+            self.afterwards.counts.extend(counts_1)
 
-        elif len(self.afterwards.result) == 2:
+        else:
             set_pbar_description(pbar, "Result loading from two jobs...")
             counts_1, exceptions_1 = get_counts_and_exceptions(
                 result=self.afterwards.result[0],
@@ -682,14 +678,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                     self.outfields["exceptions"][result_id] = exception_item
 
             set_pbar_description(pbar, "Counts loading from two jobs...")
-            for _c in counts_1 + counts_2:
-                self.afterwards.counts.append(_c)
-
-        else:
-            raise ValueError(
-                "The number of results should be one or two, "
-                + f"but got {len(self.afterwards.result)}."
-            )
+            self.afterwards.counts.extend(counts_1 + counts_2)
 
         if export:
             # export may be slow, consider export at finish or something
@@ -704,7 +693,6 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         selected_classical_registers: Optional[Iterable[int]] = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
     ) -> ELRAnalysis:
         """Calculate wave function overlap with more information combined.
 
@@ -718,11 +706,6 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar API,
-                you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
-                This function will update the progress bar description.
-                Defaults to None.
 
         Returns:
             EchoListenRandomizedAnalysis: The result of the experiment

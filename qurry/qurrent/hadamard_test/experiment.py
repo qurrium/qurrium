@@ -136,20 +136,15 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
 
         return [qc_exp1], {}
 
-    def analyze(self, pbar: Optional[tqdm.tqdm] = None) -> EMHAnalysis:
+    def analyze(self) -> EMHAnalysis:
         """Calculate entangled entropy with more information combined.
 
         Args:
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
 
         Returns:
             EntropyMeasureHadamardAnalysis: The result of the analysis.
         """
-
-        if pbar is not None:
-            pbar.set_description("Calculating entangled entropy")
 
         analysis = self.analysis_type().perform_analysis(
             arguments=self.args,

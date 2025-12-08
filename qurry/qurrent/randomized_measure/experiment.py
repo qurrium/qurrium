@@ -188,7 +188,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         independent_all_system: bool = False,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
     ) -> EMRAnalysis:
         """Calculate entangled entropy with more information combined.
 
@@ -201,8 +200,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
 
         Returns:
             EntropyMeasureRandomizedAnalysis: The result of the analysis.

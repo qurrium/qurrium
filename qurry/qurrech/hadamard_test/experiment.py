@@ -160,21 +160,16 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
 
         return [qc_exp1], {}
 
-    def analyze(self, pbar: Optional[tqdm.tqdm] = None) -> ELHAnalysis:
+    def analyze(self) -> ELHAnalysis:
         """Calculate the analysis of wave function overlap.
 
         Args:
             degree (Union[tuple[int, int], int]): Degree of the subsystem.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
 
         Returns:
             dict[str, float]: A dictionary contains
                 purity, entropy.
         """
-
-        if pbar is not None:
-            pbar.set_description("Calculating wave function overlap")
 
         analysis = self.analysis_type().perform_analysis(
             arguments=self.args,
