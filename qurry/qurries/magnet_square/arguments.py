@@ -1,21 +1,19 @@
 """MagnetSquare - Arguments (:mod:`qurry.qurries.magnet_square.arguments`)"""
 
 from typing import Optional, Union, Literal
-from collections.abc import Hashable
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
 
 
 @dataclass(frozen=True)
-class MagnetSquareArguments(ArgumentsPrototype):
+class MSArguments(ArgumentsPrototype):
     """Arguments for
-    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`."""
+    :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -32,12 +30,12 @@ class MagnetSquareArguments(ArgumentsPrototype):
     Defaults to 'z'."""
 
 
-class MagnetSquareMeasureArgs(BasicArgs, total=False):
+class MSMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, Hashable]]
+    wave: Optional[Union[QuantumCircuit, WCKeyable]]
     """The key or the circuit to execute."""
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
     """The unitary operator to apply.
@@ -47,7 +45,7 @@ class MagnetSquareMeasureArgs(BasicArgs, total=False):
     Defaults to 'z'."""
 
 
-class MagnetSquareOutputArgs(OutputArgs):
+class MSOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.output`."""
 
@@ -59,16 +57,8 @@ class MagnetSquareOutputArgs(OutputArgs):
     Defaults to 'z'."""
 
 
-class MagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment.analyze`.
-
-    The post-processing of
-    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`
-    does not need any input.
-    """
-
-
 SHORT_NAME = "qurmagsq_magnet_square"
-"""The short name of
-:class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`."""
+"""The short name of :class:`~qurry.qurries.magnet_square.qurry.MagnetSquare`."""
+
+ACRONYM = "MS"
+"""The acronym of :class:`~qurry.qurries.magnet_square.qurry.MagnetSquare`."""

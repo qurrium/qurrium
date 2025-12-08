@@ -1,53 +1,48 @@
 """MagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square.experiment`)"""
 
-from collections.abc import Hashable
-from typing import Optional, Type, Any, Union, Literal
+from typing import Optional, Any, Union, Literal
 from itertools import permutations
 import tqdm
-import numpy as np
-import numpy.typing as npt
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 
-from .analysis import MagnetSquareAnalysis
-from .arguments import MagnetSquareArguments, SHORT_NAME
+from .analysis import MSAnalysis
+from .arguments import MSArguments, SHORT_NAME
 from .utils import circuit_method
 
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...process.magnet_square import magnet_square, MagnetSquare, DEFAULT_PROCESS_BACKEND
-from ...process.availability import PostProcessingBackendLabel
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...tools import ParallelManager, set_pbar_description
 
 
-class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSquareAnalysis]):
+class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
     """The instance of experiment."""
 
-    __name__ = "MagnetSquareExperiment"
+    __name__ = "MSExperiment"
 
-    @property
-    def arguments_instance(self) -> Type[MagnetSquareArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[MSArguments]:
         """The arguments instance for this experiment."""
-        return MagnetSquareArguments
+        return MSArguments
 
-    @property
-    def analysis_instance(self) -> Type[MagnetSquareAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[MSAnalysis]:
         """The analysis instance for this experiment."""
-        return MagnetSquareAnalysis
+        return MSAnalysis
 
     @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z",
         **custom_kwargs: Any,
-    ) -> tuple[MagnetSquareArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[MSArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
                 The unitary operator to apply.
@@ -73,28 +68,26 @@ class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSq
 
         exp_name = f"{exp_name}.{SHORT_NAME}"
 
-        # pylint: disable=protected-access
-        return MagnetSquareArguments._filter(
+        return MSArguments.filter(
             exp_name=exp_name,
             target_keys=[target_key],
             unitary_operator=unitary_operator,
             num_qubits=actual_qubits,
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: MagnetSquareArguments,
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
+        arguments: MSArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arguments (MagnetSquareArguments):
                 The arguments of the experiment.
@@ -148,90 +141,21 @@ class MagnetSquareExperiment(ExperimentPrototype[MagnetSquareArguments, MagnetSq
 
         return circ_list, {}
 
-    def analyze(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> MagnetSquareAnalysis:
+    def analyze(self) -> MSAnalysis:
         """Calculate magnet square with more information combined.
 
-        Args:
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
-
         Returns:
-            MagnetSquareAnalysis: The result of the analysis.
+            MSAnalysis: The analysis instance.
         """
 
-        unitary_operator = self.args.unitary_operator
-        if isinstance(unitary_operator, str):
-            unitary_operator_converted = unitary_operator
-        elif isinstance(unitary_operator, (Operator, Gate)):
-            unitary_operator_converted = np.array(unitary_operator.to_matrix(), dtype=np.complex128)
-        else:
-            unitary_operator_converted = np.array(unitary_operator, dtype=np.complex128)
-
-        qs = self.quantities(
-            shots=self.commons.shots,
-            counts=self.afterwards.counts,
-            num_qubits=self.args.num_qubits,
-            unitary_operator=unitary_operator_converted,
-            pbar=pbar,
-        )
-
         serial = len(self.reports)
-        analysis = self.analysis_instance(
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
+            counts=self.afterwards.counts,
+            analyze_arguments={},
             serial=serial,
-            shots=self.commons.shots,
-            num_qubits=self.args.num_qubits,
-            unitary_operator=unitary_operator_converted,
-            **qs,
         )
 
         self.reports[serial] = analysis
         return analysis
-
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        counts: Optional[list[dict[str, int]]] = None,
-        num_qubits: Optional[int] = None,
-        unitary_operator: Optional[
-            Union[str, npt.NDArray[np.float64], npt.NDArray[np.complex128]]
-        ] = None,
-        backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> MagnetSquare:
-        """Calculate magnet square with more information combined.
-
-        Args:
-            shots (int): The number of shots.
-            counts (list[dict[str, int]]): The counts of the experiment.
-            num_qubits (int): The number of qubits.
-            unitary_operator (Union[str, npt.NDArray[np.float64], npt.NDArray[np.complex128]]):
-                The numpy array of the unitary operator
-                or a string representing the axis of rotation.
-            backend (PostProcessingBackendLabel, optional):
-                The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
-            pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
-
-        Returns:
-            MagnetSquare: The result of the magnet square.
-        """
-
-        if counts is None:
-            raise ValueError("The counts should be given.")
-        if num_qubits is None:
-            raise ValueError("The number of qubits should be given.")
-        if unitary_operator is None:
-            raise ValueError("The unitary operator should be given.")
-        if shots is None:
-            raise ValueError("The number of shots should be given.")
-
-        return magnet_square(
-            shots=shots,
-            counts=counts,
-            num_qubits=num_qubits,
-            backend=backend,
-            pbar=pbar,
-        )

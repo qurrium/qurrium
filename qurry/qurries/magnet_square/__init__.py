@@ -3,7 +3,7 @@
 Formerly known as `qurmagsq`
 """
 
-from .analysis import MagnetSquareAnalysis
-from .arguments import MagnetSquareMeasureArgs
-from .experiment import MagnetSquareExperiment
+from .analysis import MSAnalysis
+from .arguments import MSMeasureArgs
+from .experiment import MSExperiment
 from .qurry import MagnetSquare

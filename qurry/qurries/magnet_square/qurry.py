@@ -2,7 +2,6 @@
 
 from pathlib import Path
 from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -10,38 +9,29 @@ from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    MagnetSquareMeasureArgs,
-    MagnetSquareOutputArgs,
-    MagnetSquareAnalyzeArgs,
-)
-from .experiment import MagnetSquareExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from .arguments import SHORT_NAME, ACRONYM, MSMeasureArgs, MSOutputArgs
+from .analysis import MSAnalyzeArgs
+from .experiment import MSExperiment
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
-class MagnetSquare(
-    QurriumPrototype[
-        MagnetSquareExperiment,
-        MagnetSquareMeasureArgs,
-        MagnetSquareOutputArgs,
-        MagnetSquareAnalyzeArgs,
-    ]
-):
+class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, MSAnalyzeArgs]):
     """Magnetization Square Qurry."""
 
     __name__ = "MagnetSquare"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[MagnetSquareExperiment]:
+    def experiment_instance(self) -> Type[MSExperiment]:
         """The container class responding to this Qurrium class."""
-        return MagnetSquareExperiment
+        return MSExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         unitary_operator: Optional[Union[Operator, Gate, Literal["x", "y", "z"]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -55,11 +45,11 @@ class MagnetSquare(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> MagnetSquareOutputArgs:
+    ) -> MSOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
                 The unitary operator to apply.
@@ -122,7 +112,7 @@ class MagnetSquare(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         unitary_operator: Optional[Union[Operator, Gate, Literal["x", "y", "z"]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -141,7 +131,7 @@ class MagnetSquare(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
                 The unitary operator to apply.
