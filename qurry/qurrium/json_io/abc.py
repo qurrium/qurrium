@@ -26,8 +26,8 @@ WrittenContentType = dict[str, _MappingLike]
 class FileWritableObj(DataExportable, ABC):
     """The abstract base class for exporting experiment data."""
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def folder_and_filename(cls, identifier: str) -> tuple[str, str]:
         """Get the folder name and filename with given identifier.
 
@@ -67,8 +67,8 @@ class DataIngestible(ABC):
 class FileReadableObj(DataIngestible, ABC):
     """The abstract base class for importing experiment data."""
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def content_loading(cls, raw_read: dict[str, Any]):
         """The object hook for :func:`~json.load`.
         Handle the raw read dictionary with specific structure,
@@ -78,8 +78,8 @@ class FileReadableObj(DataIngestible, ABC):
             raw_read (dict[str, Any]): The raw read dictionary.
         """
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def read(cls, file_index: dict[str, str], save_location: Path):
         """Read the exported experiment file.
 

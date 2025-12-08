@@ -109,8 +109,8 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
 
         self.outfields = outfields if isinstance(outfields, dict) else {}
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def generate_entries(
         cls,
         arguments: _A,
