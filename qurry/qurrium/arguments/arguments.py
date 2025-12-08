@@ -89,25 +89,34 @@ class ArgumentsPrototype(FileReadableWritableObj):
         """
         return FOLDER_NAME, FILENAME_TEMPLATE.format(identifier)
 
+    @classmethod
+    def export_outfields(cls, outfields: dict[str, Any]) -> dict[str, Any]:
+        """Export the outfields of the experiment.
+
+        Args:
+            outfields (dict[str, Any]): The outfields to be exported.
+        """
+        return jsonablize(outfields)
+
     def content_dumping(
         self,
-        commonparams_export: Union[dict[str, Any], None] = None,
-        sideproduct_export: Union[dict[str, Any], None] = None,
+        commonparams: Union[Commonparams, None] = None,
+        outfields: Union[dict[str, Any], None] = None,
     ) -> WrittenContentType[dict[str, Any]]:
         """Get the content to be written to files.
 
         Returns:
             WritingContentType: The content to be written to files.
         """
-        if commonparams_export is None:
-            raise ValueError("commonparams_export can't be None.")
-        if sideproduct_export is None:
-            raise ValueError("sideproduct_export can't be None.")
+        if commonparams is None:
+            raise ValueError("commonparams can't be None.")
+        if outfields is None:
+            raise ValueError("sideproduct can't be None.")
 
         return {
             "arguments": self.export(),
-            "commonparams": commonparams_export,
-            "sideproduct": sideproduct_export,
+            "commonparams": commonparams.export(),
+            "outfields": self.export_outfields(outfields),
         }
 
     @classmethod

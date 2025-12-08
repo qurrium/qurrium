@@ -127,14 +127,14 @@ class Commonparams(NamedTuple):
             "datetimes": DatetimeDict(),
         }
 
-    def export(self) -> CommonparamsDict:
+    def export(self) -> dict[str, Any]:
         """Export the experiment's common parameters.
 
         Returns:
-            CommonparamsDict: The common parameters of experiment.
+            dict[str, Any]: The exported common parameters.
         """
         # pylint: disable=no-member
-        commons: CommonparamsDict = jsonablize(self._asdict())
+        commons = jsonablize(self._asdict())
         # pylint: enable=no-member
         commons["backend"] = backend_name_getter(self.backend)
         return commons

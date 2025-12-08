@@ -1,12 +1,12 @@
 """The instance for exporting data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
-from typing import Union, Any, Literal
+from typing import Union, Literal
 from dataclasses import dataclass
 from pathlib import Path
 import json
 
-from ..json_io import WrittenContentType
+from ..json_io import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
 from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
 
 
@@ -121,7 +121,7 @@ class QurryInfo(dict[str, dict[str, str]]):
 
 
 @dataclass(frozen=True)
-class Export:
+class Export(UniversalWriterABC):
     """Data-stored namedtuple with all experiments data which is jsonable.
 
     ### Single experiment:
@@ -159,8 +159,7 @@ class Export:
             'advent': './BLABLA_project/advent/index={serial}.id={exp_id}.advent.json',
             'legacy': './BLABLA_project/legacy/index={serial}.id={exp_id}.legacy.json',
             'tales': './BLABLA_project/tales/index={serial}.id={exp_id}.tales.json',
-            'myths':
-                './BLABLA_project/myths/index={serial}.id={exp_id}.myths.json',
+            'myths': './BLABLA_project/myths/index={serial}.id={exp_id}.myths.json',
         }
 
     which `BLBLA_project` is the example
@@ -172,31 +171,26 @@ class Export:
 
     exp_id: str
     """The id of experiment used in filenames."""
-    identifier: str
-    """The identifier of experiment used in filenames."""
     folder: str
     """The folder of experiment."""
-    save_location: Union[Path, str]
-    """The save location of experiment used in filenames."""
-
-    folder_filenames_writtens: list[tuple[str, str, WrittenContentType[Any]]]
-    """The written contents of experiment used in exporting."""
 
     def __post_init__(self):
-        invalid_filenames = {
-            key: fname
-            for key, fname, writtens in self.folder_filenames_writtens
-            if any(k not in fname for k in [self.identifier, self.exp_id])
-        }
+        super().__post_init__()
+
+        invalid_filenames = [
+            unit["filename"]
+            for unit in self.folder_filenames_writtens
+            if self.exp_id not in unit["filename"]
+        ]
         if invalid_filenames:
             raise ValueError(
-                "The identifier or exp_id must be included in all filenames. "
+                "The exp_id must be included in all filenames. "
                 + f"Invalid filenames: {invalid_filenames}"
             )
         invalid_written_contents = {
-            key: writtens.keys()
-            for key, fname, writtens in self.folder_filenames_writtens
-            if "files" in writtens
+            unit["filename"]: unit["written"].keys()
+            for unit in self.folder_filenames_writtens
+            if "files" in unit["written"]
         }
         if invalid_written_contents:
             raise ValueError(
@@ -222,17 +216,18 @@ class Export:
             "folder": folder_path,
             "qurryinfo": folder_path / "qurryinfo.json",
         }
-        for key, fname, writtens in self.folder_filenames_writtens:
-            files[key] = folder_path / key / fname
-            if not os.path.exists(folder_path / key):
-                os.mkdir(folder_path / key)
+        for unit in self.folder_filenames_writtens:
+            files[unit["folder"]] = folder_path / unit["folder"] / unit["filename"]
+            if not os.path.exists(folder_path / unit["folder"]):
+                os.mkdir(folder_path / unit["folder"])
         files_str = {k: str(v) for k, v in files.items()}
 
-        for key, fname, writtens in self.folder_filenames_writtens:
-            writtens.update({"files": files_str})
+        for unit in self.folder_filenames_writtens:
+            written = unit["written"]
+            written.update({"files": files_str})
             quickJSON(
-                content=writtens,
-                filename=files[key],
+                content=written,
+                filename=files[unit["folder"]],
                 mode=DEFAULT_MODE,
                 indent=DEFAULT_INDENT,
                 encoding=DEFAULT_ENCODING,
@@ -240,3 +235,55 @@ class Export:
             )
 
         return self.exp_id, files_str
+
+    @classmethod
+    def make(
+        cls,
+        identifier: str,
+        save_location: Union[Path, str],
+        writable_objects_params: list[WritableQueueUnit],
+        exp_id: Union[str, None] = None,
+        folder: Union[str, None] = None,
+    ) -> "Export":
+        """Make a export object.
+
+        Args:
+            identifier (str): The identifier among multiple
+                :class:`FileWritableObj` objects used in filenames.
+            save_location (Union[Path, str]): The save location of multiple
+                :class:`FileWritableObj` objects.
+            writable_objects_params (list[WritableQueueUnit]):
+                The list of writable quene units, which contains
+                the :class:`FileWritableObj` objects and their extra arguments,
+                stored as :class:`WritableQueneUnit`.
+
+        Returns:
+            Export: The export object.
+        """
+        if exp_id is None:
+            raise ValueError("The exp_id must be provided for Export.")
+        if folder is None:
+            raise ValueError("The folder must be provided for Export.")
+
+        folder_filenames_writtens: list[WrittenQueueUnit] = []
+        for unit in writable_objects_params:
+            writable = unit["file_writable_obj"]  # type: ignore
+            folder_of_obj, filenames = writable.folder_and_filename(
+                identifier, **unit.get("folder_and_filename_kwargs", {})
+            )
+            dumpings = writable.content_dumping(**unit.get("content_dumping_kwargs", {}))
+            folder_filenames_writtens.append(
+                {
+                    "folder": folder_of_obj,
+                    "filename": filenames,
+                    "written": dumpings,
+                }
+            )
+
+        return cls(
+            identifier=identifier,
+            save_location=save_location,
+            folder_filenames_writtens=folder_filenames_writtens,
+            exp_id=exp_id,
+            folder=folder,
+        )

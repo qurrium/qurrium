@@ -762,35 +762,30 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         # multi-experiment mode
         save_loc_folder, exp_identifier = decide_folder_and_filename(self.commons, self.args)
-        folder_filenames_writtens = [
-            (
-                *self.args.folder_and_filename(exp_identifier),
-                self.args.content_dumping(),
-            ),
-            (
-                *self.beforewards.folder_and_filename(exp_identifier),
-                self.beforewards.content_dumping(export_transpiled_circuit),
-            ),
-            (
-                *self.afterwards.folder_and_filename(exp_identifier),
-                self.afterwards.content_dumping(),
-            ),
-            (
-                *self.side_products.folder_and_filename(exp_identifier),
-                self.side_products.content_dumping(),
-            ),
-            (
-                *self.reports.folder_and_filename(exp_identifier),
-                self.reports.content_dumping(),
-            ),
-        ]
 
-        return Export(
-            exp_id=str(self.commons.exp_id),
+        return Export.make(
             identifier=exp_identifier,
-            folder=save_loc_folder,
             save_location=save_location,
-            folder_filenames_writtens=folder_filenames_writtens,
+            writable_objects_params=[
+                {
+                    "file_writable_obj": self.args,
+                    "content_dumping_kwargs": {
+                        "commonparams": self.commons,
+                        "outfields": self.outfields,
+                    },
+                },
+                {
+                    "file_writable_obj": self.beforewards,
+                    "content_dumping_kwargs": {
+                        "export_transpiled_circuit": export_transpiled_circuit
+                    },
+                },
+                {"file_writable_obj": self.afterwards},
+                {"file_writable_obj": self.side_products},
+                {"file_writable_obj": self.reports},
+            ],
+            exp_id=str(self.commons.exp_id),
+            folder=save_loc_folder,
         )
 
     def write(
@@ -830,7 +825,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             "qurryinfo must be in the exported files. It should be ensured."
         )
 
-        if qurryinfo_lock == self.commons.summoner_id and self.commons.summoner_id is not None:
+        if self.commons.summoner_id is not None and qurryinfo_lock == self.commons.summoner_id:
             return exp_id, files
 
         real_save_location = Path(self.commons.save_location)
