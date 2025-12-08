@@ -1,35 +1,41 @@
 """The Entries and Result definitions for analysis. (:mod:`qurry.qurrium.analysis.ers`)"""
 
 from typing import Any, TypeVar, Callable
-from abc import ABCMeta
 from dataclasses import dataclass, fields
 import warnings
 
 from ..json_io import DataExportableIngestible
 from ..exceptions import InvalidInherition
 
+_ERABC = TypeVar("_ERABC", bound="AnalysisERABC")
+"""Type variable for :class:`AnalysisERABC`."""
+
 
 def erabc_export(
-    func: Callable[["AnalysisERABC"], dict[str, Any]],
-) -> Callable[["AnalysisERABC"], dict[str, Any]]:
+    func: Callable[[_ERABC], dict[str, Any]],
+) -> Callable[[_ERABC], dict[str, Any]]:
     """The decorator for export method of :class:`AnalysisERABC` to include class name.
 
     Args:
         func (Callable): The original export function.
     """
 
-    def wrapper(self: "AnalysisERABC", *args: Any, **kwargs: Any) -> dict[str, Any]:
+    def wrapper(self: _ERABC, *args: Any, **kwargs: Any) -> dict[str, Any]:
         """The wrapped export function including class name."""
         result = func(self, *args, **kwargs)
         result.update({"__class__": self.__class__.__name__})
         return result
 
+    # pylint: disable=protected-access
+    wrapper._erabc_exported_decorated = True
+    # pylint: enable=protected-access
+
     return wrapper
 
 
 def erabc_ingest(
-    func: Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]],
-) -> Callable[[type["AnalysisERABC"], dict[str, Any]], dict[str, Any]]:
+    func: Callable[[type[_ERABC], dict[str, Any]], dict[str, Any]],
+) -> Callable[[type[_ERABC], dict[str, Any]], dict[str, Any]]:
     """The decorator for ingest method of :class:`AnalysisERABC` to check class name.
 
     Args:
@@ -37,7 +43,7 @@ def erabc_ingest(
     """
 
     def wrapper(
-        cls: type["AnalysisERABC"], raw_dict: dict[str, Any], *args: Any, **kwargs: Any
+        cls: type[_ERABC], raw_dict: dict[str, Any], *args: Any, **kwargs: Any
     ) -> dict[str, Any]:
         """The wrapped load function including class name check."""
 
@@ -61,36 +67,15 @@ def erabc_ingest(
 
         return result
 
+    # pylint: disable=protected-access
+    wrapper._erabc_ingested_decorated = True
+    # pylint: enable=protected-access
+
     return wrapper
 
 
-class AnalysisERABCMeta(ABCMeta):
-    """Metaclass to automatically apply decorator."""
-
-    def __new__(mcs, name, bases, namespace, **kwargs):
-        cls = super().__new__(mcs, name, bases, namespace, **kwargs)
-
-        if "export" in namespace:
-            original_export = namespace["export"]
-
-            if not hasattr(original_export, "_erabc_exported_decorated"):
-                decorated_export = erabc_export(original_export)
-                decorated_export._erabc_exported_decorated = True
-                setattr(cls, "export", decorated_export)
-
-        if "ingest" in namespace:
-            original_ingest = namespace["ingest"]
-
-            if not hasattr(original_ingest, "_erabc_ingested_decorated"):
-                decorated_ingest = erabc_ingest(original_ingest)
-                decorated_ingest._erabc_ingested_decorated = True
-                setattr(cls, "ingest", decorated_ingest)
-
-        return cls
-
-
 @dataclass(frozen=True)
-class AnalysisERABC(DataExportableIngestible, metaclass=AnalysisERABCMeta):
+class AnalysisERABC(DataExportableIngestible):
     """Construct the analyze entries's and results's parameters for specific options,
     which should be overwritable by the inherition class of this base class."""
 
@@ -109,6 +94,29 @@ class AnalysisERABC(DataExportableIngestible, metaclass=AnalysisERABCMeta):
     def asdict(self):
         """The arguments as dictionary."""
         return self.__dict__
+
+    def __init_subclass__(cls, **kwargs):
+        """Automatically apply decorator to make method."""
+        super().__init_subclass__(**kwargs)
+
+        if "export" in cls.__dict__:
+            original_export = cls.__dict__.get("export")
+            if original_export is None:
+                raise InvalidInherition("The 'export' method must be defined.")
+
+            if not hasattr(original_export, "_erabc_exported_decorated"):
+                decorated_export = erabc_export(original_export)
+                setattr(cls, "export", decorated_export)
+
+        if "ingest" in cls.__dict__:
+            original_ingest = cls.__dict__.get("ingest")
+            if original_ingest is None or not isinstance(original_ingest, classmethod):
+                raise InvalidInherition("The 'ingest' method must be defined and a classmethod.")
+            original_func = original_ingest.__func__
+
+            if not hasattr(original_func, "_erabc_ingested_decorated"):
+                decorated_ingest = erabc_ingest(original_func)
+                setattr(cls, "ingest", classmethod(decorated_ingest))
 
     def __post_init__(self):
         """Post-initialization to ensure all fields are present."""
@@ -143,7 +151,7 @@ class AnalysisERABC(DataExportableIngestible, metaclass=AnalysisERABCMeta):
 
         Args:
             raw_dict (dict[str, Any]): The raw serialized dictionary.
-        
+
         Returns:
             The class instance created from the raw dictionary.
         """
