@@ -1,34 +1,30 @@
-"""WavesExecuter - Experiment (:mod:`qurry.qurries.wavesqurry.experiment`)
+"""WavesExecuter - Experiment (:mod:`qurry.qurries.wavesqurry.experiment`)"""
 
-It is only for pendings and retrieve to remote backend.
-"""
-
-from typing import Union, Optional, Type, Any
+from typing import Optional, Any
 from collections.abc import Hashable
 import tqdm
 
 from qiskit import QuantumCircuit
 
-from .arguments import WavesExecuterArguments, SHORT_NAME
-from .analysis import WavesExecuterAnalysis
+from .arguments import WEArguments, SHORT_NAME
+from ..samplingqurry.analysis import DummyAnalysis
 from ...qurrium import ExperimentPrototype, Commonparams
-from ...exceptions import QurryExperimentCountsNotCompleted
 
 
-class WavesExecuterExperiment(ExperimentPrototype[WavesExecuterArguments, WavesExecuterAnalysis]):
+class WavesExecuterExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]]):
     """The instance of experiment."""
 
     __name__ = "WavesExecuterExperiment"
 
-    @property
-    def arguments_instance(self) -> Type[WavesExecuterArguments]:
+    @classmethod
+    def arguments_type(cls) -> type[WEArguments]:
         """The arguments instance for this experiment."""
-        return WavesExecuterArguments
+        return WEArguments
 
-    @property
-    def analysis_instance(self) -> Type[WavesExecuterAnalysis]:
+    @classmethod
+    def analysis_type(cls) -> type[DummyAnalysis[WEArguments]]:
         """The analysis instance for this experiment."""
-        return WavesExecuterAnalysis
+        return DummyAnalysis
 
     @classmethod
     def params_control(
@@ -36,7 +32,7 @@ class WavesExecuterExperiment(ExperimentPrototype[WavesExecuterArguments, WavesE
         targets: list[tuple[Hashable, QuantumCircuit]],
         exp_name: str = "exps",
         **custom_kwargs: Any,
-    ) -> tuple[WavesExecuterArguments, Commonparams, dict[str, Any]]:
+    ) -> tuple[WEArguments, Commonparams, dict[str, Any]]:
         """Control the experiment's parameters.
 
         Args:
@@ -54,23 +50,20 @@ class WavesExecuterExperiment(ExperimentPrototype[WavesExecuterArguments, WavesE
             tuple[WavesExecuterArguments, Commonparams, dict[str, Any]]:
                 The arguments of the experiment, the common parameters, and the custom parameters.
         """
-        exp_name = f"{exp_name}.{SHORT_NAME}"
 
-        # pylint: disable=protected-access
-        return WavesExecuterArguments._filter(
-            exp_name=exp_name,
+        return WEArguments.filter(
+            exp_name=f"{exp_name}.{SHORT_NAME}",
             target_keys=[k for k, _ in targets],
             **custom_kwargs,
         )
-        # pylint: enable=protected-access
 
     @classmethod
     def method(
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
-        arguments: WavesExecuterArguments,
+        arguments: WEArguments,
         pbar: Optional[tqdm.tqdm] = None,
-        multiprocess: bool = True,
+        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -120,76 +113,29 @@ class WavesExecuterExperiment(ExperimentPrototype[WavesExecuterArguments, WavesE
 
         return cirqs, {}
 
-    @classmethod
-    def quantities(
-        cls,
-        shots: Optional[int] = None,
-        counts: Optional[list[dict[str, int]]] = None,
-        ultimate_question: str = "",
-    ) -> dict[str, Union[float, int]]:
-        """Computing specific squantity.
-        Where should be overwritten by each construction of new measurement.
-
-        Returns:
-            dict[str, float]: Counts, purity, entropy of experiment.
-        """
-        if shots is None or counts is None:
-            print(
-                "| shots or counts is None, "
-                + "but it doesn't matter with ultimate question over all."
-            )
-        print("| ultimate_question:", ultimate_question)
-        dummy = -100
-        ultimate_answer = 42
-        return {
-            "dummy": dummy,
-            "ultimate_answer": ultimate_answer,
-        }
-
     def analyze(
-        self,
-        ultimate_question: str = "",
-        shots: Optional[int] = None,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> WavesExecuterAnalysis:
+        self, ultimate_question: Optional[str] = None
+    ) -> Optional[DummyAnalysis[WEArguments]]:
         """Analysis of the experiment.
 
         Args:
-            ultimate_question (str, optional):
+            ultimate_question (Optional[str], optional):
                 The ultimate question of the universe.
-                Defaults to `''`.
-            shots (Optional[int], optional):
-                The number of shots.
-                Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
 
         Returns:
-            WavesExecuterAnalysis: The analysis of the experiment
+            Optional[DummyAnalysis[WEArguments]]: The result of the analysis.
         """
 
-        if pbar is not None:
-            pbar.set_description("What is the ultimate question of the universe?")
-
-        if shots is None:
-            shots = self.commons.shots
-        if len(self.afterwards.counts) < 1:
-            raise QurryExperimentCountsNotCompleted(
-                "The counts of the experiment is not completed. So there is no data to analyze."
-            )
-
-        qs = self.quantities(
-            shots=shots,
-            counts=self.afterwards.counts,
-            ultimate_question=ultimate_question,
-        )
-
         serial = len(self.reports)
-        analysis = self.analysis_instance(
-            ultimate_question=ultimate_question,
-            serial=serial,
-            **qs,  # type: ignore
-        )
+        if serial == 0:
+            return None
 
-        self.reports[serial] = analysis
+        analysis = self.analysis_type().perform_analysis(
+            arguments=self.args,
+            commonparams=self.commons,
+            counts=self.afterwards.counts,
+            analyze_arguments={"ultimate_question": ultimate_question},
+            serial=serial,
+        )
+        self.reports[analysis.serial] = analysis
         return analysis

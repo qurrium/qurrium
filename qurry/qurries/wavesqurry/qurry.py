@@ -13,8 +13,8 @@ from qiskit.providers import Backend
 
 from .arguments import (
     SHORT_NAME,
-    WavesExecuterMeasureArgs,
-    WavesExecuterOutputArgs,
+    WEMeasureArgs,
+    WEOutputArgs,
     WavesExecuterAnalyzeArgs,
 )
 from .experiment import WavesExecuterExperiment
@@ -25,8 +25,8 @@ from ...declare import RunArgsType, TranspileArgs, PassManagerType
 class WavesExecuter(
     QurriumPrototype[
         WavesExecuterExperiment,
-        WavesExecuterMeasureArgs,
-        WavesExecuterOutputArgs,
+        WEMeasureArgs,
+        WEOutputArgs,
         WavesExecuterAnalyzeArgs,
     ]
 ):
@@ -55,7 +55,7 @@ class WavesExecuter(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> WavesExecuterOutputArgs:
+    ) -> WEOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:

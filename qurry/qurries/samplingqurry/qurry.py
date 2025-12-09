@@ -1,38 +1,35 @@
-"""QurryV9 (:mod:`qurry.qurries.samplingqurry.qurry`)
+"""QurryV14 (:mod:`qurry.qurries.samplingqurry.qurry`)"""
 
-It is only for pendings and retrieve to remote backend.
-"""
-
-from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
+from typing import Union, Optional, Literal
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import SHORT_NAME, QurryMeasureArgs, QurryOutputArgs, QurryAnalyzeArgs
-from .experiment import QurryExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from .arguments import SHORT_NAME, ACRONYM, SEMeasureArgs, SEOutputArgs
+from .analysis import DummyAnalyzeArgs
+from .experiment import SEExperiment
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
-class QurryV9(
-    QurriumPrototype[QurryExperiment, QurryMeasureArgs, QurryOutputArgs, QurryAnalyzeArgs]
-):
+class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, DummyAnalyzeArgs]):
     """Executing one quantum circuit in multiple times."""
 
-    __name__ = "QurryV9"
+    __name__ = "QurryV14"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[QurryExperiment]:
+    def experiment_instance(self) -> type[SEExperiment]:
         """The container class responding to this QurryV9 class."""
-        return QurryExperiment
+        return SEExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         sampling: int = 1,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -46,11 +43,11 @@ class QurryV9(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> QurryOutputArgs:
+    ) -> SEOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or The key or the circuit to execute.
             sampling (int, optional):
                 The number of sampling. Defaults to 1.
@@ -108,7 +105,7 @@ class QurryV9(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         sampling: int = 1,
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -126,7 +123,7 @@ class QurryV9(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             sampling (int, optional):
                 The number of sampling. Defaults to 1.
