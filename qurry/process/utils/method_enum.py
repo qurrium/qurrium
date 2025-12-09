@@ -4,7 +4,7 @@
 The abstract base class for method enums with utility functions.
 """
 
-from typing import TypeVar, Type, List
+from typing import TypeVar, List
 from abc import abstractmethod, ABCMeta
 from enum import EnumMeta, Enum
 
@@ -19,7 +19,7 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
     """Base class for method enums with utility functions."""
 
     @classmethod
-    def get_all_methods(cls: Type[T]) -> List[str]:
+    def get_all_methods(cls: type[T]) -> List[str]:
         """Get a list of all available methods.
 
         Returns:
@@ -28,7 +28,7 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
         return [method.value for method in cls]  # type: ignore[attr-defined]
 
     @classmethod
-    def unknown_method_error_msg(cls: Type[T]) -> str:
+    def unknown_method_error_msg(cls: type[T]) -> str:
         """Generate a ValueError for an unknown method.
 
         Returns:
@@ -46,7 +46,7 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
         return ValueError(cls.unknown_method_error_msg())
 
     @classmethod
-    def from_string(cls: Type[T], method_str: str) -> T:
+    def from_string(cls: type[T], method_str: str) -> T:
         """Convert a string to a enum member.
 
         Args:
@@ -66,7 +66,7 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
 
     @classmethod
     @abstractmethod
-    def get_default(cls: Type[T]) -> T:
+    def get_default(cls: type[T]) -> T:
         """Get the default method.
 
         Returns:
