@@ -148,8 +148,6 @@ def mean_rho(
         average_snapshots_rho_list=rho_m_list,
         classical_registers_actually=selected_classical_registers_sorted,
         taking_time=taken,
-        shots=shots,
-        snapshots=len(rho_m_list),
         rho_method=rho_method,
         random_basis_data=shadow_basis_obj.export(),
         # The mean of Rho

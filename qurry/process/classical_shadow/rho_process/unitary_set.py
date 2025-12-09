@@ -587,7 +587,7 @@ class ShadowBasisMethod(BaseMethodEnum):
     """
 
     @classmethod
-    def get_default(cls) -> "ShadowBasisMethod":
+    def get_default(cls):
         """Get the default basis method.
 
         Returns:
@@ -597,12 +597,12 @@ class ShadowBasisMethod(BaseMethodEnum):
 
     @classmethod
     def get_shadow_basis(
-        cls, shadow_basis: Union["ShadowBasisMethod", str, ShadowRandomBasis]
+        cls, shadow_basis: Union["ShadowBasisMethod", str, ShadowRandomBasis, None]
     ) -> ShadowRandomBasis:
         """Get the ShadowRandomBasis instance for the given method.
 
         Args:
-            shadow_basis (Union[ShadowBasisMethod, str, ShadowRandomBasis]):
+            shadow_basis (Union[ShadowBasisMethod, str, ShadowRandomBasis, None]):
                 The shadow basis method or instance.
 
         Returns:
@@ -611,11 +611,14 @@ class ShadowBasisMethod(BaseMethodEnum):
 
         if isinstance(shadow_basis, ShadowRandomBasis):
             return shadow_basis
+        if shadow_basis is None:
+            return BUILTIN_BASIS[cls.get_default().value]
+        if isinstance(shadow_basis, str):
+            shadow_basis = cls.from_string(shadow_basis)
 
-        method = cls.from_string(shadow_basis) if isinstance(shadow_basis, str) else shadow_basis
-        if method.value not in BUILTIN_BASIS:
+        if shadow_basis not in cls:
             raise cls.value_error()
-        return BUILTIN_BASIS[method.value]
+        return BUILTIN_BASIS[shadow_basis.value]
 
 
 ShadowBasisType = Union[ShadowBasisMethod, str, ShadowRandomBasis]
@@ -625,5 +628,5 @@ or a custom :class:`ShadowRandomBasis` instance.
 """
 
 
-DEFAULT_SHADOW_BASIS: ShadowBasisType = ShadowBasisMethod.get_default()
+DEFAULT_SHADOW_BASIS: Union[ShadowBasisMethod, ShadowRandomBasis] = ShadowBasisMethod.get_default()
 """The default shadow basis method."""
