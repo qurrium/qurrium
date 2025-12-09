@@ -92,7 +92,7 @@ Reference:
 
 """
 
-from .analysis import ShadowUnveilAnalysis
-from .arguments import ShadowUnveilMeasureArgs
-from .experiment import ShadowUnveilExperiment
+from .analysis import SUAnalysis
+from .arguments import SUMeasureArgs
+from .experiment import SUExperiment
 from .qurry import ShadowUnveil

@@ -1,37 +1,30 @@
-"""ShadowUnveil - Arguments
-(:mod:`qurry.qurrent.classical_shadow.arguments`)
+"""ShadowUnveil - Arguments (:mod:`qurry.qurrent.classical_shadow.arguments`)"""
 
-"""
-
-from typing import Optional, Union, Iterable
-from collections.abc import Hashable
+from typing import Any, Union
 from dataclasses import dataclass
-import numpy as np
 
 from qiskit import QuantumCircuit
 
-from ...qurrium.experiment import ArgumentsPrototype
-from ...process.classical_shadow import RhoMethodType, ListTraceMethodType, TraceMethodType
-from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
+from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
+from ...process.classical_shadow import ShadowBasisType, ShadowRandomBasis
 
 
 @dataclass(frozen=True)
-class ShadowUnveilArguments(ArgumentsPrototype):
-    """Arguments for
-    :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""
+class SUArguments(ArgumentsPrototype):
+    """Arguments for :class:`~qurry.qurrent.classical_shadow.experiment.SUExperiment`."""
 
-    exp_name: str = "exps"
+    exp_name: str
     """The name of the experiment.
     Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
     This name is also used for creating a folder to store the exports.
     Defaults to `'experiment'`."""
-    snapshots: int = 100
+    snapshots: int
     """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
-    qubits_measured: Optional[list[int]] = None
+    qubits_measured: list[int]
     """The measure range."""
-    registers_mapping: Optional[dict[int, int]] = None
-    """The mapping of the classical registers with quantum registers.
+    registers_mapping: dict[int, int]
+    """The mapping of the classical registers of measurement with quantum registers.
 
     .. code-block:: python
 
@@ -45,11 +38,16 @@ class ShadowUnveilArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the classical register with the numerical order.
     """
-    actual_num_qubits: int = 0
+    actual_num_qubits: int
     """The actual number of qubits."""
-    unitary_located: Optional[list[int]] = None
+    unitary_located: list[int]
     """The range of the unitary operator."""
-    random_basis: Optional[dict[int, dict[int, int]]] = None
+
+    shadow_basis: ShadowRandomBasis
+    """The method to generate random basis for classical shadow.
+    It can be set to :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+    or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
+    random_basis: Union[dict[int, dict[int, int]], None] = None
     """The random basis for classical shadow.
 
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -75,39 +73,75 @@ class ShadowUnveilArguments(ArgumentsPrototype):
         random_basis = generate_random_basis(100, [0, 1])
     """
 
-    def __post_init__(self):
-        if self.registers_mapping is not None:
-            super().__setattr__(
-                "registers_mapping", {int(k): int(v) for k, v in self.registers_mapping.items()}
-            )
+    def export(self) -> dict[str, Any]:
+        """Export to a serializable dictionary.
 
-        if self.random_basis is not None:
-            super().__setattr__(
-                "random_basis",
+        Returns:
+            dict[str, Any]: The exported dictionary.
+        """
+        return {
+            "exp_name": self.exp_name,
+            "snapshots": self.snapshots,
+            "qubits_measured": self.qubits_measured,
+            "registers_mapping": self.registers_mapping,
+            "actual_num_qubits": self.actual_num_qubits,
+            "unitary_located": self.unitary_located,
+            "shadow_basis": self.shadow_basis.export(),
+            "random_basis": self.random_basis,
+        }
+
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest from a serialized dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+        """
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {', '.join(missing_fields)}")
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            snapshots=raw_dict["snapshots"],
+            qubits_measured=raw_dict["qubits_measured"],
+            registers_mapping={int(k): int(v) for k, v in raw_dict["registers_mapping"].items()},
+            actual_num_qubits=raw_dict["actual_num_qubits"],
+            unitary_located=raw_dict["unitary_located"],
+            shadow_basis=ShadowRandomBasis.ingest(raw_dict["shadow_basis"]),
+            random_basis=(
                 {
-                    int(k): {int(k2): int(v2) for k2, v2 in v.items()}
-                    for k, v in self.random_basis.items()
-                },
-            )
+                    int(k): {int(kk): vv for kk, vv in v.items()}
+                    for k, v in raw_dict["random_basis"].items()
+                }
+                if raw_dict.get("random_basis") is not None
+                else None
+            ),
+        )
 
 
-class ShadowUnveilMeasureArgs(BasicArgs, total=False):
+class SUMeasureArgs(BasicArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, Hashable]]
+    wave: Union[QuantumCircuit, WCKeyable]
     """The key or the circuit to execute."""
     snapshots: int
     """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Optional[Union[tuple[int, int], int, list[int]]]
+    measure: Union[tuple[int, int], int, list[int], None]
     """The measure range."""
-    unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_basis: Optional[dict[int, dict[int, int]]]
+    shadow_basis: Union[ShadowBasisType, None]
+    """The method to generate random basis for classical shadow.
+    It can be set to 
+    :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+    or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The random basis for classical shadow.
 
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -134,20 +168,24 @@ class ShadowUnveilMeasureArgs(BasicArgs, total=False):
     """
 
 
-class ShadowUnveilOutputArgs(OutputArgs):
-    """Output arguments for
-    :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.output`."""
+class SUOutputArgs(OutputArgs):
+    """Output arguments for :meth:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil.output`."""
 
     snapshots: int
     """The number of random unitary operator, previously called `times`
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Optional[Union[tuple[int, int], int, list[int]]]
+    measure: Union[tuple[int, int], int, list[int], None]
     """The measure range."""
-    unitary_loc: Optional[Union[tuple[int, int], int, list[int]]]
+    unitary_loc: Union[tuple[int, int], int, list[int], None]
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_basis: Optional[dict[int, dict[int, int]]]
+    shadow_basis: Union[ShadowBasisType, None]
+    """The method to generate random basis for classical shadow.
+    It can be set to 
+    :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+    or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
+    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
     """The random basis for classical shadow.
 
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -174,31 +212,8 @@ class ShadowUnveilOutputArgs(OutputArgs):
     """
 
 
-class ShadowUnveilAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment.analyze`.
-    """
-
-    selected_qubits: Optional[list[int]]
-    """The selected qubits."""
-    # estimation of given operators
-    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]
-    """The list of the operators to estimate."""
-    accuracy_prob_comp_delta: float
-    """The accuracy probability for computing delta."""
-    max_shadow_norm: Optional[float]
-    """The maximum shadow norm of the given operators."""
-    # other config
-    rho_method: RhoMethodType
-    """The method to reconstruct the density matrix."""
-    trace_method: TraceMethodType
-    """The method to compute the trace."""
-    estimate_trace_method: ListTraceMethodType
-    """The method to estimate the trace."""
-    counts_used: Optional[Iterable[int]]
-    """The index of the counts used."""
-
-
 SHORT_NAME = "qurshady_entropy"
-"""The short name of
-:class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""
+"""The short name of :class:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil`."""
+
+ACRONYM = "SU"
+"""The acronym of :class:`~qurry.qurrent.classical_shadow.qurry.ShadowUnveil`."""
