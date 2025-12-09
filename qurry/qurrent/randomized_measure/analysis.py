@@ -475,8 +475,6 @@ class EMRAnalysis(
         Returns:
             The generated entries for analysis and the possibly filtered counts.
         """
-        if arguments.registers_mapping is None:
-            raise ValueError("The `registers_mapping` must be provided in arguments.")
 
         counts_used = analyze_arguments.get("counts_used", None)
         if isinstance(counts_used, Iterable):
@@ -500,6 +498,10 @@ class EMRAnalysis(
             if selected_qubits
             else list(arguments.registers_mapping.keys())
         )
+        if len(set(selected_qubits)) != len(selected_qubits):
+            raise ValueError(
+                f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
+            )
 
         return (
             analyze_arguments,
