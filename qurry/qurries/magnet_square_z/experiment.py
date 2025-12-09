@@ -5,10 +5,9 @@ import tqdm
 
 from qiskit import QuantumCircuit
 
-from .analysis import ZMSAnalysis
 from .arguments import ZMSArguments, SHORT_NAME
+from .analysis import ZMSAnalysis
 from .utils import circuit_method
-
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 
 
@@ -98,9 +97,6 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
     def analyze(self) -> ZMSAnalysis:
         """Calculate magnet square with more information combined.
 
-        Args:
-            pbar (Optional[tqdm.tqdm], optional): The progress bar. Defaults to None.
-
         Returns:
             ZMSAnalysis: The result of the magnet square analysis.
         """
@@ -114,5 +110,5 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
             serial=serial,
         )
 
-        self.reports[serial] = analysis
+        self.reports[analysis.serial] = analysis
         return analysis

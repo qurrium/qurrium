@@ -107,6 +107,11 @@ class MSAnalysis(
     __name__ = "MSAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[MSAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return MSAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[MSMiddleware]:
         """The middleware entries type for this analysis."""
         return MSMiddleware
@@ -142,7 +147,7 @@ class MSAnalysis(
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
 
         Returns:
-            MagnetSquare: The result of the magnet square.
+            MagnetSquareResult: The result of the magnet square.
         """
 
         return magnet_square(shots=shots, counts=counts, num_qubits=num_qubits, backend=backend)

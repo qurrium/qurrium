@@ -64,6 +64,11 @@ class ELHAnalysis(
     __name__ = "ELHAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[ELHAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return ELHAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[ELHMiddleware]:
         """The middleware entries type for this analysis."""
         return ELHMiddleware
@@ -79,6 +84,16 @@ class ELHAnalysis(
     ) -> dict[Union[str, Literal["default"]], type[ELHDefaultResults]]:
         """The results type for this analysis."""
         return {"default": ELHDefaultResults}
+
+    @classmethod
+    def is_auto_analysis(cls) -> bool:
+        """Check if the analysis is an auto analysis,
+        which means no any analyze inputs are needed.
+
+        Returns:
+            bool: True if the analysis is an auto analysis, False otherwise.
+        """
+        return True
 
     @classmethod
     def quantities(cls, shots: int, counts: list[dict[str, int]]):

@@ -417,6 +417,11 @@ class ELRAnalysis(
     __name__ = "ELRAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[ELRAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return ELRAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[ELRMiddleware]:
         """The middleware entries type for this analysis."""
         return ELRMiddleware

@@ -115,6 +115,11 @@ class ZMSAnalysis(
     __name__ = "ZMSAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[ZMSAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return ZMSAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[ZMSMiddleware]:
         """The middleware entries type for this analysis."""
         return ZMSMiddleware
@@ -149,7 +154,7 @@ class ZMSAnalysis(
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
 
         Returns:
-            MagnetSquare: The result of the magnet square.
+            MagnetSquareResult: The result of the magnet square.
         """
 
         return z_dir_magnet_square(

@@ -66,6 +66,11 @@ class EMHAnalysis(
     __name__ = "EMHAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[EMHAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return EMHAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[EMHMiddleware]:
         """The middleware entries type for this analysis."""
         return EMHMiddleware

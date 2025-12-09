@@ -390,6 +390,11 @@ class EMRAnalysis(
     __name__ = "EMRAnalysis"
 
     @classmethod
+    def analyze_arguments_type(cls) -> type[EMRAnalyzeArgs]:
+        """The analyze arguments type for this analysis."""
+        return EMRAnalyzeArgs
+
+    @classmethod
     def middleware_entries_type(cls) -> type[EMRMiddleware]:
         """The middleware entries type for this analysis."""
         return EMRMiddleware

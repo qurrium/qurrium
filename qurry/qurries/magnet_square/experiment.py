@@ -8,10 +8,9 @@ from qiskit import QuantumCircuit
 from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 
-from .analysis import MSAnalysis
 from .arguments import MSArguments, SHORT_NAME
+from .analysis import MSAnalysis
 from .utils import circuit_method
-
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...tools import ParallelManager, set_pbar_description
 
@@ -157,5 +156,5 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
             serial=serial,
         )
 
-        self.reports[serial] = analysis
+        self.reports[analysis.serial] = analysis
         return analysis
