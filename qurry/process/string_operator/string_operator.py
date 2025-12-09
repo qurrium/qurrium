@@ -62,11 +62,5 @@ def string_operator_order(
     """
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description("String Operator being calculated.")
-    order = string_operator_core(
-        shots=shots,
-        counts=counts,
-        backend=backend,
-    )
-    return {
-        "order": order,
-    }
+    order = string_operator_core(shots=shots, counts=counts, backend=backend)
+    return {"order": order}
