@@ -50,6 +50,12 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
 
     @classmethod
     @abstractmethod
+    def analyze_arguments_type(cls) -> type[_RA]:
+        """The input type of the analysis."""
+        raise NotImplementedError("input_type must be implemented in subclass.")
+
+    @classmethod
+    @abstractmethod
     def middleware_entries_type(cls) -> type[_RM]:
         """The input type of the analysis."""
         raise NotImplementedError("input_type must be implemented in subclass.")
@@ -69,17 +75,15 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
     @classmethod
     def is_auto_analysis(cls) -> bool:
         """Check if the analysis is an auto analysis,
-        which means no postprocess and no middleware entries needed.
+        which means no any analyze inputs are needed.
 
         Returns:
             bool: True if the analysis is an auto analysis, False otherwise.
         """
-        # pylint: disable=protected-access
         return (
-            len(cls.postprocess_entries_type().dataclass_fields()) == 0
-            and len(cls.middleware_entries_type().dataclass_fields()) == 0
-        )
-        # pylint: enable=protected-access
+            len(cls.analyze_arguments_type().__required_keys__)
+            + len(cls.analyze_arguments_type().__optional_keys__)
+        ) == 0
 
     def __init__(
         self,
