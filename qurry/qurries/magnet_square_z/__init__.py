@@ -1,6 +1,10 @@
-"""ZDirMagnetSquare - Z Direction Magnetization Square (:mod:`qurry.qurries.magnet_square_z`)"""
+"""ZDirMagnetSquare - Z Direction Magnetization Square (:mod:`qurry.qurries.magnet_square_z`)
 
-from .analysis import ZDirMagnetSquareAnalysis
-from .arguments import ZDirMagnetSquareMeasureArgs
-from .experiment import ZDirMagnetSquareExperiment
+- Short Name: `qurmagsq_zdir`
+- Acronym: `ZMS`
+"""
+
+from .analysis import ZMSAnalysis
+from .arguments import ZMSMeasureArgs
+from .experiment import ZMSExperiment
 from .qurry import ZDirMagnetSquare

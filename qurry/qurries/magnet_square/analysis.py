@@ -6,14 +6,13 @@ import numpy as np
 import numpy.typing as npt
 
 from .arguments import MSArguments
-from ...qurrium import (
-    Commonparams,
-    AnalysisPrototype,
-    AnalyzeArgs,
-    AnalysisMiddlewarePrototype,
-    ProcessEntriesPrototype,
-    AnalysisResultsPrototype,
+from ..magnet_square_z.analysis import (
+    ZMSAnalyzeArgs,
+    ZMSMiddleware,
+    ZMSProcessEntries,
+    ZMSDefaultResult,
 )
+from ...qurrium import Commonparams, AnalysisPrototype
 from ...process.magnet_square.magnet_square import (
     magnet_square,
     MagnetSquareResult,
@@ -22,23 +21,23 @@ from ...process.magnet_square.magnet_square import (
 )
 
 
-class MSAnalyzeArgs(AnalyzeArgs, total=False):
+class MSAnalyzeArgs(ZMSAnalyzeArgs, total=False):
     """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
-    :meth:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment.analyze`.
+    :meth:`~qurry.qurries.magnet_square.experiment.MSExperiment.analyze`.
 
     The post-processing of
-    :class:`~qurry.qurries.magnet_square.experiment.MagnetSquareExperiment`
+    :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`
     does not need any input.
     """
 
 
 @dataclass(frozen=True)
-class MSMiddleware(AnalysisMiddlewarePrototype):
+class MSMiddleware(ZMSMiddleware):
     """The middleware entries between analyze and actual post-processing function."""
 
     __name__ = "MSMiddleware"
 
-    unitary_operator: Union[str, npt.NDArray[np.complex128]]
+    unitary_operator: Union[Literal["x", "y", "z"], str, npt.NDArray[np.complex128]]
     """The numpy array of the unitary operator or a string representing the axis of rotation."""
 
     def export(self) -> dict[str, Any]:
@@ -77,7 +76,7 @@ class MSMiddleware(AnalysisMiddlewarePrototype):
 
 
 @dataclass(frozen=True)
-class MSProcessEntries(ProcessEntriesPrototype):
+class MSProcessEntries(ZMSProcessEntries):
     """The entries for post-processing."""
 
     __name__ = "MSProcessEntries"
@@ -87,57 +86,20 @@ class MSProcessEntries(ProcessEntriesPrototype):
 
 
 @dataclass(frozen=True)
-class MSDefaultResult(AnalysisResultsPrototype):
+class MSDefaultResult(ZMSDefaultResult):
     """The default results of :class:`~qurry.qurries.magnet_square.analysis.MSAnalysis`."""
 
-    magnet_square: Union[float, np.float64]
-    """Magnetic Square."""
-    magnet_square_cells: Union[dict[int, float], dict[int, np.float64]]
-    """Magnetic Square cells."""
-    taking_time: Optional[float] = None
-    """Taking time."""
-
-    def side_product_fields(self) -> tuple[str, ...]:
-        """The fields that will be stored as side product."""
-        return ("magnet_square_cells",)
-
-    def export(self) -> dict[str, Any]:
-        """Export the serializable data.
-
-        Returns:
-            dict[str, Any]: The serializable data.
-        """
-        return {
-            "magnet_square": float(self.magnet_square),
-            "magnet_square_cells": {int(k): float(v) for k, v in self.magnet_square_cells.items()},
-            "taking_time": self.taking_time,
-        }
-
-    @classmethod
-    def ingest(cls, raw_dict: dict[str, Any]):
-        """Ingest from a serialized dictionary.
-
-        Args:
-            raw_dict (dict[str, Any]): The raw serialized dictionary.
-
-        Returns:
-            The class instance created from the raw dictionary.
-        """
-        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
-        if missing_fields:
-            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
-
-        return cls(
-            magnet_square=float(raw_dict["magnet_square"]),
-            magnet_square_cells={
-                int(k): float(v) for k, v in raw_dict["magnet_square_cells"].items()
-            },
-            taking_time=raw_dict.get("taking_time"),
-        )
+    __name__ = "MSDefaultResult"
 
 
 class MSAnalysis(
-    AnalysisPrototype[MSArguments, MSAnalyzeArgs, MSMiddleware, MSProcessEntries, MSDefaultResult]
+    AnalysisPrototype[
+        MSArguments,
+        MSAnalyzeArgs,
+        MSMiddleware,
+        MSProcessEntries,
+        MSDefaultResult,
+    ]
 ):
     """The container for the analysis of
     :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`."""

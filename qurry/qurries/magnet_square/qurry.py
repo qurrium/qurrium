@@ -1,7 +1,7 @@
 """MagnetSquare - Qurrium (:mod:`qurry.qurries.magnet_square.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Type, Literal
+from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -25,7 +25,7 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
     """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[MSExperiment]:
+    def experiment_instance(self) -> type[MSExperiment]:
         """The container class responding to this Qurrium class."""
         return MSExperiment
 

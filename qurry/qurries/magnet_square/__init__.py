@@ -1,6 +1,7 @@
 """MagnetSquare - Magnetization Square on Specific Direction (:mod:`qurry.qurries.magnet_square`)
 
-Formerly known as `qurmagsq`
+- Short Name: `qurmagsq_generic`
+- Acronym: `MS`
 """
 
 from .analysis import MSAnalysis

@@ -1,45 +1,37 @@
 """ZDirMagnetSquare - Qurrium (:mod:`qurry.qurries.magnet_square_z.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
+from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    ZDirMagnetSquareMeasureArgs,
-    ZDirMagnetSquareOutputArgs,
-    ZDirMagnetSquareAnalyzeArgs,
-)
-from .experiment import ZDirMagnetSquareExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from .arguments import SHORT_NAME, ACRONYM, ZMSMeasureArgs, ZMSOutputArgs
+from .analysis import ZMSAnalyzeArgs
+from .experiment import ZMSExperiment
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
 class ZDirMagnetSquare(
-    QurriumPrototype[
-        ZDirMagnetSquareExperiment,
-        ZDirMagnetSquareMeasureArgs,
-        ZDirMagnetSquareOutputArgs,
-        ZDirMagnetSquareAnalyzeArgs,
-    ]
+    QurriumPrototype[ZMSExperiment, ZMSMeasureArgs, ZMSOutputArgs, ZMSAnalyzeArgs]
 ):
     """Z Direction Magnetization Square Qurry."""
 
     __name__ = "ZDirMagnetSquare"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[ZDirMagnetSquareExperiment]:
+    def experiment_instance(self) -> type[ZMSExperiment]:
         """The container class responding to this Qurrium class."""
-        return ZDirMagnetSquareExperiment
+        return ZMSExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -52,11 +44,11 @@ class ZDirMagnetSquare(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> ZDirMagnetSquareOutputArgs:
+    ) -> ZMSOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -111,7 +103,7 @@ class ZDirMagnetSquare(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -128,7 +120,7 @@ class ZDirMagnetSquare(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.

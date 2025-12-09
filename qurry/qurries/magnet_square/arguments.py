@@ -1,27 +1,19 @@
 """MagnetSquare - Arguments (:mod:`qurry.qurries.magnet_square.arguments`)"""
 
-from typing import Optional, Union, Literal
+from typing import Union, Literal, Any
 from dataclasses import dataclass
+import numpy as np
 
-from qiskit import QuantumCircuit
 from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 
-from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
+from ..magnet_square_z.arguments import ZMSArguments, ZMSMeasureArgs, ZMSOutputArgs
 
 
 @dataclass(frozen=True)
-class MSArguments(ArgumentsPrototype):
-    """Arguments for
-    :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`."""
+class MSArguments(ZMSArguments):
+    """Arguments for :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`."""
 
-    exp_name: str = "exps"
-    """The name of the experiment.
-    Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
-    This name is also used for creating a folder to store the exports.
-    Defaults to `'experiment'`."""
-    num_qubits: int = 0
-    """The number of qubits."""
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z"
     """The unitary operator to apply.
     It can be a :class:`~qiskit.quantum_info.Operator`,
@@ -29,14 +21,58 @@ class MSArguments(ArgumentsPrototype):
     representing the axis of rotation ('x', 'y', or 'z'). 
     Defaults to 'z'."""
 
+    # TODO: Need further consideration for how handle Operator and Gate in export and ingest
+    # Maybe use something like classical shadow does?
 
-class MSMeasureArgs(BasicArgs, total=False):
+    def export(self):
+        """Export the arguments to a dictionary.
+
+        Returns:
+            dict[str, Any]: The exported dictionary.
+        """
+        unitary_operator_converted = (
+            self.unitary_operator
+            if isinstance(self.unitary_operator, str)
+            else np.array(self.unitary_operator, dtype=np.complex128)
+        )
+        unitary_operator_converted = np.array(unitary_operator_converted, dtype=str).tolist()
+
+        return {
+            "exp_name": self.exp_name,
+            "num_qubits": self.num_qubits,
+            "unitary_operator": unitary_operator_converted,
+        }
+
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Ingest the arguments from a dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw dictionary.
+
+        Returns:
+            MSArguments: The ingested arguments.
+        """
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
+
+        unitary_operator = raw_dict["unitary_operator"]
+        if isinstance(unitary_operator, list):
+            unitary_operator = np.array(unitary_operator, dtype=np.complex128)
+
+        return cls(
+            exp_name=raw_dict["exp_name"],
+            num_qubits=raw_dict["num_qubits"],
+            unitary_operator=Operator(unitary_operator),
+        )
+
+
+class MSMeasureArgs(ZMSMeasureArgs, total=False):
     """Input fields for
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, WCKeyable]]
-    """The key or the circuit to execute."""
     unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
     """The unitary operator to apply.
     It can be a :class:`~qiskit.quantum_info.Operator`,
@@ -45,7 +81,7 @@ class MSMeasureArgs(BasicArgs, total=False):
     Defaults to 'z'."""
 
 
-class MSOutputArgs(OutputArgs):
+class MSOutputArgs(ZMSOutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.output`."""
 
@@ -57,7 +93,7 @@ class MSOutputArgs(OutputArgs):
     Defaults to 'z'."""
 
 
-SHORT_NAME = "qurmagsq_magnet_square"
+SHORT_NAME = "qurmagsq_generic"
 """The short name of :class:`~qurry.qurries.magnet_square.qurry.MagnetSquare`."""
 
 ACRONYM = "MS"

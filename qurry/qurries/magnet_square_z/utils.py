@@ -10,7 +10,7 @@ def circuit_method(
 
     Args:
         target_circuit (QuantumCircuit): Target circuit.
-        target_key (Hashable): Target key.
+        target_key (str): Target key.
         exp_name (str): Experiment name.
 
     Returns:
