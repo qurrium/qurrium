@@ -5,6 +5,6 @@
 """
 
 from .experiment import SEExperiment
-from .arguments import SEMeasureArgs as SamplingExecuterMeasureArgs
+from .arguments import SEMeasureArgs
 from .analysis import DummyAnalysis
 from .qurry import QurryV14 as SamplingExecuter
