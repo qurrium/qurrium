@@ -434,28 +434,43 @@ class ShadowRandomBasis:
         Returns:
             ShadowRandomBasisData: A dictionary containing the ShadowRandomBasis data.
         """
+
+        gate_name_and_params_export = (
+            [
+                (gate_name, [float(v) for v in gate_params])
+                for gate_name, gate_params in self._gate_name_and_params[0]
+            ],
+            [
+                (gate_name, [float(v) for v in gate_params])
+                for gate_name, gate_params in self._gate_name_and_params[1]
+            ],
+            [
+                (gate_name, [float(v) for v in gate_params])
+                for gate_name, gate_params in self._gate_name_and_params[2]
+            ],
+        )
+
         return {
             "name": self._name,
-            "gate_name_and_params": self._gate_name_and_params,
+            "gate_name_and_params": gate_name_and_params_export,
         }
 
     @classmethod
-    def load(cls, data: ShadowRandomBasisData) -> "ShadowRandomBasis":
+    def ingest(cls, raw_dict: ShadowRandomBasisData) -> "ShadowRandomBasis":
         """Load the ShadowRandomBasis data from a dictionary.
 
         Args:
-            data (ShadowRandomBasisData): A dictionary containing the ShadowRandomBasis data.
-
+            raw_dict (ShadowRandomBasisData): A dictionary containing the ShadowRandomBasis data.
         Returns:
             ShadowRandomBasis: The loaded ShadowRandomBasis instance.
         """
-        if "gate_name_and_params" not in data:
+        if "gate_name_and_params" not in raw_dict:
             raise ValueError("Data must contain 'gate_name_and_params' keys.")
-        if len(data["gate_name_and_params"]) != 3:
+        if len(raw_dict["gate_name_and_params"]) != 3:
             raise ValueError("gate_name_and_params must contain exactly three basis lists.")
 
         basis_gates = []
-        for basis in data["gate_name_and_params"]:
+        for basis in raw_dict["gate_name_and_params"]:
             if not isinstance(basis, Sequence):
                 raise ValueError("Each basis in gate_name_and_params must be a list.")
             if len(basis) < 1:
@@ -478,7 +493,7 @@ class ShadowRandomBasis:
             basis_0_gates=basis_gates[0],
             basis_1_gates=basis_gates[1],
             basis_2_gates=basis_gates[2],
-            name=data.get("name", None),
+            name=raw_dict.get("name", None),
         )
 
     def __repr__(self) -> str:
