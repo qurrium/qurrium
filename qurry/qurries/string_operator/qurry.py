@@ -1,33 +1,20 @@
 """StringOperator - Qurrium (:mod:`qurry.qurries.string_operator.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
+from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
 from .utils import StringOperatorLibType, StringOperatorDirection
-from .arguments import (
-    SHORT_NAME,
-    StringOperatorMeasureArgs,
-    StringOperatorOutputArgs,
-    StringOperatorAnalyzeArgs,
-)
-from .experiment import StringOperatorExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from .arguments import SHORT_NAME, ACRONYM, SOMeasureArgs, SOOutputArgs
+from .analysis import SOAnalyzeArgs
+from .experiment import SOExperiment
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
-class StringOperator(
-    QurriumPrototype[
-        StringOperatorExperiment,
-        StringOperatorMeasureArgs,
-        StringOperatorOutputArgs,
-        StringOperatorAnalyzeArgs,
-    ]
-):
+class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs, SOAnalyzeArgs]):
     """String Operator Order
 
     Reference:
@@ -59,15 +46,18 @@ class StringOperator(
 
     __name__ = "StringOperator"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[StringOperatorExperiment]:
+    def experiment_instance(self) -> type[SOExperiment]:
         """The container class responding to this Qurrium class."""
-        return StringOperatorExperiment
+        return SOExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         i: Optional[int] = None,
         k: Optional[int] = None,
         str_op: StringOperatorLibType = "i",
@@ -84,11 +74,11 @@ class StringOperator(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> StringOperatorOutputArgs:
+    ) -> SOOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             i (Optional[int], optional):
                 The index of beginning qubits in the quantum circuit.
@@ -155,7 +145,7 @@ class StringOperator(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         i: Optional[int] = None,
         k: Optional[int] = None,
         str_op: StringOperatorLibType = "i",
@@ -176,7 +166,7 @@ class StringOperator(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             i (Optional[int], optional):
                 The index of beginning qubits in the quantum circuit.
