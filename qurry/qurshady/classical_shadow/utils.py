@@ -3,15 +3,17 @@
 from qiskit import QuantumCircuit, ClassicalRegister
 
 from ...qurrium import WCKeyable
+from ...process.classical_shadow import ShadowRandomBasis
 
 
-def circuit_method_core(
+def make_samplied_circuit(
     idx: int,
     target_circuit: QuantumCircuit,
     target_key: WCKeyable,
     exp_name: str,
     registers_mapping: dict[int, int],
-    single_unitary_um: dict[int, int],
+    single_random_basis: dict[int, int],
+    shadow_basis: ShadowRandomBasis,
 ) -> QuantumCircuit:
     """Build the circuit for the experiment.
 
@@ -26,12 +28,18 @@ def circuit_method_core(
             Experiment name.
         registers_mapping (dict[int, int]):
             The mapping of the index of selected qubits to the index of the classical register.
-        single_unitary_dict (dict[int, Operator]):
-            The dictionary of the unitary operator.
+        single_random_basis (dict[int, int]):
+            The single random basis for each qubit.
+        shadow_basis (ShadowRandomBasis):
+            The shadow random basis.
 
     Returns:
         QuantumCircuit: The circuit for the experiment.
     """
+    if not isinstance(shadow_basis, ShadowRandomBasis):
+        raise TypeError(
+            f"The shadow_basis should be an instance of ShadowRandomBasis, but get {type(shadow_basis)}"
+        )
 
     old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
 
@@ -50,8 +58,8 @@ def circuit_method_core(
 
     qc_exp1.barrier()
 
-    for qi, um in single_unitary_um.items():
-        qc_exp1.append(U_M_GATES[um], [qi])
+    for qi, um in single_random_basis.items():
+        qc_exp1.append(shadow_basis.gates[um], [qi])
 
     for qi, ci in registers_mapping.items():
         qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])

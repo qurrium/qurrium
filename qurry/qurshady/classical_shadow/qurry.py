@@ -1,49 +1,21 @@
 """ShadowUnveil - Qurrium (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
-from typing import Union, Optional, Type, Literal, Iterable
+from typing import Union, Optional, Literal
 import warnings
-from collections.abc import Hashable
 from pathlib import Path
-from multiprocessing import get_context
 import tqdm
-import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    ShadowUnveilMeasureArgs,
-    ShadowUnveilOutputArgs,
-    ShadowUnveilAnalyzeArgs,
-)
-from .experiment import (
-    JAX_AVAILABLE,
-    RhoMethodType,
-    DEFAULT_RHO_METHOD,
-    TraceMethodType,
-    DEFAULT_TRACE_METHOD,
-    ListTraceMethodType,
-    DEFAULT_LIST_TRACE_METHOD,
-    ShadowUnveilExperiment,
-    quantities_input_collecter,
-    outside_analyze_wrapper,
-)
-from ...qurrium import QurriumPrototype
-from ...qurrium.utils.iocontrol import RJUST_LEN
-from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE
-from ...declare import RunArgsType, TranspileArgs, PassManagerType, SpecificAnalsisArgs
-from ...capsule.mori import TagList
+from .arguments import SHORT_NAME, ACRONYM, SUMeasureArgs, SUOutputArgs
+from .analysis import SUAnalyzeArgs, JAX_AVAILABLE
+from .experiment import SUExperiment
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
+from ...process.classical_shadow import JAX_AVAILABLE, ShadowBasisType
 
 
-class ShadowUnveil(
-    QurriumPrototype[
-        ShadowUnveilExperiment,
-        ShadowUnveilMeasureArgs,
-        ShadowUnveilOutputArgs,
-        ShadowUnveilAnalyzeArgs,
-    ]
-):
+class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, SUAnalyzeArgs]):
     r"""Classical Shadow with The Results of Second Order Renyi Entropy.
 
     Reference:
@@ -141,6 +113,9 @@ class ShadowUnveil(
 
     __name__ = "ShadowUnveil"
     short_name = SHORT_NAME
+    """The short name of this Qurrium class."""
+    acronym = ACRONYM
+    """The abbreviation of this Qurrium class."""
 
     def __post_init__(self):
         """Initialize the class."""
@@ -163,17 +138,18 @@ class ShadowUnveil(
                 )
 
     @property
-    def experiment_instance(self) -> Type[ShadowUnveilExperiment]:
+    def experiment_instance(self) -> type[SUExperiment]:
         """The container class responding to this QurryV5 class."""
-        return ShadowUnveilExperiment
+        return SUExperiment
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
+        shadow_basis_method: Optional[ShadowBasisType] = None,
         random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -188,11 +164,11 @@ class ShadowUnveil(
         export: bool = False,
         save_location: Optional[Union[Path, str]] = None,
         pbar: Optional[tqdm.tqdm] = None,
-    ) -> ShadowUnveilOutputArgs:
+    ) -> SUOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             snapshots (int, optional):
                 The number of random unitary operator, previously called `times`
@@ -205,6 +181,13 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
+            shadow_basis_method (Optional[ShadowBasisType], optional):
+                The classical shadow basis for sampling.
+                It can be set to
+                :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+                or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
+                Defaults to None, which use the default Pauli basis
+                from :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
             random_basis (Optional[dict[int, dict[int, int]]], optional):
                 The random basis for classical shadow.
 
@@ -229,6 +212,7 @@ class ShadowUnveil(
                     from qurry import generate_random_basis
 
                     random_basis = generate_random_basis(100, [0, 1])
+
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -272,6 +256,7 @@ class ShadowUnveil(
             "unitary_loc": unitary_loc,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
             "random_basis": random_basis,
+            "shadow_basis_method": shadow_basis_method,
             "shots": shots,
             "backend": backend,
             "exp_name": exp_name,
@@ -288,11 +273,12 @@ class ShadowUnveil(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, Hashable]] = None,
+        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
+        shadow_basis_method: Optional[ShadowBasisType] = None,
         random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
@@ -311,7 +297,7 @@ class ShadowUnveil(
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, Hashable]):
+            wave (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
             snapshots (int, optional):
                 The number of random unitary operator, previously called `times`
@@ -324,6 +310,13 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
+            shadow_basis_method (Optional[ShadowBasisType], optional):
+                The classical shadow basis for sampling.
+                It can be set to
+                :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+                or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
+                Defaults to None, which use the default Pauli basis
+                from :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
             random_basis (Optional[dict[int, dict[int, int]]], optional):
                 The random basis for classical shadow.
 
@@ -348,6 +341,7 @@ class ShadowUnveil(
                     from qurry import generate_random_basis
 
                     random_basis = generate_random_basis(100, [0, 1])
+
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -388,6 +382,7 @@ class ShadowUnveil(
             measure=measure,
             unitary_loc=unitary_loc,
             unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
+            shadow_basis_method=shadow_basis_method,
             random_basis=random_basis,
             shots=shots,
             backend=backend,
@@ -405,268 +400,267 @@ class ShadowUnveil(
 
         return self.output(**output_args)
 
-    def multiAnalysis(
-        self,
-        summoner_id: str,
-        *,
-        analysis_name: str = "report",
-        no_serialize: bool = False,
-        specific_analysis_args: SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs] = None,
-        skip_write: bool = False,
-        multiprocess_write: bool = False,
-        multiprocess_analysis: bool = False,
-        # analysis arguments
-        selected_qubits: Optional[list[int]] = None,
-        # estimation of given operators
-        given_operators: Optional[
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-        ] = None,
-        accuracy_prob_comp_delta: float = 0.01,
-        max_shadow_norm: Optional[float] = None,
-        # other config
-        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
-        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-        counts_used: Optional[Iterable[int]] = None,
-        **analysis_args,
-    ) -> str:
-        r"""Run the analysis for multiple experiments.
+    # def multiAnalysis(
+    #     self,
+    #     summoner_id: str,
+    #     *,
+    #     analysis_name: str = "report",
+    #     no_serialize: bool = False,
+    #     specific_analysis_args: SpecificAnalyzeArgs[SUAnalyzeArgs] = None,
+    #     skip_write: bool = False,
+    #     multiprocess_write: bool = False,
+    #     multiprocess_analysis: bool = False,
+    #     # analysis arguments
+    #     selected_qubits: Optional[list[int]] = None,
+    #     # estimation of given operators
+    #     given_operators: Optional[
+    #         list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+    #     ] = None,
+    #     accuracy_prob_comp_delta: float = 0.01,
+    #     max_shadow_norm: Optional[float] = None,
+    #     # other config
+    #     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    #     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    #     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+    #     counts_used: Optional[Iterable[int]] = None,
+    #     **analysis_args,
+    # ) -> str:
+    #     r"""Run the analysis for multiple experiments.
 
-        Args:
-            summoner_id (str): The summoner_id of multimanager.
-            analysis_name (str, optional):
-                The name of analysis. Defaults to 'report'.
-            no_serialize (bool, optional):
-                Whether to serialize the analysis. Defaults to False.
-            specific_analysis_args(SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs], optional):
-                The specific arguments for analysis. Defaults to None.
-            compress (bool, optional):
-                Whether to compress the export file. Defaults to False.
-            skip_write (bool, optional):
-                Whether to skip the file writing during the analysis. Defaults to False.
-            multiprocess_write (bool, optional):
-                Whether use multiprocess for writing. Defaults to False.
+    #     Args:
+    #         summoner_id (str): The summoner_id of multimanager.
+    #         analysis_name (str, optional):
+    #             The name of analysis. Defaults to 'report'.
+    #         no_serialize (bool, optional):
+    #             Whether to serialize the analysis. Defaults to False.
+    #         specific_analysis_args(SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs], optional):
+    #             The specific arguments for analysis. Defaults to None.
+    #         compress (bool, optional):
+    #             Whether to compress the export file. Defaults to False.
+    #         skip_write (bool, optional):
+    #             Whether to skip the file writing during the analysis. Defaults to False.
+    #         multiprocess_write (bool, optional):
+    #             Whether use multiprocess for writing. Defaults to False.
 
-            multiprocess_analysis (bool, optional):
-                Whether use multiprocess for analysis. Defaults to False.
+    #         multiprocess_analysis (bool, optional):
+    #             Whether use multiprocess for analysis. Defaults to False.
 
-            selected_qubits (Optional[Iterable[int]], optional):
-                The selected qubits. Defaults to None.
+    #         selected_qubits (Optional[Iterable[int]], optional):
+    #             The selected qubits. Defaults to None.
 
-            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
-                The list of the operators to estimate. Defaults to None.
-            accuracy_prob_comp_delta (float, optional):
-                The accuracy probability component delta. Defaults to 0.01.
-            max_shadow_norm (Optional[float], optional):
-                The maximum shadow norm. Defaults to None.
-                If it is None, it will be calculated by the largest shadow norm upper bound.
-                If it is not None, it must be a positive float number.
-                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+    #         given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+    #             The list of the operators to estimate. Defaults to None.
+    #         accuracy_prob_comp_delta (float, optional):
+    #             The accuracy probability component delta. Defaults to 0.01.
+    #         max_shadow_norm (Optional[float], optional):
+    #             The maximum shadow norm. Defaults to None.
+    #             If it is None, it will be calculated by the largest shadow norm upper bound.
+    #             If it is not None, it must be a positive float number.
+    #             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-        rho_method (RhoMethodType, optional):
-            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+    #     rho_method (RhoMethodType, optional):
+    #         It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+    #         "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-            For the "multi_shots_*" methods, the counts and random basis are used as is.
-            For the "single_shots_*" methods, the counts and random basis are
-            converted to single shot per snapshot for classical shadow post-processing.
+    #         For the "multi_shots_*" methods, the counts and random basis are used as is.
+    #         For the "single_shots_*" methods, the counts and random basis are
+    #         converted to single shot per snapshot for classical shadow post-processing.
 
-            **Warning: Althought larger snapshots number means more accurate values.**
-            **But if your shots number is large,**
-            **this may significantly increase memory usage**
-            **and require a lot of computing resource.**
-            **In worst scenrio, this will break your computer.**
-            **Please reconsider for performance.**
+    #         **Warning: Althought larger snapshots number means more accurate values.**
+    #         **But if your shots number is large,**
+    #         **this may significantly increase memory usage**
+    #         **and require a lot of computing resource.**
+    #         **In worst scenrio, this will break your computer.**
+    #         **Please reconsider for performance.**
 
-            - "multi_shots_proto": Use Numpy to calculate the rho_m.
-            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow.
+    #         - "multi_shots_proto": Use Numpy to calculate the rho_m.
+    #         - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+    #         - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+    #             with a vectorized workflow.
 
-            - "single_shots_proto": Use Numpy to calculate the rho_m
-                with converted single shot counts.
-            - "single_shots": Use Numpy to calculate the rho_m
-                with precomputed values with converted single shot counts.
-            - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow with converted single shot counts.
+    #         - "single_shots_proto": Use Numpy to calculate the rho_m
+    #             with converted single shot counts.
+    #         - "single_shots": Use Numpy to calculate the rho_m
+    #             with precomputed values with converted single shot counts.
+    #         - "single_shots_vectorized": Use Numpy to calculate the rho_m
+    #             with a vectorized workflow with converted single shot counts.
 
-            Currently, "multi_shots" is the best option for performance.
-            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-        trace_method (TraceMethodType, optional):
-            The method to calculate the trace of rho.
+    #         Currently, "multi_shots" is the best option for performance.
+    #         Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+    #     trace_method (TraceMethodType, optional):
+    #         The method to calculate the trace of rho.
 
-            - Matrix operation methods:
-                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_aij_bji_to_ab_numpy": Use
-                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax": Use
-                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is available.
-            For the matrix operation methods, it will require rho has been calculated first.
+    #         - Matrix operation methods:
+    #             - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+    #                 to calculate the each summation item in `rho_m_list`.
+    #             - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+    #                 to calculate the each summation item in `rho_m_list`.
+    #             - "einsum_aij_bji_to_ab_numpy": Use
+    #                 `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+    #                 This is the fastest implementation to calculate the trace of Rho
+    #                 if JAX is not available.
+    #             - "einsum_aij_bji_to_ab_jax": Use
+    #                 `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+    #                 This is the fastest implementation to calculate the trace of Rho
+    #                 if JAX is available.
+    #         For the matrix operation methods, it will require rho has been calculated first.
 
-            - Non-matrix operation methods:
-                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-                - "bitwise_py": Use pure Python bitwise implementation.
-            For the non-matrix operation methods, it will directly calculate the trace from
-            the counts and random basis.
+    #         - Non-matrix operation methods:
+    #             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+    #             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+    #             - "bitwise_py": Use pure Python bitwise implementation.
+    #         For the non-matrix operation methods, it will directly calculate the trace from
+    #         the counts and random basis.
 
-            The default method is "bitwise_py", which is the fastest option.
-        estimate_trace_method (ListTraceMethodType, optional):
-            The method to use for the calculation.
+    #         The default method is "bitwise_py", which is the fastest option.
+    #     estimate_trace_method (ListTraceMethodType, optional):
+    #         The method to use for the calculation.
 
-            - "einsum_aij_bji_to_ab_numpy":
-                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho
-                if JAX is not available.
-            - "einsum_aij_bji_to_ab_jax":
-                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho.
+    #         - "einsum_aij_bji_to_ab_numpy":
+    #             Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+    #             This is the fastest implementation to calculate the trace of Rho
+    #             if JAX is not available.
+    #         - "einsum_aij_bji_to_ab_jax":
+    #             Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+    #             This is the fastest implementation to calculate the trace of Rho.
 
-            counts_used (Optional[Iterable[int]], optional):
-                The counts used for the analysis. Defaults to None.
+    #         counts_used (Optional[Iterable[int]], optional):
+    #             The counts used for the analysis. Defaults to None.
 
-        Returns:
-            str: The summoner_id of multimanager.
-        """
+    #     Returns:
+    #         str: The summoner_id of multimanager.
+    #     """
 
-        if multiprocess_analysis:
-            if specific_analysis_args is None:
-                specific_analysis_args = {}
+    #     if not multiprocess_analysis:
+    #         return super().multiAnalysis(
+    #             summoner_id=summoner_id,
+    #             analysis_name=analysis_name,
+    #             no_serialize=no_serialize,
+    #             specific_analysis_args=specific_analysis_args,
+    #             skip_write=skip_write,
+    #             multiprocess_write=multiprocess_write,
+    #             selected_qubits=selected_qubits,
+    #             # estimation of given operators
+    #             given_operators=given_operators,
+    #             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+    #             max_shadow_norm=max_shadow_norm,
+    #             # other config
+    #             rho_method=rho_method,
+    #             trace_method=trace_method,
+    #             estimate_trace_method=estimate_trace_method,
+    #             counts_used=counts_used,
+    #             **analysis_args,
+    #         )
 
-            if summoner_id in self.multimanagers:
-                current_multimanager = self.multimanagers[summoner_id]
-            else:
-                raise ValueError("No such summoner_id in multimanagers.")
-            counts_check = [
-                k
-                for k in current_multimanager.beforewards.circuits_map.keys()
-                if len(self.exps[k].afterwards.counts) == 0
-            ]
-            if len(counts_check) > 0:
-                raise ValueError(
-                    f"Counts of {len(counts_check)} experiments are empty, "
-                    + f"please check them before analysis: {counts_check}."
-                )
+    #     if specific_analysis_args is None:
+    #         specific_analysis_args = {}
+    #     if summoner_id not in self.multimanagers:
+    #         raise ValueError("No such summoner_id in multimanagers.")
+    #     current_multimanager = self.multimanagers[summoner_id]
 
-            idx_tagmap_quantities = len(current_multimanager.quantity_container)
-            name = (
-                analysis_name
-                if no_serialize
-                else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
-            )
+    #     counts_check = [
+    #         k
+    #         for k in current_multimanager.beforewards.circuits_map.keys()
+    #         if len(self.exps[k].afterwards.counts) == 0
+    #     ]
+    #     if len(counts_check) > 0:
+    #         raise ValueError(
+    #             f"Counts of {len(counts_check)} experiments are empty, "
+    #             + f"please check them before analysis: {counts_check}."
+    #         )
 
-            all_counts_progress = qurry_progressbar(
-                current_multimanager.beforewards.circuits_map.keys(),
-                desc="Preparing analyzing for multiprocessing...",
-            )
+    #     idx_tagmap_quantities = len(current_multimanager.quantity_container)
+    #     name = (
+    #         analysis_name
+    #         if no_serialize
+    #         else f"{analysis_name}." + f"{idx_tagmap_quantities + 1}".rjust(RJUST_LEN, "0")
+    #     )
 
-            quantities_input_list = []
-            for k in all_counts_progress:
-                if k in specific_analysis_args:
-                    v_args = specific_analysis_args[k]
-                    if isinstance(v_args, bool):
-                        if v_args is False:
-                            all_counts_progress.set_description_str(
-                                f"Skipped {k} in {current_multimanager.summoner_id}."
-                            )
-                            continue
-                        quantities_input_list.append(
-                            quantities_input_collecter(
-                                current_exps=current_multimanager.exps[k],
-                                selected_qubits=selected_qubits,
-                                # estimation of given operators
-                                given_operators=given_operators,
-                                accuracy_prob_comp_delta=accuracy_prob_comp_delta,
-                                max_shadow_norm=max_shadow_norm,
-                                # other config
-                                rho_method=rho_method,
-                                trace_method=trace_method,
-                                estimate_trace_method=estimate_trace_method,
-                                counts_used=counts_used,
-                            )
-                        )
-                    else:
-                        quantities_input_list.append(
-                            quantities_input_collecter(
-                                current_exps=current_multimanager.exps[k],
-                                selected_qubits=v_args.get("selected_qubits", selected_qubits),
-                                # estimation of given operators
-                                given_operators=v_args.get("given_operators", given_operators),
-                                accuracy_prob_comp_delta=v_args.get(
-                                    "accuracy_prob_comp_delta", accuracy_prob_comp_delta
-                                ),
-                                max_shadow_norm=v_args.get("max_shadow_norm", max_shadow_norm),
-                                # other config
-                                rho_method=v_args.get("rho_method", rho_method),
-                                trace_method=v_args.get("trace_method", trace_method),
-                                estimate_trace_method=v_args.get(
-                                    "estimate_trace_method", estimate_trace_method
-                                ),
-                                counts_used=v_args.get("counts_used", counts_used),
-                            )
-                        )
-                else:
-                    quantities_input_list.append(
-                        quantities_input_collecter(
-                            current_exps=current_multimanager.exps[k],
-                            selected_qubits=selected_qubits,
-                            # estimation of given operators
-                            given_operators=given_operators,
-                            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
-                            max_shadow_norm=max_shadow_norm,
-                            # other config
-                            rho_method=rho_method,
-                            trace_method=trace_method,
-                            estimate_trace_method=estimate_trace_method,
-                            counts_used=counts_used,
-                        )
-                    )
+    #     all_counts_progress = qurry_progressbar(
+    #         current_multimanager.beforewards.circuits_map.keys(),
+    #         desc="Preparing analyzing for multiprocessing...",
+    #     )
 
-            current_multimanager.quantity_container[name] = TagList()
-            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
-            with pool as p:
-                outside_analyses_iterable = qurry_progressbar(
-                    p.imap_unordered(outside_analyze_wrapper, quantities_input_list),
-                    desc="Executing analysis...",
-                    total=len(quantities_input_list),
-                )
-                for exp_id, report in outside_analyses_iterable:
-                    current_multimanager.exps[exp_id].outside_analysis_recover(report)
-                    main, _tales = report.export()
-                    current_multimanager.quantity_container[name][
-                        current_multimanager.exps[exp_id].commons.tags
-                    ].append(main)
+    #     quantities_input_list = []
+    #     for k in all_counts_progress:
+    #         if k in specific_analysis_args:
+    #             v_args = specific_analysis_args[k]
+    #             if isinstance(v_args, bool):
+    #                 if v_args is False:
+    #                     all_counts_progress.set_description_str(
+    #                         f"Skipped {k} in {current_multimanager.summoner_id}."
+    #                     )
+    #                     continue
+    #                 quantities_input_list.append(
+    #                     quantities_input_collecter(
+    #                         current_exps=current_multimanager.exps[k],
+    #                         selected_qubits=selected_qubits,
+    #                         # estimation of given operators
+    #                         given_operators=given_operators,
+    #                         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+    #                         max_shadow_norm=max_shadow_norm,
+    #                         # other config
+    #                         rho_method=rho_method,
+    #                         trace_method=trace_method,
+    #                         estimate_trace_method=estimate_trace_method,
+    #                         counts_used=counts_used,
+    #                     )
+    #                 )
+    #             else:
+    #                 quantities_input_list.append(
+    #                     quantities_input_collecter(
+    #                         current_exps=current_multimanager.exps[k],
+    #                         selected_qubits=v_args.get("selected_qubits", selected_qubits),
+    #                         # estimation of given operators
+    #                         given_operators=v_args.get("given_operators", given_operators),
+    #                         accuracy_prob_comp_delta=v_args.get(
+    #                             "accuracy_prob_comp_delta", accuracy_prob_comp_delta
+    #                         ),
+    #                         max_shadow_norm=v_args.get("max_shadow_norm", max_shadow_norm),
+    #                         # other config
+    #                         rho_method=v_args.get("rho_method", rho_method),
+    #                         trace_method=v_args.get("trace_method", trace_method),
+    #                         estimate_trace_method=v_args.get(
+    #                             "estimate_trace_method", estimate_trace_method
+    #                         ),
+    #                         counts_used=v_args.get("counts_used", counts_used),
+    #                     )
+    #                 )
+    #         else:
+    #             quantities_input_list.append(
+    #                 quantities_input_collecter(
+    #                     current_exps=current_multimanager.exps[k],
+    #                     selected_qubits=selected_qubits,
+    #                     # estimation of given operators
+    #                     given_operators=given_operators,
+    #                     accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+    #                     max_shadow_norm=max_shadow_norm,
+    #                     # other config
+    #                     rho_method=rho_method,
+    #                     trace_method=trace_method,
+    #                     estimate_trace_method=estimate_trace_method,
+    #                     counts_used=counts_used,
+    #                 )
+    #             )
 
-            current_multimanager.multicommons.datetimes.add_only(name)
+    #     current_multimanager.quantity_container[name] = TagList()
+    #     pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE)
+    #     with pool as p:
+    #         outside_analyses_iterable = qurry_progressbar(
+    #             p.imap_unordered(outside_analyze_wrapper, quantities_input_list),
+    #             desc="Executing analysis...",
+    #             total=len(quantities_input_list),
+    #         )
+    #         for exp_id, report in outside_analyses_iterable:
+    #             current_multimanager.exps[exp_id].outside_analysis_recover(report)
+    #             main, _tales = report.dumps()
+    #             current_multimanager.quantity_container[name][
+    #                 current_multimanager.exps[exp_id].commons.tags
+    #             ].append(main)
 
-            if not skip_write:
-                self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
+    #     current_multimanager.multicommons.datetimes.add_only(name)
 
-            return current_multimanager.multicommons.summoner_id
+    #     if not skip_write:
+    #         self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
 
-        return super().multiAnalysis(
-            summoner_id=summoner_id,
-            analysis_name=analysis_name,
-            no_serialize=no_serialize,
-            specific_analysis_args=specific_analysis_args,
-            skip_write=skip_write,
-            multiprocess_write=multiprocess_write,
-            selected_qubits=selected_qubits,
-            # estimation of given operators
-            given_operators=given_operators,
-            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
-            max_shadow_norm=max_shadow_norm,
-            # other config
-            rho_method=rho_method,
-            trace_method=trace_method,
-            estimate_trace_method=estimate_trace_method,
-            counts_used=counts_used,
-            **analysis_args,
-        )
+    #     return current_multimanager.multicommons.summoner_id

@@ -17,6 +17,8 @@ from ...qurrium import (
 from ...qurrium.utils import bitstring_mapping_getter
 from ...process.utils import counts_list_recount_pyrust
 from ...process.classical_shadow import (
+    set_cpu_only,
+    JAX_AVAILABLE,
     ShadowRandomBasis,
     ShadowRandomBasisData,
     RhoMethod,
@@ -48,7 +50,7 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     """The list of the operators to estimate."""
     accuracy_prob_comp_delta: float
     """The accuracy probability for computing delta."""
-    max_shadow_norm: float
+    max_shadow_norm: Optional[float]
     """The maximum shadow norm of the given operators."""
     # other config
     rho_method: RhoMethodType
@@ -240,7 +242,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: float
+    maximum_shadow_norm: Optional[float]
     r"""The maximum shadow norm, which is defined in the supplementary material 
     with value between 0 and 1.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
@@ -315,7 +317,9 @@ class SUProcessEntries(ProcessEntriesPrototype):
                 else None
             ),
             "accuracy_predict_epsilon": float(self.accuracy_predict_epsilon),
-            "maximum_shadow_norm": float(self.maximum_shadow_norm),
+            "maximum_shadow_norm": (
+                None if self.maximum_shadow_norm is None else float(self.maximum_shadow_norm)
+            ),
             "rho_method": rho_method.value,
             "shadow_basis": self.shadow_basis.export(),
             "trace_method": trace_method.value,
@@ -344,7 +348,11 @@ class SUProcessEntries(ProcessEntriesPrototype):
             selected_classical_registers=raw_dict["selected_classical_registers"],
             given_operators=given_operators,
             accuracy_predict_epsilon=float(raw_dict["accuracy_predict_epsilon"]),
-            maximum_shadow_norm=float(raw_dict["maximum_shadow_norm"]),
+            maximum_shadow_norm=(
+                None
+                if raw_dict["maximum_shadow_norm"] is None
+                else float(raw_dict["maximum_shadow_norm"])
+            ),
             rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
             shadow_basis=ShadowRandomBasis.ingest(raw_dict["shadow_basis"]),
             trace_method=TraceMethod.from_string(raw_dict["trace_method"]),
@@ -851,6 +859,9 @@ class SUAnalysis(
             ClassicalShadowComplex: The result of the classical shadow.
         """
 
+        if JAX_AVAILABLE:
+            set_cpu_only()
+
         return classical_shadow_complex(
             shots=shots,
             counts=counts,
@@ -956,7 +967,7 @@ class SUAnalysis(
                 # estimation of given operators
                 given_operators=analyze_arguments.get("given_operators", None),
                 accuracy_predict_epsilon=analyze_arguments.get("accuracy_prob_comp_delta", 0.01),
-                maximum_shadow_norm=analyze_arguments.get("max_shadow_norm", 1.0),
+                maximum_shadow_norm=analyze_arguments.get("max_shadow_norm", None),
                 # other config
                 rho_method=analyze_arguments.get("rho_method", DEFAULT_RHO_METHOD),
                 shadow_basis=arguments.shadow_basis,
