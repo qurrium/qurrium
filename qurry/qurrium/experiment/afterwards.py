@@ -79,8 +79,8 @@ class After(FileReadableWritableObj):
         return {"legacy": self.export()}
 
     @classmethod
-    def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+    def content_loading(cls, raw_read: dict[str, Any]) -> "After":
+        """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_writing`.
 
@@ -117,7 +117,7 @@ class After(FileReadableWritableObj):
             raise KeyError("The 'legacy' field is missing in the file index.")
 
         with open(save_location / file_index["legacy"], encoding=DEFAULT_ENCODING) as f:
-            afterwards = json.load(f, object_hook=cls.content_loading)
+            afterwards = cls.content_loading(json.load(f))
 
         return afterwards
 

@@ -107,9 +107,10 @@ class Before(FileReadableWritableObj):
         """
 
         return {
-            "target": self.target,
             "target_qasm": self.target_qasm,
-            "circuit": self.circuit if export_transpiled_circuit else [],
+            "circuit": (
+                [c.draw(output="text") for c in self.circuit] if export_transpiled_circuit else []
+            ),
             "circuit_qasm": self.circuit_qasm,
             "job_id": self.job_id,
         }
@@ -146,15 +147,12 @@ class Before(FileReadableWritableObj):
             raw_dict.pop(k, None)
         raw_dict = v5_to_v7_field_transpose(raw_dict)
         raw_dict = v7_to_v11_field_transpose(raw_dict)
-        for k, dv in cls.default_value().items():
-            if k not in raw_dict:
-                raw_dict[k] = dv
-
+        raw_dict = {**cls.default_value(), **raw_dict}
         return cls(**raw_dict)
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+        """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_writing`.
 
@@ -166,6 +164,8 @@ class Before(FileReadableWritableObj):
         """
         if "advent" not in raw_read:
             raise KeyError("The 'advent' field is missing in the raw read data.")
+        if not isinstance(raw_read["advent"], dict):
+            raise TypeError("The 'advent' field must be a dictionary.")
 
         advent_dict: dict[str, Any] = raw_read["advent"]
         for k, dv in cls.default_value().items():
@@ -186,7 +186,7 @@ class Before(FileReadableWritableObj):
         """
 
         with open(save_location / file_index["advent"], "r", encoding=DEFAULT_ENCODING) as f:
-            advent = json.load(f, object_hook=cls.content_loading)
+            advent = cls.content_loading(json.load(f))
 
         return advent
 

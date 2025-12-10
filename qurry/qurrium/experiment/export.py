@@ -24,6 +24,7 @@ class QurryInfo(dict[str, dict[str, str]]):
                 invalid_types_1.append(k)
             if not isinstance(v, dict):
                 invalid_types_2[k] = v
+                continue
             invalid_inner_keys = [kk for kk, vv in v.items() if not isinstance(vv, str)]
             if invalid_inner_keys:
                 invalid_types_3[k] = invalid_inner_keys
@@ -61,11 +62,6 @@ class QurryInfo(dict[str, dict[str, str]]):
                 The location to save the qurryinfo.
         """
         qurryinfo_location = Path(save_location) / "qurryinfo.json"
-        if not os.path.exists(qurryinfo_location):
-            raise FileNotFoundError(
-                f"'qurryinfo.json' does not exist at '{save_location}'. "
-                + "It's required for loading all experiment data."
-            )
 
         quickJSON(
             content=self.export(),
@@ -114,10 +110,12 @@ class QurryInfo(dict[str, dict[str, str]]):
             QurryInfo: The qurryinfo object.
         """
         filepath = Path(save_location) / "qurryinfo.json"
+        if not os.path.exists(filepath):
+            return cls()
 
         with open(filepath, "r", encoding=DEFAULT_ENCODING) as f:
-            new_instance = json.load(f, object_hook=cls.ingest)
-        return new_instance
+            new_instance = json.load(f)
+        return cls.ingest(new_instance)
 
 
 @dataclass(frozen=True)
@@ -223,8 +221,8 @@ class Export(UniversalWriterABC):
         files_str = {k: str(v) for k, v in files.items()}
 
         for unit in self.folder_filenames_writtens:
-            written = unit["written"]
-            written.update({"files": files_str})
+            written = {"files": files_str}
+            written.update(unit["written"])
             quickJSON(
                 content=written,
                 filename=files[unit["folder"]],

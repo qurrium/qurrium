@@ -121,7 +121,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+        """Process the serialized content from the method :meth:`content_writing`
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
@@ -130,9 +130,9 @@ class ArgumentsPrototype(FileReadableWritableObj):
             tuple["ArgumentsPrototype", "Commonparams", dict[str, Any]]:
                 The experiment's arguments,
                 the experiment's common parameters,
-                and the experiment's side product.
+                and the outfields of the experiment.
         """
-        missing_fields = {"arguments", "commonparams", "sideproduct"} - set(raw_read.keys())
+        missing_fields = {"arguments", "commonparams", "outfields"} - set(raw_read.keys())
         if missing_fields:
             raise ValueError(
                 "Invalid raw_read for ArgumentsPrototype loading. "
@@ -148,7 +148,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         data_args = v7_to_v9_field_transpose(data_args)
 
         return (
-            cls.ingest(**data_args["arguments"]),
+            cls.ingest(data_args["arguments"]),
             Commonparams(**data_args["commonparams"]),
             data_args["outfields"],
         )
@@ -168,7 +168,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
             raise ValueError("exp_id must be provided to read the arguments.")
 
         with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
-            arguments, commonparams, outfields = json.load(f, object_hook=cls.content_loading)
+            arguments, commonparams, outfields = cls.content_loading(json.load(f))
 
         assert isinstance(arguments, cls), (
             f"Expected arguments to be of type {cls}, got {type(arguments)}"

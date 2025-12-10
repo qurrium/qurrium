@@ -173,6 +173,24 @@ def summonner_check(
     return summon_fulfill
 
 
+def _target_dumps_worker(
+    item: tuple[WCKeyable, QuantumCircuit], qasm_version: AvailableQASMVersions
+) -> tuple[str, str]:
+    """Worker function for dumping target circuits to OpenQASM strings.
+
+    Args:
+        item (tuple[WCKeyable, QuantumCircuit]):
+            The target circuit item containing the key and the circuit.
+        qasm_version (AvailableQASMVersions):
+            The export version of OpenQASM.
+
+    Returns:
+        tuple[str, str]: A tuple containing the key as a string and the OpenQASM string of the circuit.
+    """
+    key, circuit = item
+    return str(key), qasm_dumps(circuit, qasm_version)
+
+
 def make_qasm_strings(
     circuits: list[QuantumCircuit],
     targets: list[tuple[WCKeyable, QuantumCircuit]],
@@ -205,11 +223,7 @@ def make_qasm_strings(
 
     circuit_qasm_strings = pm.starmap(qasm_dumps, [(q, qasm_version) for q in circuits])
 
-    def _target_dumps_worker(item: tuple[WCKeyable, QuantumCircuit]) -> tuple[str, str]:
-        key, circuit = item
-        return str(key), qasm_dumps(circuit, qasm_version)
-
-    target_qasm_strings = pm.map(_target_dumps_worker, targets)
+    target_qasm_strings = pm.starmap(_target_dumps_worker, [(tgt, qasm_version) for tgt in targets])
 
     return circuit_qasm_strings, target_qasm_strings
 

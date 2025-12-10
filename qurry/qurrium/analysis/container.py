@@ -13,6 +13,8 @@ FOLDER_NAME = "myths"
 """Folder name for analyses export."""
 FILENAME_TEMPLATE = "{}.myths.json"
 """Filename template for analyses export."""
+WRITING_KEY = "reports"
+"""The key in :meth:`AnalysesContainer.content_dumping`."""
 
 
 class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
@@ -52,54 +54,70 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         Returns:
             WritingContentType: The content to be written to files.
         """
-        return {"reports": self.export()}
+        return {WRITING_KEY: self.export()}
 
     @classmethod
-    def ingest(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any], analysis_instance: Optional[type[_R]] = None):
         """Ingest from a serialized dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The dictionary to deserialize.
+            analysis_instance (Optional[type[_R]]): The analysis instance type.
 
         Returns:
             The deserialized analysis instance, or None if not applicable.
         """
+        if analysis_instance is None:
+            raise ValueError("analysis_instance must be provided to ingest the analyses.")
 
-        return {int(k): cls.ingest(v) for k, v in raw_dict.items()}
+        return {int(k): analysis_instance.ingest(v) for k, v in raw_dict.items()}
 
     @classmethod
-    def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+    def content_loading(
+        cls, raw_read: dict[str, Any], analysis_instance: Optional[type[_R]] = None
+    ):
+        """Process the serialized content from the method :meth:`content_writing`
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
+            analysis_instance (Optional[type[_R]]): The analysis instance type.
 
         Returns:
             The deserialized analysis instance, or None if not applicable.
         """
-        if "report" not in raw_read:
-            raise KeyError("The 'report' field is missing in the raw read data.")
+        if WRITING_KEY not in raw_read:
+            raise KeyError(f"The '{WRITING_KEY}' field is missing in the raw read data.")
+        if analysis_instance is None:
+            raise ValueError("analysis_instance must be provided to load the analyses.")
 
-        return cls.ingest(raw_read["report"])
+        return cls.ingest(raw_read[WRITING_KEY], analysis_instance=analysis_instance)
 
     @classmethod
-    def read(cls, file_index: dict[str, str], save_location: Path):
+    def read(
+        cls,
+        file_index: dict[str, str],
+        save_location: Path,
+        analysis_instance: Optional[type[_R]] = None,
+    ):
         """Read the analysis from file index.
 
         Args:
             file_index (dict[str, str]): The file index.
             save_location (Path): The save location.
+            analysis_instance (Optional[type[_R]]): The analysis instance type.
 
         Returns:
             The analysis instances in dictionary.
         """
-        if "reports" not in file_index:
-            raise KeyError("The file index does not contain 'reports' key.")
+        if FOLDER_NAME not in file_index:
+            raise KeyError(f"The file index does not contain '{FOLDER_NAME}' key.")
+        if analysis_instance is None:
+            raise ValueError("analysis_instance must be provided to read the analyses.")
 
-        with open(save_location / file_index["reports"], "r", encoding=DEFAULT_ENCODING) as f:
-            analyses_data: dict[int, _R] = json.load(f, object_hook=cls.content_loading)
+        with open(save_location / file_index[FOLDER_NAME], "r", encoding=DEFAULT_ENCODING) as f:
+            analyses_data = json.load(f)
 
-        return analyses_data
+        return cls.content_loading(analyses_data, analysis_instance=analysis_instance)
 
     def __repr__(self):
         inner_lines = ", ".join(f"{k}" + "{...}" for k in self.keys())

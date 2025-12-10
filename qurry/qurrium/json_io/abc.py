@@ -51,7 +51,7 @@ class DataIngestible(ABC):
     """The abstract base class for importing content."""
 
     @classmethod
-    def ingest(cls, raw_dict: dict[str, Any]):
+    def ingest(cls, raw_dict: dict[str, Any]) -> Any:
         """Ingest from a serialized dictionary.
 
         Args:
@@ -70,7 +70,7 @@ class FileReadableObj(DataIngestible, ABC):
     @classmethod
     @abstractmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+        """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_dumping`.
 

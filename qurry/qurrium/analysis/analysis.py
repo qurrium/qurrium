@@ -166,28 +166,12 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
         raise NotImplementedError("analyze must be implemented in subclass.")
 
     def __repr__(self) -> str:
-        return (
-            f"<{self.__name__}("
-            + f"serial={self.serial}, {self.postprocess_entries}, "
-            + f"unused_args_num={len(self.outfields)}>"
-        )
-
-    def _repr_pretty_(self, p, cycle):
-        if cycle:
-            p.text(
-                f"<{self.__name__}("
-                + f"serial={self.serial}, {self.postprocess_entries}, "
-                + f"unused_args_num={len(self.outfields)}>"
-            )
-        else:
-            with p.group(2, f"<{self.__name__}(", ")>"):
-                p.breakable()
-                p.text(f"serial={self.serial},")
-                p.breakable()
-                p.text(f"{self.postprocess_entries},")
-                p.breakable()
-                p.text(f"unused_args_num={len(self.outfields)}")
-                p.breakable()
+        contents = [
+            f"serial={self.serial}",
+            f"{self.postprocess_entries}",
+            f"unused_args_num={len(self.outfields)}",
+        ]
+        return f"<{self.__name__}({', '.join(contents)})"
 
     def statesheet(self, hoshi: bool = False) -> Hoshi:
         """Generate the state sheet of the analysis.

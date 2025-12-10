@@ -109,7 +109,7 @@ class Tales(dict, FileReadableWritableObj, Generic[_SPT]):
 
     @classmethod
     def content_loading(cls, raw_read: dict[str, Any]):
-        """The object hook for :func:`~json.load`.
+        """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_writing`.
 
@@ -140,7 +140,7 @@ class Tales(dict, FileReadableWritableObj, Generic[_SPT]):
             raise KeyError(f"The '{FOLDER_NAME}' field is missing in the file index.")
 
         with open(save_location / file_index[FOLDER_NAME], "r", encoding=DEFAULT_ENCODING) as f:
-            side_products = json.load(f, object_hook=cls.content_loading)
+            side_products = cls.content_loading(json.load(f))
 
         return side_products
 

@@ -129,14 +129,6 @@ class AnalysisERABC(DataExportableIngestible):
                 UserWarning,
             )
 
-        for field_name, field_type in self.__annotations__.items():
-            value = getattr(self, field_name)
-            if not isinstance(value, field_type):
-                raise TypeError(
-                    f"Field '{field_name}' expected type '{field_type}', "
-                    f"but received '{type(value)}'."
-                )
-
     def export(self) -> dict[str, Any]:
         """Export the serializable data.
 
@@ -171,7 +163,7 @@ _RM = TypeVar("_RM", bound=AnalysisMiddlewarePrototype)
 @dataclass(frozen=True)
 class ProcessEntriesPrototype(AnalysisERABC):
     """The entries for post-processing."""
-    
+
     shots: int
     """The number of shots."""
 

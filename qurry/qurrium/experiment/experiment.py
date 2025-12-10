@@ -828,10 +828,10 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         if self.commons.summoner_id is not None and qurryinfo_lock == self.commons.summoner_id:
             return exp_id, files
 
-        real_save_location = Path(self.commons.save_location)
-        qurry_info = QurryInfo.read(real_save_location)
+        real_export_location = Path(self.commons.save_location) / export_material.folder
+        qurry_info = QurryInfo.read(real_export_location)
         qurry_info.update({exp_id: files})
-        qurry_info.write(real_save_location)
+        qurry_info.write(real_export_location)
 
         return exp_id, files
 
@@ -880,7 +880,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 + f"the current class analysis type, {exp_instance.reports.analysis_instance} "
                 + f"vs {cls.analysis_type()}."
             )
-        reports_read = exp_instance.reports.read(file_index=file_index, save_location=save_location)
+        reports_read = exp_instance.reports.read(
+            file_index=file_index,
+            save_location=save_location,
+            analysis_instance=cls.analysis_type(),
+        )
         exp_instance.reports.update(reports_read)
 
         return exp_instance
