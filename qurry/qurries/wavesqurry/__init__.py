@@ -5,5 +5,5 @@
 """
 
 from .arguments import WEMeasureArgs
-from .experiment import WavesExecuterExperiment
+from .experiment import WEExperiment
 from .qurry import WavesExecuter

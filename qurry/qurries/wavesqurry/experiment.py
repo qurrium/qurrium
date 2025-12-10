@@ -11,10 +11,10 @@ from ..samplingqurry.analysis import DummyAnalysis
 from ...qurrium import ExperimentPrototype, Commonparams
 
 
-class WavesExecuterExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]]):
+class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]]):
     """The instance of experiment."""
 
-    __name__ = "WavesExecuterExperiment"
+    __name__ = "WEExperiment"
 
     @classmethod
     def arguments_type(cls) -> type[WEArguments]:

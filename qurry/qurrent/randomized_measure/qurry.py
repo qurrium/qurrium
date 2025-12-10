@@ -9,11 +9,7 @@ from qiskit.providers import Backend
 
 from .arguments import SHORT_NAME, ACRONYM, EMRMeasureArgs, EMROutputArgs
 from .analysis import EMRAnalyzeArgs
-from .experiment import (
-    EMRExperiment,
-    PostProcessingBackendLabel,
-    DEFAULT_PROCESS_BACKEND,
-)
+from .experiment import EMRExperiment, PostProcessingBackendLabel, DEFAULT_PROCESS_BACKEND
 from ...qurrium import (
     QurriumPrototype,
     RunArgsType,

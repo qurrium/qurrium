@@ -3,46 +3,33 @@
 It is only for pendings and retrieve to remote backend.
 """
 
-from typing import Union, Optional, Type, Literal
-from collections.abc import Hashable
+from typing import Union, Optional, Literal
 from pathlib import Path
 import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .arguments import (
-    SHORT_NAME,
-    WEMeasureArgs,
-    WEOutputArgs,
-    WavesExecuterAnalyzeArgs,
-)
-from .experiment import WavesExecuterExperiment
-from ...qurrium import QurriumPrototype
-from ...declare import RunArgsType, TranspileArgs, PassManagerType
+from .arguments import SHORT_NAME, WEMeasureArgs, WEOutputArgs
+from .experiment import WEExperiment
+from ..samplingqurry.analysis import DummyAnalyzeArgs
+from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
 
 
-class WavesExecuter(
-    QurriumPrototype[
-        WavesExecuterExperiment,
-        WEMeasureArgs,
-        WEOutputArgs,
-        WavesExecuterAnalyzeArgs,
-    ]
-):
+class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, DummyAnalyzeArgs]):
     """The pending and retrieve executer for waves."""
 
     __name__ = "WavesExecuter"
     short_name = SHORT_NAME
 
     @property
-    def experiment_instance(self) -> Type[WavesExecuterExperiment]:
+    def experiment_instance(self) -> type[WEExperiment]:
         """The container class responding to this Qurrium class."""
-        return WavesExecuterExperiment
+        return WEExperiment
 
     def measure_to_output(
         self,
-        waves: Optional[list[Union[QuantumCircuit, Hashable]]] = None,
+        waves: Optional[list[Union[QuantumCircuit, WCKeyable]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -59,7 +46,7 @@ class WavesExecuter(
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            waves (list[Union[QuantumCircuit, Hashable]]):
+            waves (list[Union[QuantumCircuit, WCKeyable]]):
                 The key or the circuit to execute.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -114,7 +101,7 @@ class WavesExecuter(
 
     def measure(
         self,
-        waves: Optional[list[Union[QuantumCircuit, Hashable]]] = None,
+        waves: Optional[list[Union[QuantumCircuit, WCKeyable]]] = None,
         shots: int = 1024,
         backend: Optional[Backend] = None,
         exp_name: str = "experiment",
@@ -131,7 +118,7 @@ class WavesExecuter(
         """Execute the experiment.
 
         Args:
-            waves (list[Union[QuantumCircuit, Hashable]]):
+            waves (list[Union[QuantumCircuit, WCKeyable]]):
                 The key or the circuit to execute.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
