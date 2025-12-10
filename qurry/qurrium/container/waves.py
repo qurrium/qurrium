@@ -22,6 +22,9 @@ GET_WAVE_RETURN = {
     "call": lambda w: w,
 }
 
+MAX_ADD_ATTEMPTS = 1000
+"""Maximum number of attempts to find a new serial key when adding waves."""
+
 
 class WaveContainer(dict[WCKeyable, QuantumCircuit]):
     """WaveContainer is a customized dictionary for storing
@@ -86,7 +89,7 @@ class WaveContainer(dict[WCKeyable, QuantumCircuit]):
             raise TypeError(f"replace should be a bool or 'duplicate', not {type(replace)}")
 
         serial_key = len(self)
-        max_tries = len(self)  # Prevent infinite loop
+        max_tries = MAX_ADD_ATTEMPTS  # Prevent infinite loop
         while serial_key in self and max_tries > 0:
             serial_key += 1
             max_tries -= 1
