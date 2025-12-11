@@ -5,8 +5,4 @@ It is only for pendings and retrieve to remote backend like IBMQ, IBM, or some T
 """
 
 from .runner import Runner, ThirdPartyRunner
-from .accesor import BACKEND_AVAILABLE, RemoteAccessor
 from .utils import retrieve_counter
-
-if BACKEND_AVAILABLE["IBMRuntime"]:
-    from .ibmruntime_runner import IBMRuntimeRunner

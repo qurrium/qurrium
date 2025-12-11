@@ -10,7 +10,7 @@ from qiskit.providers import Backend
 
 from ..experiment import ExperimentPrototype
 from ..multimanager import MultiManager, ExperimentContainer
-from ..multimanager.beforewards import TagListKeyable
+from ..multimanager.beforewards import TagsType
 from ..exceptions import QurryDummyRunnerWarning
 from ...tools.backend import backend_name_getter
 
@@ -35,11 +35,11 @@ class Runner(ABC):
         self,
         pending_strategy: Literal["default", "onetime", "each", "tags"],
         backend: Backend,
-    ) -> list[tuple[Optional[str], TagListKeyable]]:
+    ) -> list[tuple[Optional[str], TagsType]]:
         """Pending jobs to remote backend."""
 
     @abstractmethod
-    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagListKeyable]]:
+    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagsType]]:
         """Retrieve jobs from remote backend."""
 
     def __repr__(self):
@@ -92,7 +92,7 @@ class DummyRunner(Runner):
         self,
         pending_strategy: Literal["default", "onetime", "each", "tags"],
         backend: Optional[Backend] = None,
-    ) -> list[tuple[Optional[str], TagListKeyable]]:
+    ) -> list[tuple[Optional[str], TagsType]]:
         """ATTENTION!! This method does not do anything.
 
         Args:
@@ -100,7 +100,7 @@ class DummyRunner(Runner):
             backend (Optional[Backend], optional): The backend to be used. Defaults to None.
 
         Returns:
-            list[tuple[Optional[str], TagListKeyable]]: The pending jobs.
+            list[tuple[Optional[str], TagsType]]: The pending jobs.
         """
         warnings.warn(
             "You are using a dummy runner, it does not do anything.",
@@ -108,14 +108,14 @@ class DummyRunner(Runner):
         )
         return []
 
-    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagListKeyable]]:
+    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagsType]]:
         """ATTENTION!! This method does not do anything.
 
         Args:
             overwrite (bool, optional): Whether to overwrite the jobs. Defaults to False.
 
         Returns:
-            list[tuple[Optional[str], TagListKeyable]]: The retrieved jobs.
+            list[tuple[Optional[str], TagsType]]: The retrieved jobs.
         """
 
         warnings.warn(

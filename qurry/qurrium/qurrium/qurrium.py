@@ -23,7 +23,6 @@ from ..container import (
     WCKeyable,
 )
 from ..analysis import SpecificAnalyzeArgs, _RA
-from ..runner import RemoteAccessor, retrieve_counter
 from ..multimanager import (
     MultiManager,
     PendingTargetProviderLiteral,
@@ -110,11 +109,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
         self.multimanagers: MultiManagerContainer[_E] = MultiManagerContainer()
         """The last multimanager be called."""
-
-        self.accessor: Optional[RemoteAccessor] = None
-        """The accessor of extra backend.
-        It will be None if no extra backend is loaded.
-        """
 
         self.passmanagers: PassManagerContainer = PassManagerContainer()
         """The collection of pass managers."""
@@ -422,7 +416,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         )
         assert len(current_multimanager.beforewards.pending_pool) == 0
         assert len(current_multimanager.beforewards.circuits_map) == 0
-        assert len(current_multimanager.beforewards.job_id) == 0
+        # assert len(current_multimanager.beforewards.job_id) == 0
 
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager
 
@@ -530,9 +524,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             ]
             circ_serial += tmp_circ_serial
 
-            current_multimanager.beforewards.pending_pool[exp_id] = tmp_circ_serial
-            current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
-            current_multimanager.beforewards.job_id.append((exp_id, "local"))
+            # current_multimanager.beforewards.pending_pool[exp_id] = tmp_circ_serial
+            # current_multimanager.beforewards.circuits_map[exp_id] = tmp_circ_serial
+            # current_multimanager.beforewards.job_id.append((exp_id, "local"))
         current_multimanager.multicommons.datetimes.add_serial("output")
 
         if is_call_auto_multianalysis:
@@ -541,94 +535,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         if not skip_output_write:
             bewritten = self.multiWrite(besummonned, multiprocess_write=multiprocess_write)
             assert bewritten == besummonned
-
-        return current_multimanager.multicommons.summoner_id
-
-    def multiPending(
-        self,
-        config_list: ConfigListType[_MA],
-        summoner_name: str = short_name,
-        summoner_id: Optional[str] = None,
-        shots: int = 1024,
-        backend: Backend = GeneralSimulator(),
-        provider: Optional[Any] = None,
-        tags: Optional[tuple[str, ...]] = None,
-        manager_run_args: Optional[dict[str, Any]] = None,
-        save_location: Union[Path, str] = Path("./"),
-        jobstype: PendingTargetProviderLiteral = "IBM",
-        pending_strategy: PendingStrategyLiteral = "tags",
-    ) -> str:
-        """Pending the multiple experiments.
-
-        Args:
-            config_list (ConfigListType[_BA]):
-                The list of default configurations of multiple experiment.
-            summoner_name (str, optional):
-                Name for multimanager. Defaults to their coresponding :attr:`short_name`.
-            summoner_id (Optional[str], optional):
-                Id for multimanager. Defaults to None.
-            shots (int, optional):
-                Shots of the job. Defaults to `1024`.
-            backend (Backend, optional):
-                The quantum backend. Defaults to GeneralSimulator().
-            provider (Optional[Any], optional):
-                The provider. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
-                Tags of experiment of
-                :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
-                Defaults to None.
-            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
-                The extra arguments for running the job, but for all experiments
-                in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
-                for :meth:`~qiskit.providers.backend.BackendV2.run`.
-                Defaults to None.
-            save_location (Union[Path, str], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then cancelled the file to be exported.
-                Defaults to Path('./').
-            jobstype (PendingTargetProviderLiteral, optional):
-                Type of jobs to run multiple experiments.
-                jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
-                Defaults to "IBM".
-            pending_strategy (PendingStrategyLiteral, optional):
-                Type of pending strategy.
-                pendingStrategy: "default", "onetime", "each", "tags"
-                Defaults to "tags".
-
-        Returns:
-            str: The summoner_id of multimanager.
-        """
-
-        besummonned = self.multiBuild(
-            config_list=config_list,
-            shots=shots,
-            backend=backend,
-            tags=tags,
-            manager_run_args=manager_run_args,
-            summoner_name=summoner_name,
-            summoner_id=summoner_id,
-            save_location=save_location,
-            jobstype="local",
-            pending_strategy="tags",
-            skip_build_write=True,
-        )
-        current_multimanager = self.multimanagers[besummonned]
-        assert current_multimanager.summoner_id == besummonned
-
-        print("| MultiPending running...")
-
-        self.accessor = RemoteAccessor(
-            multimanager=current_multimanager,
-            experiment_container=current_multimanager.exps,
-            backend=backend,
-            backend_type=jobstype,
-            provider=provider,
-        )
-        self.accessor.pending(
-            pending_strategy=pending_strategy,
-        )
-        bewritten = self.multiWrite(besummonned)
-        assert bewritten == besummonned
 
         return current_multimanager.multicommons.summoner_id
 
@@ -665,11 +571,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         """
         if specific_analysis_args is None:
             specific_analysis_args = {}
-
-        if summoner_id in self.multimanagers:
-            current_multimanager = self.multimanagers[summoner_id]
-        else:
+        if summoner_id not in self.multimanagers:
             raise ValueError("No such summoner_id in multimanagers.")
+        current_multimanager = self.multimanagers[summoner_id]
 
         report_name = current_multimanager.analyze(
             analysis_name=analysis_name,
@@ -742,7 +646,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         current_multimanager.write(
             save_location=save_location,
             export_transpiled_circuit=export_transpiled_circuit,
-            skip_before_and_after=skip_before_and_after,
+            skip_manager_info=skip_before_and_after,
             skip_exps=skip_exps,
             skip_quantities=skip_quantities,
             multiprocess=multiprocess_write,
@@ -819,129 +723,12 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
         return current_multimanager.multicommons.summoner_id
 
-    def multiRetrieve(
-        self,
-        summoner_name: Optional[str] = None,
-        summoner_id: Optional[str] = None,
-        backend: Optional[Backend] = None,
-        provider: Optional[Any] = None,
-        save_location: Union[Path, str] = Path("./"),
-        refresh: bool = False,
-        overwrite: bool = False,
-        reload: bool = False,
-        read_from_tarfile: bool = False,
-    ) -> str:
-        """Retrieve the multiple experiments.
-
-        Args:
-            summoner_name (Optional[str], optional):
-                Name for multimanager. Defaults to None.
-            summoner_id (Optional[str], optional):
-                Id for multimanager. Defaults to None.
-            backend (Optional[Backend], optional):
-                The quantum backend. Defaults to None.
-            provider (Optional[Any], optional):
-                The provider. Defaults to None.
-            save_location (Union[Path, str], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then cancelled the file to be exported.
-                Defaults to Path('./').
-            refresh (bool, optional):
-                Whether to refresh the retrieve. Defaults to False.
-            overwrite (bool, optional):
-                Whether to overwrite the retrieve. Defaults to False.
-            reload (bool, optional):
-                Whether to reload the multimanager. Defaults to False.
-            read_from_tarfile (bool, optional):
-                Whether to read from the tarfile. Defaults to False.
-
-        Raises:
-            ValueError: No summoner_name or summoner_id given.
-            ValueError: Both summoner_name and summoner_id are given.
-            ValueError: No such summoner_id in multimanagers.
-            TypeError: summoner_name or summoner_id is not str.
-            ValueError: No backend or provider given.
-
-        Returns:
-            str: The summoner_id of multimanager.
-        """
-
-        if summoner_name is None and summoner_id is None:
-            raise ValueError("No summoner_name or summoner_id given.")
-        if summoner_id is not None and summoner_name is not None:
-            raise ValueError("Both summoner_name and summoner_id are given.")
-
-        if isinstance(summoner_id, str):
-            if summoner_id in self.multimanagers:
-                current_multimanager = self.multimanagers[summoner_id]
-                besummonned = summoner_id
-            else:
-                raise ValueError("No such summoner_id in multimanagers.", summoner_id)
-        elif isinstance(summoner_name, str):
-            besummonned = self.multiRead(
-                summoner_name=summoner_name,
-                save_location=save_location,
-                reload=reload,
-                read_from_tarfile=read_from_tarfile,
-            )
-            current_multimanager = self.multimanagers[besummonned]
-            assert current_multimanager.summoner_id == besummonned
-        else:
-            raise TypeError(
-                f"summoner_name: {summoner_name} with type: {type(summoner_name)} or "
-                + f"summoner_id: {summoner_id} with type: {type(summoner_id)} is not str."
-            )
-
-        print("| MultiRetrieve running...")
-        jobs_type = current_multimanager.multicommons.jobstype
-        if backend is None and provider is None:
-            raise ValueError("No backend or provider given.")
-
-        self.accessor = RemoteAccessor(
-            multimanager=current_multimanager,
-            experiment_container=current_multimanager.exps,
-            backend=backend,
-            provider=provider,
-            backend_type=jobs_type,
-        )
-
-        if jobs_type == "IBMQ":
-            self.accessor.retrieve(
-                overwrite=overwrite,
-                refresh=refresh,
-            )
-        elif jobs_type in ["IBM", "IBMRuntime"]:
-            self.accessor.retrieve(overwrite=overwrite)
-
-        else:
-            warnings.warn(
-                f"Jobstype of '{besummonned}' is "
-                + f"{current_multimanager.multicommons.jobstype} which is not supported."
-            )
-            return besummonned
-
-        retrieve_times = retrieve_counter(current_multimanager.multicommons.datetimes)
-
-        if retrieve_times > 0:
-            if overwrite:
-                print(f"| Retrieve {current_multimanager.summoner_name} overwrite.")
-            else:
-                print(f"| Retrieve skip for {current_multimanager.summoner_name} existed.")
-                return besummonned
-        else:
-            print(f"| Retrieve {current_multimanager.summoner_name} completed.")
-        bewritten = self.multiWrite(besummonned)
-        assert bewritten == besummonned
-
-        return current_multimanager.multicommons.summoner_id
-
     def __repr__(self):
         return (
             f"<{self.__name__}("
             f"waves={self.waves._repr_oneline()}, "
             f"exps={self.exps._repr_oneline()}, "
             f"multimanagers_num={len(self.multimanagers)}, "
-            f"accessor={self.accessor}, "
             f"passmanagers_len={len(self.passmanagers)})>"
         )
 
@@ -966,8 +753,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                         p.text(f"'{k}': {v._repr_oneline_no_id()}")
                         if i != len_multimanagers - 1:
                             p.text(",")
-                p.breakable()
-                p.text(f"accessor={self.accessor},")
                 p.breakable()
                 with p.group(2, "passmanagers=PassManagers({", "}" + f", num={len_passmanagers})"):
                     for i, (k, v) in enumerate(self.passmanagers.items()):
