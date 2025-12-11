@@ -207,6 +207,7 @@ class EMRProcessEntries(ProcessEntriesPrototype):
         """
 
         return {
+            "shots": self.shots,
             "selected_classical_registers": self.selected_classical_registers,
             "existed_all_system": (
                 EMRAllSystemResult(**self.existed_all_system).export()
@@ -277,8 +278,8 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         """
         return ("purity_cells",)
 
-    def export(self) -> dict[str, Any]:
-        """Export the results for file writing.
+    def _pre_export_target_system(self) -> dict[str, Any]:
+        """Pre-process the results for file writing.
 
         Returns:
             dict[str, Any]: The data to be exported.
@@ -294,6 +295,45 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
             "classical_registers": self.classical_registers,
             "classical_registers_actually": self.classical_registers_actually,
             "taking_time": self.taking_time,
+            "counts_num": self.counts_num,
+        }
+
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
+
+        Returns:
+            dict[str, Any]: The data to be exported.
+        """
+
+        return self._pre_export_target_system()
+
+    @classmethod
+    def _pre_ingest_target_system(cls, raw_dict: dict[str, Any]) -> dict[str, Any]:
+        """Pre-process the raw dictionary before ingestion.
+
+        Args:
+            raw_dict (dict[str, Any]): The raw read dictionary.
+
+        Returns:
+            dict[str, Any]: The pre-processed dictionary.
+        """
+        return {
+            "purity": raw_dict["purity"],
+            "entropy": raw_dict["entropy"],
+            "purity_sd": raw_dict["purity_sd"],
+            "entropy_sd": raw_dict["entropy_sd"],
+            "purity_cells": {int(k): float(v) for k, v in raw_dict["purity_cells"].items()},
+            "num_classical_registers": raw_dict["num_classical_registers"],
+            "classical_registers": (
+                None
+                if raw_dict.get("classical_registers") is None
+                else [int(v) for v in raw_dict["classical_registers"]]
+            ),
+            "classical_registers_actually": [
+                int(v) for v in raw_dict["classical_registers_actually"]
+            ],
+            "taking_time": raw_dict["taking_time"],
+            "counts_num": raw_dict["counts_num"],
         }
 
     @classmethod
@@ -306,26 +346,8 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
         Returns:
             The loaded results object.
         """
-        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
-        if missing_fields:
-            raise ValueError(f"Missing fields for {cls.__name__}: {missing_fields}")
 
-        return cls(
-            purity=raw_dict["purity"],
-            entropy=raw_dict["entropy"],
-            purity_sd=raw_dict["purity_sd"],
-            entropy_sd=raw_dict["entropy_sd"],
-            purity_cells={int(k): float(v) for k, v in raw_dict["purity_cells"].items()},
-            num_classical_registers=raw_dict["num_classical_registers"],
-            classical_registers=(
-                None
-                if raw_dict.get("classical_registers") is None
-                else [int(v) for v in raw_dict["classical_registers"]]
-            ),
-            classical_registers_actually=[int(v) for v in raw_dict["classical_registers_actually"]],
-            taking_time=raw_dict["taking_time"],
-            counts_num=raw_dict["counts_num"],
-        )
+        return cls(**cls._pre_ingest_target_system(raw_dict))
 
 
 @dataclass(frozen=True)
@@ -343,6 +365,42 @@ class EMRAllSystemResult(EMRTargetSystemResult):
 
     - independent: The all system is calculated independently.
     """
+
+    def export(self) -> dict[str, Any]:
+        """Export the results for file writing.
+
+        Returns:
+            dict[str, Any]: The data to be exported.
+        """
+
+        export_content = self._pre_export_target_system()
+        export_content.update(
+            {
+                "preparing_datetime": self.preparing_datetime,
+                "result_hash_id": self.result_hash_id,
+                "all_system_source": self.all_system_source,
+            }
+        )
+        return export_content
+
+    @classmethod
+    def ingest(cls, raw_dict: dict[str, Any]):
+        """Load the results from a dictionary.
+
+        Args:
+            raw_dict (dict[str, Any]): The data to load.
+
+        Returns:
+            The loaded results object.
+        """
+
+        pre_ingest_target = cls._pre_ingest_target_system(raw_dict)
+        return cls(
+            **pre_ingest_target,
+            preparing_datetime=raw_dict["preparing_datetime"],
+            result_hash_id=raw_dict["result_hash_id"],
+            all_system_source=raw_dict["all_system_source"],
+        )
 
 
 @dataclass(frozen=True)
