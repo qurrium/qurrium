@@ -52,8 +52,12 @@ ABOUT_UNRUNNABLE_THIRD_PARTY = (
 ) + ABOUT_UNRUNNABLE_DISCUSSION
 
 
-class UnconfiguredWarning(QurryWarning):
+class DummyClassWarning(QurryWarning):
     "For dummy function in qurrium has been activated."
+
+
+class ProblematicInherition(QurryWarning):
+    "Warning for problematic inherition in Qurrium."
 
 
 class UnknownArgumentsKept(QurryWarning):

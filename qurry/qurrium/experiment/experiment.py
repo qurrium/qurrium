@@ -909,14 +909,15 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     def read(
         cls,
-        name_or_id: Union[Path, str],
+        exp_or_summor_name: Union[Path, str],
         save_location: Union[Path, str] = Path("./"),
         multiprocess: bool = True,
     ):
         """Read the experiment from file.
 
         Args:
-            name_or_id (Union[Path, str]): The name or id of the experiment to be read.
+            exp_or_summor_name (Union[Path, str]):
+                The experiment name or multimanager name to be read.
             save_location (Union[Path, str], optional):
                 The location of the experiment to be read. Defaults to Path('./').
             multiprocess (bool, optional):
@@ -933,7 +934,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         save_location = create_save_location(save_location)
         if not os.path.exists(save_location):
             raise FileNotFoundError(f"'save_location' does not exist, '{save_location}'.")
-        export_location = save_location / name_or_id
+        export_location = save_location / exp_or_summor_name
         if not os.path.exists(export_location):
             raise FileNotFoundError(f"'ExportLoaction' does not exist, '{export_location}'.")
 

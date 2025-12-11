@@ -23,7 +23,7 @@ from ..exceptions import (
     InvalidExpIdReplacementWarning,
     InvalidSummonerConfiguration,
     InvalidInherition,
-    UnconfiguredWarning,
+    DummyClassWarning,
     TranspileConfigurationIgnored,
     UnrunableBackendError,
     ABOUT_UNRUNNABLE_IBM_BACKEND,
@@ -130,7 +130,7 @@ def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Comm
         warnings.warn(
             "You should set a new __name__ for your experiment class, "
             + "otherwise it will be considered as an abstract class of Qurrium during printing.",
-            category=UnconfiguredWarning,
+            category=DummyClassWarning,
         )
 
 
