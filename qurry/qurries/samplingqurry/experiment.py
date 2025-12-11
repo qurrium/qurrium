@@ -1,12 +1,14 @@
 """SamplingExecuter - Experiment (:mod:`qurry.qurries.samplingqurry.experiment`)"""
 
 from typing import Optional, Any
+import warnings
 import tqdm
 
 from qiskit import QuantumCircuit
 
 from .arguments import SEArguments, SHORT_NAME
 from .analysis import DummyAnalysis
+from ...qurrium.exceptions import DummyClassWarning
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 
 
@@ -109,9 +111,7 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
 
         return [q_copy.copy() for _ in range(arguments.sampling)], {}
 
-    def analyze(
-        self, ultimate_question: Optional[str] = None
-    ) -> Optional[DummyAnalysis[SEArguments]]:
+    def analyze(self, ultimate_question: Optional[str] = None) -> DummyAnalysis[SEArguments]:
         """Analysis of the experiment.
 
         Args:
@@ -119,12 +119,18 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
                 The ultimate question of the universe.
 
         Returns:
-            Optional[DummyAnalysis[SEArguments]]: The result of the analysis.
+            DummyAnalysis[SEArguments]: The result of the analysis.
         """
 
         serial = len(self.reports)
-        if serial == 0:
-            return None
+        if serial != 0:
+            warnings.warn(
+                "You already have the answer. "
+                + "The Answer to the Ultimate Question of Life, "
+                + "The Universe, and Everything.",
+                DummyClassWarning,
+            )
+            return self.reports[0]
 
         analysis = self.analysis_type().perform_analysis(
             arguments=self.args,

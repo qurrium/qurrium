@@ -1,14 +1,15 @@
 """WavesExecuter - Experiment (:mod:`qurry.qurries.wavesqurry.experiment`)"""
 
 from typing import Optional, Any
-from collections.abc import Hashable
+import warnings
 import tqdm
 
 from qiskit import QuantumCircuit
 
 from .arguments import WEArguments, SHORT_NAME
 from ..samplingqurry.analysis import DummyAnalysis
-from ...qurrium import ExperimentPrototype, Commonparams
+from ...qurrium.exceptions import DummyClassWarning
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 
 
 class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]]):
@@ -29,14 +30,14 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
     @classmethod
     def params_control(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         **custom_kwargs: Any,
     ) -> tuple[WEArguments, Commonparams, dict[str, Any]]:
         """Control the experiment's parameters.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             exp_name (str, optional):
                 The name of the experiment.
@@ -60,7 +61,7 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
     @classmethod
     def method(
         cls,
-        targets: list[tuple[Hashable, QuantumCircuit]],
+        targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: WEArguments,
         pbar: Optional[tqdm.tqdm] = None,
         multiprocess: bool = False,
@@ -68,7 +69,7 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
         """The method to construct circuit.
 
         Args:
-            targets (list[tuple[Hashable, QuantumCircuit]]):
+            targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
             arugments (ArgumentsPrototype):
                 The arguments of the experiment.
@@ -113,9 +114,7 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
 
         return cirqs, {}
 
-    def analyze(
-        self, ultimate_question: Optional[str] = None
-    ) -> Optional[DummyAnalysis[WEArguments]]:
+    def analyze(self, ultimate_question: Optional[str] = None) -> DummyAnalysis[WEArguments]:
         """Analysis of the experiment.
 
         Args:
@@ -123,12 +122,18 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
                 The ultimate question of the universe.
 
         Returns:
-            Optional[DummyAnalysis[WEArguments]]: The result of the analysis.
+            DummyAnalysis[WEArguments]: The result of the analysis.
         """
 
         serial = len(self.reports)
-        if serial == 0:
-            return None
+        if serial != 0:
+            warnings.warn(
+                "You already have the answer. "
+                + "The Answer to the Ultimate Question of Life, "
+                + "The Universe, and Everything.",
+                DummyClassWarning,
+            )
+            return self.reports[0]
 
         analysis = self.analysis_type().perform_analysis(
             arguments=self.args,
