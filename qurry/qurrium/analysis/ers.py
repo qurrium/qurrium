@@ -22,8 +22,22 @@ def erabc_export(
 
     def wrapper(self: _ERABC, *args: Any, **kwargs: Any) -> dict[str, Any]:
         """The wrapped export function including class name."""
-        result = func(self, *args, **kwargs)
-        result.update({"__class__": self.__class__.__name__})
+        result = {"__class__": self.__class__.__name__}
+        result.update(func(self, *args, **kwargs))
+        if result["__class__"] != self.__class__.__name__:
+            raise InvalidInherition(
+                "The exported class name got modified. "
+                + f"Expected '{self.__class__.__name__}', got '{result['__class__']}'. "
+                + "You should not modify the '__class__' key in export method.",
+            )
+
+        missing_fields = set(self.dataclass_fields()) - set(result.keys())
+        if missing_fields:
+            raise InvalidInherition(
+                f"Got some missing fields for '{self.__class__.__name__}': {missing_fields}. "
+                + "You should export all fields in export method."
+            )
+
         return result
 
     # pylint: disable=protected-access
@@ -34,17 +48,15 @@ def erabc_export(
 
 
 def erabc_ingest(
-    func: Callable[[type[_ERABC], dict[str, Any]], dict[str, Any]],
-) -> Callable[[type[_ERABC], dict[str, Any]], dict[str, Any]]:
+    func: Callable[[type[_ERABC], dict[str, Any]], _ERABC],
+) -> Callable[[type[_ERABC], dict[str, Any]], _ERABC]:
     """The decorator for ingest method of :class:`AnalysisERABC` to check class name.
 
     Args:
         func (Callable): The original load function.
     """
 
-    def wrapper(
-        cls: type[_ERABC], raw_dict: dict[str, Any], *args: Any, **kwargs: Any
-    ) -> dict[str, Any]:
+    def wrapper(cls: type[_ERABC], raw_dict: dict[str, Any], *args: Any, **kwargs: Any) -> _ERABC:
         """The wrapped load function including class name check."""
 
         raw_dict_copy = raw_dict.copy()
@@ -57,11 +69,9 @@ def erabc_ingest(
                 f"Data class '{classname}' does not match expected class '{cls.__name__}'."
             )
 
-        if set(raw_dict_copy.keys()) != set(cls.dataclass_fields()):
-            raise ValueError(
-                "Data fields mismatch: expected "
-                + f"{cls.dataclass_fields()}, got {set(raw_dict_copy.keys())}."
-            )
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
+        if missing_fields:
+            raise ValueError(f"Missing fields for '{cls.__name__}': {missing_fields}")
 
         result = func(cls, raw_dict_copy, *args, **kwargs)
 
@@ -129,6 +139,7 @@ class AnalysisERABC(DataExportableIngestible):
                 UserWarning,
             )
 
+    @erabc_export
     def export(self) -> dict[str, Any]:
         """Export the serializable data.
 
@@ -138,6 +149,7 @@ class AnalysisERABC(DataExportableIngestible):
         return {field: getattr(self, field) for field in self.fields}
 
     @classmethod
+    @erabc_ingest
     def ingest(cls, raw_dict: dict[str, Any]):
         """Ingest from a serialized dictionary.
 
