@@ -19,11 +19,12 @@ from ...process.utils import counts_list_recount_pyrust
 from ...process.classical_shadow import (
     set_cpu_only,
     JAX_AVAILABLE,
-    ShadowRandomBasis,
-    ShadowRandomBasisData,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
+    ShadowBasisType,
+    ShadowRandomBasis,
+    ShadowRandomBasisData,
     TraceMethod,
     TraceMethodType,
     DEFAULT_TRACE_METHOD,
@@ -302,6 +303,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
         )
 
         return {
+            "shots": self.shots,
             "random_basis_array": self.random_basis_array,
             "selected_classical_registers": (
                 list(self.selected_classical_registers)
@@ -358,6 +360,28 @@ class SUProcessEntries(ProcessEntriesPrototype):
             trace_method=TraceMethod.from_string(raw_dict["trace_method"]),
             estimate_trace_method=ListTraceMethod.from_string(raw_dict["estimate_trace_method"]),
         )
+
+    def __repr__(self) -> str:
+        """The representation of the process entries."""
+        entries_str_dict = {
+            field: f"{field}={getattr(self, field)!r}"
+            for field in self.fields
+            if field not in ["random_basis_array", "given_operators"]
+        }
+
+        entries_str_dict["random_basis_array"] = (
+            (f"random_basis_array=[...{len(self.random_basis_array)} items...]")
+            if self.random_basis_array is not None
+            else "random_basis_array=None"
+        )
+        entries_str_dict["given_operators"] = (
+            (f"given_operators=[...{len(self.given_operators)} items...]")
+            if self.given_operators is not None
+            else "given_operators=None"
+        )
+
+        field_strs = [entries_str_dict[field] for field in self.fields]
+        return f"{self.__class__.__name__}({', '.join(field_strs)})"
 
 
 @dataclass(frozen=True)
@@ -745,17 +769,16 @@ class SUAnalysis(
         shots: int,
         counts: list[dict[str, int]],
         random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-        selected_classical_registers: Optional[Iterable[int]] = None,
+        selected_classical_registers: Optional[Iterable[int]],
         # estimation of given operators
-        given_operators: Optional[
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-        ] = None,
-        accuracy_prob_comp_delta: float = 0.01,
-        max_shadow_norm: Optional[float] = None,
+        given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]],
+        accuracy_prob_comp_delta: float,
+        max_shadow_norm: Optional[float],
         # other config
-        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
-        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+        rho_method: RhoMethodType,
+        shadow_basis: ShadowBasisType,
+        trace_method: TraceMethodType,
+        estimate_trace_method: ListTraceMethodType,
     ) -> tuple[
         ClassicalShadowBasic, Optional[ClassicalShadowPurity], Optional[EstimationOfObservable]
     ]:
@@ -810,6 +833,15 @@ class SUAnalysis(
 
                 Currently, "multi_shots" is the best option for performance.
                 Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            shadow_basis (ShadowBasisType, optional):
+                The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
+
+                Here are the built-in basis sets:
+                - `RX_RY_RZ`:
+                    Uses :math:`R_X(\frac{\pi}{2})`,
+                    :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+                - `H_H-Sdg_I`:
+                    Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -873,6 +905,7 @@ class SUAnalysis(
             max_shadow_norm=max_shadow_norm,
             # other config
             rho_method=rho_method,
+            shadow_basis=shadow_basis,
             trace_method=trace_method,
             estimate_trace_method=estimate_trace_method,
         )
@@ -989,6 +1022,7 @@ class SUAnalysis(
         serial: int,
         outfields: Union[dict[str, Any], None] = None,
         datetime: Union[str, None] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -998,6 +1032,8 @@ class SUAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (SUAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow. Defaults to None.
             outfields (dict[str, Any], optional): The output fields. Defaults to None.
             datetime (str, optional): The datetime string. Defaults to None.
 
@@ -1006,7 +1042,7 @@ class SUAnalysis(
         """
 
         analyze_arguments, middleware_entries, postprocess_entries, selected_counts = (
-            cls.generate_entries(arguments, commonparams, counts, analyze_arguments)
+            cls.generate_entries(arguments, commonparams, counts, analyze_arguments, random_basis)
         )
 
         cs_basic_obj, cs_trace_obj, cs_estimation_obj = cls.quantities(
@@ -1020,6 +1056,7 @@ class SUAnalysis(
             max_shadow_norm=postprocess_entries.maximum_shadow_norm,
             # other config
             rho_method=postprocess_entries.rho_method,
+            shadow_basis=arguments.shadow_basis,
             trace_method=postprocess_entries.trace_method,
             estimate_trace_method=postprocess_entries.estimate_trace_method,
         )

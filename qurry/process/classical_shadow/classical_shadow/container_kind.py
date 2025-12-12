@@ -210,20 +210,9 @@ def isvalid_classical_shadow_basic(cs_basic: ClassicalShadowBasic) -> None:
     Raises:
         ValueError: If the cs_basic argument is not a valid ClassicalShadowBasic object.
     """
-    if any(
-        key not in cs_basic
-        for key in [
-            "average_snapshots_rho_list",
-            "classical_registers_actually",
-            "taking_time",
-            "shots",
-            "snapshots",
-            "rho_method",
-            "random_basis_data",
-            "mean_of_rho",
-        ]
-    ):
-        raise ValueError("The cs_basic argument must be a valid ClassicalShadowBasic object.")
+    missing_fields = set(ClassicalShadowBasic.__annotations__.keys()) - set(cs_basic.keys())
+    if missing_fields:
+        raise ValueError(f"The cs_basic argument is missing fields: {', '.join(missing_fields)}.")
 
 
 class ClassicalShadowPurity(TypedDict):
