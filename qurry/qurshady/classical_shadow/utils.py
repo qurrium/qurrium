@@ -59,7 +59,8 @@ def make_samplied_circuit(
     qc_exp1.barrier()
 
     for qi, um in single_random_basis.items():
-        qc_exp1.append(shadow_basis.gates[um], [qi])
+        for g in shadow_basis.gates_tuple[um]:
+            qc_exp1.append(g.copy(), [qi])
 
     for qi, ci in registers_mapping.items():
         qc_exp1.measure(qc_exp1.qubits[qi], c_meas1[ci])

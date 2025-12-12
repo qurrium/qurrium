@@ -222,21 +222,20 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                     for n_u_i in range(arguments.snapshots)
                 ],
             )
-        else:
-            circ_list = [
-                make_samplied_circuit(
-                    n_u_i,
-                    target_circuit,
-                    target_key,
-                    arguments.exp_name,
-                    arguments.registers_mapping,
-                    arguments.random_basis[n_u_i],
-                    arguments.shadow_basis,
-                )
-                for n_u_i in range(arguments.snapshots)
-            ]
+            return circ_list, {}
 
-        return circ_list, {}
+        return [
+            make_samplied_circuit(
+                n_u_i,
+                target_circuit,
+                target_key,
+                arguments.exp_name,
+                arguments.registers_mapping,
+                arguments.random_basis[n_u_i],
+                arguments.shadow_basis,
+            )
+            for n_u_i in range(arguments.snapshots)
+        ], {}
 
     def analyze(
         self,
@@ -365,6 +364,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 "counts_used": counts_used,
             },
             serial=serial,
+            random_basis=self.args.random_basis,
         )
         self.reports[analysis.serial] = analysis
         return analysis
