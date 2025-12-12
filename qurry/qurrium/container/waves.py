@@ -77,7 +77,7 @@ class WaveContainer(dict[WCKeyable, QuantumCircuit]):
             RuntimeError: If a new serial key cannot be found.
 
         Returns:
-            Optional[Hashable]: Key of given wave function in `.waves`.
+            Key of given wave function in `.waves`.
         """
 
         if not isinstance(wave, QuantumCircuit):
@@ -286,7 +286,7 @@ class WaveContainer(dict[WCKeyable, QuantumCircuit]):
         """Export a copy of wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
         Args:
-            key_or_keys (Union[list[Hashable], Hashable]):
+            key_or_keys (Union[list[WCKeyable], WCKeyable]):
                 The key of wave in the container.
 
         Returns:
@@ -303,7 +303,7 @@ class WaveContainer(dict[WCKeyable, QuantumCircuit]):
         """Export wave function as :class:`~qiskit.circuit.Instruction`.
 
         Args:
-            key_or_keys (Union[list[Hashable], Hashable]):
+            key_or_keys (Union[list[WCKeyable], WCKeyable]):
                 The key of wave in the container.
 
         Returns:
