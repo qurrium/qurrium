@@ -7,9 +7,9 @@ from abc import abstractmethod, ABC
 from typing import Optional, Literal
 
 from qiskit.providers import Backend
+from qiskit.result import Result
 
-from ..experiment import ExperimentPrototype
-from ..multimanager import MultiManager, ExperimentContainer
+from ..multimanager import MultiManager
 from ..multimanager.beforewards import TagsType
 from ..exceptions import QurryDummyRunnerWarning
 from ...tools.backend import backend_name_getter
@@ -24,11 +24,15 @@ class Runner(ABC):
     """The current :class:`~qurry.qurrium.multimanager.multimanager.Multimanager` been used."""
     backend: Optional[Backend]
     """The backend been used."""
-    experiment_container: ExperimentContainer[ExperimentPrototype]
-    """The experimental container from Qurry instance."""
 
-    reports: dict[str, dict]
-    """The reports of jobs."""
+    retrieve_results: dict[TagsType, Result]
+    """The retrieved results from remote backend. Key is the job id.
+    which multiple :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype` shared.
+    """
+    all_counts: dict[TagsType, dict[str, int]]
+    """The counts of all retrieved results from remote backend. Key is the job id,
+    This is used for temporary storage before re-distributing to each experiment.
+    """
 
     @abstractmethod
     def pending(
@@ -49,8 +53,6 @@ class Runner(ABC):
             f"<{self.__name__}("
             + f"current_multimanager={self.current_multimanager._repr_oneline()}, "
             + f"backend={backend_repr}, "
-            + f"experiment_container={self.experiment_container._repr_oneline()}, "
-            + f"reports_num={len(self.reports)})>"
         )
 
     def _repr_oneline(self):
