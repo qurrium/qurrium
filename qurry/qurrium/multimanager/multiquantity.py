@@ -102,10 +102,9 @@ class MutltiQuantityInfo(dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]
         """
         exported_content = self.content_dumping()
 
-        full_filename = Path(summoner_name) / "multiquantity.json"
         quick_json_write(
             exported_content,
-            full_filename,
+            "multiquantity.json",
             DEFAULT_MODE,
             indent=DEFAULT_INDENT,
             encoding=DEFAULT_ENCODING,
@@ -113,7 +112,7 @@ class MutltiQuantityInfo(dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]
             mute=True,
         )
 
-        return {"multiquantity": str(full_filename)}
+        return {"multiquantity": str(Path(summoner_name) / "multiquantity.json")}
 
     @classmethod
     def content_loading(cls, raw_dict: dict[str, Any]) -> dict[str, Any]:

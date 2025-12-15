@@ -73,7 +73,7 @@ class Before:
             dict[str, Any]: The content to be written to files.
         """
         return {
-            "exps_config": jsonablize(self.exps_config),
+            "exps.config": jsonablize(self.exps_config),
             "circuits_map": jsonablize(self.circuits_map),
             "pending_pool": jsonablize(self.pending_pool),
             "job_group": jsonablize(self.job_group),
@@ -93,7 +93,6 @@ class Before:
         file_index: dict[str, str] = {}
 
         for key, filename in STANDARD_FILE_INDEX.items():
-            full_filename = Path(summoner_name) / filename
             quick_json_write(
                 exported_content[key],
                 filename,
@@ -103,7 +102,7 @@ class Before:
                 save_location=save_location,
                 mute=True,
             )
-            file_index[key] = str(full_filename)
+            file_index[key] = str(Path(summoner_name) / filename)
 
         return file_index
 
