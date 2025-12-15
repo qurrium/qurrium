@@ -10,7 +10,7 @@ from qiskit.providers import Backend
 from qiskit.result import Result
 
 from ..multimanager import MultiManager
-from ..multimanager.beforewards import TagsType
+from ..multimanager.beforewards import PendingTagsType
 from ..exceptions import QurryDummyRunnerWarning
 from ...tools.backend import backend_name_getter
 
@@ -25,11 +25,11 @@ class Runner(ABC):
     backend: Optional[Backend]
     """The backend been used."""
 
-    retrieve_results: dict[TagsType, Result]
+    retrieve_results: dict[PendingTagsType, Result]
     """The retrieved results from remote backend. Key is the job id.
     which multiple :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype` shared.
     """
-    all_counts: dict[TagsType, dict[str, int]]
+    all_counts: dict[PendingTagsType, dict[str, int]]
     """The counts of all retrieved results from remote backend. Key is the job id,
     This is used for temporary storage before re-distributing to each experiment.
     """
@@ -39,11 +39,11 @@ class Runner(ABC):
         self,
         pending_strategy: Literal["default", "onetime", "each", "tags"],
         backend: Backend,
-    ) -> list[tuple[Optional[str], TagsType]]:
+    ) -> list[tuple[Optional[str], PendingTagsType]]:
         """Pending jobs to remote backend."""
 
     @abstractmethod
-    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagsType]]:
+    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], PendingTagsType]]:
         """Retrieve jobs from remote backend."""
 
     def __repr__(self):
@@ -94,7 +94,7 @@ class DummyRunner(Runner):
         self,
         pending_strategy: Literal["default", "onetime", "each", "tags"],
         backend: Optional[Backend] = None,
-    ) -> list[tuple[Optional[str], TagsType]]:
+    ) -> list[tuple[Optional[str], PendingTagsType]]:
         """ATTENTION!! This method does not do anything.
 
         Args:
@@ -110,7 +110,7 @@ class DummyRunner(Runner):
         )
         return []
 
-    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], TagsType]]:
+    def retrieve(self, overwrite: bool = False) -> list[tuple[Optional[str], PendingTagsType]]:
         """ATTENTION!! This method does not do anything.
 
         Args:
