@@ -1,7 +1,7 @@
 """EchoListenRandomized - Qurrium (:mod:`qurry.qurrech.randomized_measure.qurry`)"""
 
 from pathlib import Path
-from typing import Union, Optional, Any, Type, Literal, Iterable
+from typing import Union, Optional, Any, Literal, Iterable
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -59,7 +59,7 @@ class EchoListenRandomized(
     """The abbreviation of this Qurrium class."""
 
     @property
-    def experiment_instance(self) -> Type[ELRExperiment]:
+    def experiment_instance(self) -> type[ELRExperiment]:
         """The container class responding to this Qurrium class."""
         return ELRExperiment
 
