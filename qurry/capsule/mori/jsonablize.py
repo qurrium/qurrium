@@ -1,4 +1,4 @@
-"""JSONablize (:mod:`qurry.capsule.jsonablize`)"""
+"""The JSON Writer (:mod:`qurry.capsule.mori.jsonablize`)"""
 
 import os
 from typing import Union, Any, Optional, TypeVar
@@ -7,7 +7,7 @@ from collections.abc import Iterable, Hashable
 import json
 from pathlib import Path
 
-from .utils import DEFAULT_ENCODING, DEFAULT_INDENT
+from ..utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
 _K = TypeVar("_K")
 _V = TypeVar("_V")
@@ -42,14 +42,13 @@ def key_parse(k: Any) -> Union[str, int, float, bool, None]:
         A JSON-allowable key, which can be str, int, float, bool or None.
     """
 
+    if isinstance(k, tuple):
+        return str(k)
     if isinstance(k, (str, int, float, bool)):
-        parsed = k
-    elif k is None:
-        parsed = k
-    else:
-        parsed = str(k)
-
-    return parsed
+        return k
+    if k is None:
+        return k
+    return str(k)
 
 
 def parse(o: Any) -> Any:
@@ -63,15 +62,12 @@ def parse(o: Any) -> Any:
     """
 
     if isinstance(o, list):
-        parsed = [parse(v) for v in o]
-    elif isinstance(o, tuple):
-        parsed = [parse(v) for v in o]
-    elif isinstance(o, dict):
-        parsed = {key_parse(k): parse(v) for k, v in o.items()}
-    else:
-        parsed = value_parse(o)
-
-    return parsed
+        return [parse(v) for v in o]
+    if isinstance(o, tuple):
+        return [parse(v) for v in o]
+    if isinstance(o, dict):
+        return {key_parse(k): parse(v) for k, v in o.items()}
+    return value_parse(o)
 
 
 def sort_hashable_ahead(o: dict[_K, _V]) -> dict[_K, _V]:
@@ -95,9 +91,8 @@ def sort_hashable_ahead(o: dict[_K, _V]) -> dict[_K, _V]:
     return sort_o
 
 
-# pylint: disable=invalid-name
-def quickJSON(
-    content: Iterable,
+def quick_json_write(
+    content: Any,
     filename: Union[str, Path],
     mode: str,
     indent: int = DEFAULT_INDENT,
@@ -139,6 +134,3 @@ def quickJSON(
     if not mute:
         return f"'{save_loc_w_name}' exported successfully."
     return None
-
-
-# pylint: enable=invalid-name

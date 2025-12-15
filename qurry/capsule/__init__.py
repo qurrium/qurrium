@@ -1,26 +1,6 @@
-"""CapSule - Qurrium Data Structure Complex
+"""CapSule - Qurrium Data Structure Complex and I/O Utilities (:mod:`qurry.capsule`)
 
 ## Why names CapSule?
-
-- Mori
-    There are many dedicated data structures for Qurrium
-    If we say one of them like a tree in forest,
-    then all data structures combine,
-    it makes a forest or '森' read as mori in Japanese.
-    Definitely NOT because I'm a DeadBeat,
-    the fan of Hololive VTuber Mori Calliope,
-    and I didn't want to name something after her for a not short time.
-
-- Hoshi
-    I made it when I was listening the songs made by Hoshimachi Suisei,
-    a VTuber in Hololive. I was inspired by her songs, and I made this tool.
-    I named it Hoshi, which means star in Japanese.
-    I hope this tool can help you to make your code more beautiful.
-
-    (Hint: The last sentence is auto-complete by Github Copilot from 'Hoshimachi' to the end.
-    That's meaning that Github Copilot knows VTuber, Hololive, even Suisei,
-    who trains it with such content and how.
-    "Does Skynet subscribe to Virtual Youtuber?")
 
 - CapSule
     It's also not possible I named this for there is a song
@@ -33,14 +13,20 @@
 import webbrowser
 from random import random
 
-from .jsonablize import parse as jsonablize, quickJSON, sort_hashable_ahead
+from .mori import (
+    key_tuple_loads,
+    tuple_str_parse,
+    jsonablize,
+    quickJSON,
+    quick_json_write,
+    sort_hashable_ahead,
+)
+from .hoshi import repr_modifier, EasyReprModify, Hoshi
+from .gitsync import GitSyncControl
 from .utils import DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
-from .quick import quickRead
-from .hoshi import repr_modifier as _repr_modifier
 
 
-# pylint: disable=invalid-name
-@_repr_modifier("<SEEING_STARS>")
+@repr_modifier("<SEEING_STARS>")
 def feeling_sad_then_call_this_function():
     """Don't look back, look forward
 
@@ -57,7 +43,8 @@ def feeling_sad_then_call_this_function():
     print("| Don't look back")
 
 
-def CapSule():
+@repr_modifier("<CapSule>")
+def capsule():
     """Why there is a link to the song "CapSule" by Mori Calliope and Hoshimachi Suisei?
     This package is definitely not related to any Vtuber, right?
     It must be a coincidence. :3
@@ -91,7 +78,7 @@ def dead_beats_lurking_now():
     print("| This function makes no sense.")
 
 
-@_repr_modifier("<INTERNET_YAMERO>")
+@repr_modifier("<INTERNET_YAMERO>")
 def internet_is_fxxking_awesome():
     """Internet is Fxxking Awesome!
 
@@ -125,6 +112,3 @@ def your_need_earbuds_then_call_this_function():
         webbrowser.open("https://www.nicovideo.jp/watch/sm19233263")
     else:
         webbrowser.open("https://www.youtube.com/watch?v=4w3zoAbxkbo")
-
-
-# pylint=enable=invalid-name

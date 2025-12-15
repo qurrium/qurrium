@@ -5,7 +5,6 @@ from collections.abc import Hashable
 
 
 _K = TypeVar("_K", bound=Hashable)
-_V = TypeVar("_V")
 _T = TypeVar("_T")
 
 
