@@ -1,6 +1,5 @@
 """Qurrium Runtime Instance (:mod:`qurry.qurrium.qurrium.qurrium`)"""
 
-import warnings
 from abc import abstractmethod, ABC
 from typing import Literal, Union, Optional, Any, Generic
 from pathlib import Path
@@ -592,11 +591,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         self,
         summoner_id: str,
         save_location: Optional[Union[Path, str]] = None,
-        compress: bool = False,
-        compress_overwrite: bool = False,
-        remain_only_compressed: bool = False,
         export_transpiled_circuit: bool = False,
-        skip_before_and_after: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
         multiprocess_write: bool = True,
@@ -609,20 +604,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
-            compress (bool, optional):
-                Whether to compress the export file.
-                Defaults to False.
-            compress_overwrite (bool, optional):
-                Whether to overwrite the compressed file.
-                Defaults to False.
-            remain_only_compressed (bool, optional):
-                Whether to remain only compressed file.
-                Defaults to False.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit.
                 Defaults to False.
-            skip_before_and_after (bool, optional):
-                Skip the beforewards and afterwards. Defaults to False.
             skip_exps (bool, optional):
                 Skip the experiments. Defaults to False.
             skip_quantities (bool, optional):
@@ -646,23 +630,10 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         current_multimanager.write(
             save_location=save_location,
             export_transpiled_circuit=export_transpiled_circuit,
-            skip_manager_info=skip_before_and_after,
             skip_exps=skip_exps,
             skip_quantities=skip_quantities,
             multiprocess=multiprocess_write,
         )
-
-        if compress:
-            current_multimanager.compress(
-                compress_overwrite=compress_overwrite,
-                remain_only_compressed=remain_only_compressed,
-            )
-        else:
-            if compress_overwrite or remain_only_compressed:
-                warnings.warn(
-                    "'compressOverwrite' or 'remainOnlyCompressed' is set to True, "
-                    + "but 'compress' is False."
-                )
 
         return current_multimanager.multicommons.summoner_id
 
@@ -671,7 +642,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         summoner_name: str,
         save_location: Union[Path, str] = Path("./"),
         reload: bool = False,
-        read_from_tarfile: bool = False,
         multiprocess: bool = True,
     ) -> str:
         """Read the multimanager from the file.
@@ -684,8 +654,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to Path('./').
             reload (bool, optional):
                 Whether to reload the multimanager. Defaults to False.
-            read_from_tarfile (bool, optional):
-                Whether read from tarfile. Defaults to False.
             multiprocess (bool, optional):
                 Whether use multiprocess for reading. Defaults to True.
 
@@ -716,7 +684,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             experiment_instance=self.experiment_instance,
             save_location=save_location,
             is_read_or_retrieve=True,
-            read_from_tarfile=read_from_tarfile,
             multiprocess=multiprocess,
         )
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager

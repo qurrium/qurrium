@@ -1,4 +1,5 @@
 """MultiManager (:mod:`qurry.qurrium.multimanager`)"""
 
 from .multimanager import MultiManager, PendingTargetProviderLiteral, PendingStrategyLiteral
-from .container import ExperimentContainer, QuantityContainer, _E
+from .exps_container import ExperimentContainer, _E
+from .multiquantity import MutltiQuantityInfo
