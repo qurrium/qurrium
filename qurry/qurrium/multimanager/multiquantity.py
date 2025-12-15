@@ -72,6 +72,7 @@ class MutltiQuantityInfo(dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]
                 The name of the analysis.
             no_serialize (bool):
                 Whether to serialize the analysis.
+
         Returns:
             str: The name of the quantity container.
         """
@@ -152,3 +153,39 @@ class MutltiQuantityInfo(dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]
             multiquantity_data = json.load(f)
 
         return cls(cls.content_loading(multiquantity_data))
+
+    def register(
+        self,
+        analysis_source_info: list[tuple[tuple[str, ...], str, int]],
+        analysis_name: str,
+        no_serialize: bool,
+    ) -> str:
+        """Register the analysis result into the container.
+
+        Args:
+            analysis_source_info (list[tuple[tuple[str, ...], str, int]]):
+                The analysis source information.
+                Each element is a tuple of
+                (source_exp_tags, source_exp_id, source_quantity_index).
+            analysis_name (str):
+                The name of the analysis.
+            no_serialize (bool):
+                Whether to serialize the analysis.
+
+        Returns:
+            str: The name of the quantity container.
+        """
+
+        report_name = self.report_naming(analysis_name, no_serialize)
+        assert report_name not in self, (
+            f"The report name '{report_name}' already exists in the quantity container. "
+            "This should not happen, please report a bug."
+        )
+        self[report_name] = {}
+
+        for source_exp_tags, source_exp_id, source_quantity_index in analysis_source_info:
+            if source_exp_tags not in self[report_name]:
+                self[report_name][source_exp_tags] = []
+            self[report_name][source_exp_tags].append((source_exp_id, source_quantity_index))
+
+        return report_name

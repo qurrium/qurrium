@@ -60,14 +60,14 @@ def multiprocess_writer(
     """Multiprocess exporter and writer for experiment.
 
     Args:
-        id_exec (Hashable): ID of experiment.
+        id_exec (str): ID of experiment.
         exps (ExperimentPrototype): The export of experiment.
         save_location (Path): The location of saving.
         export_transpiled_circuit (bool, optional):
             Whether to export transpiled circuit. Defaults to False.
 
     Returns:
-        tuple[Hashable, dict[str, Any]]: The ID of experiment and the files of experiment.
+        tuple[str, dict[str, Any]]: The ID of experiment and the files of experiment.
     """
     export_instance = exps.export(
         save_location=save_location,

@@ -624,18 +624,16 @@ class MultiManager(Generic[_E]):
                 + f"please check them: {specific_analysis_args_check}."
             )
 
-        report_name = self.quantity_info.report_naming(analysis_name, no_serialize)
-
         all_exps_progress = qurry_progressbar(
             self.exps.keys(),
             bar_format=("| {n_fmt}/{total_fmt} - Analysis: {desc} - {elapsed} < {remaining}"),
         )
 
-        analysis_source: list[tuple[str, int]] = []
+        analysis_source_info: list[tuple[tuple[str, ...], str, int]] = []
         for k in all_exps_progress:
             if k not in specific_analysis_args:
                 report: AnalysisPrototype = self.exps[k].analyze(**analysis_args)
-                analysis_source.append((k, report.serial))
+                analysis_source_info.append((self.exps[k].commons.tags, k, report.serial))
                 continue
 
             v_args = specific_analysis_args[k]
@@ -644,12 +642,12 @@ class MultiManager(Generic[_E]):
                 continue
             if v_args is True:
                 report: AnalysisPrototype = self.exps[k].analyze(**analysis_args)
-                analysis_source.append((k, report.serial))
+                analysis_source_info.append((self.exps[k].commons.tags, k, report.serial))
                 continue
             report: AnalysisPrototype = self.exps[k].analyze(**v_args)
-            analysis_source.append((k, report.serial))
+            analysis_source_info.append((self.exps[k].commons.tags, k, report.serial))
 
-        # self.quantity_container[name][self.exps[k].commons.tags].append(main)
+        report_name = self.quantity_info.register(analysis_source_info, analysis_name, no_serialize)
 
         self.multicommons.datetimes.add_only(report_name)
 
