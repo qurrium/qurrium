@@ -69,8 +69,9 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         """
         if analysis_instance is None:
             raise ValueError("analysis_instance must be provided to ingest the analyses.")
-
-        return {int(k): analysis_instance.ingest(v) for k, v in raw_dict.items()}
+        nc = cls(analysis_instance=analysis_instance)
+        nc.update({int(k): analysis_instance.ingest(v) for k, v in raw_dict.items()})
+        return nc
 
     @classmethod
     def content_loading(

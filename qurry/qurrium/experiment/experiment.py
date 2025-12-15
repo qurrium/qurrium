@@ -158,7 +158,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 The arguments of the experiment.
             commonparams (Optional[Union[Commonparams, dict[str, Any]]]):
                 The common parameters of the experiment.
-            outfields (Optional[dict[str, Any]]): The outfields of the experiment.
+            outfields (Optional[dict[str, Any]]):
+                The outfields of the experiment.
             beforewards (Optional[Before], optional):
                 The beforewards of the experiment. Defaults to None.
             afterwards (Optional[After], optional):
@@ -873,6 +874,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             ),
             beforewards=Before.read(file_index=file_index, save_location=save_location),
             afterwards=After.read(file_index=file_index, save_location=save_location),
+            reports=AnalysesContainer.read(
+                file_index=file_index,
+                save_location=save_location,
+                analysis_instance=cls.analysis_type(),
+            ),
         )
         if exp_instance.reports.analysis_instance != cls.analysis_type():
             raise ValueError(
@@ -880,12 +886,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 + f"the current class analysis type, {exp_instance.reports.analysis_instance} "
                 + f"vs {cls.analysis_type()}."
             )
-        reports_read = exp_instance.reports.read(
-            file_index=file_index,
-            save_location=save_location,
-            analysis_instance=cls.analysis_type(),
-        )
-        exp_instance.reports.update(reports_read)
 
         return exp_instance
 
