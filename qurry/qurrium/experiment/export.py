@@ -7,7 +7,7 @@ from pathlib import Path
 import json
 
 from ..json_io import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
-from ...capsule import quickJSON, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
+from ...capsule import quick_json_write, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
 
 
 class QurryInfo(dict[str, dict[str, str]]):
@@ -63,7 +63,7 @@ class QurryInfo(dict[str, dict[str, str]]):
         """
         qurryinfo_location = Path(save_location) / "qurryinfo.json"
 
-        quickJSON(
+        quick_json_write(
             content=self.export(),
             filename=qurryinfo_location,
             mode=DEFAULT_MODE,
@@ -223,7 +223,7 @@ class Export(UniversalWriterABC):
         for unit in self.folder_filenames_writtens:
             written = {"files": files_str}
             written.update(unit["written"])
-            quickJSON(
+            quick_json_write(
                 content=written,
                 filename=files[unit["folder"]],
                 mode=DEFAULT_MODE,
