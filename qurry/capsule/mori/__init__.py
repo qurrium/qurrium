@@ -1,4 +1,4 @@
-"""Mori 💀 (:mod:`qurry.capsule.mori`)
+"""Mori - JSON Serializer (:mod:`qurry.capsule.mori`)
 
 ## Why names Mori?
 
@@ -12,5 +12,4 @@
 
 """
 
-from .taglist import TagList, key_tuple_loads, tuple_str_parse
-from .gitsync import GitSyncControl
+from .tuple_key import key_tuple_loads, tuple_str_parse
