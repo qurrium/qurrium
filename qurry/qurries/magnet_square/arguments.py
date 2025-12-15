@@ -21,9 +21,6 @@ class MSArguments(ZMSArguments):
     representing the axis of rotation ('x', 'y', or 'z'). 
     Defaults to 'z'."""
 
-    # TODO: Need further consideration for how handle Operator and Gate in export and ingest
-    # Maybe use something like classical shadow does?
-
     def export(self):
         """Export the arguments to a dictionary.
 
@@ -59,12 +56,18 @@ class MSArguments(ZMSArguments):
 
         unitary_operator = raw_dict["unitary_operator"]
         if isinstance(unitary_operator, list):
-            unitary_operator = np.array(unitary_operator, dtype=np.complex128)
+            unitary_operator = Operator(np.array(unitary_operator, dtype=np.complex128))
+        elif unitary_operator not in {"x", "y", "z"}:
+            raise TypeError(
+                "unitary_operator must be of type 'list' or the string 'x', 'y', 'z'. "
+                + f"Got {type(unitary_operator)} instead."
+            )
+        unitary_operator: Union[Operator, Literal["x", "y", "z"]]
 
         return cls(
             exp_name=raw_dict["exp_name"],
             num_qubits=raw_dict["num_qubits"],
-            unitary_operator=Operator(unitary_operator),
+            unitary_operator=unitary_operator,
         )
 
 
