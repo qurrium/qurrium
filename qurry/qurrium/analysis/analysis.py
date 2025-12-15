@@ -280,6 +280,32 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
             datetime=raw_dict["header"].get("datetime", None),
         )
 
+    def results_fields(self) -> tuple[tuple[str, str], ...]:
+        """Get the fields of results.
+
+        Returns:
+            tuple[str, ...]: The fields of results.
+        """
+        result_key_with_fields = [
+            [(key, field) for field in result.fields] for key, result in self.results.items()
+        ]
+
+        return tuple(sum(result_key_with_fields, []))
+
+    def __getitem__(self, key_and_field: tuple[str, str]) -> Any:
+        """Get the result by key and field.
+        Args:
+            key_and_field (tuple[str, str]): The key and field of the result.
+        Returns:
+            Any: The result value.
+        """
+        key, field = key_and_field
+        if key not in self.results:
+            raise KeyError(f"Key '{key}' not found in results.")
+        if field not in self.results[key].fields:
+            raise KeyError(f"Field '{field}' not found in results for key '{key}'.")
+        return getattr(self.results[key], field)
+
 
 _R = TypeVar("_R", bound=AnalysisPrototype)
 """Type variable for :class:`~qurry.qurrium.analysis.AnalysisPrototype`."""
