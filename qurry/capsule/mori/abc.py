@@ -1,4 +1,4 @@
-"""The abstract base classes for JSON I/O. (:mod:`qurry.qurrium.json_io.abc`)"""
+"""The abstract base classes for JSON I/O. (:mod:`qurry.capsule.mori.abc`)"""
 
 from typing import Any, TypeVar
 from abc import abstractmethod, ABC

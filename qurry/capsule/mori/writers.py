@@ -1,4 +1,4 @@
-"""The writers of JSON I/O (:mod:`qurry.qurrium.json_io.writers`)"""
+"""The writers of JSON I/O (:mod:`qurry.capsule.mori.writers`)"""
 
 from typing import Any, Union, TypedDict, Callable, TypeVar
 from abc import abstractmethod, ABC

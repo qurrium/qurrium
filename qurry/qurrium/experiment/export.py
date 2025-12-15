@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 
-from ..json_io import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
 from ...capsule import quick_json_write, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
+from ...capsule.mori import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
 
 
 class QurryInfo(dict[str, dict[str, str]]):

@@ -9,9 +9,9 @@ from dataclasses import dataclass, fields
 
 from qiskit.result import Result
 
-from ..json_io import FileReadableWritableObj, WrittenContentType
 from ..exceptions import ResetSecurityActivated, ResetAccomplished
 from ...capsule import DEFAULT_ENCODING
+from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
 FOLDER_NAME = "legacy"

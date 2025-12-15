@@ -12,8 +12,8 @@ from .utils import (
     create_exp_outfields,
 )
 from .commonparams import Commonparams
-from ..json_io import FileReadableWritableObj, WrittenContentType
 from ...capsule import jsonablize, DEFAULT_ENCODING
+from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
 FOLDER_NAME = "args"

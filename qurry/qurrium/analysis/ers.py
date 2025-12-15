@@ -4,8 +4,8 @@ from typing import Any, TypeVar, Callable
 from dataclasses import dataclass, fields
 import warnings
 
-from ..json_io import DataExportableIngestible
 from ..exceptions import InvalidInherition
+from ...capsule.mori import DataExportableIngestible
 
 _ERABC = TypeVar("_ERABC", bound="AnalysisERABC")
 """Type variable for :class:`AnalysisERABC`."""

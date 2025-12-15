@@ -5,8 +5,8 @@ from pathlib import Path
 import json
 
 from .analysis import _R
-from ..json_io import FileReadableWritableObj, WrittenContentType
 from ...capsule import DEFAULT_ENCODING
+from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
 FOLDER_NAME = "myths"

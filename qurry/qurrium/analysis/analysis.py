@@ -5,11 +5,10 @@ from abc import abstractmethod
 
 from .declare import _RA
 from .ers import _RR, implementation_check_results, _RM, _PE, implementation_check_entries
-from ..json_io import DataExportableIngestible
 from ..arguments import _A, Commonparams
 from ..exceptions import InvalidInherition
-from ...capsule import jsonablize
-from ...capsule.hoshi import Hoshi
+from ...capsule import jsonablize, Hoshi
+from ...capsule.mori import DataExportableIngestible
 from ...tools.datetime import current_time
 
 

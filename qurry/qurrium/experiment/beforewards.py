@@ -7,10 +7,10 @@ from dataclasses import dataclass, fields
 
 from qiskit import QuantumCircuit
 
-from ..json_io import FileReadableWritableObj, WrittenContentType
 from ..container import WCKeyable
 from ..utils.qasm import qasm_loads
 from ...capsule import DEFAULT_ENCODING
+from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 V5_TO_V7_FIELD = {
     "jobID": "job_id",
