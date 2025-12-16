@@ -5,6 +5,7 @@ from dataclasses import dataclass, fields
 import warnings
 
 from ..exceptions import InvalidInherition
+from ...capsule import DEFAULT_INDENT, jsonablize
 from ...capsule.mori import DataExportableIngestible
 
 _ERABC = TypeVar("_ERABC", bound="AnalysisERABC")
@@ -146,7 +147,7 @@ class AnalysisERABC(DataExportableIngestible):
         Returns:
             dict[str, Any]: The serializable data.
         """
-        return {field: getattr(self, field) for field in self.fields}
+        return {field: jsonablize(getattr(self, field)) for field in self.fields}
 
     @classmethod
     @erabc_ingest
@@ -160,6 +161,20 @@ class AnalysisERABC(DataExportableIngestible):
             The class instance created from the raw dictionary.
         """
         return cls(**raw_dict)
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text(f"{self.__class__.__name__}" + "({...})")
+            return
+
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(" + ", {", "})"):
+            for i, (k, v) in enumerate(self.__dict__.items()):
+                p.breakable()
+                p.pretty(k)
+                p.text("=")
+                p.pretty(v)
+                if i < len(self.__dict__) - 1:
+                    p.text(",")
 
 
 @dataclass(frozen=True)
@@ -245,6 +260,25 @@ class AnalysisResultsPrototype(AnalysisERABC):
         ]
         field_strs += [f"side_product_fields={self.side_product_fields()!r}"]
         return f"{self.__class__.__name__}({', '.join(field_strs)})"
+
+    def _repr_pretty_(self, p, cycle):
+        if cycle:
+            p.text(f"{self.__class__.__name__}" + "({...})")
+            return
+
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(" + ", {", "})"):
+            field_no_side_products = [
+                field for field in self.fields if field not in self.side_product_fields()
+            ]
+            for k in field_no_side_products:
+                p.breakable()
+                p.pretty(k)
+                p.text("=")
+                p.pretty(getattr(self, k))
+                p.text(",")
+            p.breakable()
+            p.text("side_product_fields=")
+            p.pretty(self.side_product_fields())
 
 
 _RR = TypeVar("_RR", bound=AnalysisResultsPrototype)
