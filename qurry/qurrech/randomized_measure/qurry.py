@@ -404,7 +404,7 @@ class EchoListenRandomized(
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args: Optional[dict[str, Any]],
-    ) -> str:
+    ) -> tuple[str, str]:
         """Run the analysis for multiple experiments.
 
         Args:
@@ -431,7 +431,7 @@ class EchoListenRandomized(
                 The index of the counts used. Defaults to None.
 
         Returns:
-            str: The summoner_id of multimanager.
+            The summoner_id of multimanager and the report name.
         """
 
         return super().multiAnalysis(

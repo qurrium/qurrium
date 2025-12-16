@@ -547,7 +547,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         skip_write: bool = False,
         multiprocess_write: bool = False,
         **analysis_args: Any,
-    ) -> str:
+    ) -> tuple[str, str]:
         """Run the analysis for multiple experiments.
 
         Args:
@@ -566,7 +566,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Other arguments for analysis.
 
         Returns:
-            str: The summoner_id of multimanager.
+            The summoner_id of multimanager and the report name.
         """
         if specific_analysis_args is None:
             specific_analysis_args = {}
@@ -580,12 +580,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             specific_analysis_args=specific_analysis_args,
             **analysis_args,
         )
-        print(f'| "{report_name}" has been completed.')
 
         if not skip_write:
             self.multiWrite(summoner_id=summoner_id, multiprocess_write=multiprocess_write)
 
-        return current_multimanager.multicommons.summoner_id
+        return current_multimanager.multicommons.summoner_id, report_name
 
     def multiWrite(
         self,

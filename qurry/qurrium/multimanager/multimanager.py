@@ -652,3 +652,63 @@ class MultiManager(Generic[_E]):
         self.multicommons.datetimes.add_only(report_name)
 
         return report_name
+
+    def all_reports(self, report_name: str):
+        """Get the reports of the multi-experiment.
+
+        Args:
+            report_name (str): The name of report.
+
+        Returns:
+            dict[tuple[str, ...], list[AnalysisPrototype]]:
+                The dict of tags to list of reports.
+        """
+        if report_name not in self.quantity_info:
+            raise KeyError(f"{report_name} is not in the quantity_info reports.")
+
+        return {
+            tags: [
+                self.exps[exp_id].reports[quantity_index]
+                for exp_id, quantity_index in exp_id_quantity_index_list
+            ]
+            for tags, exp_id_quantity_index_list in self.quantity_info[report_name].items()
+        }
+
+    def reports_quantities_items(self, report_name: str, write: bool = False):
+        """Get the quantities items of the reports of the multi-experiment.
+
+        Args:
+            report_name (str): The name of report.
+            write (bool, optional):
+                Whether to export as a file. Defaults to False.
+
+        Returns:
+            dict[tuple[str, ...], list[dict[str, Any]]]:
+                The dict of tags to list of quantities items.
+        """
+
+        current_all_reports: dict[tuple[str, ...], list[AnalysisPrototype]] = self.all_reports(
+            report_name
+        )
+        if not write:
+            return {
+                tags: [dict(report.results_items()) for report in reports_list]
+                for tags, reports_list in current_all_reports.items()
+            }
+
+        flattened_reports = {
+            tags: [dict(report.results_items(serialized=True)) for report in reports_list]
+            for tags, reports_list in current_all_reports.items()
+        }
+
+        export_name = (
+            Path(self.multicommons.export_location) / f"{report_name}.quantities_items.json"
+        )
+        quick_json_write(
+            content=flattened_reports,
+            filename=export_name,
+            mode=DEFAULT_MODE,
+            encoding=DEFAULT_ENCODING,
+            mute=True,
+        )
+        return flattened_reports

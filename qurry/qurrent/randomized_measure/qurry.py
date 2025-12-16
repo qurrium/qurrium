@@ -371,7 +371,7 @@ class EntropyMeasureRandomized(
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
-    ) -> str:
+    ) -> tuple[str, str]:
         """Run the analysis for multiple experiments.
 
         Args:
@@ -397,7 +397,7 @@ class EntropyMeasureRandomized(
                 The counts used for the analysis. Defaults to None.
 
         Returns:
-            str: The summoner_id of multimanager.
+            The summoner_id of multimanager and the report name.
         """
 
         return super().multiAnalysis(

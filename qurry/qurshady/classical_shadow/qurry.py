@@ -1,18 +1,36 @@
 """ShadowUnveil - Qurrium (:mod:`qurry.qurrent.classical_shadow.qurry`)"""
 
 from typing import Union, Optional, Literal
+from collections.abc import Iterable
 import warnings
 from pathlib import Path
 import tqdm
+import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
 from .arguments import SHORT_NAME, ACRONYM, SUMeasureArgs, SUOutputArgs
-from .analysis import SUAnalyzeArgs, JAX_AVAILABLE
+from .analysis import SUAnalyzeArgs
 from .experiment import SUExperiment
-from ...qurrium import QurriumPrototype, RunArgsType, TranspileArgs, PassManagerType, WCKeyable
-from ...process.classical_shadow import JAX_AVAILABLE, ShadowBasisType
+from ...qurrium import (
+    QurriumPrototype,
+    RunArgsType,
+    TranspileArgs,
+    PassManagerType,
+    SpecificAnalyzeArgs,
+    WCKeyable,
+)
+from ...process.classical_shadow import (
+    JAX_AVAILABLE,
+    ShadowBasisType,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
+)
 
 
 class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, SUAnalyzeArgs]):
@@ -400,157 +418,172 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
         return self.output(**output_args)
 
-    # def multiAnalysis(
-    #     self,
-    #     summoner_id: str,
-    #     *,
-    #     analysis_name: str = "report",
-    #     no_serialize: bool = False,
-    #     specific_analysis_args: SpecificAnalyzeArgs[SUAnalyzeArgs] = None,
-    #     skip_write: bool = False,
-    #     multiprocess_write: bool = False,
-    #     multiprocess_analysis: bool = False,
-    #     # analysis arguments
-    #     selected_qubits: Optional[list[int]] = None,
-    #     # estimation of given operators
-    #     given_operators: Optional[
-    #         list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-    #     ] = None,
-    #     accuracy_prob_comp_delta: float = 0.01,
-    #     max_shadow_norm: Optional[float] = None,
-    #     # other config
-    #     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
-    #     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-    #     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-    #     counts_used: Optional[Iterable[int]] = None,
-    #     **analysis_args,
-    # ) -> str:
-    #     r"""Run the analysis for multiple experiments.
+    def multiAnalysis(
+        self,
+        summoner_id: str,
+        *,
+        analysis_name: str = "report",
+        no_serialize: bool = False,
+        specific_analysis_args: SpecificAnalyzeArgs[SUAnalyzeArgs] = None,
+        skip_write: bool = False,
+        multiprocess_write: bool = False,
+        # analysis arguments
+        selected_qubits: Optional[Iterable[int]] = None,
+        # estimation of given operators
+        given_operators: Optional[
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+        ] = None,
+        accuracy_prob_comp_delta: float = 0.01,
+        max_shadow_norm: Optional[float] = None,
+        # other config
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+        counts_used: Optional[Iterable[int]] = None,
+        **analysis_args,
+    ) -> tuple[str, str]:
+        r"""Run the analysis for multiple experiments.
 
-    #     Args:
-    #         summoner_id (str): The summoner_id of multimanager.
-    #         analysis_name (str, optional):
-    #             The name of analysis. Defaults to 'report'.
-    #         no_serialize (bool, optional):
-    #             Whether to serialize the analysis. Defaults to False.
-    #         specific_analysis_args(SpecificAnalsisArgs[ShadowUnveilAnalyzeArgs], optional):
-    #             The specific arguments for analysis. Defaults to None.
-    #         compress (bool, optional):
-    #             Whether to compress the export file. Defaults to False.
-    #         skip_write (bool, optional):
-    #             Whether to skip the file writing during the analysis. Defaults to False.
-    #         multiprocess_write (bool, optional):
-    #             Whether use multiprocess for writing. Defaults to False.
+        Args:
+            summoner_id (str): The summoner_id of multimanager.
+            analysis_name (str, optional):
+                The name of analysis. Defaults to 'report'.
+            no_serialize (bool, optional):
+                Whether to serialize the analysis. Defaults to False.
+            specific_analysis_args(SpecificAnalsisArgs[_RA, optional):
+                The specific arguments for analysis. Defaults to None.
+            skip_write (bool, optional):
+                Whether to skip the file writing during the analysis. Defaults to False.
+            multiprocess_write (bool, optional):
+                Whether use multiprocess for writing. Defaults to False.
 
-    #         multiprocess_analysis (bool, optional):
-    #             Whether use multiprocess for analysis. Defaults to False.
+            selected_qubits (Optional[Iterable[int]], optional):
+                The selected qubits. Defaults to None.
 
-    #         selected_qubits (Optional[Iterable[int]], optional):
-    #             The selected qubits. Defaults to None.
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (Optional[float], optional):
+                The maximum shadow norm. Defaults to None.
+                If it is None, it will be calculated by the largest shadow norm upper bound.
+                If it is not None, it must be a positive float number.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-    #         given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
-    #             The list of the operators to estimate. Defaults to None.
-    #         accuracy_prob_comp_delta (float, optional):
-    #             The accuracy probability component delta. Defaults to 0.01.
-    #         max_shadow_norm (Optional[float], optional):
-    #             The maximum shadow norm. Defaults to None.
-    #             If it is None, it will be calculated by the largest shadow norm upper bound.
-    #             If it is not None, it must be a positive float number.
-    #             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-    #     rho_method (RhoMethodType, optional):
-    #         It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-    #         "single_shots_proto", "single_shots", or "single_shots_vectorized".
+            selected_qubits (Optional[Iterable[int]], optional):
+                The selected qubits. Defaults to None.
 
-    #         For the "multi_shots_*" methods, the counts and random basis are used as is.
-    #         For the "single_shots_*" methods, the counts and random basis are
-    #         converted to single shot per snapshot for classical shadow post-processing.
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (Optional[float], optional):
+                The maximum shadow norm. Defaults to None.
+                If it is None, it will be calculated by the largest shadow norm upper bound.
+                If it is not None, it must be a positive float number.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-    #         **Warning: Althought larger snapshots number means more accurate values.**
-    #         **But if your shots number is large,**
-    #         **this may significantly increase memory usage**
-    #         **and require a lot of computing resource.**
-    #         **In worst scenrio, this will break your computer.**
-    #         **Please reconsider for performance.**
+            rho_method (RhoMethodType, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
 
-    #         - "multi_shots_proto": Use Numpy to calculate the rho_m.
-    #         - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-    #         - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-    #             with a vectorized workflow.
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
 
-    #         - "single_shots_proto": Use Numpy to calculate the rho_m
-    #             with converted single shot counts.
-    #         - "single_shots": Use Numpy to calculate the rho_m
-    #             with precomputed values with converted single shot counts.
-    #         - "single_shots_vectorized": Use Numpy to calculate the rho_m
-    #             with a vectorized workflow with converted single shot counts.
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
 
-    #         Currently, "multi_shots" is the best option for performance.
-    #         Default to DEFAULT_RHO_METHOD, which is "multi_shots".
-    #     trace_method (TraceMethodType, optional):
-    #         The method to calculate the trace of rho.
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
 
-    #         - Matrix operation methods:
-    #             - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
-    #                 to calculate the each summation item in `rho_m_list`.
-    #             - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
-    #                 to calculate the each summation item in `rho_m_list`.
-    #             - "einsum_aij_bji_to_ab_numpy": Use
-    #                 `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    #                 This is the fastest implementation to calculate the trace of Rho
-    #                 if JAX is not available.
-    #             - "einsum_aij_bji_to_ab_jax": Use
-    #                 `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    #                 This is the fastest implementation to calculate the trace of Rho
-    #                 if JAX is available.
-    #         For the matrix operation methods, it will require rho has been calculated first.
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
 
-    #         - Non-matrix operation methods:
-    #             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-    #             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-    #             - "bitwise_py": Use pure Python bitwise implementation.
-    #         For the non-matrix operation methods, it will directly calculate the trace from
-    #         the counts and random basis.
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            trace_method (TraceMethodType, optional):
+                The method to calculate the trace of rho.
 
-    #         The default method is "bitwise_py", which is the fastest option.
-    #     estimate_trace_method (ListTraceMethodType, optional):
-    #         The method to use for the calculation.
+                - Matrix operation methods:
+                    - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_aij_bji_to_ab_numpy": Use
+                        `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is not available.
+                    - "einsum_aij_bji_to_ab_jax": Use
+                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is available.
+                For the matrix operation methods, it will require rho has been calculated first.
 
-    #         - "einsum_aij_bji_to_ab_numpy":
-    #             Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    #             This is the fastest implementation to calculate the trace of Rho
-    #             if JAX is not available.
-    #         - "einsum_aij_bji_to_ab_jax":
-    #             Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    #             This is the fastest implementation to calculate the trace of Rho.
+                - Non-matrix operation methods:
+                    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                    - "bitwise_py": Use pure Python bitwise implementation.
+                For the non-matrix operation methods, it will directly calculate the trace from
+                the counts and random basis.
 
-    #         counts_used (Optional[Iterable[int]], optional):
-    #             The counts used for the analysis. Defaults to None.
+                - Skip calculation of trace:
+                    - "skip_trace": Skip the trace calculation and return NaN.
 
-    #     Returns:
-    #         str: The summoner_id of multimanager.
-    #     """
+                The default method is "bitwise_py", which is the fastest option.
+            estimate_trace_method (ListTraceMethodType, optional):
+                The method to use for the calculation.
 
-    #     if not multiprocess_analysis:
-    #         return super().multiAnalysis(
-    #             summoner_id=summoner_id,
-    #             analysis_name=analysis_name,
-    #             no_serialize=no_serialize,
-    #             specific_analysis_args=specific_analysis_args,
-    #             skip_write=skip_write,
-    #             multiprocess_write=multiprocess_write,
-    #             selected_qubits=selected_qubits,
-    #             # estimation of given operators
-    #             given_operators=given_operators,
-    #             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
-    #             max_shadow_norm=max_shadow_norm,
-    #             # other config
-    #             rho_method=rho_method,
-    #             trace_method=trace_method,
-    #             estimate_trace_method=estimate_trace_method,
-    #             counts_used=counts_used,
-    #             **analysis_args,
-    #         )
+                - "einsum_aij_bji_to_ab_numpy":
+                    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax":
+                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho.
+
+                Defaults to DEFAULT_LIST_TRACE_METHOD.
+
+            counts_used (Optional[Iterable[int]], optional):
+                The index of the counts used. Defaults to None.
+
+            analysis_args (Any, optional):
+                Other arguments for analysis.
+
+        Returns:
+            str: The summoner_id of multimanager.
+        """
+
+        return super().multiAnalysis(
+            summoner_id=summoner_id,
+            analysis_name=analysis_name,
+            no_serialize=no_serialize,
+            specific_analysis_args=specific_analysis_args,
+            skip_write=skip_write,
+            multiprocess_write=multiprocess_write,
+            selected_qubits=selected_qubits,
+            # estimation of given operators
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            # other config
+            rho_method=rho_method,
+            trace_method=trace_method,
+            estimate_trace_method=estimate_trace_method,
+            counts_used=counts_used,
+            **analysis_args,
+        )
 
     #     if specific_analysis_args is None:
     #         specific_analysis_args = {}
