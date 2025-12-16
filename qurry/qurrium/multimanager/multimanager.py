@@ -674,8 +674,8 @@ class MultiManager(Generic[_E]):
             for tags, exp_id_quantity_index_list in self.quantity_info[report_name].items()
         }
 
-    def quantities_items(self, report_name: str):
-        """Get the quantities items of the reports of the multi-experiment.
+    def all_quantities(self, report_name: str):
+        """Get the quantities of the reports of the multi-experiment.
 
         Args:
             report_name (str): The name of report.
@@ -693,8 +693,8 @@ class MultiManager(Generic[_E]):
             for tags, reports_list in current_all_reports.items()
         }
 
-    def write_quantities_items(self, report_name: str) -> None:
-        """Export the quantities items of the reports of the multi-experiment as JSON file.
+    def write_all_quantities(self, report_name: str) -> None:
+        """Export the quantities of the reports of the multi-experiment as JSON file.
 
         Args:
             report_name (str): The name of report.
@@ -708,8 +708,7 @@ class MultiManager(Generic[_E]):
                 tags: [dict(report.results_items(serialized=True)) for report in reports_list]
                 for tags, reports_list in current_all_reports.items()
             },
-            filename=Path(self.multicommons.export_location)
-            / f"{report_name}.quantities_items.json",
+            filename=Path(self.multicommons.export_location) / f"{report_name}.all_quantities.json",
             mode=DEFAULT_MODE,
             encoding=DEFAULT_ENCODING,
             jsonable=True,
