@@ -116,7 +116,9 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
         return {"multiquantity": str(Path(summoner_name) / "multiquantity.json")}
 
     @classmethod
-    def content_loading(cls, raw_dict: dict[str, Any]) -> dict[str, Any]:
+    def content_loading(
+        cls, raw_dict: dict[str, Any]
+    ) -> dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]:
         """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`content_dumping`.
@@ -125,11 +127,12 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
             raw_dict (dict[str, Any]): The raw dictionary.
 
         Returns:
-            dict[str, Any]: The loaded content.
+            dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]:
+                The processed dictionary.
         """
 
         return {
-            key: {key_tuple_loads(k): v for k, v in value.items()}
+            key: {key_tuple_loads(k): [tuple(vv) for vv in v] for k, v in value.items()}
             for key, value in raw_dict.items()
         }
 
