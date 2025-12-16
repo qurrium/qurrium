@@ -674,13 +674,11 @@ class MultiManager(Generic[_E]):
             for tags, exp_id_quantity_index_list in self.quantity_info[report_name].items()
         }
 
-    def reports_quantities_items(self, report_name: str, write: bool = False):
+    def quantities_items(self, report_name: str):
         """Get the quantities items of the reports of the multi-experiment.
 
         Args:
             report_name (str): The name of report.
-            write (bool, optional):
-                Whether to export as a file. Defaults to False.
 
         Returns:
             dict[tuple[str, ...], list[dict[str, Any]]]:
@@ -690,22 +688,29 @@ class MultiManager(Generic[_E]):
         current_all_reports: dict[tuple[str, ...], list[AnalysisPrototype]] = self.all_reports(
             report_name
         )
-        if write:
-            export_name = (
-                Path(self.multicommons.export_location) / f"{report_name}.quantities_items.json"
-            )
-            quick_json_write(
-                content={
-                    tags: [dict(report.results_items(serialized=True)) for report in reports_list]
-                    for tags, reports_list in current_all_reports.items()
-                },
-                filename=export_name,
-                mode=DEFAULT_MODE,
-                encoding=DEFAULT_ENCODING,
-                jsonable=True,
-            )
-
         return {
             tags: [dict(report.results_items()) for report in reports_list]
             for tags, reports_list in current_all_reports.items()
         }
+
+    def write_quantities_items(self, report_name: str) -> None:
+        """Export the quantities items of the reports of the multi-experiment as JSON file.
+
+        Args:
+            report_name (str): The name of report.
+        """
+
+        current_all_reports: dict[tuple[str, ...], list[AnalysisPrototype]] = self.all_reports(
+            report_name
+        )
+        quick_json_write(
+            content={
+                tags: [dict(report.results_items(serialized=True)) for report in reports_list]
+                for tags, reports_list in current_all_reports.items()
+            },
+            filename=Path(self.multicommons.export_location)
+            / f"{report_name}.quantities_items.json",
+            mode=DEFAULT_MODE,
+            encoding=DEFAULT_ENCODING,
+            jsonable=True,
+        )
