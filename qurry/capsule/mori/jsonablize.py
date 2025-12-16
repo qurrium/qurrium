@@ -6,6 +6,7 @@ from collections import OrderedDict
 from collections.abc import Iterable, Hashable
 import json
 from pathlib import Path
+import numpy as np
 
 from ..utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
@@ -67,6 +68,10 @@ def parse(o: Any) -> Any:
         return [parse(v) for v in o]
     if isinstance(o, dict):
         return {key_parse(k): parse(v) for k, v in o.items()}
+    if isinstance(o, np.ndarray):
+        if np.iscomplexobj(o):
+            return np.array(o, dtype=str).tolist()
+        return o.tolist()
     return value_parse(o)
 
 
