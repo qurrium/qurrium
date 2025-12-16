@@ -303,10 +303,12 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
             tuple[tuple[tuple[str, str], Any], ...]: The items of results.
         """
         if serialized:
-            prepard_results = {k: v.export() for k, v in self.results.items()}
+            serialized_results = {k: v.export() for k, v in self.results.items()}
+            for result_exports in serialized_results.values():
+                result_exports.pop("__class__", None)
             result_key_with_serialized_values = [
                 [((key, field), result[field]) for field in result.keys()]
-                for key, result in prepard_results.items()
+                for key, result in serialized_results.items()
             ]
             return tuple(sum(result_key_with_serialized_values, []))
 

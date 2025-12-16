@@ -690,25 +690,22 @@ class MultiManager(Generic[_E]):
         current_all_reports: dict[tuple[str, ...], list[AnalysisPrototype]] = self.all_reports(
             report_name
         )
-        if not write:
-            return {
-                tags: [dict(report.results_items()) for report in reports_list]
-                for tags, reports_list in current_all_reports.items()
-            }
+        if write:
+            export_name = (
+                Path(self.multicommons.export_location) / f"{report_name}.quantities_items.json"
+            )
+            quick_json_write(
+                content={
+                    tags: [dict(report.results_items(serialized=True)) for report in reports_list]
+                    for tags, reports_list in current_all_reports.items()
+                },
+                filename=export_name,
+                mode=DEFAULT_MODE,
+                encoding=DEFAULT_ENCODING,
+                jsonable=True,
+            )
 
-        flattened_reports = {
-            tags: [dict(report.results_items(serialized=True)) for report in reports_list]
+        return {
+            tags: [dict(report.results_items()) for report in reports_list]
             for tags, reports_list in current_all_reports.items()
         }
-
-        export_name = (
-            Path(self.multicommons.export_location) / f"{report_name}.quantities_items.json"
-        )
-        quick_json_write(
-            content=flattened_reports,
-            filename=export_name,
-            mode=DEFAULT_MODE,
-            encoding=DEFAULT_ENCODING,
-            mute=True,
-        )
-        return flattened_reports
