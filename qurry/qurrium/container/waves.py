@@ -7,6 +7,8 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 from qiskit.circuit import Gate, Instruction
 
+from ...capsule import CustomDict, DEFAULT_INDENT
+
 WCKeyable = Union[tuple[str, ...], tuple[int, ...], tuple[Union[str, int], ...], str, int]
 """Type alias for keys used in WaveContainer.
 
@@ -26,14 +28,9 @@ MAX_ADD_ATTEMPTS = 1000
 """Maximum number of attempts to find a new serial key when adding waves."""
 
 
-class WaveContainer(dict[WCKeyable, QuantumCircuit]):
+class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
     """WaveContainer is a customized dictionary for storing
     :class:`~qiskit.circuit.QuantumCircuit`."""
-
-    __name__ = "WaveContainer"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     @staticmethod
     def wave_keyable_check(key: WCKeyable) -> bool:
@@ -322,25 +319,23 @@ class WaveContainer(dict[WCKeyable, QuantumCircuit]):
         """
         return key in self
 
-    def __repr__(self):
-        return f"{self.__name__}({super().__repr__()})"
-
     def _repr_oneline(self):
-        return f"{self.__name__}(" + "{...}" + f", num={len(self)})"
+        return f"{self.__class__.__name__}(" + "{...}" + f", num={len(self)})"
 
     def _repr_pretty_(self, p, cycle):
         if cycle:
-            p.text(f"{self.__name__}(" + "{...}" + f", num={len(self)})")
-        else:
-            original_repr = super().__repr__()
-            original_repr_split = original_repr[1:-1].split(", ")
-            length = len(original_repr_split)
-            with p.group(2, f"{self.__name__}(" + "{", "})"):
-                for i, item in enumerate(original_repr_split):
-                    p.breakable()
-                    p.text(item)
-                    if i < length - 1:
-                        p.text(",")
+            p.text(f"{self.__class__.__name__}(" + "{...}" + f", num={len(self)})")
+            return
 
-    def __str__(self):
-        return super().__repr__()
+        if not self:
+            p.text(f"{self.__class__.__name__}" + "(num=0, {})")
+            return
+
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(num={len(self)}, " + ", {", "})"):
+            for i, (k, v) in enumerate(self.items()):
+                p.breakable()
+                p.pretty(k)
+                p.text(": ")
+                p.pretty(v)
+                if i < len(self) - 1:
+                    p.text(",")

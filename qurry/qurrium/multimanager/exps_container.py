@@ -8,6 +8,7 @@ from .arguments import MultiCommonparams
 from .beforewards import Before
 from ..experiment import ExperimentPrototype, Export, QurryInfo
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE, very_easy_chunk_distribution
+from ...capsule import CustomDict
 
 _E = TypeVar("_E", bound=ExperimentPrototype)
 
@@ -102,14 +103,9 @@ def multiprocess_writer_wrapper(
     return multiprocess_writer(*all_arguments)
 
 
-class ExperimentContainer(dict[str, _E]):
+class ExperimentContainer(CustomDict[str, _E]):
     """A customized dictionary for storing
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
-
-    __name__ = "ExperimentContainer"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def call(self, exp_id: str) -> _E:
         """Call an experiment by its id.
@@ -130,27 +126,25 @@ class ExperimentContainer(dict[str, _E]):
 
     def __repr__(self):
         original_repr = repr({k: v._repr_no_id() for k, v in self.items()})
-        return f"{self.__name__}({original_repr}, num={len(self)})"
+        return f"{self.__class__.__name__}({original_repr}, num={len(self)})"
 
     def _repr_oneline(self):
-        return f"{self.__name__}(" + "{...}" + f", num={len(self)})"
+        return f"{self.__class__.__name__}(" + "{...}" + f", num={len(self)})"
 
     def _repr_pretty_(self, p, cycle):
         length = len(self)
         if cycle:
-            p.text(f"{self.__name__}(" + "{...}" + f", num={length})")
-        else:
-            with p.group(2, f"{self.__name__}(num={length}" + ", {", "})"):
-                for i, (k, v) in enumerate(self.items()):
-                    p.breakable()
-                    # pylint: disable=protected-access
-                    p.text(f"'{k}': {v._repr_no_id()}")
-                    # pylint: enable=protected-access
-                    if i < length - 1:
-                        p.text(",")
+            p.text(f"{self.__class__.__name__}(" + "{...}" + f", num={length})")
+            return
 
-    def __str__(self):
-        return super().__repr__()
+        with p.group(2, f"{self.__class__.__name__}(num={length}" + ", {", "})"):
+            for i, (k, v) in enumerate(self.items()):
+                p.breakable()
+                # pylint: disable=protected-access
+                p.text(f"'{k}': {v._repr_no_id()}")
+                # pylint: enable=protected-access
+                if i < length - 1:
+                    p.text(",")
 
 
 def experiment_writer(

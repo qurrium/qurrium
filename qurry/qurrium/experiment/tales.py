@@ -4,7 +4,7 @@ import json
 from typing import Any, TypeVar, Generic, cast
 from pathlib import Path
 
-from ...capsule import jsonablize, DEFAULT_ENCODING
+from ...capsule import jsonablize, DEFAULT_ENCODING, CustomDict
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
@@ -34,7 +34,7 @@ For example:
 """
 
 
-class Tales(dict, FileReadableWritableObj, Generic[_SPT]):
+class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
     """A customized dictionary for storing side products.
 
     This supports type checking with :class:`~typing.TypedDict`.

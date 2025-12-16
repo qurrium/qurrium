@@ -12,6 +12,7 @@ import json
 from ..utils import ExportFolderNaming
 from ..utils.iocontrol import RJUST_LEN, serial_naming
 from ...capsule import (
+    CustomDict,
     jsonablize,
     key_tuple_loads,
     DEFAULT_ENCODING,
@@ -58,7 +59,7 @@ def multimanager_report_naming(
     return proposal_name
 
 
-class MutltiQuantityInfo(dict[str, dict[tuple[str, ...], list[tuple[str, int]]]]):
+class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, int]]]]):
     """The container for quantities of analysis for
     :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
