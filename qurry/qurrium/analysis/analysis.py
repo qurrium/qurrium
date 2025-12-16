@@ -292,6 +292,30 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
 
         return tuple(sum(result_key_with_fields, []))
 
+    def results_items(self, serialized: bool = False) -> tuple[tuple[tuple[str, str], Any], ...]:
+        """Get the items of results.
+
+        Args:
+            serialized (bool, optional):
+                If True, return the serialized items. Defaults to False.
+
+        Returns:
+            tuple[tuple[tuple[str, str], Any], ...]: The items of results.
+        """
+        if serialized:
+            prepard_results = {k: v.export() for k, v in self.results.items()}
+            result_key_with_serialized_values = [
+                [((key, field), result[field]) for field in result.keys()]
+                for key, result in prepard_results.items()
+            ]
+            return tuple(sum(result_key_with_serialized_values, []))
+
+        result_key_with_values = [
+            [((key, field), getattr(result, field)) for field in result.fields]
+            for key, result in self.results.items()
+        ]
+        return tuple(sum(result_key_with_values, []))
+
     def __getitem__(self, key_and_field: tuple[str, str]) -> Any:
         """Get the result by key and field.
         Args:
