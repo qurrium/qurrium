@@ -45,7 +45,7 @@ class CustomDict(dict[_K, _V]):
             p.text(f"{self.__class__.__name__}" + "({})")
             return
 
-        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(" + ", {", "})"):
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(" + "{", "})"):
             for i, (k, v) in enumerate(self.items()):
                 p.breakable()
                 p.pretty(k)
