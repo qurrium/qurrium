@@ -23,6 +23,7 @@ from .mori import (
 )
 from .hoshi import repr_modifier, EasyReprModify, Hoshi
 from .gitsync import GitSyncControl
+from .custom_dict import CustomDict
 from .utils import DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 
 
