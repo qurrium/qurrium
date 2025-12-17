@@ -1,4 +1,4 @@
-"""The parallel tools for Qurry. (:mod:`qurry.tools.parallelmanager`)"""
+"""The parallel tools for Qurrium. (:mod:`qurry.tools.parallelmanager`)"""
 
 import warnings
 from typing import Optional, Iterable, Callable, TypeVar, Any, Literal
@@ -6,7 +6,7 @@ from multiprocessing import cpu_count, get_context
 from tqdm.contrib.concurrent import process_map
 
 from .progressbar import default_setup
-from ..exceptions import QurryWarning
+from ..exceptions import QurryWarning, QurryError
 
 
 CPU_COUNT_UNSAFE = cpu_count()
@@ -23,6 +23,9 @@ DEFAULT_POOL_SIZE = CPU_COUNT
 """The default number of workers for multiprocessing.
 This number is guaranteed to be at least 1.
 """
+
+DEFAULT_START_METHOD = "spawn"
+"""The default start method for multiprocessing. """
 
 
 def workers_distribution(
@@ -108,7 +111,7 @@ class ParallelManager:
         self,
         func: Callable[..., T_map],
         args_list: Iterable,
-        start_method: Literal["spawn", "fork", "forkserver"] = "spawn",
+        start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
     ) -> list[T_map]:
         """This function is a wrapper for starmap from multiprocessing.
 
@@ -116,7 +119,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to "spawn".
+                Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:
             tqdm.tqdm[T_map]: Results.
@@ -124,16 +127,23 @@ class ParallelManager:
 
         if self.workers_num == 1:
             return list(map(func, *zip(*args_list)))
-        pool_instance = get_context(start_method).Pool
 
-        with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
-            return pool.starmap(func, args_list)
+        try:
+            pool_instance = get_context(start_method).Pool
+            with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
+                return pool.starmap(func, args_list)
+        except RuntimeError as e:
+            raise QurryError(
+                "Failed to use multiprocessing with the given start method. "
+                f"Please check the start method: {start_method}. "
+                "And refer to the above error message for more details."
+            ) from e
 
     def map(
         self,
         func: Callable[[T_tgt], T_map],
         arg_list: Iterable[T_tgt],
-        start_method: Literal["spawn", "fork", "forkserver"] = "spawn",
+        start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
     ) -> list[T_map]:
         """This function is a wrapper for map from multiprocessing.
 
@@ -141,7 +151,7 @@ class ParallelManager:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             arg_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
             start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
-                Start method for multiprocessing. Defaults to "spawn".
+                Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:
             list[T_map]: Results.
@@ -150,10 +160,16 @@ class ParallelManager:
         if self.workers_num == 1:
             return list(map(func, arg_list))
 
-        pool_instance = get_context(start_method).Pool
-
-        with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
-            return pool.map(func, arg_list)
+        try:
+            pool_instance = get_context(start_method).Pool
+            with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
+                return pool.map(func, arg_list)
+        except RuntimeError as e:
+            raise QurryError(
+                "Failed to use multiprocessing with the given start method. "
+                f"Please check the start method: {start_method}. "
+                "And refer to the above error message for more details."
+            ) from e
 
     def process_map(
         self,

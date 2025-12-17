@@ -1,7 +1,4 @@
-"""SamplingExecuter - Arguments (:mod:`qurry.qurrium.samplingqurry.arguments`)
-
-It is only for pendings and retrieve to remote backend.
-"""
+"""SamplingExecuter - Arguments (:mod:`qurry.qurries.samplingqurry.arguments`)"""
 
 from typing import Optional, Union
 from collections.abc import Hashable
@@ -15,15 +12,17 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class QurryArguments(ArgumentsPrototype):
-    """Construct the experiment's parameters for specific options,
-    which is overwritable by the inherition class."""
+    """Arguments for
+    :class:`~qurry.qurries.samplingqurry.experiment.QurryExperiment`."""
 
     sampling: int = 1
     """The number of sampling."""
 
 
 class QurryMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurries.samplingqurry.qurry.QurryV9.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -32,15 +31,19 @@ class QurryMeasureArgs(BasicArgs, total=False):
 
 
 class QurryOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurries.samplingqurry.qurry.QurryV9.output`."""
 
     sampling: int
     """The number of sampling."""
 
 
 class QurryAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurries.samplingqurry.experiment.QurryExperiment.analyze`.
+    """
 
 
 SHORT_NAME = "sampling_executer"
-"""The short name for this qurry instance."""
+"""The short name of
+:class:`~qurry.qurries.samplingqurry.experiment.QurryExperiment`"""

@@ -9,7 +9,7 @@ from ...capsule.mori import TagList
 
 
 TagListKeyable = Union[str, tuple[str, ...], Literal["_onetime"], Hashable]
-"""Type of keyable in :cls:`TagList`."""
+"""Type of keyable in :class:`~qurry.capsule.mori.taglist.TagList`."""
 
 EXPORTING_NAME = {
     "exps_config": "exps.config",
@@ -20,10 +20,11 @@ EXPORTING_NAME = {
     "job_taglist": "job.tagList",
     "index_taglist": "index.tagList",
 }
+"""The exporting name of :class:`Before` in V7 format."""
 
 
 class Before(NamedTuple):
-    """`dataNeccessary` and `expsMultiMain` in V4 format."""
+    """The data structure stores everything before executing."""
 
     exps_config: dict[str, dict[str, Any]]
     """The dict of config of each experiments."""
@@ -50,7 +51,7 @@ class Before(NamedTuple):
 
     @staticmethod
     def _exporting_name():
-        """The exporting name of :cls:`Before`."""
+        """The exporting name of :class:`Before`."""
         return EXPORTING_NAME
 
     @classmethod
@@ -60,7 +61,7 @@ class Before(NamedTuple):
         file_location: Optional[dict[str, Union[str, dict[str, str]]]] = None,
         version: Literal["v5", "v7"] = "v5",
     ):
-        """Reads the data of :cls:`Before` from the file.
+        """Reads the data of :class:`Before` from the file.
 
         Args:
             export_location (Path): The location of exporting.
@@ -68,7 +69,7 @@ class Before(NamedTuple):
             version (Literal["v5", "v7"], optional): The version of file. Defaults to "v5".
 
         Returns:
-            Before: The data of :cls:`Before`.
+            Before: The data of :class:`Before`.
         """
 
         if file_location is None:
@@ -90,10 +91,16 @@ class Before(NamedTuple):
             exps_config=quickRead(
                 filename=(real_file_location["exps_config"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             circuits_num=quickRead(
                 filename=(real_file_location["circuits_num"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             circuits_map=TagList.read(
                 filename=real_file_location["circuits_map"],
@@ -108,6 +115,9 @@ class Before(NamedTuple):
             job_id=quickRead(
                 filename=(real_file_location["job_id"]),
                 save_location=export_location,
+                filetype="json",
+                encoding="utf-8",
+                cls=None,
             ),
             job_taglist=TagList.read(
                 filename=real_file_location["job_taglist"],

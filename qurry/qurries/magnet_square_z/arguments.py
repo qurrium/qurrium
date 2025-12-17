@@ -12,7 +12,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class ZDirMagnetSquareArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurries.magnet_square_z.experiment.ZDirMagnetSquareExperiment`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -24,18 +25,29 @@ class ZDirMagnetSquareArguments(ArgumentsPrototype):
 
 
 class ZDirMagnetSquareMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurries.magnet_square_z.qurry.ZDirMagnetSquare.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
 
 
 class ZDirMagnetSquareOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurries.magnet_square_z.qurry.ZDirMagnetSquare.output`."""
 
 
 class ZDirMagnetSquareAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurries.magnet_square_z.experiment.ZDirMagnetSquareExperiment.analyze`.
+
+    The post-processing of
+    :class:`~qurry.qurries.magnet_square_z.experiment.ZDirMagnetSquareExperiment`
+    does not need any input.
+    """
 
 
 SHORT_NAME = "qurmagsq_magnet_square_zdir"
+"""The short name of
+:class:`~qurry.qurries.magnet_square_z.experiment.ZDirMagnetSquareExperiment`. """

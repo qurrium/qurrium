@@ -5,22 +5,18 @@ This is a deprecated version of entangled entropy calculation.
 
 Reference:
     - Randomized Measure - Entangled Entropy
+        -   Probing Rényi entanglement entropy via randomized measurements -
+            Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
+            Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos,
+            `doi:10.1126/science.aau4963 <https://www.science.org/doi/abs/10.1126/science.aau4963>`_
 
-    .. note::
-        - Probing Rényi entanglement entropy via randomized measurements -
-        Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
-        Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-        [doi:10.1126/science.aau4963](
-            https://www.science.org/doi/abs/10.1126/science.aau4963)
-
-        - Statistical correlations between locally randomized measurements:
-        A toolbox for probing entanglement in many-body quantum states -
-        A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-        [PhysRevA.99.052323](
-            https://doi.org/10.1103/PhysRevA.99.052323
-        )
+        -   Statistical correlations between locally randomized measurements:
+            A toolbox for probing entanglement in many-body quantum states -
+            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+            `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
     .. code-block:: bibtex
+
         @article{doi:10.1126/science.aau4963,
             author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                 and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -78,15 +74,13 @@ Reference:
         }
 
     - Error Mitigation
-
-    .. note::
-        - Simple mitigation of global depolarizing errors in quantum simulations -
-        Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
-        Christopher and Kim, M. S. and Knolle, Johannes,
-        [PhysRevE.104.035309](
-            https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+        -   Simple mitigation of global depolarizing errors in quantum simulations -
+            Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
+            Christopher and Kim, M. S. and Knolle, Johannes,
+            `PhysRevE.104.035309 <https://link.aps.org/doi/10.1103/PhysRevE.104.035309>`_
 
     .. code-block:: bibtex
+
         @article{PhysRevE.104.035309,
             title = {Simple mitigation of global depolarizing errors in quantum simulations},
             author = {Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,

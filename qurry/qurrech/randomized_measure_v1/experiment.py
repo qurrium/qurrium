@@ -20,7 +20,7 @@ from ...qurrium.utils.randomized import (
     local_random_unitary_pauli_coeff,
     random_unitary,
 )
-from ...qurrium.utils.random_unitary import check_input_for_experiment
+from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
     DEFAULT_PROCESS_BACKEND,
@@ -70,7 +70,7 @@ class EchoListenRandomizedV1Experiment(
                 Defaults to `'experiment'`.
             times (int):
                 The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+                It will denote as :math:`N_U` in the experiment name.
             measure (Optional[Union[tuple[int, int], int]]):
                 The measure range. Defaults to None.
             unitary_loc (Optional[Union[tuple[int, int], int]]):
@@ -82,6 +82,7 @@ class EchoListenRandomizedV1Experiment(
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
                         0: {0: 1234, 1: 5678},
                         1: {0: 2345, 1: 6789},
@@ -89,12 +90,15 @@ class EchoListenRandomizedV1Experiment(
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_unitary_seeds`
+                in :mod:`qurry.process.randomized_measure.utils`.
 
                 .. code-block:: python
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
+
+                    from qurry import generate_random_unitary_seeds
+
                     random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
             custom_kwargs (Any):
                 The custom parameters.
 
@@ -132,7 +136,7 @@ class EchoListenRandomizedV1Experiment(
 
         exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, num_qubits_01, random_unitary_seeds)
+        check_random_unitary_seeds(times, num_qubits_01, random_unitary_seeds)
 
         # pylint: disable=protected-access
         return EchoListenRandomizedV1Arguments._filter(

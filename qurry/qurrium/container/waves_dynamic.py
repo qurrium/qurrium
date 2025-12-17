@@ -1,4 +1,4 @@
-"""Dynamic Wave Container - A experimental feature of Qurry
+"""Dynamic Wave Container - A experimental feature of Qurrium
 (:mod:`qurry.qurrium.container.waves_dynamic`)
 
 """
@@ -71,7 +71,7 @@ def call(self, wave: Hashable) -> QuantumCircuit: ...
 
 
 def call(self, wave):
-    """Export wave function as `QuantumCircuit`.
+    """Export wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
     Args:
         wave (Union[list[Hashable], Hashable]):
@@ -108,26 +108,25 @@ def get_wave(self, wave: Hashable, run_by: Literal["instruction"]) -> Instructio
 
 
 def get_wave(self, wave=None, run_by=None):
-    """Parse wave Circuit into `Instruction` as `Gate` or `Operator` on `QuantumCircuit`.
+    """Parse wave Circuit into
+    :class:`~qiskit.circuit.Instruction`, :class:`~qiskit.circuit.Gate`, or
+    `~qiskit.quantum_info.Operator` on :class:`~qiskit.circuit.QuantumCircuit`.
 
     Args:
         wave (Optional[Hashable], optional):
-            The key of wave in 'fict' `.waves`.
+            The key of wave in `wave`.
             Defaults to None.
         run_by (Optional[str], optional):
-            Export as `Gate`, `Operator`, `Instruction` or a copy when input is None.
+            Export as :class:`~qiskit.circuit.Instruction`, :class:`~qiskit.circuit.Gate`, or
+            `~qiskit.quantum_info.Operator` or a copy when input is None.
             Defaults to None.
-
 
     Raises:
         ValueError: If `wave is None`.
         KeyError: If `wave` not in `self`.
 
     Returns:
-        Union[
-            list[Union[Gate, Operator, Instruction, QuantumCircuit]],
-            Union[Gate, Operator, Instruction, QuantumCircuit]
-        ]: The result of the wave as `Gate` or `Operator`.
+        The result of the wave.
     """
 
     if wave is None:
@@ -195,7 +194,7 @@ def gate(self, wave: Union[list[Hashable], Hashable]) -> Union[list[Gate], Gate]
 def copy_circuit(
     self, wave: Union[list[Hashable], Hashable]
 ) -> Union[list[QuantumCircuit], QuantumCircuit]:
-    """Export a copy of wave function as `QuantumCircuit`.
+    """Export a copy of wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
     Args:
         wave (Union[list[Hashable], Hashable]):
@@ -327,7 +326,7 @@ DyanmicWaveContainerByDict = wave_container_maker("WaveContainer", dict)
 """
 A Qurrium standard wave function container 
 should be something dict-like structure, 
-basically a typing.MutableMapping.
+basically a :class:`~typing.MutableMapping`.
 """
 
 
@@ -346,7 +345,7 @@ def _add(
             Given a specific key to add to the wave function or circuit,
             if `key == None`, then generate a number as key.
             Defaults to None.
-        replace (Literal[True, False, &#39;duplicate&#39;], optional):
+        replace (Literal[True, False, "duplicate"], optional):
             If the key is already in the wave function or circuit,
             then replace the old wave function or circuit when `True`,
             or duplicate the wave function or circuit when `'duplicate'`.

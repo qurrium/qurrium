@@ -1,14 +1,14 @@
 """Backend Utils (:mod:`qurry.tools.backend.utils`)
 
-For qiskit-aer has been divided into two packages since qiskit some version,
-So it needs to be imported differently by trying to import qiskit-aer first.
+For `qiskit-aer` has been seperated from qiskit,
+So it needs to be imported differently by trying to import `qiskit-aer` first.
 
-And qiskit-ibmq-provider has been deprecated,
+And `qiskit-ibmq-provider` has been deprecated,
 but for some user may still need to use it,
-so it needs to be imported also differently by trying to import qiskit-ibm-provider first.
+so it needs to be imported also differently by trying to import `qiskit-ibm-provider` first.
 
-So this file is used to unify the import point of AerProvider, IBMProvider/IBMQProvider.
-Avoiding the import error occurs on different parts of Qurry.
+So this file is used to unify the import point of AerProvider, `IBMProvider`/`IBMQProvider`.
+Avoiding the import error occurs on different parts of Qurrium.
 
 """
 

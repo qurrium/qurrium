@@ -1,21 +1,17 @@
-r"""Post Processing - Classical Shadow
-(:mod:`qurry.process.classical_shadow`)
+r"""Post Processing - Classical Shadow (:mod:`qurry.process.classical_shadow`)
 
 Reference:
-
-    .. note::
-        - Predicting many properties of a quantum system from very few measurements -
+    -   Predicting many properties of a quantum system from very few measurements -
         Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-        [doi:10.1038/s41567-020-0932-7](
-            https://doi.org/10.1038/s41567-020-0932-7)
+        `doi:10.1038/s41567-020-0932-7 <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-        - The randomized measurement toolbox -
+    -   The randomized measurement toolbox -
         Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
         Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-        [doi:10.1038/s42254-022-00535-2](
-            https://doi.org/10.1038/s42254-022-00535-2)
+        `doi:10.1038/s42254-022-00535-2 <https://doi.org/10.1038/s42254-022-00535-2>`_
 
     .. code-block:: bibtex
+
         @article{cite-key,
             abstract = {
                 Predicting the properties of complex,
@@ -95,21 +91,33 @@ Reference:
 
 """
 
+from .utils import generate_random_basis, check_random_basis, check_random_basis_array, spreadout
+from .rho_process import (
+    classical_shadow_rho_process_availability,
+    RhoMethod,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+)
+from .trace_predict_process import (
+    set_cpu_only,
+    JAX_AVAILABLE,
+    classical_shadow_matrix_availability,
+    ListTraceMethod,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
+)
+from .all_trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
 from .classical_shadow import (
     mean_of_rho,
     trace_rho_square,
+    estimation_of_given_operators,
     classical_shadow_complex,
-    RhoMCoreMethod,
-    TraceRhoMethod,
-    AllTraceRhoMethod,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
-)
-from .rho_m_core import BACKEND_AVAILABLE as classical_shadow_core_availability
-from .matrix_calcution import set_cpu_only
-from .container import (
     ClassicalShadowBasic,
     ClassicalShadowMeanRho,
     ClassicalShadowEstimation,
     ClassicalShadowPurity,
     ClassicalShadowComplex,
+    PurityValueKind,
+    purity_value_kind,
+    default_method_on_value_kind,
 )

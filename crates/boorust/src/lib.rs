@@ -4,6 +4,7 @@ mod hadamard;
 mod magnet_square;
 mod randomized;
 mod string_operator;
+mod shadow;
 mod tool;
 
 use pyo3::prelude::*;
@@ -17,12 +18,13 @@ use crate::counts_process::{
 };
 use crate::hadamard::purity_echo_core_rust;
 use crate::magnet_square::{magnetic_square_core_rust, z_dir_magnetic_square_core_rust};
-use crate::randomized::echo::v1::{echo_cell_rust, overlap_echo_core_rust};
-use crate::randomized::echo::v2::{echo_cell_2_rust, overlap_echo_core_2_rust};
-use crate::randomized::entropy::v1::{entangled_entropy_core_rust, purity_cell_rust};
-use crate::randomized::entropy::v2::{entangled_entropy_core_2_rust, purity_cell_2_rust};
+use crate::randomized::echo::v1::overlap_echo_core_rust;
+use crate::randomized::echo::v2::overlap_echo_core_2_rust;
+use crate::randomized::entropy::v1::entangled_entropy_core_rust;
+use crate::randomized::entropy::v2::entangled_entropy_core_2_rust;
 use crate::randomized::randomized::{ensemble_cell_rust, hamming_distance_rust};
 use crate::string_operator::string_operator_core_rust;
+use crate::shadow::nomatmul_trace::nomatmul_trace_sum_rust;
 use crate::tool::{make_dummy_case_32, make_two_bit_str_32, make_two_bit_str_unlimit};
 
 #[pymodule]
@@ -37,11 +39,6 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     randomized.add_function(wrap_pyfunction!(ensemble_cell_rust, &randomized)?)?;
     randomized.add_function(wrap_pyfunction!(hamming_distance_rust, &randomized)?)?;
     // core
-    randomized.add_function(wrap_pyfunction!(purity_cell_rust, &randomized)?)?;
-    randomized.add_function(wrap_pyfunction!(echo_cell_rust, &randomized)?)?;
-    randomized.add_function(wrap_pyfunction!(purity_cell_2_rust, &randomized)?)?;
-    randomized.add_function(wrap_pyfunction!(echo_cell_2_rust, &randomized)?)?;
-    // main
     randomized.add_function(wrap_pyfunction!(entangled_entropy_core_rust, &randomized)?)?;
     randomized.add_function(wrap_pyfunction!(
         entangled_entropy_core_2_rust,
@@ -90,6 +87,9 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
         &string_operator
     )?)?;
 
+    let shadow = PyModule::new(parent_module.py(), "shadow")?;
+    shadow.add_function(wrap_pyfunction!(nomatmul_trace_sum_rust, &shadow)?)?;
+
     let dummy = PyModule::new(parent_module.py(), "dummy")?;
     dummy.add_function(wrap_pyfunction!(make_two_bit_str_32, &dummy)?)?;
     dummy.add_function(wrap_pyfunction!(make_dummy_case_32, &dummy)?)?;
@@ -104,6 +104,7 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     parent_module.add_submodule(&hadamard)?;
     parent_module.add_submodule(&magnet_square)?;
     parent_module.add_submodule(&string_operator)?;
+    parent_module.add_submodule(&shadow)?;
     parent_module.add_submodule(&dummy)?;
     parent_module.add_submodule(&test)?;
     Ok(())

@@ -1,7 +1,4 @@
-"""EntropyMeasureHadamard - Analysis
-(:mod:`qurry.qurrent.hadamard_test.analysis`)
-
-"""
+"""EntropyMeasureHadamard - Analysis (:mod:`qurry.qurrent.hadamard_test.analysis`)"""
 
 from typing import NamedTuple, Iterable, Type
 
@@ -25,7 +22,9 @@ class EMHAnalysisContent(NamedTuple):
 
 
 class EntropyMeasureHadamardAnalysis(AnalysisPrototype[EMHAnalysisInput, EMHAnalysisContent]):
-    """The instance for the analysis of :cls:`EntropyHadamardExperiment`."""
+    """The instance for the analysis of
+    :class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamardExperiment`.
+    """
 
     __name__ = "EMHAnalysis"
 

@@ -135,11 +135,11 @@ class ArgumentsPrototype:
 
 
 _A = TypeVar("_A", bound=ArgumentsPrototype)
-"""Type variable for :cls:`ArgumentsPrototype`."""
+"""Type variable for :class:`ArgumentsPrototype`."""
 
 
 class CommonparamsDict(TypedDict):
-    """The export dictionary of :cls:`Commonparams`."""
+    """The export dictionary of :class:`Commonparams`."""
 
     exp_name: str
     exp_id: str
@@ -179,11 +179,11 @@ class Commonparams(NamedTuple):
     backend: Union[Backend, str]
     """Backend to execute the circuits on, or the backend used."""
     run_args: Union[BaseRunArgs, dict[str, Any]]
-    """Arguments of `execute`."""
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`"""
 
     # Single job dedicated
     transpile_args: TranspileArgs
-    """Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`."""
+    """Arguments of :func:`~qiskit.compiler.transpile`."""
 
     tags: tuple[str, ...]
     """Tags of experiment."""
@@ -191,19 +191,22 @@ class Commonparams(NamedTuple):
     # Arguments for exportation
     save_location: Union[Path, str]
     """Location of saving experiment. 
-    If this experiment is called by :cls:`QurryMultiManager`,
+    If this experiment is called by
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
     then `adventure`, `legacy`, `tales`, and `reports` will be exported 
     to their dedicated folders in this location respectively.
     This location is the default location for it's not specific 
-    where to save when call :meth:`.write()`, if does, then will be overwriten and update."""
+    where to save when call 
+    :meth:`~qurry.qurrium.experiment.experiment.ExperimentPrototype.write`, 
+    if does, then will be overwriten and update."""
 
     # Arguments for multi-experiment
     serial: Optional[int]
-    """Index of experiment in a multiOutput."""
+    """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
     summoner_id: Optional[str]
-    """ID of experiment of :cls:`MultiManager`."""
+    """ID of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
     summoner_name: Optional[str]
-    """Name of experiment of :cls:`MultiManager`."""
+    """Name of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     # header
     datetimes: DatetimeDict
@@ -281,9 +284,54 @@ class Commonparams(NamedTuple):
         return commons
 
 
-def commons_dealing(
-    commons_dict: dict[str, Any],
-) -> dict[str, Any]:
+def check_tags(tags: Union[tuple[str, ...], list[str], None] = None) -> tuple[Union[str, int], ...]:
+    """Check tags and return formatted tags.
+
+    Args:
+        tags (Union[tuple[str, ...], list[str], None]): Tags for the experiment.
+
+    Returns:
+        Optional[tuple[Union[str, int], ...]]: Formatted tags for the experiment.
+    """
+    if tags is None:
+        tags = ()
+    elif isinstance(tags, list):
+        tags = tuple(tags)
+    elif not isinstance(tags, tuple):
+        raise TypeError("Tags must be a tuple of strings.")
+
+    if not all(isinstance(tag, (str, int)) for tag in tags):
+        raise TypeError(
+            f"Tags must be a tuple of 'str' or 'int', other types are not allowed. tags: {tags}"
+        )
+
+    return tags
+
+
+def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> DatetimeDict:
+    """Check and format the datetimes dictionary.
+
+    Args:
+        datetimes (Union[DatetimeDict, dict[str, str], None]): The datetimes dictionary.
+
+    Returns:
+        DatetimeDict: The formatted datetimes dictionary.
+    """
+    if datetimes is None:
+        datetimes = DatetimeDict()
+    elif not isinstance(datetimes, (DatetimeDict, dict)):
+        raise TypeError("Datetimes must be a DatetimeDict or a dictionary.")
+    for key, value in datetimes.items():
+        if not isinstance(value, str):
+            raise TypeError(
+                f"All values in datetimes must be strings. Found {value} for key {key}."
+            )
+    datetimes = DatetimeDict(datetimes)
+
+    return datetimes
+
+
+def commons_dealing(commons_dict: dict[str, Any]) -> dict[str, Any]:
     """Dealing some special commons arguments.
 
     Args:
@@ -292,13 +340,10 @@ def commons_dealing(
     Returns:
         dict[str, Any]: The dealt common parameters of the experiment.
     """
-    if "datetimes" not in commons_dict:
-        commons_dict["datetimes"] = DatetimeDict({"bulid": current_time()})
-    else:
-        commons_dict["datetimes"] = DatetimeDict(commons_dict["datetimes"])
-    if "tags" in commons_dict:
-        if isinstance(commons_dict["tags"], list):
-            commons_dict["tags"] = tuple(commons_dict["tags"])
+    commons_dict["datetimes"] = check_datetimes(
+        (commons_dict["datetimes"] if "datetimes" in commons_dict else {"bulid": current_time()})
+    )
+    commons_dict["tags"] = check_tags((commons_dict["tags"] if "tags" in commons_dict else ()))
 
     return commons_dict
 

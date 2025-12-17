@@ -104,7 +104,9 @@ class EMRV1AnalysisContent(NamedTuple):
 class EntropyMeasureRandomizedV1Analysis(
     AnalysisPrototype[EMRV1AnalysisInput, EMRV1AnalysisContent]
 ):
-    """The container for the analysis of :cls:`EntropyRandomizedExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurrent.randomized_measure_v1.
+    experiment.EntropyRandomizedExperiment`."""
 
     __name__ = "EMRV1Analysis"
 

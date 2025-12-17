@@ -2,29 +2,37 @@
 
 from typing import Union, Optional, Type, Any, Literal, TypedDict
 from collections.abc import Iterable, Hashable
+from pathlib import Path
 import tqdm
 import numpy as np
-from numpy.random import default_rng
 
 from qiskit import QuantumCircuit
 
 from .analysis import ShadowUnveilAnalysis
 from .arguments import ShadowUnveilArguments, SHORT_NAME
-from .utils import circuit_method_core
-from ..randomized_measure.utils import bitstring_mapping_getter
-from ...qurrium.experiment import ExperimentPrototype, Commonparams
-from ...qurrium.utils.random_unitary import check_input_for_experiment
+from .utils import circuit_method_core, inner_process_analyze
+from ...qurrium.experiment import (
+    ExperimentPrototype,
+    Commonparams,
+    Before,
+    After,
+    create_save_location,
+)
 from ...process.utils import qubit_mapper
 from ...process.classical_shadow import (
+    set_cpu_only,
+    generate_random_basis,
+    check_random_basis,
+    JAX_AVAILABLE,
     classical_shadow_complex,
     ClassicalShadowComplex,
-    RhoMCoreMethod,
-    TraceRhoMethod,
-    AllTraceRhoMethod,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
-    set_cpu_only,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
 )
-from ...process.classical_shadow.rho_m_core import JAX_AVAILABLE
 from ...tools import ParallelManager, set_pbar_description
 from ...exceptions import RandomizedMeasureUnitaryOperatorNotFullCovering
 
@@ -49,11 +57,11 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         cls,
         targets: list[tuple[Hashable, QuantumCircuit]],
         exp_name: str = "exps",
-        times: int = 100,
+        snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
     ) -> tuple[ShadowUnveilArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -66,9 +74,10 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
-            times (int, optional):
-                The number of random unitary operator. Defaults to 100.
-                It will denote as `N_U` in the experiment name.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
+                It will denote as :math:`N_U` in the experiment name.
+                Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to None.
             unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
@@ -77,26 +86,30 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
-                The seeds for all random unitary operator.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow.
+
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
-                The first key is the index for the random unitary operator.
+                The first key is the index if snapshots.
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
-                        0: {0: 1234, 1: 5678},
-                        1: {0: 2345, 1: 6789},
-                        2: {0: 3456, 1: 7890},
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
-                    random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
+                    from qurry import generate_random_basis
+
+                    random_basis = generate_random_basis(100, [0, 1])
 
             custom_kwargs (Any):
                 The custom parameters.
@@ -112,12 +125,14 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         """
         if len(targets) > 1:
             raise ValueError("The number of target circuits should be only one.")
-        if not isinstance(times, int):
-            raise TypeError(f"times should be an integer, but got {times} as type {type(times)}.")
-        if times < 2:
+        if not isinstance(snapshots, int):
+            raise TypeError(
+                f"times should be an integer, but got {snapshots} as type {type(snapshots)}."
+            )
+        if snapshots < 2:
             raise ValueError(
                 "times should be greater than 1 for classical shadow "
-                + f"on the calculation of entangled entropy, but got {times}."
+                + f"on the calculation of entangled entropy, but got {snapshots}."
             )
 
         target_key, target_circuit = targets[0]
@@ -139,23 +154,78 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 + "to close this warning."
             )
 
-        exp_name = f"{exp_name}.N_U_{times}.{SHORT_NAME}"
+        exp_name = f"{exp_name}.N_U_{snapshots}.{SHORT_NAME}"
 
-        check_input_for_experiment(times, len(unitary_located), random_unitary_seeds)
+        random_basis = (
+            generate_random_basis(snapshots, unitary_located)
+            if random_basis is None
+            else random_basis
+        )
+        check_random_basis(random_basis, unitary_located)
 
         # pylint: disable=protected-access
         return ShadowUnveilArguments._filter(
             exp_name=exp_name,
             target_keys=[target_key],
-            times=times,
+            snapshots=snapshots,
             qubits_measured=qubits_measured,
             registers_mapping=registers_mapping,
             actual_num_qubits=actual_qubits,
             unitary_located=unitary_located,
-            random_unitary_seeds=random_unitary_seeds,
+            random_basis=random_basis,
             **custom_kwargs,
         )
         # pylint: enable=protected-access
+
+    @classmethod
+    def _read_core(
+        cls,
+        exp_id: str,
+        file_index: dict[str, str],
+        save_location: Union[Path, str] = Path("./"),
+    ):
+        """Core of read function.
+
+        Args:
+            exp_id (str): The id of the experiment to be read.
+            file_index (dict[str, str]): The index of the experiment to be read.
+            save_location (Union[Path, str]): The location of the experiment to be read.
+
+        Raises:
+            ValueError: 'save_location' needs to be the type of 'str' or 'Path'.
+            FileNotFoundError: When `save_location` is not available.
+
+        Returns:
+            QurryExperiment: The experiment to be read.
+        """
+
+        save_location = create_save_location(save_location)
+        if not save_location.exists():
+            raise FileNotFoundError(f"'save_location' does not exist, '{save_location}'.")
+
+        reading_return_args = Commonparams.read_with_arguments(
+            exp_id=exp_id, file_index=file_index, save_location=save_location
+        )
+        beforewards = Before.read(file_index=file_index, save_location=save_location)
+        if "times" in reading_return_args["arguments"]:
+            reading_return_args["arguments"]["snapshots"] = reading_return_args["arguments"].pop(
+                "times"
+            )
+        if "random_unitary_ids" in beforewards.side_product:
+            reading_return_args["arguments"]["random_basis"] = beforewards.side_product.pop(
+                "random_unitary_ids"
+            )
+        exp_instance = cls(
+            **reading_return_args,
+            beforewards=beforewards,
+            afterwards=After.read(file_index=file_index, save_location=save_location),
+        )
+        reports_read = exp_instance.analysis_instance.read(
+            file_index=file_index, save_location=save_location
+        )
+        exp_instance.reports.update(reports_read)
+
+        return exp_instance
 
     @classmethod
     def method(
@@ -184,30 +254,15 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         """
         side_product = {}
 
-        set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
+        set_pbar_description(pbar, f"Preparing {arguments.snapshots} random unitary.")
 
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
         assert arguments.unitary_located is not None, "unitary_located should be specified."
-        random_unitary_ids_array = np.random.randint(
-            0, 3, size=(arguments.times, len(arguments.unitary_located))
-        ).tolist()
-        random_unitary_ids = {
-            n_u_i: {
-                n_u_qi: (
-                    random_unitary_ids_array[n_u_i][seed_i]
-                    if arguments.random_unitary_seeds is None
-                    else int(
-                        default_rng(arguments.random_unitary_seeds[n_u_i][seed_i]).integers(0, 3)
-                    )
-                )
-                for seed_i, n_u_qi in enumerate(arguments.unitary_located)
-            }
-            for n_u_i in range(arguments.times)
-        }
+        assert arguments.random_basis is not None, "random_basis should be given here."
 
-        set_pbar_description(pbar, f"Building {arguments.times} circuits.")
+        set_pbar_description(pbar, f"Building {arguments.snapshots} circuits.")
         assert arguments.registers_mapping is not None, "registers_mapping should be not None."
         if multiprocess:
             pool = ParallelManager()
@@ -220,9 +275,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                         target_key,
                         arguments.exp_name,
                         arguments.registers_mapping,
-                        random_unitary_ids[n_u_i],
+                        arguments.random_basis[n_u_i],
                     )
-                    for n_u_i in range(arguments.times)
+                    for n_u_i in range(arguments.snapshots)
                 ],
             )
         else:
@@ -233,13 +288,12 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                     target_key,
                     arguments.exp_name,
                     arguments.registers_mapping,
-                    random_unitary_ids[n_u_i],
+                    arguments.random_basis[n_u_i],
                 )
-                for n_u_i in range(arguments.times)
+                for n_u_i in range(arguments.snapshots)
             ]
 
         set_pbar_description(pbar, "Writing 'random_unitary_ids'.")
-        side_product["random_unitary_ids"] = random_unitary_ids
 
         return circ_list, side_product
 
@@ -253,9 +307,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ShadowUnveilAnalysis:
@@ -275,31 +329,74 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
-                Currently, "numpy_precomputed" is the best option for performance.
-            trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
-                The method to calculate the trace of Rho square.
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2))
-                    to calculate the each summation item in `rho_m_list`.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2)
-                    to calculate the each summation item in `rho_m_list`.
+            rho_method (RhoMethodType, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
+
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
+
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
+
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
+
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            trace_method (TraceMethodType, optional):
+                The method to calculate the trace of rho.
+
+                - Matrix operation methods:
+                    - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_aij_bji_to_ab_numpy": Use
+                        `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is not available.
+                    - "einsum_aij_bji_to_ab_jax": Use
+                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is available.
+                For the matrix operation methods, it will require rho has been calculated first.
+
+                - Non-matrix operation methods:
+                    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                    - "bitwise_py": Use pure Python bitwise implementation.
+                For the non-matrix operation methods, it will directly calculate the trace from
+                the counts and random basis.
+
+                The default method is "bitwise_py", which is the fastest option.
+            estimate_trace_method (ListTraceMethodType, optional):
+                The method to use for the calculation.
+
                 - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
                 - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            estimate_trace_method (AllTraceRhoMethod, optional):
-                The method to calculate the trace for searching esitmator.
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho.
+
+                Defaults to DEFAULT_LIST_TRACE_METHOD.
+
             counts_used (Optional[Iterable[int]], optional):
                 The index of the counts used. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
@@ -309,58 +406,25 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             ShadowUnveilAnalysis: The result of the analysis.
         """
 
-        if selected_qubits is None:
-            raise ValueError("selected_qubits should be specified.")
-        assert self.args.registers_mapping is not None, "registers_mapping should be not None."
-
-        assert (
-            "random_unitary_ids" in self.beforewards.side_product
-        ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."
-        if len(self.beforewards.side_product["random_unitary_ids"]) != self.args.times:
-            raise ValueError(
-                f"The number of random unitary ids should be {self.args.times}, "
-                + f"but got {len(self.beforewards.side_product['random_unitary_ids'])}."
-            )
-        random_unitary_ids = {
-            int(k): {int(k2): int(v2) for k2, v2 in v.items()}
-            for k, v in self.beforewards.side_product["random_unitary_ids"].items()
-        }
-        assert isinstance(
-            self.args.registers_mapping, dict
-        ), f"registers_mapping {self.args.registers_mapping} is not dict."
-
-        if isinstance(counts_used, Iterable):
-            if max(counts_used) >= len(self.afterwards.counts):
-                raise ValueError(
-                    "counts_used should be less than "
-                    f"{len(self.afterwards.counts)}, but get {max(counts_used)}."
-                )
-            counts = [self.afterwards.counts[i] for i in counts_used]
-        elif counts_used is not None:
-            raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
-        else:
-            counts = self.afterwards.counts
-
-        bitstring_mapping, final_mapping = bitstring_mapping_getter(
-            counts, self.args.registers_mapping
+        (
+            counts,
+            bitstring_mapping,
+            registers_mapping,
+            selected_qubits,
+            selected_classical_registers,
+            random_basis_with_clreg_index,
+        ) = inner_process_analyze(
+            selected_qubits=selected_qubits,
+            counts_used=counts_used,
+            arguments=self.args,
+            afterwards=self.afterwards,
         )
-
-        selected_qubits = [qi % self.args.actual_num_qubits for qi in selected_qubits]
-        if len(set(selected_qubits)) != len(selected_qubits):
-            raise ValueError(
-                f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
-            )
-
-        random_unitary_ids_classical_registers = {
-            n_u_i: {ci: random_unitary_id[n_u_qi] for n_u_qi, ci in final_mapping.items()}
-            for n_u_i, random_unitary_id in random_unitary_ids.items()
-        }
 
         qs = self.quantities(
             shots=self.commons.shots,
             counts=counts,
-            random_unitary_ids=random_unitary_ids_classical_registers,
-            selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
+            random_basis_array=random_basis_with_clreg_index,
+            selected_classical_registers=selected_classical_registers,
             # estimation of given operators
             given_operators=given_operators,
             accuracy_prob_comp_delta=accuracy_prob_comp_delta,
@@ -377,11 +441,14 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
             serial=serial,
             num_qubits=self.args.actual_num_qubits,
             selected_qubits=selected_qubits,
-            registers_mapping=self.args.registers_mapping,
+            registers_mapping=registers_mapping,
             bitstring_mapping=bitstring_mapping,
-            shots=self.commons.shots,
             unitary_located=self.args.unitary_located,
             counts_used=counts_used,
+            methods_used=(
+                rho_method if isinstance(rho_method, str) else rho_method.value,
+                trace_method if isinstance(trace_method, str) else trace_method.value,
+            ),
             **qs,
         )
 
@@ -393,7 +460,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         cls,
         shots: Optional[int] = None,
         counts: Optional[list[dict[str, int]]] = None,
-        random_unitary_ids: Optional[dict[int, dict[int, Union[Literal[0, 1, 2], int]]]] = None,
+        random_basis_array: Optional[list[list[Union[Literal[0, 1, 2], int]]]] = None,
         selected_classical_registers: Optional[Iterable[int]] = None,
         # estimation of given operators
         given_operators: Optional[
@@ -402,9 +469,9 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-        estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         pbar: Optional[tqdm.tqdm] = None,
     ) -> ClassicalShadowComplex:
         r"""Randomized entangled entropy with complex.
@@ -414,8 +481,8 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 The number of shots.
             counts (list[dict[str, int]]):
                 The list of the counts.
-            random_unitary_ids (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-                The shadow direction of the unitary operators.
+            random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+                The random basis for classical shadow.
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
 
@@ -429,31 +496,74 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
-                Currently, "numpy_precomputed" is the best option for performance.
-            trace_method (TraceRhoMethod, optional):
-                The method to calculate the trace of Rho square.
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2))
-                    to calculate the each summation item in `rho_m_list`.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2)
-                    to calculate the each summation item in `rho_m_list`.
+            rho_method (RhoMethodType, optional):
+                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+                "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+                For the "multi_shots_*" methods, the counts and random basis are used as is.
+                For the "single_shots_*" methods, the counts and random basis are
+                converted to single shot per snapshot for classical shadow post-processing.
+
+                **Warning: Althought larger snapshots number means more accurate values.**
+                **But if your shots number is large,**
+                **this may significantly increase memory usage**
+                **and require a lot of computing resource.**
+                **In worst scenrio, this will break your computer.**
+                **Please reconsider for performance.**
+
+                - "multi_shots_proto": Use Numpy to calculate the rho_m.
+                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow.
+
+                - "single_shots_proto": Use Numpy to calculate the rho_m
+                    with converted single shot counts.
+                - "single_shots": Use Numpy to calculate the rho_m
+                    with precomputed values with converted single shot counts.
+                - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                    with a vectorized workflow with converted single shot counts.
+
+                Currently, "multi_shots" is the best option for performance.
+                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            trace_method (TraceMethodType, optional):
+                The method to calculate the trace of rho.
+
+                - Matrix operation methods:
+                    - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                        to calculate the each summation item in `rho_m_list`.
+                    - "einsum_aij_bji_to_ab_numpy": Use
+                        `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is not available.
+                    - "einsum_aij_bji_to_ab_jax": Use
+                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                        This is the fastest implementation to calculate the trace of Rho
+                        if JAX is available.
+                For the matrix operation methods, it will require rho has been calculated first.
+
+                - Non-matrix operation methods:
+                    - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                    - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                    - "bitwise_py": Use pure Python bitwise implementation.
+                For the non-matrix operation methods, it will directly calculate the trace from
+                the counts and random basis.
+
+                The default method is "bitwise_py", which is the fastest option.
+            estimate_trace_method (ListTraceMethodType, optional):
+                The method to use for the calculation.
+
                 - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
                 - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            estimate_trace_method (AllTraceRhoMethod, optional):
-                The method to calculate the trace for searching esitmator.
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho.
+
+                Defaults to DEFAULT_LIST_TRACE_METHOD.
+
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar. Defaults to None.
 
@@ -463,7 +573,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
 
         if shots is None or counts is None:
             raise ValueError("shots and counts should be specified.")
-        if random_unitary_ids is None:
+        if random_basis_array is None:
             raise ValueError("random_unitary_ids should be specified.")
         if selected_classical_registers is None:
             raise ValueError("selected_classical_registers should be specified.")
@@ -471,7 +581,7 @@ class ShadowUnveilExperiment(ExperimentPrototype[ShadowUnveilArguments, ShadowUn
         return classical_shadow_complex(
             shots=shots,
             counts=counts,
-            random_unitary_um=random_unitary_ids,
+            random_basis_array=random_basis_array,
             selected_classical_registers=selected_classical_registers,
             # estimation of given operators
             given_operators=given_operators,
@@ -512,8 +622,8 @@ class OutsideAnalyzeInput(TypedDict):
     # for analze
     shots: int
     counts: list[dict[str, int]]
-    random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]]
-    selected_classical_registers: Iterable[int]
+    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]]
+    selected_classical_registers: Optional[Iterable[int]]
     # for analysis input
     num_qubits: int
     selected_qubits: list[int]
@@ -526,9 +636,9 @@ class OutsideAnalyzeInput(TypedDict):
     max_shadow_norm: Optional[float]
     # setup for running
     serial: int
-    rho_method: RhoMCoreMethod
-    trace_method: TraceRhoMethod
-    estimate_trace_method: AllTraceRhoMethod
+    rho_method: RhoMethodType
+    trace_method: TraceMethodType
+    estimate_trace_method: ListTraceMethodType
     counts_used: Optional[Iterable[int]]
 
 
@@ -541,9 +651,9 @@ def quantities_input_collecter(
     accuracy_prob_comp_delta: float = 0.01,
     max_shadow_norm: Optional[float] = None,
     # other config
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> OutsideAnalyzeInput:
     r"""Collect the inputs for the quantities.
@@ -564,33 +674,74 @@ def quantities_input_collecter(
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
-        backend (PostProcessingBackendLabel, optional):
-            The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
-            Currently, "numpy_precomputed" is the best option for performance.
-        trace_method (Union[SingleTraceRhoMethod, AllTraceRhoMethod], optional):
-            The method to calculate the trace of Rho square.
-            - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2))
-                to calculate the each summation item in `rho_m_list`.
-            - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2)
-                to calculate the each summation item in `rho_m_list`.
+        rho_method (RhoMethodType, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
+
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
+
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
+
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
             - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
             - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        estimate_trace_method (AllTraceRhoMethod, optional):
-            The method to calculate the trace for searching esitmator.
-            - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
+
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
+
         counts_used (Optional[Iterable[int]], optional):
             The index of the counts used. Defaults to None.
 
@@ -598,44 +749,19 @@ def quantities_input_collecter(
         OutsideAnalyzeInput: The inputs for the quantities.
     """
 
-    if selected_qubits is None:
-        raise ValueError("selected_qubits should be specified.")
-    assert current_exps.args.registers_mapping is not None, "registers_mapping should be not None."
-
-    assert (
-        "random_unitary_ids" in current_exps.beforewards.side_product
-    ), "The side product 'random_unitary_ids' should be in the side product of the beforewards."
-    random_unitary_ids = current_exps.beforewards.side_product["random_unitary_ids"]
-    assert isinstance(
-        current_exps.args.registers_mapping, dict
-    ), f"registers_mapping {current_exps.args.registers_mapping} is not dict."
-
-    if isinstance(counts_used, Iterable):
-        if max(counts_used) >= len(current_exps.afterwards.counts):
-            raise ValueError(
-                "counts_used should be less than "
-                f"{len(current_exps.afterwards.counts)}, but get {max(counts_used)}."
-            )
-        counts = [current_exps.afterwards.counts[i] for i in counts_used]
-    elif counts_used is not None:
-        raise ValueError(f"counts_used should be Iterable, but get {type(counts_used)}.")
-    else:
-        counts = current_exps.afterwards.counts
-
-    bitstring_mapping, final_mapping = bitstring_mapping_getter(
-        counts, current_exps.args.registers_mapping
+    (
+        counts,
+        bitstring_mapping,
+        registers_mapping,
+        selected_qubits,
+        selected_classical_registers,
+        random_basis_array,
+    ) = inner_process_analyze(
+        selected_qubits=selected_qubits,
+        counts_used=counts_used,
+        arguments=current_exps.args,
+        afterwards=current_exps.afterwards,
     )
-
-    selected_qubits = [qi % current_exps.args.actual_num_qubits for qi in selected_qubits]
-    if len(set(selected_qubits)) != len(selected_qubits):
-        raise ValueError(
-            f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
-        )
-
-    random_unitary_ids_classical_registers = {
-        n_u_i: {ci: random_unitary_id[n_u_qi] for n_u_qi, ci in final_mapping.items()}
-        for n_u_i, random_unitary_id in random_unitary_ids.items()
-    }
 
     serial = len(current_exps.reports)
     assert current_exps.args.unitary_located is not None, "unitary_located should be specified."
@@ -645,12 +771,12 @@ def quantities_input_collecter(
         # for analyze
         "shots": current_exps.commons.shots,
         "counts": counts,
-        "random_unitary_ids": random_unitary_ids_classical_registers,
-        "selected_classical_registers": [final_mapping[qi] for qi in selected_qubits],
+        "random_basis_array": random_basis_array,
+        "selected_classical_registers": selected_classical_registers,
         # for analysis instance
         "num_qubits": current_exps.args.actual_num_qubits,
         "selected_qubits": selected_qubits,
-        "registers_mapping": current_exps.args.registers_mapping,
+        "registers_mapping": registers_mapping,
         "bitstring_mapping": bitstring_mapping,
         "unitary_located": current_exps.args.unitary_located,
         # estimation of given operators
@@ -671,8 +797,8 @@ def outside_analyze(
     # for analyze
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_ids: dict[int, dict[int, Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Iterable[int],
+    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
+    selected_classical_registers: Optional[Iterable[int]],
     # for analysis instance
     num_qubits: int,
     selected_qubits: list[int],
@@ -685,9 +811,9 @@ def outside_analyze(
     max_shadow_norm: Optional[float],
     # setup for running
     serial: int,
-    rho_method: RhoMCoreMethod = "numpy_precomputed",
-    trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
-    estimate_trace_method: AllTraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+    rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     counts_used: Optional[Iterable[int]] = None,
 ) -> tuple[str, ShadowUnveilAnalysis]:
     r"""Randomized entangled entropy with complex.
@@ -700,10 +826,13 @@ def outside_analyze(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_unitary_ids (dict[int, dict[int, Union[Literal[0, 1, 2], int]]]):
-            The shadow direction of the unitary operators.
-        selected_classical_registers (Iterable[int]):
+        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+            The random basis for classical shadow.
+        selected_classical_registers (Optional[Iterable[int]]):
             The list of **the index of the selected_classical_registers**.
+        convert_to_single_shot (bool):
+            Whether to convert the counts and the random basis from multiple shots
+            to single shot per snapshot for classical shadow post-processing.
 
         num_qubits (int):
             The number of qubits.
@@ -728,31 +857,75 @@ def outside_analyze(
 
         serial (int):
             The serial number of the experiment.
-        rho_method (RhoMCoreMethod, optional):
-            The method to use for the calculation. Defaults to "numpy_precomputed".
-            It can be either "numpy", "numpy_precomputed", "jax_flatten", or "numpy_flatten".
-            - "numpy": Use Numpy to calculate the rho_m.
-            - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-            - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
-            Currently, "numpy_precomputed" is the best option for performance.
-        trace_method (TraceRhoMethod, optional):
-            The method to calculate the trace of Rho square.
-            - "trace_of_matmul":
-                Use np.trace(np.matmul(rho_m1, rho_m2))
-                to calculate the each summation item in `rho_m_list`.
-            - "quick_trace_of_matmul" or "einsum_ij_ji":
-                Use np.einsum("ij,ji", rho_m1, rho_m2)
-                to calculate the each summation item in `rho_m_list`.
+
+        rho_method (RhoMethodType, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
+
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
+
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
+
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
             - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
             - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-        estimate_trace_method (AllTraceRhoMethod, optional):
-            The method to calculate the trace for searching esitmator.
-            - "einsum_aij_bji_to_ab_numpy":
-                Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
+
+            Defaults to DEFAULT_LIST_TRACE_METHOD.
+
         backend (PostProcessingBackend, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
         counts_used (Optional[Iterable[int]], optional):
@@ -769,7 +942,7 @@ def outside_analyze(
     qs = classical_shadow_complex(
         shots=shots,
         counts=counts,
-        random_unitary_um=random_unitary_ids,
+        random_basis_array=random_basis_array,
         selected_classical_registers=selected_classical_registers,
         # estimation of given operators
         given_operators=given_operators,
@@ -783,7 +956,6 @@ def outside_analyze(
     )
 
     analysis = ShadowUnveilAnalysis(
-        shots=shots,
         # for analysis input
         num_qubits=num_qubits,
         selected_qubits=selected_qubits,
@@ -793,6 +965,10 @@ def outside_analyze(
         # setup for running
         serial=serial,
         counts_used=counts_used,
+        methods_used=(
+            rho_method if isinstance(rho_method, str) else rho_method.value,
+            trace_method if isinstance(trace_method, str) else trace_method.value,
+        ),
         **qs,
     )
 

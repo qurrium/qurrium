@@ -4,8 +4,8 @@ from typing import Optional, Union, TypedDict, Any
 
 
 class BaseRunArgs(TypedDict):
-    """Arguments for :meth:`run` of :cls:`Backend` from :mod:`qiskit.providers.backend` ."""
+    """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`."""
 
 
 RunArgsType = Optional[Union[BaseRunArgs, dict[str, Any]]]
-"""The type hint for run arguments in :meth:`output` from :cls:`QurriumPrototype`."""
+"""The type hint for :meth:`~qiskit.providers.backend.BackendV2.run`."""

@@ -1,4 +1,4 @@
-"""Qurrium - A Qiskit Macro (:mod:`qurry.qurrium`)"""
+"""Qurrium (:mod:`qurry.qurrium`)"""
 
 from .qurrium import QurriumPrototype
 from .utils import decomposer

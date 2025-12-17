@@ -1,6 +1,6 @@
 """CapSule - Qurrium Data Structure Complex
 
-## Why CapSule?
+## Why names CapSule?
 
 - Mori
     There are many dedicated data structures for Qurrium
@@ -24,7 +24,7 @@
 
 - CapSule
     It's also not possible I named this for there is a song
-    called [CapSule](https://youtu.be/M85xU-tbQ6c?si=Ysk7pJu1eKIMOCBv)
+    called `CapSule <https://youtu.be/M85xU-tbQ6c?si=Ysk7pJu1eKIMOCBv>`_
     by Mori Calliope and Hoshimachi Suisei.
     It must be a coincidence. :3
 
@@ -45,10 +45,9 @@ def feeling_sad_then_call_this_function():
     """Don't look back, look forward
 
     Find something you can move toward
-
     Don't look back, look forward
-
     Don't look back
+
     """
     webbrowser.open("https://www.youtube.com/watch?v=X_4pIzwShRw")
 

@@ -1,7 +1,7 @@
 """Representation modification for Hoshi CapSule (:mod:`qurry.capsule.hoshi.repr_modify`)
 
-I write this class just for having better representation for the functions
-:func:`internet_is_fxxking_awesome`. :3
+I write this module just for having better representation for the functions
+:func:`~qurry.capsule.internet_is_fxxking_awesome`. :3
 
 """
 
@@ -9,13 +9,24 @@ from typing import Any, Callable, Union, Optional
 
 
 class EasyReprModify:
-    """Easy representation modification for Hoshi CapSule."""
+    """Easy representation modification."""
 
     def __init__(
         self,
         fn: Callable[..., Any],
         repr_content: Optional[Union[str, Callable[..., str]]] = None,
     ):
+        """Initialize the :class:`EasyReprModify`.
+
+        Args:
+            fn (Callable[..., Any]): The function to be modified.
+            repr_content (Optional[Union[str, Callable[..., str]]], optional):
+                The content of the representation.
+                If it is a string, it will be the representation.
+                If it is a function, it will be the representation function.
+                Defaults to None, which means it will use the function's `__repr__`.
+        """
+
         self._fn = fn
         if isinstance(repr_content, str):
             self._repr = lambda: repr_content

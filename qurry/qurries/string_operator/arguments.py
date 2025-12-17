@@ -13,7 +13,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class StringOperatorArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurries.string_operator.experiment.StringOperatorExperiment`."""
 
     exp_name: str
     """The name of the experiment.
@@ -33,7 +34,9 @@ class StringOperatorArguments(ArgumentsPrototype):
 
 
 class StringOperatorMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurries.string_operator.qurry.StringOperator.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -48,7 +51,8 @@ class StringOperatorMeasureArgs(BasicArgs, total=False):
 
 
 class StringOperatorOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurries.string_operator.qurry.StringOperator.output`."""
 
     i: Optional[int]
     """The index of beginning qubits in the quantum circuit."""
@@ -61,7 +65,11 @@ class StringOperatorOutputArgs(OutputArgs):
 
 
 class StringOperatorAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method."""
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis` and
+    :meth:`~qurry.qurries.string_operator.experiment.StringOperatorExperiment.analyze`.
+    """
 
 
 SHORT_NAME = "qurstrop_string_operator"
+"""The short name of 
+:class:`~qurry.qurries.string_operator.experiment.StringOperatorExperiment`."""

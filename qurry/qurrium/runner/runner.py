@@ -22,7 +22,7 @@ class Runner(ABC):
     __name__ = "Runner"
 
     current_multimanager: MultiManager
-    """The current :cls:`Multimanager` been used."""
+    """The current :class:`~qurry.qurrium.multimanager.multimanager.Multimanager` been used."""
     backend: Optional[Backend]
     """The backend been used."""
     experiment_container: ExperimentContainer[ExperimentPrototype]

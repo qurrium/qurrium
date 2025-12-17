@@ -13,7 +13,7 @@ from .container import (
     RandomizedEntangledEntropyMitigatedComplex,
     ExistingAllSystemSource,
 )
-from ..entangled_entropy.error_mitigation import depolarizing_error_mitgation
+from ...utils import depolarizing_error_mitgation
 from ...availability import PostProcessingBackendLabel
 
 
@@ -30,21 +30,20 @@ def randomized_entangled_entropy_v1(
     The entropy we compute is the Second Order Rényi Entropy.
 
     Reference:
-        .. note::
-            - Probing Rényi entanglement entropy via randomized measurements -
-            Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
-            Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-            [doi:10.1126/science.aau4963](
-                https://www.science.org/doi/abs/10.1126/science.aau4963)
+        - Randomized Measure - Entangled Entropy
+            -   Probing Rényi entanglement entropy via randomized measurements -
+                Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
+                Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos,
+                `doi:10.1126/science.aau4963
+                <https://www.science.org/doi/abs/10.1126/science.aau4963>`_
 
-            - Statistical correlations between locally randomized measurements:
-            A toolbox for probing entanglement in many-body quantum states -
-            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            -   Statistical correlations between locally randomized measurements:
+                A toolbox for probing entanglement in many-body quantum states -
+                A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+                `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
         .. code-block:: bibtex
+
             @article{doi:10.1126/science.aau4963,
                 author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                     and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -124,7 +123,8 @@ def randomized_entangled_entropy_v1(
             This only works for Python and Cython backend.
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -224,6 +224,7 @@ def preparing_all_system(
 
     Returns:
         A tuple contains:
+
             - purity_cell_list_allsys: list of purity of all system.
             - bitstring_range_allsys: The range of partition on the bitstring of all system.
             - measure_range_allsys: The range of partition refer to all qubits of all system.
@@ -284,22 +285,19 @@ def randomized_entangled_entropy_mitigated_v1(
 
     Reference:
         - Randomized Measure - Entangled Entropy
+            -   Probing Rényi entanglement entropy via randomized measurements -
+                Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
+                Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos,
+                `doi:10.1126/science.aau4963
+                <https://www.science.org/doi/abs/10.1126/science.aau4963>`_
 
-        .. note::
-            - Probing Rényi entanglement entropy via randomized measurements -
-            Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
-            Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-            [doi:10.1126/science.aau4963](
-                https://www.science.org/doi/abs/10.1126/science.aau4963)
-
-            - Statistical correlations between locally randomized measurements:
-            A toolbox for probing entanglement in many-body quantum states -
-            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-            [PhysRevA.99.052323](
-                https://doi.org/10.1103/PhysRevA.99.052323
-            )
+            -   Statistical correlations between locally randomized measurements:
+                A toolbox for probing entanglement in many-body quantum states -
+                A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+                `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
         .. code-block:: bibtex
+
             @article{doi:10.1126/science.aau4963,
                 author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                     and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -357,15 +355,13 @@ def randomized_entangled_entropy_mitigated_v1(
             }
 
         - Error Mitigation
-
-        .. note::
-            - Simple mitigation of global depolarizing errors in quantum simulations -
-            Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
-            Christopher and Kim, M. S. and Knolle, Johannes,
-            [PhysRevE.104.035309](
-                https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+            -   Simple mitigation of global depolarizing errors in quantum simulations -
+                Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
+                Christopher and Kim, M. S. and Knolle, Johannes,
+                `PhysRevE.104.035309 <https://link.aps.org/doi/10.1103/PhysRevE.104.035309>`_
 
         .. code-block:: bibtex
+
             @article{PhysRevE.104.035309,
                 title = {Simple mitigation of global depolarizing errors in quantum simulations},
                 author = {Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
@@ -381,6 +377,7 @@ def randomized_entangled_entropy_mitigated_v1(
                 doi = {10.1103/PhysRevE.104.035309},
                 url = {https://link.aps.org/doi/10.1103/PhysRevE.104.035309}
             }
+
 
     Args:
         shots (int):
@@ -415,7 +412,8 @@ def randomized_entangled_entropy_mitigated_v1(
             This can save a lot of time
             Defaults to None.
         pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API, you can use put a :cls:`tqdm` object here.
+            The progress bar API,
+            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
             Defaults to None.
 
@@ -469,7 +467,7 @@ def randomized_entangled_entropy_mitigated_v1(
         backend=backend,
         multiprocess_pool_size=workers_num,
     )
-    purity_cell_list = list(purity_cell_dict.values())
+    purity_cell_list = np.array(list(purity_cell_dict.values()))
 
     (
         purity_cell_dict_allsys,
@@ -485,7 +483,7 @@ def randomized_entangled_entropy_mitigated_v1(
         workers_num=workers_num,
         existed_all_system=existed_all_system,
     )
-    purity_cell_list_allsys = list(purity_cell_dict_allsys.values())
+    purity_cell_list_allsys = np.array(list(purity_cell_dict_allsys.values()))
 
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description_str(f"Preparing error mitigation of {bitstring_range} on {measure}")
@@ -502,7 +500,10 @@ def randomized_entangled_entropy_mitigated_v1(
     subsystem = max(degree) - min(degree) if isinstance(degree, tuple) else degree
 
     error_mitgation_info = depolarizing_error_mitgation(
-        meas_system=purity, all_system=purity_allsys, n_a=subsystem, system_size=num_qubits
+        meas_system=purity,
+        all_system=purity_allsys,
+        subsystem_size=subsystem,
+        system_size=num_qubits,
     )
 
     if isinstance(pbar, tqdm.tqdm):

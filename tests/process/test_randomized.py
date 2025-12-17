@@ -22,13 +22,9 @@ from qurry.process.randomized_measure.wavefunction_overlap.wavefunction_overlap_
 )
 from qurry.process.randomized_measure import (
     entangled_availability,
-    purity_cell_availability,
     entangled_v1_availability,
-    purity_cell_v1_availability,
     overlap_availability,
-    echo_cell_availability,
     overlap_v1_availability,
-    echo_cell_v1_availability,
 )
 
 
@@ -57,13 +53,9 @@ def test_availability():
     for availability_item in [
         randomized_availability,
         entangled_availability,
-        purity_cell_availability,
         entangled_v1_availability,
-        purity_cell_v1_availability,
         overlap_availability,
-        echo_cell_availability,
         overlap_v1_availability,
-        echo_cell_v1_availability,
     ]:
         assert availability_item[1]["Rust"], (
             "Rust is not available." + f" Check the error: {availability_item[2]}"
@@ -90,6 +82,7 @@ def selected_and_cycling_selected_making(
     Returns:
         tuple[list[int], list[int]]:
             A tuple containing two lists:
+
             - The first list contains the selected classical registers.
             - The second list contains the selected classical registers by cycling.
     """

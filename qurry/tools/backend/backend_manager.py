@@ -117,7 +117,7 @@ def _statesheet_preparings(
 
 
 class BackendWrapper:
-    """A wrapper for :class:`qiskit.providers.Backend` to provide more convenient way to use."""
+    """A wrapper for :class:`~qiskit.providers.Backend` to provide more convenient way to use."""
 
     @staticmethod
     def _hint_ibmq_sim(name: str) -> str:

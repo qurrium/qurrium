@@ -1,128 +1,114 @@
-"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)"""
+"""Input Fixer (:mod:`qurry.qurrium.utils.inputfixer`)
+
+Now Qurrium includes 
+`pyxDamerauLevenshtein <https://github.com/lanl/pyxDamerauLevenshtein>`_,
+instead of use a copy in our package.
+
+For why I used a copy for a long time, it's because I just need the original
+Python implementation for short string comparision, which Cython implementation
+is not necessary for me. Also I concerned there will be some maintaining issues 
+on this package which less updated in the future.
+
+But based on the respect for original Author, I think it's better 
+to include it as our dependency. And its maintaining works well for now.
+
+- The very original implementation by Michael Homer:
+    https://web.archive.org/web/20150909134357/\
+http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance
+
+- A Cython implementation of the same algorithm, where our implementation is based on:
+    https://github.com/lanl/pyxDamerauLevenshtein
+
+"""
 
 import warnings
 from typing import Any, Sequence
+from ...exceptions import QurryUnrecongnizedArguments
 
-from ...exceptions import QurryWarning, QurryUnrecongnizedArguments
+try:
+    from pyxdameraulevenshtein import damerau_levenshtein_distance
+except ImportError:
+    # Just in case for the package encouter some issues
 
+    def damerau_levenshtein_distance(
+        seq1: Sequence[str],
+        seq2: Sequence[str],
+    ) -> int:
+        """Calculate the Damerau-Levenshtein distance between sequences.
 
-def damerau_levenshtein_distance_py(
-    seq1: Sequence[str],
-    seq2: Sequence[str],
-) -> int:
-    """Calculate the Damerau-Levenshtein distance between sequences.
+        This distance is the number of additions, deletions, substitutions,
+        and transpositions needed to transform the first sequence into the
+        second. Although generally used with strings, any sequences of
+        comparable objects will work.
 
-    This distance is the number of additions, deletions, substitutions,
-    and transpositions needed to transform the first sequence into the
-    second. Although generally used with strings, any sequences of
-    comparable objects will work.
+        Transpositions are exchanges of *consecutive* characters; all other
+        operations are self-explanatory.
 
-    Transpositions are exchanges of *consecutive* characters; all other
-    operations are self-explanatory.
+        This implementation is O(N*M) time and O(M) space, for N and M the
+        lengths of the two sequences.
 
-    This implementation is O(N*M) time and O(M) space, for N and M the
-    lengths of the two sequences.
+        >>> dameraulevenshtein('ba', 'abc')
+        2
+        >>> dameraulevenshtein('fee', 'deed')
+        2
 
-    >>> dameraulevenshtein('ba', 'abc')
-    2
-    >>> dameraulevenshtein('fee', 'deed')
-    2
+        It works with arbitrary sequences too:
 
-    It works with arbitrary sequences too:
-    >>> dameraulevenshtein('abcd', ['b', 'a', 'c', 'd', 'e'])
-    2
+        >>> dameraulevenshtein('abcd', ['b', 'a', 'c', 'd', 'e'])
+        2
 
-    This implementation is based on Michael Homer's implementation
-    (https://web.archive.org/web/20150909134357/\
-http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/)
-    and inspired by https://github.com/lanl/pyxDamerauLevenshtein,
-    a Cython implementation of same algorithm.
+        This implementation is based on `Michael Homer's implementation
+        <https://web.archive.org/web/20150909134357/\
+    http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance/>`_,
+        and based on `pyxDamerauLevenshtein <https://github.com/lanl/pyxDamerauLevenshtein>`_,
+        a Cython implementation of same algorithm.
 
-    For more powerful string comparison, including Levenshtein distance,
-    We recommend using the https://github.com/maxbachmann/RapidFuzz,
-    It's a library that wraps the C++ Levenshtein algorithm and other string processing functions.
-    The most efficient Python implementation (using Cython) currently.
+        Args:
+            seq1 (Iterable): Sequence of items to be compared.
+            seq2 (Iterable): Sequence of items to be compared.
 
-    Args:
-        seq1 (Iterable): Sequence of items to be compared.
-        seq2 (Iterable): Sequence of items to be compared.
+        Returns:
+            int: The distance between the two sequences.
+        """
 
-    Returns:
-        int: The distance between the two sequences.
-    """
-    # pylint: enable=line-too-long
-    if seq1 is None:
-        return len(seq2)
-    if seq2 is None:
-        return len(seq1)
+        if seq1 is None:
+            return len(seq2)
+        if seq2 is None:
+            return len(seq1)
 
-    first_differing_index = 0
-    while all(
-        [
-            first_differing_index < len(seq1) - 1,
-            first_differing_index < len(seq2) - 1,
-            seq1[first_differing_index] == seq2[first_differing_index],
-        ]
-    ):
-        first_differing_index += 1
+        first_differing_index = 0
+        while all(
+            [
+                first_differing_index < len(seq1) - 1,
+                first_differing_index < len(seq2) - 1,
+                seq1[first_differing_index] == seq2[first_differing_index],
+            ]
+        ):
+            first_differing_index += 1
 
-    seq1 = seq1[first_differing_index:]
-    seq2 = seq2[first_differing_index:]
+        seq1 = seq1[first_differing_index:]
+        seq2 = seq2[first_differing_index:]
 
-    two_ago, one_ago, this_row = [], [], (list(range(1, len(seq2) + 1)) + [0])
-    for x, _ in enumerate(seq1):
-        two_ago, one_ago, this_row = one_ago, this_row, [0] * len(seq2) + [x + 1]
-        for y, _ in enumerate(seq2):
-            del_cost = one_ago[y] + 1
-            add_cost = this_row[y - 1] + 1
-            sub_cost = one_ago[y - 1] + (seq1[x] != seq2[y])
-            # fun fact: isinstance(bool(...), int) == True
-            this_row[y] = min(del_cost, add_cost, sub_cost)
+        two_ago, one_ago, this_row = [], [], (list(range(1, len(seq2) + 1)) + [0])
+        for x, _ in enumerate(seq1):
+            two_ago, one_ago, this_row = one_ago, this_row, [0] * len(seq2) + [x + 1]
+            for y, _ in enumerate(seq2):
+                del_cost = one_ago[y] + 1
+                add_cost = this_row[y - 1] + 1
+                sub_cost = one_ago[y - 1] + (seq1[x] != seq2[y])
+                this_row[y] = min(del_cost, add_cost, sub_cost)
+                if all(
+                    [
+                        x > 0,
+                        y > 0,
+                        seq1[x] == seq2[y - 1],
+                        seq1[x - 1] == seq2[y],
+                        seq1[x] != seq2[y],
+                    ]
+                ):
+                    this_row[y] = min(this_row[y], two_ago[y - 2] + 1)
 
-            if all(
-                [
-                    x > 0,
-                    y > 0,
-                    seq1[x] == seq2[y - 1],
-                    seq1[x - 1] == seq2[y],
-                    seq1[x] != seq2[y],
-                ]
-            ):
-                this_row[y] = min(this_row[y], two_ago[y - 2] + 1)
-
-    return this_row[len(seq2) - 1]
-
-
-def damerau_levenshtein_distance(
-    seq1: Sequence[str],
-    seq2: Sequence[str],
-) -> int:
-    """Calculate the Damerau-Levenshtein distance between sequences.
-    This distance is the number of additions, deletions, substitutions,
-
-    If you want to compare long strings,
-    we recommend using `RapidFuzz` instead of this function.
-    This function is designed for input suggestion for short string.
-    which is hard to handle very long string.
-
-    Args:
-        seq1 (Iterable): Sequence of items to be compared.
-        seq2 (Iterable): Sequence of items to be compared.
-
-    Returns:
-        int: The distance between the two sequences.
-    """
-
-    if len(seq1) > 100 or len(seq2) > 100:
-        warnings.warn(
-            "If you want to compare long strings, "
-            + "we recommend using `RapidFuzz` instead of this function."
-            + "This function is designed for input suggestion for short string."
-            + "which is hard to handle very long string. ",
-            QurryWarning,
-        )
-
-    return damerau_levenshtein_distance_py(seq1, seq2)
+        return this_row[len(seq2) - 1]
 
 
 def outfields_check(

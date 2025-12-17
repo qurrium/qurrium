@@ -12,17 +12,20 @@ class After(NamedTuple):
     """`dataStateDepending` and `dataNeccessary` in V4 format."""
 
     retrievedResult: TagList[Hashable, Result]
-    """The list of retrieved results, which multiple experiments shared."""
+    """The list of retrieved results,
+    which multiple :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype` shared.
+    """
     allCounts: dict[str, list[dict[str, int]]]
     """The dict of all counts of each experiments.
 
     This attribute has been deprecated since version 0.13.0.
-    Please find counts from the afterwards in :cls:`ExperimentPrototype` instead.
+    Please find counts from the afterwards in
+    :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype` instead.
     """
 
     @staticmethod
     def _exporting_name() -> dict[str, str]:
-        """The exporting name of :cls:`After`."""
+        """The exporting name of :class:`After`."""
         return {
             "retrievedResult": "retrievedResult",
             "allCounts": "allCounts",

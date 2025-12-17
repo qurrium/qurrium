@@ -1,47 +1,23 @@
 """Post Processing - Magnetization Square - Core (:mod:`qurry.process.magnet_square.magsq_core`)"""
 
 import time
-import warnings
 from typing import Union
 from itertools import permutations
 from multiprocessing import get_context
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
-from ..utils import single_counts_recount
-from ..exceptions import PostProcessingRustImportError, PostProcessingRustUnavailableWarning
+from ..utils import single_counts_recount_proto
 from ...tools import DEFAULT_POOL_SIZE
 
-
-try:
-    from ...boorust import magnet_square  # type: ignore
-
-    magnetic_square_core_rust_source = magnet_square.magnetic_square_core_rust
-    z_dir_magnetic_square_core_rust_source = magnet_square.z_dir_magnetic_square_core_rust
-
-    RUST_AVAILABLE = True
-    FAILED_RUST_IMPORT = None
-except ImportError as err:
-    RUST_AVAILABLE = False
-    FAILED_RUST_IMPORT = err
-
-    def magnetic_square_core_rust_source(*args, **kwargs):
-        """Dummy function for magnetic_square_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate magnetic square."
-        ) from FAILED_RUST_IMPORT
-
-    def z_dir_magnetic_square_core_rust_source(*args, **kwargs):
-        """Dummy function for z_dir_magnetic_square_core_rust."""
-        raise PostProcessingRustImportError(
-            "Rust is not available, using python to calculate z direction magnetic square."
-        ) from FAILED_RUST_IMPORT
-
-
-BACKEND_AVAILABLE = availablility(
-    "magnet_square.magnsq_core", [("Rust", RUST_AVAILABLE, FAILED_RUST_IMPORT)]
+# pylint:disable=no-name-in-module,import-error
+from ...boorust.magnet_square import (  # type: ignore
+    magnetic_square_core_rust,
+    z_dir_magnetic_square_core_rust,
 )
-DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(RUST_AVAILABLE, False)
+
+BACKEND_AVAILABLE = availablility("magnet_square.magnsq_core", [("Rust", True, None)])
+DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 
 def magsq_cell_py_deprecated(
@@ -91,6 +67,7 @@ def magsq_cell_wrapper(arguments: tuple[int, dict[str, int], int]) -> tuple[int,
     Args:
         arguments (tuple[int, dict[str, int], int, PostProcessingBackendLabel]):
             The arguments for the magnetic square cell.
+
             - idx (int): Index of the cell (counts).
             - single_counts (dict[str, int]): Single counts of the cell.
             - shots (int): Shots of the experiment on quantum machine.
@@ -107,7 +84,7 @@ def magnetic_square_core(
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
-    """The core function of Magnetization square by Python.
+    """The core function of Magnetization square.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.
@@ -128,13 +105,7 @@ def magnetic_square_core(
         )
 
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return magnetic_square_core_rust_source(shots, counts, num_qubits)
-        warnings.warn(
-            PostProcessingRustUnavailableWarning(
-                "Rust is not available, using python to calculate magnetic square."
-            )
-        )
+        return magnetic_square_core_rust(shots, counts, num_qubits)
 
     sample_counts_sum = sum(counts[0].values())
     assert (
@@ -160,7 +131,7 @@ def z_dir_magnetic_square_core(
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
 ) -> tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
-    """The core function of Z direction Magnetization square by Python.
+    """The core function of Z direction Magnetization square.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.
@@ -175,13 +146,7 @@ def z_dir_magnetic_square_core(
     """
 
     if backend == "Rust":
-        if RUST_AVAILABLE:
-            return z_dir_magnetic_square_core_rust_source(shots, single_counts, num_qubits)
-        warnings.warn(
-            PostProcessingRustUnavailableWarning(
-                "Rust is not available, using python to calculate magnetic square."
-            )
-        )
+        return z_dir_magnetic_square_core_rust(shots, single_counts, num_qubits)
 
     sample_counts_sum = sum(single_counts.values())
     assert (
@@ -195,7 +160,7 @@ def z_dir_magnetic_square_core(
             p.map(
                 magsq_cell_wrapper,
                 [
-                    (idx, single_counts_recount(single_counts, num_qubits, [i, j]), shots)
+                    (idx, single_counts_recount_proto(single_counts, num_qubits, [i, j]), shots)
                     for idx, (i, j) in enumerate(permutations(range(num_qubits), 2))
                 ],
             )

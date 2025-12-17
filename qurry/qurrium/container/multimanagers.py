@@ -5,7 +5,8 @@ from ..multimanager import MultiManager
 
 
 class MultiManagerContainer(dict[str, MultiManager[_E]]):
-    """A customized dictionary for storing `MultiManager` objects."""
+    """A customized dictionary for storing
+    :class:`~qurry.qurrium.multimanager.multimanager.MultiManager` objects."""
 
     __name__ = "MultiManagerContainer"
 

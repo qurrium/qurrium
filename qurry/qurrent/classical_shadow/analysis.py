@@ -1,12 +1,10 @@
-"""ShadowUnveil - Analysis
-(:mod:`qurry.qurrent.classical_shadow.analysis`)
+"""ShadowUnveil - Analysis (:mod:`qurry.qurrent.classical_shadow.analysis`)"""
 
-"""
-
-from typing import Optional, NamedTuple, Iterable, Any, Type
+from typing import Optional, NamedTuple, Iterable, Any, Type, Union
 import numpy as np
 
 from ...qurrium.analysis import AnalysisPrototype
+from ...process.classical_shadow import PurityValueKind, RhoMethodType, TraceMethodType
 
 
 class SUAnalysisInput(NamedTuple):
@@ -14,6 +12,8 @@ class SUAnalysisInput(NamedTuple):
 
     shots: int
     """The number of shots."""
+    snapshots: int
+    """The number of random basis for classical shadow."""
     num_qubits: int
     """The number of qubits."""
     selected_qubits: list[int]
@@ -22,6 +22,7 @@ class SUAnalysisInput(NamedTuple):
     """The mapping of the classical registers with quantum registers.
 
     .. code-block:: python
+
         {
             0: 0, # The quantum register 0 is mapped to the classical register 0.
             1: 1, # The quantum register 1 is mapped to the classical register 1.
@@ -40,6 +41,7 @@ class SUAnalysisInput(NamedTuple):
     which the first six bits are for the randomized measurement.
 
     .. code-block:: python
+
         {'010000 0100 0001': 1024}
         # The bitstring is '010000 0100 0001'.
         # The last four bits are the first classical register.
@@ -63,11 +65,13 @@ class SUAnalysisInput(NamedTuple):
     the bitstring will map to the classical register directly.
 
     .. code-block:: python
+
         {'010000': 1024}
 
     Will be like this.
 
     .. code-block:: python
+
         {
             0: 0, # The classical register 0 is mapped to the bitstring on the index 0.
             1: 1, # The classical register 0 is mapped to the bitstring on the index 1.
@@ -99,6 +103,14 @@ class SUAnalysisContent(NamedTuple):
     """The purity calculated by classical shadow."""
     entropy: float
     """The entropy calculated by classical shadow."""
+    purity_value_kind: Union[PurityValueKind, str]
+    """The kind of purity value calculation.
+    This will depend on the rho_method and trace_method.
+
+    If it is not one of the defined kinds, it will be "unknown".
+    """
+    methods_used: tuple[RhoMethodType, TraceMethodType]
+    """The (rho_method, trace_method) used for the calculation."""
     # esitimation of given operators
     estimate_of_given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
     r"""The result of measurement primitive :math:`\mathcal{U}`."""
@@ -132,6 +144,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the number of esitmator K from the equation (S13) 
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         K = 2 \log(2M / \delta)
 
@@ -150,6 +163,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -168,6 +182,7 @@ class SUAnalysisContent(NamedTuple):
 
     We can calculate the prediction of accuracy :math:`\epsilon` from the equation (S13)
     in the supplementary material, the equation (S13) is as follows,
+
     .. math::
         N = \frac{34}{\epsilon^2} \max_{1 \leq i \leq M} 
         || O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2
@@ -182,6 +197,7 @@ class SUAnalysisContent(NamedTuple):
     we suppose we have the worst case scenario,
     where the maximum shadow norm is 1 as default.
     Thus, we can simplify the equation to:
+
     .. math::
         N = \frac{34}{\epsilon^2}
     """
@@ -194,6 +210,10 @@ FIELDS_REMAPPING = {
     "rho_m_dict": "average_classical_snapshots_rho",
     "expect_rho": "mean_of_rho",
 }
+"""Remapping of fields from old in 0.12 to new names since 0.13.
+The keys are the old field names and the values are the new field names.
+"""
+
 NEW_FIELDS_DEFAULTS = {
     "average_classical_snapshots_rho": {},
     "mean_of_rho": np.zeros((1, 1), dtype=np.complex128),
@@ -201,6 +221,8 @@ NEW_FIELDS_DEFAULTS = {
     "taking_time": 0.0,
     "purity": np.nan,
     "entropy": np.nan,
+    "purity_value_kind": "unknown",
+    "methods_used": ("unknown", "unknown"),
     "estimate_of_given_operators": [],
     "corresponding_rhos": [],
     "accuracy_prob_comp_delta": np.nan,
@@ -208,10 +230,12 @@ NEW_FIELDS_DEFAULTS = {
     "accuracy_predict_epsilon": np.nan,
     "maximum_shadow_norm": np.nan,
 }
+"""Default values for new fields introduced in 0.13."""
 
 
 class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]):
-    """The container for the analysis of :cls:`EntropyRandomizedExperiment`."""
+    """The container for the analysis of
+    :class:`~qurry.qurrent.classical_shadow.experiment.ShadowUnveilExperiment`."""
 
     __name__ = "SUAnalysis"
 
@@ -242,16 +266,15 @@ class ShadowUnveilAnalysis(AnalysisPrototype[SUAnalysisInput, SUAnalysisContent]
             tuple[dict[str, Any], dict[str, Any]]:
                 The converted main and side product dicts.
         """
+        if "expect_rho" in main or "rho_m_dict" in side:
+            main["mean_of_rho"] = main.pop("expect_rho")
+            side["average_classical_snapshots_rho"] = side.pop("rho_m_dict")
+            for k, v in NEW_FIELDS_DEFAULTS.items():
+                if k not in main:
+                    main[k] = v
 
-        if "expect_rho" not in main and "rho_m_dict" not in main:
-            # If neither expect_rho nor rho_m_dict is present, return as is.
-            return main, side
-
-        main["mean_of_rho"] = main.pop("expect_rho")
-        side["average_classical_snapshots_rho"] = side.pop("rho_m_dict")
-        for k, v in NEW_FIELDS_DEFAULTS.items():
-            if k not in main:
-                main[k] = v
+        if "snapshots" not in main["input"]:
+            main["input"]["snapshots"] = len(side["average_classical_snapshots_rho"])
         return main, side
 
     @property

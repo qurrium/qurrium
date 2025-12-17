@@ -31,15 +31,18 @@ class StringOperator(
     """String Operator Order
 
     Reference:
-        .. note::
-            - Crossing a topological phase transition with a quantum computer -
+        -   Crossing a topological phase transition with a quantum computer -
             Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank,
-            [PhysRevResearch.4.L022020](https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020)
+            `PhysRevResearch.4.L022020
+            <https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020>`_
 
         .. code-block:: bibtex
+
             @article{PhysRevResearch.4.L022020,
                 title = {Crossing a topological phase transition with a quantum computer},
-                author = {Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank},
+                author = {
+                    Smith, Adam and Jobst, Bernhard and Green, Andrew G. and Pollmann, Frank
+                },
                 journal = {Phys. Rev. Research},
                 volume = {4},
                 issue = {2},
@@ -107,7 +110,7 @@ class StringOperator(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.
@@ -195,7 +198,7 @@ class StringOperator(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
                 The passmanager. Defaults to None.

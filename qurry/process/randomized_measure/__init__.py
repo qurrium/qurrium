@@ -5,22 +5,18 @@ There are all post-processing modules for randomized measure.
 
 Reference:
     - Randomized Measure - Entangled Entropy/Wavefunction Overlap
+        -   Probing Rényi entanglement entropy via randomized measurements -
+            Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
+            Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos,
+            `doi:10.1126/science.aau4963 <https://www.science.org/doi/abs/10.1126/science.aau4963>`_
 
-    .. note::
-        - Probing Rényi entanglement entropy via randomized measurements -
-        Tiff Brydges, Andreas Elben, Petar Jurcevic, Benoît Vermersch,
-        Christine Maier, Ben P. Lanyon, Peter Zoller, Rainer Blatt ,and Christian F. Roos ,
-        [doi:10.1126/science.aau4963](
-            https://www.science.org/doi/abs/10.1126/science.aau4963)
-
-        - Statistical correlations between locally randomized measurements:
-        A toolbox for probing entanglement in many-body quantum states -
-        A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
-        [PhysRevA.99.052323](
-            https://doi.org/10.1103/PhysRevA.99.052323
-        )
+        -   Statistical correlations between locally randomized measurements:
+            A toolbox for probing entanglement in many-body quantum states -
+            A. Elben, B. Vermersch, C. F. Roos, and P. Zoller,
+            `PhysRevA.99.052323 <https://doi.org/10.1103/PhysRevA.99.052323>`_
 
     .. code-block:: bibtex
+
         @article{doi:10.1126/science.aau4963,
             author = {Tiff Brydges  and Andreas Elben  and Petar Jurcevic
                 and Benoît Vermersch  and Christine Maier  and Ben P. Lanyon
@@ -78,15 +74,13 @@ Reference:
         }
 
     - Error Mitigation
-
-    .. note::
-        - Simple mitigation of global depolarizing errors in quantum simulations -
-        Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
-        Christopher and Kim, M. S. and Knolle, Johannes,
-        [PhysRevE.104.035309](
-            https://link.aps.org/doi/10.1103/PhysRevE.104.035309)
+        -   Simple mitigation of global depolarizing errors in quantum simulations -
+            Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
+            Christopher and Kim, M. S. and Knolle, Johannes,
+            `PhysRevE.104.035309 <https://link.aps.org/doi/10.1103/PhysRevE.104.035309>`_
 
     .. code-block:: bibtex
+
         @article{PhysRevE.104.035309,
             title = {Simple mitigation of global depolarizing errors in quantum simulations},
             author = {Vovrosh, Joseph and Khosla, Kiran E. and Greenaway, Sean and Self,
@@ -106,13 +100,9 @@ Reference:
 """
 
 from .entangled_entropy.entropy_core_2 import BACKEND_AVAILABLE as entangled_availability
-from .entangled_entropy.purity_cell_2 import BACKEND_AVAILABLE as purity_cell_availability
 from .entangled_entropy_v1.entropy_core import BACKEND_AVAILABLE as entangled_v1_availability
-from .entangled_entropy_v1.purity_cell import BACKEND_AVAILABLE as purity_cell_v1_availability
 from .wavefunction_overlap.echo_core_2 import BACKEND_AVAILABLE as overlap_availability
-from .wavefunction_overlap.echo_cell_2 import BACKEND_AVAILABLE as echo_cell_availability
 from .wavefunction_overlap_v1.echo_core import BACKEND_AVAILABLE as overlap_v1_availability
-from .wavefunction_overlap_v1.echo_cell import BACKEND_AVAILABLE as echo_cell_v1_availability
 
 from .entangled_entropy import (
     randomized_entangled_entropy,
@@ -133,3 +123,4 @@ from .wavefunction_overlap import randomized_overlap_echo
 from .wavefunction_overlap_v1 import (
     randomized_overlap_echo_v1,
 )
+from .utils import generate_random_unitary_seeds, check_random_unitary_seeds

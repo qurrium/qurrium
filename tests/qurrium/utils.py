@@ -1,7 +1,7 @@
 """Utility functions for testing qurry package."""
 
 import os
-from typing import TypedDict, Any, Optional, Iterable, NamedTuple
+from typing import TypedDict, Any, Optional, Iterable, NamedTuple, Literal, Union
 import warnings
 import numpy as np
 
@@ -13,6 +13,7 @@ from qurry.tools.backend.import_simulator import SIM_DEFAULT_SOURCE, SIMULATOR_S
 from qurry.exceptions import QurryDependenciesNotWorking
 
 SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
+BASIS_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_basis.json")
 
 
 def detect_simulator_source() -> str:
@@ -36,7 +37,7 @@ def detect_simulator_source() -> str:
 
 def prepare_random_unitary_seeds(
     filename: str = SEED_FILE_LOCATION,
-) -> dict[int, dict[int, dict[int, int]]]:
+) -> dict[int, dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
     """Prepare random unitary seeds from a file.
 
     Args:
@@ -52,6 +53,26 @@ def prepare_random_unitary_seeds(
         for k, v in random_unitary_seeds_raw.items()
     }
     return random_unitary_seeds
+
+
+def prepare_random_basis(
+    filename: str = BASIS_FILE_LOCATION,
+) -> dict[int, dict[int, dict[int, int]]]:
+    """Prepare random basis from a file.
+
+    Args:
+        filename (str): The filename containing the random basis.
+
+    Returns:
+        dict[int, dict[int, dict[int, int]]]: The random basis.
+    """
+
+    random_basis_raw: dict[str, dict[str, dict[str, int]]] = quickRead(filename)
+    random_basis = {
+        int(k): {int(k2): {int(k3): v3 for k3, v3 in v2.items()} for k2, v2 in v.items()}
+        for k, v in random_basis_raw.items()
+    }
+    return random_basis
 
 
 def current_time_filename():
@@ -246,6 +267,7 @@ def multi_output_all_conclusion(
     Returns:
         list[tuple[QurriumPrototype, str, list[dict[str, Any]], str]]:
             The list of multi-output all conclusions. Each tuple contains:
+
             - QurriumPrototype: The experiment method.
             - str: The division.
             - str: The summoner name.

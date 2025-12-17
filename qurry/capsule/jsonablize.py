@@ -1,7 +1,7 @@
 """JSONablize (:mod:`qurry.capsule.jsonablize`)"""
 
 import os
-from typing import Union, Any, Optional
+from typing import Union, Any, Optional, TypeVar
 from collections import OrderedDict
 from collections.abc import Iterable, Hashable
 import json
@@ -9,15 +9,19 @@ from pathlib import Path
 
 from .utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
+_K = TypeVar("_K")
+_V = TypeVar("_V")
+
 
 def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
-    """Make value json-allowable. If a value is not allowed by json, them return its '__str__'.
+    """Make value JSON-allowable.
+    If a value is not allowed by :func:`~json.dumps`, then return its `str` representation.
 
     Args:
-        v (any): Value.
+        v (Any): Value.
 
     Returns:
-        any: Json-allowable value.
+        A JSON-allowable value, which can be an iterable, str, int, float, bool or None.
     """
 
     try:
@@ -28,15 +32,14 @@ def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
 
 
 def key_parse(k: Any) -> Union[str, int, float, bool, None]:
-    """Make key json-allowable. If a value is not allowed by json, them return its '__str__'.
-
-    str, int, float, bool or None
+    """Make key JSON-allowable.
+    If a key is not allowed by :func:`~json.dumps`, then return its `str` representation.
 
     Args:
-        o (any): Key.
+        k (Any): Key.
 
     Returns:
-        any: Json-allowable key.
+        A JSON-allowable key, which can be str, int, float, bool or None.
     """
 
     if isinstance(k, (str, int, float, bool)):
@@ -50,13 +53,13 @@ def key_parse(k: Any) -> Union[str, int, float, bool, None]:
 
 
 def parse(o: Any) -> Any:
-    """Make a python object json-allowable.
+    """Make a Python object JSON-allowable.
 
     Args:
-        o (any): Python object.
+        o (Any): Python object.
 
     Returns:
-        any: Json-allowable python object.
+        Any: JSON-allowable object.
     """
 
     if isinstance(o, list):
@@ -71,7 +74,7 @@ def parse(o: Any) -> Any:
     return parsed
 
 
-def sort_hashable_ahead(o: dict) -> dict:
+def sort_hashable_ahead(o: dict[_K, _V]) -> dict[_K, _V]:
     """Make hashable values be the ahead in dictionary."
 
     Args:
@@ -112,7 +115,8 @@ def quickJSON(
         indent (int, optional): Indent length for json. Defaults to 2.
         encoding (str, optional): Encoding method. Defaults to 'utf-8'.
         jsonablize (bool, optional):
-            Whether to transpile all object to jsonable via :func:`mori.jsonablize`.
+            Whether to transpile all object to JSON-allowable object.
+            If True, it will use :func:`parse` to transpile the content.
             Defaults to False.
         save_location (Union[Path, str], optional): Location of files. Defaults to Path('./').
         mute (bool, optional): Mute the exportation. Defaults to True.

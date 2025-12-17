@@ -6,6 +6,7 @@ from collections.abc import Hashable
 from pathlib import Path
 from multiprocessing import get_context
 import tqdm
+import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
@@ -17,13 +18,16 @@ from .arguments import (
     ShadowUnveilAnalyzeArgs,
 )
 from .experiment import (
+    JAX_AVAILABLE,
+    RhoMethodType,
+    DEFAULT_RHO_METHOD,
+    TraceMethodType,
+    DEFAULT_TRACE_METHOD,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
     ShadowUnveilExperiment,
     quantities_input_collecter,
     outside_analyze_wrapper,
-    RhoMCoreMethod,
-    TraceRhoMethod,
-    DEFAULT_ALL_TRACE_RHO_METHOD,
-    JAX_AVAILABLE,
 )
 from ...qurrium import QurriumPrototype
 from ...qurrium.utils.iocontrol import RJUST_LEN
@@ -42,18 +46,15 @@ class ShadowUnveil(
 ):
     r"""Classical Shadow with The Results of Second Order Renyi Entropy.
 
-    References:
-        .. note::
-            - Predicting many properties of a quantum system from very few measurements -
+    Reference:
+        -   Predicting many properties of a quantum system from very few measurements -
             Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
-            [doi:10.1038/s41567-020-0932-7](
-                https://doi.org/10.1038/s41567-020-0932-7)
+            `doi:10.1038/s41567-020-0932-7 <https://doi.org/10.1038/s41567-020-0932-7>`_
 
-            - The randomized measurement toolbox -
+        -   The randomized measurement toolbox -
             Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
             Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-            [doi:10.1038/s42254-022-00535-2](
-                https://doi.org/10.1038/s42254-022-00535-2)
+            `doi:10.1038/s42254-022-00535-2 <https://doi.org/10.1038/s42254-022-00535-2>`_
 
         .. code-block:: bibtex
 
@@ -108,11 +109,11 @@ class ShadowUnveil(
                     desired property. The randomization of the measurement procedure has distinct
                     advantages. For example, a single data set can be used multiple times to pursue
                     a variety of applications, and imperfections in the measurements are mapped to
-                    a simplified noise model that can more easily be mitigated.
-                    We discuss a range of cases that have already been realized in quantum devices,
-                    including Hamiltonian simulation tasks, probes of quantum chaos,
-                    measurements of non-local order parameters,
-                    and comparison of quantum states produced in distantly separated
+                    a simplified noise model that can more
+                    easily be mitigated. We discuss a range of
+                    cases that have already been realized in quantum devices, including Hamiltonian
+                    simulation tasks, probes of quantum chaos, measurements of non-local order
+                    parameters, and comparison of quantum states produced in distantly separated
                     laboratories. By providing a workable method for translating a complex quantum
                     state into a succinct classical representation that preserves a rich variety of
                     relevant physical properties, the randomized measurement toolbox strengthens our
@@ -138,7 +139,7 @@ class ShadowUnveil(
 
     """
 
-    __name__ = "EntropyRandomizedMeasure"
+    __name__ = "ShadowUnveil"
     short_name = SHORT_NAME
 
     def __post_init__(self):
@@ -169,11 +170,11 @@ class ShadowUnveil(
     def measure_to_output(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
-        times: int = 100,
+        snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -193,9 +194,9 @@ class ShadowUnveil(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
-            times (int, optional):
-                The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to None.
@@ -204,26 +205,31 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
-                The seeds for all random unitary operator.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow.
+
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
-                The first key is the index for the random unitary operator.
+                The first key is the index if snapshots.
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
-                        0: {0: 1234, 1: 5678},
-                        1: {0: 2345, 1: 6789},
-                        2: {0: 3456, 1: 7890},
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
-                    random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
+                    from qurry import generate_random_basis
+
+                    random_basis = generate_random_basis(100, [0, 1])
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -236,7 +242,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -261,11 +267,11 @@ class ShadowUnveil(
 
         return {
             "circuits": [wave],
-            "times": times,
+            "snapshots": snapshots,
             "measure": measure,
             "unitary_loc": unitary_loc,
             "unitary_loc_not_cover_measure": unitary_loc_not_cover_measure,
-            "random_unitary_seeds": random_unitary_seeds,
+            "random_basis": random_basis,
             "shots": shots,
             "backend": backend,
             "exp_name": exp_name,
@@ -283,11 +289,11 @@ class ShadowUnveil(
     def measure(
         self,
         wave: Optional[Union[QuantumCircuit, Hashable]] = None,
-        times: int = 100,
+        snapshots: int = 100,
         measure: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: Optional[dict[int, dict[int, int]]] = None,
         # basic inputs
         shots: int = 1024,
         backend: Optional[Backend] = None,
@@ -307,9 +313,9 @@ class ShadowUnveil(
         Args:
             wave (Union[QuantumCircuit, Hashable]):
                 The key or the circuit to execute.
-            times (int, optional):
-                The number of random unitary operator.
-                It will denote as `N_U` in the experiment name.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
+                It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
             measure (Optional[Union[list[int], tuple[int, int], int]], optional):
                 The measure range. Defaults to None.
@@ -318,26 +324,31 @@ class ShadowUnveil(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
-                The seeds for all random unitary operator.
+            random_basis (Optional[dict[int, dict[int, int]]], optional):
+                The random basis for classical shadow.
+
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
-                The first key is the index for the random unitary operator.
+                The first key is the index if snapshots.
                 The second key is the index for the qubit.
 
                 .. code-block:: python
+
                     {
-                        0: {0: 1234, 1: 5678},
-                        1: {0: 2345, 1: 6789},
-                        2: {0: 3456, 1: 7890},
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
                     }
 
                 If you want to generate the seeds for all random unitary operator,
-                you can use the function `generate_random_unitary_seeds`
-                in `qurry.qurrium.utils.random_unitary`.
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.process.classical_shadow.utils`.
 
                 .. code-block:: python
-                    from qurry.qurrium.utils.random_unitary import generate_random_unitary_seeds
-                    random_unitary_seeds = generate_random_unitary_seeds(100, 2)
+
+                    from qurry import generate_random_basis
+
+                    random_basis = generate_random_basis(100, [0, 1])
+
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Optional[Backend], optional):
@@ -350,7 +361,7 @@ class ShadowUnveil(
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
             transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`.
+                Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
@@ -373,11 +384,11 @@ class ShadowUnveil(
 
         output_args = self.measure_to_output(
             wave=wave,
-            times=times,
+            snapshots=snapshots,
             measure=measure,
             unitary_loc=unitary_loc,
             unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
-            random_unitary_seeds=random_unitary_seeds,
+            random_basis=random_basis,
             shots=shots,
             backend=backend,
             exp_name=exp_name,
@@ -406,12 +417,20 @@ class ShadowUnveil(
         multiprocess_analysis: bool = False,
         # analysis arguments
         selected_qubits: Optional[list[int]] = None,
-        rho_method: RhoMCoreMethod = "numpy_precomputed",
-        trace_method: TraceRhoMethod = DEFAULT_ALL_TRACE_RHO_METHOD,
+        # estimation of given operators
+        given_operators: Optional[
+            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
+        ] = None,
+        accuracy_prob_comp_delta: float = 0.01,
+        max_shadow_norm: Optional[float] = None,
+        # other config
+        rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+        estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Optional[Iterable[int]] = None,
         **analysis_args,
     ) -> str:
-        """Run the analysis for multiple experiments.
+        r"""Run the analysis for multiple experiments.
 
         Args:
             summoner_id (str): The summoner_id of multimanager.
@@ -431,27 +450,85 @@ class ShadowUnveil(
             multiprocess_analysis (bool, optional):
                 Whether use multiprocess for analysis. Defaults to False.
 
-            selected_qubits (Optional[list[int]], optional):
+            selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
-            rho_method (RhoMCoreMethod, optional):
-                The method to use for the calculation. Defaults to "numpy_precomputed".
-                It can be either "numpy", "numpy_precomputed", "numpy_flatten".
-                - "numpy": Use Numpy to calculate the rho_m.
-                - "numpy_precomputed": Use Numpy to calculate the rho_m with precomputed values.
-                - "numpy_flatten": Use Numpy to calculate the rho_m with a flattening workflow.
-                Currently, "numpy_precomputed" is the best option for performance.
-            trace_method (TraceRhoMethod, optional):
-                The method to calculate the trace of Rho square.
-                - "trace_of_matmul":
-                    Use np.trace(np.matmul(rho_m1, rho_m2)) to calculate the trace.
-                - "quick_trace_of_matmul" or "einsum_ij_ji":
-                    Use np.einsum("ij,ji", rho_m1, rho_m2) to calculate the trace.
-                    Which is the fastest method to calculate the trace.
-                    Due to handle all computation in einsum.
-                - "einsum_aij_bji_to_ab_numpy":
-                    Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
+
+            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+                The list of the operators to estimate. Defaults to None.
+            accuracy_prob_comp_delta (float, optional):
+                The accuracy probability component delta. Defaults to 0.01.
+            max_shadow_norm (Optional[float], optional):
+                The maximum shadow norm. Defaults to None.
+                If it is None, it will be calculated by the largest shadow norm upper bound.
+                If it is not None, it must be a positive float number.
+                It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
+        rho_method (RhoMethodType, optional):
+            It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
+            "single_shots_proto", "single_shots", or "single_shots_vectorized".
+
+            For the "multi_shots_*" methods, the counts and random basis are used as is.
+            For the "single_shots_*" methods, the counts and random basis are
+            converted to single shot per snapshot for classical shadow post-processing.
+
+            **Warning: Althought larger snapshots number means more accurate values.**
+            **But if your shots number is large,**
+            **this may significantly increase memory usage**
+            **and require a lot of computing resource.**
+            **In worst scenrio, this will break your computer.**
+            **Please reconsider for performance.**
+
+            - "multi_shots_proto": Use Numpy to calculate the rho_m.
+            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
+            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow.
+
+            - "single_shots_proto": Use Numpy to calculate the rho_m
+                with converted single shot counts.
+            - "single_shots": Use Numpy to calculate the rho_m
+                with precomputed values with converted single shot counts.
+            - "single_shots_vectorized": Use Numpy to calculate the rho_m
+                with a vectorized workflow with converted single shot counts.
+
+            Currently, "multi_shots" is the best option for performance.
+            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+        trace_method (TraceMethodType, optional):
+            The method to calculate the trace of rho.
+
+            - Matrix operation methods:
+                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
+                    to calculate the each summation item in `rho_m_list`.
+                - "einsum_aij_bji_to_ab_numpy": Use
+                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is not available.
+                - "einsum_aij_bji_to_ab_jax": Use
+                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                    This is the fastest implementation to calculate the trace of Rho
+                    if JAX is available.
+            For the matrix operation methods, it will require rho has been calculated first.
+
+            - Non-matrix operation methods:
+                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
+                - "bitwise_py": Use pure Python bitwise implementation.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            The default method is "bitwise_py", which is the fastest option.
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation.
+
+            - "einsum_aij_bji_to_ab_numpy":
+                Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho
+                if JAX is not available.
+            - "einsum_aij_bji_to_ab_jax":
+                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
+                This is the fastest implementation to calculate the trace of Rho.
+
             counts_used (Optional[Iterable[int]], optional):
                 The counts used for the analysis. Defaults to None.
 
@@ -504,8 +581,14 @@ class ShadowUnveil(
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=selected_qubits,
+                                # estimation of given operators
+                                given_operators=given_operators,
+                                accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+                                max_shadow_norm=max_shadow_norm,
+                                # other config
                                 rho_method=rho_method,
                                 trace_method=trace_method,
+                                estimate_trace_method=estimate_trace_method,
                                 counts_used=counts_used,
                             )
                         )
@@ -514,8 +597,18 @@ class ShadowUnveil(
                             quantities_input_collecter(
                                 current_exps=current_multimanager.exps[k],
                                 selected_qubits=v_args.get("selected_qubits", selected_qubits),
+                                # estimation of given operators
+                                given_operators=v_args.get("given_operators", given_operators),
+                                accuracy_prob_comp_delta=v_args.get(
+                                    "accuracy_prob_comp_delta", accuracy_prob_comp_delta
+                                ),
+                                max_shadow_norm=v_args.get("max_shadow_norm", max_shadow_norm),
+                                # other config
                                 rho_method=v_args.get("rho_method", rho_method),
                                 trace_method=v_args.get("trace_method", trace_method),
+                                estimate_trace_method=v_args.get(
+                                    "estimate_trace_method", estimate_trace_method
+                                ),
                                 counts_used=v_args.get("counts_used", counts_used),
                             )
                         )
@@ -524,8 +617,14 @@ class ShadowUnveil(
                         quantities_input_collecter(
                             current_exps=current_multimanager.exps[k],
                             selected_qubits=selected_qubits,
+                            # estimation of given operators
+                            given_operators=given_operators,
+                            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+                            max_shadow_norm=max_shadow_norm,
+                            # other config
                             rho_method=rho_method,
                             trace_method=trace_method,
+                            estimate_trace_method=estimate_trace_method,
                             counts_used=counts_used,
                         )
                     )
@@ -560,8 +659,14 @@ class ShadowUnveil(
             skip_write=skip_write,
             multiprocess_write=multiprocess_write,
             selected_qubits=selected_qubits,
+            # estimation of given operators
+            given_operators=given_operators,
+            accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+            max_shadow_norm=max_shadow_norm,
+            # other config
             rho_method=rho_method,
             trace_method=trace_method,
+            estimate_trace_method=estimate_trace_method,
             counts_used=counts_used,
             **analysis_args,
         )

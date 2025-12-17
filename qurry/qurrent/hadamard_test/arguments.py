@@ -15,7 +15,8 @@ from ...declare import BasicArgs, OutputArgs, AnalyzeArgs
 
 @dataclass(frozen=True)
 class EntropyMeasureHadamardArguments(ArgumentsPrototype):
-    """Arguments for the experiment."""
+    """Arguments for
+    :class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard`."""
 
     exp_name: str = "exps"
     """The name of the experiment.
@@ -27,7 +28,9 @@ class EntropyMeasureHadamardArguments(ArgumentsPrototype):
 
 
 class EntropyMeasureHadamardMeasureArgs(BasicArgs, total=False):
-    """Output arguments for :meth:`output`."""
+    """Input fields for
+    :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.measure`
+    and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     wave: Optional[Union[QuantumCircuit, Hashable]]
     """The key or the circuit to execute."""
@@ -36,17 +39,21 @@ class EntropyMeasureHadamardMeasureArgs(BasicArgs, total=False):
 
 
 class EntropyMeasureHadamardOutputArgs(OutputArgs):
-    """Output arguments for :meth:`output`."""
+    """Output arguments for
+    :meth:`~qurry.qurrent.hadamard_test.qurry.EchoListenHadamard.output`."""
 
     degree: Optional[Union[int, tuple[int, int]]]
     """The degree range."""
 
 
 class EntropyMeasureHadamardAnalyzeArgs(AnalyzeArgs, total=False):
-    """The input of the analyze method.
+    """The input of :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
+    and :meth:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard.analyze`.
 
     The post-processing of Hadamard test does not need any input.
     """
 
 
 SHORT_NAME = "qurrent_hadamard"
+"""The short name of 
+:class:`~qurry.qurrent.hadamard_test.experiment.EntropyMeasureHadamard`."""

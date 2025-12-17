@@ -198,7 +198,7 @@ class Before(NamedTuple):
 
 
 def create_beforewards(beforewards: Optional[Before]) -> Before:
-    """Create a Beforewards object.
+    """Create a :class:`Before` object.
 
     Args:
         beforewards (Optional[Before]):
