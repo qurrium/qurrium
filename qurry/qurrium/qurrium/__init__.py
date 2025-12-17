@@ -1,4 +1,5 @@
 """Qurrium (:mod:`qurry.qurrium.qurrium`)"""
 
 from .qurrium import QurriumPrototype
-from .container import MultiManagerContainer, ExperimentContainerWrapper
+from .mm_container import MultiManagerContainer
+from .exps_wrapper import ExperimentContainerWrapper

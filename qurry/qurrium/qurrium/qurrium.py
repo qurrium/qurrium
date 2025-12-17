@@ -8,7 +8,8 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
-from .container import MultiManagerContainer, ExperimentContainerWrapper
+from .mm_container import MultiManagerContainer
+from .exps_wrapper import ExperimentContainerWrapper
 from ..utils import passmanager_processor
 from ..container import (
     RunArgsType,
@@ -33,6 +34,7 @@ from ..multimanager import (
 from ...tools import qurry_progressbar
 from ...tools.backend import GeneralSimulator
 from ...tools.qiskit_version import qiskit_version_v0_check
+from ...capsule import DEFAULT_INDENT
 
 
 class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
@@ -705,14 +707,16 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         if cycle:
             p.text(f"<{self.__name__}(...)>")
         else:
-            with p.group(2, f"<{self.__name__}(", ")>"):
+            with p.group(DEFAULT_INDENT, f"<{self.__name__}(", ")>"):
                 p.breakable()
                 p.text(f"waves={self.waves._repr_oneline()},")
                 p.breakable()
                 p.text(f"exps={self.exps._repr_oneline()},")
                 p.breakable()
                 with p.group(
-                    2, "multimanagers=MultiManagers({", "}" + f", num={len_multimanagers}), "
+                    DEFAULT_INDENT,
+                    "multimanagers=MultiManagers({",
+                    "}" + f", num={len_multimanagers}), ",
                 ):
                     for i, (k, v) in enumerate(self.multimanagers.items()):
                         p.breakable()
@@ -720,7 +724,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                         if i != len_multimanagers - 1:
                             p.text(",")
                 p.breakable()
-                with p.group(2, "passmanagers=PassManagers({", "}" + f", num={len_passmanagers})"):
+                with p.group(
+                    DEFAULT_INDENT,
+                    "passmanagers=PassManagers({",
+                    "}" + f", num={len_passmanagers})",
+                ):
                     for i, (k, v) in enumerate(self.passmanagers.items()):
                         p.breakable()
                         p.text(f"'{k}': {v}")

@@ -1,8 +1,9 @@
-"""ExperimentContainerWrapper (:mod:`qurry.qurrium.container.experiments_wrapper`)"""
+"""ExperimentContainerWrapper (:mod:`qurry.qurrium.exps_wrapper`)"""
 
 from typing import Generic, Any
 
-from ...multimanager import MultiManager, ExperimentContainer, _E
+from ..multimanager import MultiManager, ExperimentContainer, _E
+from ...capsule import DEFAULT_INDENT
 
 
 class ExperimentContainerWrapper(Generic[_E]):
@@ -152,7 +153,7 @@ class ExperimentContainerWrapper(Generic[_E]):
         if cycle:
             p.text(f"{self.__name__}(" + "{...}" + f", num={length})")
         else:
-            with p.group(2, f"{self.__name__}(num={length}" + ", {", "})"):
+            with p.group(DEFAULT_INDENT, f"{self.__name__}(num={length}" + ", {", "})"):
                 for i, (k, v) in enumerate(self.all_exps_container.items()):
                     p.breakable()
                     # pylint: disable=protected-access
