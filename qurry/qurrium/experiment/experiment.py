@@ -48,7 +48,7 @@ from ...tools import (
     qurry_progressbar,
     GeneralSimulator,
 )
-from ...capsule.hoshi import Hoshi
+from ...capsule import Hoshi, DEFAULT_INDENT
 
 
 class ExperimentPrototype(ABC, Generic[_A, _R]):
@@ -687,33 +687,45 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__name__}(exp_id={self.commons.exp_id}, {self.args}, {self.commons}, "
-            f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
+            f'<{self.__name__}(exp_id="{self.commons.exp_id}", '
+            + f"args={self.args}, "
+            + f"commons={self.commons}, "
+            + f"unused_args_num={len(self.outfields)}, "
+            + f"analysis_num={len(self.reports)})>"
         )
 
-    def _repr_no_id(self) -> str:
+    def _repr_short(self) -> str:
+        # pylint: disable=protected-access
         return (
-            f"<{self.__name__}({self.args}, {self.commons}, "
-            f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
+            f"<{self.__name__}("
+            + f"args={self.args._repr_short()}, "
+            + f"commons={self.commons._repr_short()}, "
+            + f"unused_args_num={len(self.outfields)}, "
+            + f"analysis_num={len(self.reports)})>"
         )
+        # pylint: enable=protected-access
 
     def _repr_pretty_(self, p, cycle):
         if cycle:
-            p.text(
-                f"<{self.__name__}(exp_id={self.commons.exp_id}, {self.args}, {self.commons}, "
-                f"unused_args_num={len(self.outfields)}, analysis_num={len(self.reports)})>"
-            )
-        else:
-            with p.group(2, f"<{self.__name__}(", ")>"):
-                p.text(f"exp_id={self.commons.exp_id}, ")
+            # pylint: disable=protected-access
+            p.text(self._repr_short())
+            # pylint: enable=protected-access
+            return
+
+        basic_info = {
+            "exp_id": self.commons.exp_id,
+            "args": self.args,
+            "commons": self.commons,
+            "unused_args_num": len(self.outfields),
+            "analysis_num": len(self.reports),
+        }
+        with p.group(DEFAULT_INDENT, f"<{self.__name__}(", ")>"):
+            for i, (k, v) in enumerate(basic_info.items()):
                 p.breakable()
-                p.text(f"{self.args},")
-                p.breakable()
-                p.text(f"{self.commons},")
-                p.breakable()
-                p.text(f"unused_args_num={len(self.outfields)},")
-                p.breakable()
-                p.text(f"analysis_num={len(self.reports)})")
+                p.text(f"{k}=")
+                p.pretty(v)
+                if i != len(basic_info) - 1:
+                    p.text(",")
 
     def statesheet(self, report_expanded: bool = False, hoshi: bool = False) -> Hoshi:
         """Show the state of experiment.

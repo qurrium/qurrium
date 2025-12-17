@@ -30,10 +30,9 @@ class MultiManagerContainer(CustomDict[str, MultiManager[_E]]):
                 p.text(f'"{k}":')
                 p.breakable()
                 # pylint: disable=protected-access
-                with p.group(DEFAULT_INDENT):
-                    p.text(v._repr_oneline_no_id())
-                    if i < len(self) - 1:
-                        p.text(",")
+                p.text(" " * DEFAULT_INDENT + v._repr_oneline_no_id())
+                if i < len(self) - 1:
+                    p.text(",")
                 # pylint: enable=protected-access
 
     def __str__(self):

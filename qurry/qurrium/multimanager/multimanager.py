@@ -26,13 +26,17 @@ from ...tools import (
     DEFAULT_POOL_SIZE,
     very_easy_chunk_size,
 )
-from ...capsule import quick_json_write, DEFAULT_ENCODING, DEFAULT_MODE, GitSyncControl
+from ...capsule import (
+    quick_json_write,
+    DEFAULT_ENCODING,
+    DEFAULT_MODE,
+    GitSyncControl,
+    DEFAULT_INDENT,
+)
 
 
 class MultiManager(Generic[_E]):
     """The manager of multiple experiments."""
-
-    __name__ = "MultiManager"
 
     multicommons: MultiCommonparams
     """The common parameters of multi-experiment."""
@@ -140,19 +144,20 @@ class MultiManager(Generic[_E]):
 
     def __repr__(self):
         return (
-            f"<{self.__name__}("
+            f"<{self.__class__.__name__}("
             + f'id="{self.multicommons.summoner_id}", '
             + f'name="{self.multicommons.summoner_name}", '
             + f"tags={self.multicommons.tags}, "
             + f'jobstype="{self.multicommons.jobstype}", '
             + f'pending_strategy="{self.multicommons.pending_strategy}", '
-            + f"last_events={dict(self.multicommons.datetimes.last_events(3))}, "
+            + f"available_reports={list(self.quantity_info.keys())}, "
+            + f"events={self.multicommons.datetimes}, "
             + f"exps_num={len(self.beforewards.exps_config)})>"
         )
 
     def _repr_oneline(self):
         return (
-            f"<{self.__name__}("
+            f"<{self.__class__.__name__}("
             + f'id="{self.multicommons.summoner_id}", '
             + f'name="{self.multicommons.summoner_name}", '
             + f'jobstype="{self.multicommons.jobstype}", ..., '
@@ -161,45 +166,34 @@ class MultiManager(Generic[_E]):
 
     def _repr_oneline_no_id(self):
         return (
-            f"<{self.__name__}("
+            f"<{self.__class__.__name__}("
             + f'name="{self.multicommons.summoner_name}", '
             + f'jobstype="{self.multicommons.jobstype}", ..., '
             + f"exps_num={len(self.beforewards.exps_config)})>"
         )
 
     def _repr_pretty_(self, p, cycle):
-        max_events = 5
-
         if cycle:
-            p.text(
-                f"<{self.__name__}("
-                + f'id="{self.multicommons.summoner_id}", '
-                + f'name="{self.multicommons.summoner_name}", '
-                + f'jobstype="{self.multicommons.jobstype}", ..., '
-                + f"exps_num={len(self.beforewards.exps_config)})>"
-            )
-        else:
-            with p.group(2, f"<{type(self).__name__}(", ")>"):
-                p.text(f'id="{self.multicommons.summoner_id}",')
+            p.text(self._repr_oneline())
+            return
+
+        basic_info = {
+            "id": self.multicommons.summoner_id,
+            "name": self.multicommons.summoner_name,
+            "tags": self.multicommons.tags,
+            "jobstype": self.multicommons.jobstype,
+            "pending_strategy": self.multicommons.pending_strategy,
+            "available_reports": list(self.quantity_info.keys()),
+            "events": self.multicommons.datetimes,
+            "exps_num": len(self.beforewards.exps_config),
+        }
+        with p.group(DEFAULT_INDENT, f"<{self.__class__.__name__}(", ")>"):
+            for i, (k, v) in enumerate(basic_info.items()):
                 p.breakable()
-                p.text(f'name="{self.multicommons.summoner_name}",')
-                p.breakable()
-                p.text(f"tags={self.multicommons.tags},")
-                p.breakable()
-                p.text(f'jobstype="{self.multicommons.jobstype}",')
-                p.breakable()
-                p.text(f'pending_strategy="{self.multicommons.pending_strategy}",')
-                p.breakable()
-                p.text("last_events={")
-                if len(self.multicommons.datetimes) > max_events:
-                    p.breakable()
-                    p.text("  ...,")
-                for k, v in self.multicommons.datetimes.last_events(max_events):
-                    p.breakable()
-                    p.text(f"  '{k}': '{v}',")
-                p.text("},")
-                p.breakable()
-                p.text(f"exps_num={len(self.beforewards.exps_config)}")
+                p.text(f"{k}=")
+                p.pretty(v)
+                if i != len(basic_info) - 1:
+                    p.text(",")
 
     def register(self, current_id: str, config: dict[str, Any], exps_instance: _E) -> None:
         """Register the experiment to multimanager.

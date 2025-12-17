@@ -215,6 +215,9 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
         raise TypeError(f"arguments should be {cls} or dict, not {type(arguments)}")
 
+    def _repr_short(self) -> str:
+        return f"<{self.__class__.__name__}(...)>"
+
 
 _A = TypeVar("_A", bound=ArgumentsPrototype)
 """Type variable for :class:`ArgumentsPrototype`."""

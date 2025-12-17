@@ -5,7 +5,7 @@ from pathlib import Path
 import json
 
 from .analysis import _R
-from ...capsule import DEFAULT_ENCODING
+from ...capsule import DEFAULT_ENCODING, DEFAULT_INDENT
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
@@ -128,7 +128,7 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         if cycle:
             p.text(f"{self.__name__}(length={len(self)}, ...)")
         else:
-            with p.group(2, f"{self.__name__}(length={len(self)}" + ", {"):
+            with p.group(DEFAULT_INDENT, f"{self.__name__}(length={len(self)}" + ", {"):
                 p.breakable()
                 for i, (k, v) in enumerate(self.items()):
                     if i:

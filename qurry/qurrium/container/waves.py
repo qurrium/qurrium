@@ -319,19 +319,22 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """
         return key in self
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(num={len(self)}, {super().__repr__()})"
+
     def _repr_oneline(self):
-        return f"{self.__class__.__name__}(" + "{...}" + f", num={len(self)})"
+        return f"{self.__class__.__name__}(num={len(self)}, " + (r"{...}" if self else r"{}") + ")"
 
     def _repr_pretty_(self, p, cycle):
         if cycle:
-            p.text(f"{self.__class__.__name__}(" + "{...}" + f", num={len(self)})")
+            p.text(self._repr_oneline())
             return
 
         if not self:
             p.text(f"{self.__class__.__name__}" + "(num=0, {})")
             return
 
-        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(num={len(self)}, " + ", {", "})"):
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(num={len(self)}" + ", {", "})"):
             for i, (k, v) in enumerate(self.items()):
                 p.breakable()
                 p.pretty(k)

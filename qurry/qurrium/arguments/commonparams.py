@@ -162,3 +162,6 @@ class Commonparams(NamedTuple):
             return cls(**raw_commons_process(commons_parsed)), commons_deprecated
 
         raise TypeError(f"commons should be {cls} or dict, not {type(commons)}")
+
+    def _repr_short(self) -> str:
+        return f"<{self.__class__.__name__}(...)>"

@@ -8,7 +8,7 @@ from .arguments import MultiCommonparams
 from .beforewards import Before
 from ..experiment import ExperimentPrototype, Export, QurryInfo
 from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE, very_easy_chunk_distribution
-from ...capsule import CustomDict
+from ...capsule import CustomDict, DEFAULT_INDENT
 
 _E = TypeVar("_E", bound=ExperimentPrototype)
 
@@ -125,7 +125,7 @@ class ExperimentContainer(CustomDict[str, _E]):
         return self.call(exp_id=exp_id)
 
     def __repr__(self):
-        original_repr = repr({k: v._repr_no_id() for k, v in self.items()})
+        original_repr = repr({k: v._repr_short() for k, v in self.items()})
         return f"{self.__class__.__name__}({original_repr}, num={len(self)})"
 
     def _repr_oneline(self):
@@ -137,11 +137,11 @@ class ExperimentContainer(CustomDict[str, _E]):
             p.text(f"{self.__class__.__name__}(" + "{...}" + f", num={length})")
             return
 
-        with p.group(2, f"{self.__class__.__name__}(num={length}" + ", {", "})"):
+        with p.group(DEFAULT_INDENT, f"{self.__class__.__name__}(num={length}" + ", {", "})"):
             for i, (k, v) in enumerate(self.items()):
                 p.breakable()
                 # pylint: disable=protected-access
-                p.text(f"'{k}': {v._repr_no_id()}")
+                p.text(f"'{k}': {v._repr_short()}")
                 # pylint: enable=protected-access
                 if i < length - 1:
                     p.text(",")
