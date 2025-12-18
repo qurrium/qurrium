@@ -77,7 +77,7 @@ from .classical_shadow import ShadowUnveil, SUMeasureArgs
 def EntropyMeasure(*args, method: Literal["hadamard"], **kwargs) -> EntropyMeasureHadamard: ...
 @overload
 def EntropyMeasure(
-    *args, method: Union[Literal["randomized"], str], **kwargs
+    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
 ) -> EntropyMeasureRandomized: ...
 
 
@@ -103,7 +103,7 @@ def EntropyMeasure(*args, method="randomized", **kwargs):
 def EchoListen(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
 @overload
 def EchoListen(
-    *args, method: Union[Literal["randomized"], str], **kwargs
+    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
 ) -> EchoListenRandomized: ...
 
 
@@ -131,7 +131,7 @@ def EchoListen(*args, method="randomized", **kwargs):
 def WaveFunctionOverlap(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
 @overload
 def WaveFunctionOverlap(
-    *args, method: Union[Literal["randomized"], str], **kwargs
+    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
 ) -> EchoListenRandomized: ...
 
 
