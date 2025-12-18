@@ -145,7 +145,8 @@ class ArgumentsPrototype(FileReadableWritableObj):
         }
 
         data_args = v7_to_v9_field_transpose(data_args)
-        data_args["commonparams"] = raw_commons_process(data_args["commonparams"], folder_name)
+        data_args["commonparams"] = raw_commons_process(data_args["commonparams"])
+        data_args["commonparams"]["folder"] = folder_name
 
         return (
             cls.ingest(data_args["arguments"]),

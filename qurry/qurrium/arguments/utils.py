@@ -108,15 +108,11 @@ def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> Dat
     return DatetimeDict(datetimes)
 
 
-def raw_commons_process(
-    commons_dict: dict[str, Any], folder_name: Union[str, None]
-) -> dict[str, Any]:
+def raw_commons_process(commons_dict: dict[str, Any]) -> dict[str, Any]:
     """Process the raw common parameters of the experiment.
 
     Args:
         commons_dict (dict[str, Any]): The common parameters of the experiment.
-        folder_name (Union[str, None]): The folder name of this experiment.
-
 
     Returns:
         dict[str, Any]: The dealt common parameters of the experiment.
@@ -125,7 +121,6 @@ def raw_commons_process(
         (commons_dict["datetimes"] if "datetimes" in commons_dict else {"bulid": current_time()})
     )
     commons_dict["tags"] = check_tags((commons_dict["tags"] if "tags" in commons_dict else ()))
-    commons_dict["folder"] = folder_name
 
     return commons_dict
 
