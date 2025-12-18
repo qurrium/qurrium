@@ -6,6 +6,7 @@ import json
 
 from qiskit.providers import Backend
 
+from .beforewards import V7_FILE_INDEX
 from ..container import BaseRunArgs
 from ...capsule import DEFAULT_ENCODING
 from ...tools.datetime import DatetimeDict
@@ -184,6 +185,10 @@ class MultiCommonparams(NamedTuple):
             if len(v6jobstype) == 2:
                 rawread_multiconfig["jobstype"] = v6jobstype[0]
                 rawread_multiconfig["pending_strategy"] = v6jobstype[1]
+
+        rawread_multiconfig["datetimes"] = DatetimeDict(rawread_multiconfig["datetimes"])
+        if set(V7_FILE_INDEX) & set(rawread_multiconfig["files"]):
+            rawread_multiconfig["datetimes"].add_only("migrate_to_v15")
 
         return rawread_multiconfig
 

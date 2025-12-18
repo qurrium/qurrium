@@ -5,7 +5,6 @@ from pathlib import Path
 from dataclasses import dataclass, fields
 import json
 
-from ..utils import ExportFolderNaming
 from ...capsule import (
     jsonablize,
     key_tuple_loads,
@@ -130,12 +129,11 @@ class Before:
         }
 
     @classmethod
-    def read(cls, file_index: dict[str, str], naming_complex: ExportFolderNaming):
+    def read(cls, file_index: dict[str, str]):
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
-            naming_complex (ExportFolderNaming): The naming complex of MultiManager.
         """
 
         missing_files_1 = (set(STANDARD_FILE_INDEX) & set(V7_FILE_INDEX)) - set(file_index)
@@ -151,51 +149,25 @@ class Before:
             )
 
         raw_reads = {}
-        with open(
-            naming_complex.export_location / file_index["exps.config"],
-            "r",
-            encoding=DEFAULT_ENCODING,
-        ) as f:
+        with open(Path(file_index["exps.config"]), "r", encoding=DEFAULT_ENCODING) as f:
             raw_reads["exps_config"] = json.load(f)
 
         if len(missing_files_standard) > 0:
             # v7 format
-            with open(
-                naming_complex.export_location / file_index["circuitsMap"],
-                "r",
-                encoding=DEFAULT_ENCODING,
-            ) as f:
+            with open(Path(file_index["circuitsMap"]), "r", encoding=DEFAULT_ENCODING) as f:
                 raw_reads["circuits_map"] = json.load(f)
-            with open(
-                naming_complex.export_location / file_index["pendingPools"],
-                "r",
-                encoding=DEFAULT_ENCODING,
-            ) as f:
+            with open(Path(file_index["pendingPools"]), "r", encoding=DEFAULT_ENCODING) as f:
                 raw_reads["pending_pool"] = json.load(f)
-            with open(
-                naming_complex.export_location / file_index["job.tagList"],
-                "r",
-                encoding=DEFAULT_ENCODING,
-            ) as f:
+            with open(Path(file_index["job.tagList"]), "r", encoding=DEFAULT_ENCODING) as f:
                 raw_reads["job_group"] = json.load(f)
 
-            return cls.content_loading(**raw_reads)
+            return cls(**cls.content_loading(raw_reads))
 
-        with open(
-            naming_complex.export_location / file_index["circuits_map"],
-            "r",
-            encoding=DEFAULT_ENCODING,
-        ) as f:
+        with open(Path(file_index["circuits_map"]), "r", encoding=DEFAULT_ENCODING) as f:
             raw_reads["circuits_map"] = json.load(f)
-        with open(
-            naming_complex.export_location / file_index["pending_pool"],
-            "r",
-            encoding=DEFAULT_ENCODING,
-        ) as f:
+        with open(Path(file_index["pending_pool"]), "r", encoding=DEFAULT_ENCODING) as f:
             raw_reads["pending_pool"] = json.load(f)
-        with open(
-            naming_complex.export_location / file_index["job_group"], "r", encoding=DEFAULT_ENCODING
-        ) as f:
+        with open(Path(file_index["job_group"]), "r", encoding=DEFAULT_ENCODING) as f:
             raw_reads["job_group"] = json.load(f)
 
-        return cls(**cls.content_loading(**raw_reads))
+        return cls(**cls.content_loading(raw_reads))

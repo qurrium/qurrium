@@ -430,10 +430,8 @@ class MultiManager(Generic[_E]):
         assert naming_complex.save_location == multicommons.save_location, (
             "| save_location is not consistent with namingCpx.save_location."
         )
-        beforewards = Before.read(file_index=multicommons.files, naming_complex=naming_complex)
-        quantity_info = MutltiQuantityInfo.read(
-            file_index=multicommons.files, naming_complex=naming_complex
-        )
+        beforewards = Before.read(file_index=multicommons.files)
+        quantity_info = MutltiQuantityInfo.read(file_index=multicommons.files)
 
         current_multimanager = cls(
             naming_complex=naming_complex,

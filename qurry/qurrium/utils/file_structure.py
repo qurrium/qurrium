@@ -32,7 +32,22 @@ def is_old_v7_file_structure(file_index: dict[str, Any]) -> bool:
 
     Args:
         file_index (dict[str, Any]): The file index.
+
     Returns:
         bool: True if the file structure is v7, False otherwise.
+    """
+    return FOLDER_NAME_SIDE_PRODUCTS not in file_index and FOLDER_NAME_ANALYSES not in file_index
+
+
+def is_old_v7_multimanager_file_structure(
+    file_index: dict[str, Any],
+) -> bool:
+    """Check if the MultiManager file structure is v7.
+
+    Args:
+        file_index (dict[str, Any]): The file index.
+
+    Returns:
+        bool: True if the MultiManager file structure is v7, False otherwise.
     """
     return FOLDER_NAME_SIDE_PRODUCTS not in file_index and FOLDER_NAME_ANALYSES not in file_index

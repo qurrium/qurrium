@@ -7,10 +7,12 @@ A container for result of
 
 from typing import Any
 from pathlib import Path
+import warnings
 import json
 
-from ..utils import ExportFolderNaming
+from .beforewards import V7_FILE_INDEX
 from ..utils.iocontrol import RJUST_LEN, serial_naming
+from ..exceptions import OldFormatedIncompatibleWarning
 from ...capsule import (
     CustomDict,
     jsonablize,
@@ -137,22 +139,26 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
         }
 
     @classmethod
-    def read(cls, file_index: dict[str, str], naming_complex: ExportFolderNaming):
+    def read(cls, file_index: dict[str, str]):
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
-            naming_complex (ExportFolderNaming): The naming complex of MultiManager.
         """
 
         if "multiquantity" not in file_index:
+            if set(V7_FILE_INDEX) & set(file_index):
+                warnings.warn(
+                    (
+                        "The file index seems to be in old v7 format without 'multiquantity' key. "
+                        "There will be no quantity information loaded. "
+                    ),
+                    OldFormatedIncompatibleWarning,
+                )
+                return cls()
             raise KeyError("The file index does not contain 'multiquantity' key.")
 
-        with open(
-            naming_complex.save_location / file_index["multiquantity"],
-            "r",
-            encoding=DEFAULT_ENCODING,
-        ) as f:
+        with open(Path(file_index["multiquantity"]), "r", encoding=DEFAULT_ENCODING) as f:
             multiquantity_data = json.load(f)
 
         return cls(cls.content_loading(multiquantity_data))
