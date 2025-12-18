@@ -10,6 +10,7 @@ from qiskit import QuantumCircuit
 
 from ..container import WCKeyable
 from ..utils.qasm import qasm_loads
+from ..utils.file_structure import FOLDER_NAME_BEFOREWARDS as FOLDER_NAME
 from ..exceptions import OldFormatedIncompatibleWarning
 from ...capsule import DEFAULT_ENCODING
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
@@ -21,8 +22,6 @@ V5_TO_V7_FIELD = {
 }
 DEPRECATED_PROPERTIES = ["figTranspiled", "fig_original", "exp_name"]
 
-FOLDER_NAME = "advent"
-"""Folder name for beforewards export."""
 FILENAME_TEMPLATE = "{}.advent.json"
 """Filename template for beforewards export."""
 

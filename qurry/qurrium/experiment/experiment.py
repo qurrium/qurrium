@@ -37,6 +37,7 @@ from ..utils import (
     outfields_hint,
     AvailableQASMVersions,
 )
+from ..utils.file_structure import is_old_v7_file_structure
 from ..exceptions import ResetSecurityActivated
 from ...tools import (
     very_easy_chunk_size,
@@ -846,7 +847,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         qurry_info.update({exp_id: files})
         qurry_info.write(real_export_location)
 
-        return exp_id, files
+        return exp_id, qurry_info[exp_id]
 
     @classmethod
     def _read_core(
@@ -877,6 +878,8 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         arguments, commonparams, outfields = cls.arguments_type().read(
             file_index=file_index, save_location=save_location, exp_id=exp_id
         )
+        if is_old_v7_file_structure(file_index):
+            commonparams.datetimes.add_only("migrated_to_v15")
         exp_instance = cls(
             arguments=arguments,
             commonparams=commonparams,

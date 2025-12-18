@@ -5,36 +5,6 @@ from typing import Union, Any, Optional
 from ...tools.datetime import DatetimeDict, current_time
 
 
-V5_TO_V7_FIELD = {
-    "expName": "exp_name",
-    "expID": "exp_id",
-    "waveKey": "wave_key",
-    "runArgs": "run_args",
-    "transpileArgs": "transpile_args",
-    "defaultAnalysis": "default_analysis",
-    "saveLocation": "save_location",
-    "summonerID": "summoner_id",
-    "summonerName": "summoner_name",
-}
-
-
-def v5_to_v7_field_transpose(data_args: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    """The field name of v5 to v7.
-
-    Args:
-        data_args (dict[str, dict[str, Any]]): The arguments of experiment.
-
-    Returns:
-        dict[str, dict[str, Any]]: The arguments of experiment with new field name.
-    """
-    for k, nk in V5_TO_V7_FIELD.items():
-        if k in data_args["commonparams"]:
-            data_args["commonparams"][nk] = data_args["commonparams"].pop(k)
-        if k in data_args["arguments"]:
-            data_args["arguments"][nk] = data_args["arguments"].pop(k)
-    return data_args
-
-
 def wave_key_to_target_keys(wave_key: str) -> list[str]:
     """Convert the wave key to target keys.
 
@@ -138,11 +108,15 @@ def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> Dat
     return DatetimeDict(datetimes)
 
 
-def raw_commons_process(commons_dict: dict[str, Any]) -> dict[str, Any]:
+def raw_commons_process(
+    commons_dict: dict[str, Any], folder_name: Union[str, None]
+) -> dict[str, Any]:
     """Process the raw common parameters of the experiment.
 
     Args:
         commons_dict (dict[str, Any]): The common parameters of the experiment.
+        folder_name (Union[str, None]): The folder name of this experiment.
+
 
     Returns:
         dict[str, Any]: The dealt common parameters of the experiment.
@@ -151,6 +125,7 @@ def raw_commons_process(commons_dict: dict[str, Any]) -> dict[str, Any]:
         (commons_dict["datetimes"] if "datetimes" in commons_dict else {"bulid": current_time()})
     )
     commons_dict["tags"] = check_tags((commons_dict["tags"] if "tags" in commons_dict else ()))
+    commons_dict["folder"] = folder_name
 
     return commons_dict
 

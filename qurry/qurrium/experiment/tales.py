@@ -5,13 +5,15 @@ from typing import Any, TypeVar, Generic, cast
 from pathlib import Path
 import warnings
 
+from ..utils.file_structure import (
+    FOLDER_NAME_SIDE_PRODUCTS as FOLDER_NAME,
+    is_old_v7_file_structure,
+)
 from ..exceptions import OldFormatedIncompatibleWarning, MSG_V7_FILE_FORMAT_INCOMPATIBLE
 from ...capsule import jsonablize, DEFAULT_ENCODING, CustomDict
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
-FOLDER_NAME = "tales"
-"""Folder name for side products export."""
 FILENAME_TEMPLATE = "{}.tales.json"
 """Filename template for side products export."""
 
@@ -135,7 +137,7 @@ class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
             Tales: The side product container.
         """
         if FOLDER_NAME not in file_index:
-            if "myths" not in file_index:
+            if is_old_v7_file_structure(file_index):
                 warnings.warn(MSG_V7_FILE_FORMAT_INCOMPATIBLE, OldFormatedIncompatibleWarning)
                 return cls()
             raise KeyError(f"The '{FOLDER_NAME}' field is missing in the file index.")

@@ -6,13 +6,12 @@ import warnings
 import json
 
 from .analysis import _R
+from ..utils.file_structure import FOLDER_NAME_ANALYSES as FOLDER_NAME, is_old_v7_file_structure
 from ..exceptions import OldFormatedIncompatibleWarning, MSG_V7_FILE_FORMAT_INCOMPATIBLE
 from ...capsule import DEFAULT_ENCODING, DEFAULT_INDENT
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
-FOLDER_NAME = "myths"
-"""Folder name for analyses export."""
 FILENAME_TEMPLATE = "{}.myths.json"
 """Filename template for analyses export."""
 WRITING_KEY = "reports"
@@ -116,7 +115,7 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
             raise ValueError("analysis_instance must be provided to read the analyses.")
 
         if FOLDER_NAME not in file_index:
-            if "reports" in file_index or "tales" not in file_index:
+            if is_old_v7_file_structure(file_index):
                 warnings.warn(MSG_V7_FILE_FORMAT_INCOMPATIBLE, OldFormatedIncompatibleWarning)
                 return cls(analysis_instance=analysis_instance)
             raise KeyError(f"The '{FOLDER_NAME}' field is missing in the file index.")

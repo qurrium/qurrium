@@ -7,17 +7,16 @@ import json
 
 from .utils import (
     filter_deprecated_args,
-    v5_to_v7_field_transpose,
     v7_to_v9_field_transpose,
     create_exp_outfields,
+    raw_commons_process,
 )
 from .commonparams import Commonparams
+from ..utils.file_structure import FOLDER_NAME_ARGS as FOLDER_NAME
 from ...capsule import jsonablize, DEFAULT_ENCODING
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
-FOLDER_NAME = "args"
-"""Folder name for arguments and common parameters export."""
 FILENAME_TEMPLATE = "{}.args.json"
 """Filename template for arguments and common parameters export."""
 
@@ -145,9 +144,8 @@ class ArgumentsPrototype(FileReadableWritableObj):
             "outfields": raw_read["outfields"],
         }
 
-        data_args = v5_to_v7_field_transpose(data_args)
         data_args = v7_to_v9_field_transpose(data_args)
-        data_args["commonparams"]["folder"] = folder_name
+        data_args["commonparams"] = raw_commons_process(data_args["commonparams"], folder_name)
 
         return (
             cls.ingest(data_args["arguments"]),

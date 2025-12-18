@@ -9,13 +9,12 @@ from dataclasses import dataclass, fields
 
 from qiskit.result import Result
 
+from ..utils.file_structure import FOLDER_NAME_AFTERWARDS as FOLDER_NAME
 from ..exceptions import ResetSecurityActivated, ResetAccomplished
 from ...capsule import DEFAULT_ENCODING
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
 
-FOLDER_NAME = "legacy"
-"""Folder name for afterwards export."""
 FILENAME_TEMPLATE = "{}.legacy.json"
 """Filename template for afterwards export."""
 

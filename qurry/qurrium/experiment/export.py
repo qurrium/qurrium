@@ -14,6 +14,7 @@ from ...capsule import (
     jsonablize,
     CustomDict,
 )
+from ..utils.file_structure import REQUIRED_KEYS
 from ...capsule.mori import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
 
 
@@ -237,6 +238,13 @@ class Export(UniversalWriterABC):
                 indent=DEFAULT_INDENT,
                 encoding=DEFAULT_ENCODING,
                 save_location=self.save_location,
+            )
+
+        missing_keys = REQUIRED_KEYS - set(files_str.keys())
+        if missing_keys:
+            raise KeyError(
+                "The exported files are missing required keys. "
+                + f"Required keys: {REQUIRED_KEYS}, exported keys: {files_str.keys()}."
             )
 
         return self.exp_id, files_str
