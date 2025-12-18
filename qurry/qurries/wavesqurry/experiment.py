@@ -8,8 +8,8 @@ from qiskit import QuantumCircuit
 
 from .arguments import WEArguments, SHORT_NAME
 from ..samplingqurry.analysis import DummyAnalysis
-from ...qurrium.exceptions import DummyClassWarning
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
+from ...qurrium.exceptions import DummyClassWarning, NoExperimentCountsAvailable
 
 
 class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]]):
@@ -99,14 +99,14 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
             )
             cirqs.append(q_copy)
         if len(no_cregs) == len(targets):
-            raise ValueError(
+            raise NoExperimentCountsAvailable(
                 "| No classical register in ALL circuits, counts will be empty. "
                 + "Please add classical register to the circuit. "
                 + "(Don't be frustrated, I did the same thing on unit test. "
                 + "It made me confused and thought what's wrong for a while before ('_').)"
             )
         if len(no_cregs) > 0:
-            raise ValueError(
+            raise NoExperimentCountsAvailable(
                 "| No classical register in the following circuits, counts will be empty. "
                 + "Please add classical register to the circuit. "
                 + f"The index of circuit without classical register: {no_cregs}"
