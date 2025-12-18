@@ -132,11 +132,11 @@ class Export(UniversalWriterABC):
         files = {
             'folder': './bla_exp/',
             'qurryinfo': './bla_exp/qurryinfo.json',
-            'args': './bla_exp/args/bla_exp.id={exp_id}.args.json',
-            'advent': './bla_exp/advent/bla_exp.id={exp_id}.advent.json',
-            'legacy': './bla_exp/legacy/bla_exp.id={exp_id}.legacy.json',
-            'tales': './bla_exp/tales/bla_exp.id={exp_id}.tales.json',
-            'myths': './bla_exp/myths/bla_exp.id={exp_id}.myths.json',
+            'args': './bla_exp/args/id={exp_id}.args.json',
+            'advent': './bla_exp/advent/id={exp_id}.advent.json',
+            'legacy': './bla_exp/legacy/id={exp_id}.legacy.json',
+            'tales': './bla_exp/tales/id={exp_id}.tales.json',
+            'myths': './bla_exp/myths/id={exp_id}.myths.json',
         }
 
     which `bla_exp` is the example filename.

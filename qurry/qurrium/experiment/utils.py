@@ -450,17 +450,14 @@ def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) 
     """
 
     if all(v is not None for v in [commons.serial, commons.summoner_id, commons.summoner_id]):
-        folder = f"./{commons.summoner_name}/"
-        filename = f"index={commons.serial}.id={commons.exp_id}"
-        return folder, filename
+        return f"./{commons.summoner_name}/", f"index={commons.serial}.id={commons.exp_id}"
 
     repeat_times = 1
     folder = folder_with_repeat_times(args.exp_name, repeat_times)
     while os.path.exists(folder):
         repeat_times += 1
         folder = folder_with_repeat_times(args.exp_name, repeat_times)
-    filename = f"{args.exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}.id={commons.exp_id}"
-    return folder, filename
+    return folder, f"id={commons.exp_id}"
 
 
 def ensure_runnable_backend(backend: Union[Backend, str]) -> None:
