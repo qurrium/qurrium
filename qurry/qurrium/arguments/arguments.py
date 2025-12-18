@@ -120,11 +120,12 @@ class ArgumentsPrototype(FileReadableWritableObj):
         }
 
     @classmethod
-    def content_loading(cls, raw_read: dict[str, Any]):
+    def content_loading(cls, raw_read: dict[str, Any], folder_name: Union[str, None] = None):
         """Process the serialized content from the method :meth:`content_writing`
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
+            folder_name (Union[str, None]): The folder name of this experiment. Defaults to None.
 
         Returns:
             tuple["ArgumentsPrototype", "Commonparams", dict[str, Any]]:
@@ -146,6 +147,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
         data_args = v5_to_v7_field_transpose(data_args)
         data_args = v7_to_v9_field_transpose(data_args)
+        data_args["commonparams"]["folder"] = folder_name
 
         return (
             cls.ingest(data_args["arguments"]),
@@ -162,13 +164,15 @@ class ArgumentsPrototype(FileReadableWritableObj):
             save_location (Path): The location of exported experiment file.
             exp_id (Union[str, None], optional): The experiment ID. Defaults to None.
         """
-        if "args" not in file_index:
-            raise KeyError("The file index does not contain 'args' key.")
+        if "args" not in file_index and "folder" not in file_index:
+            raise KeyError("The file index does not contain 'args' or 'folder' key.")
         if exp_id is None:
             raise ValueError("exp_id must be provided to read the arguments.")
 
         with open(save_location / file_index["args"], "r", encoding=DEFAULT_ENCODING) as f:
-            arguments, commonparams, outfields = cls.content_loading(json.load(f))
+            arguments, commonparams, outfields = cls.content_loading(
+                json.load(f), folder_name=file_index["folder"]
+            )
 
         assert isinstance(arguments, cls), (
             f"Expected arguments to be of type {cls}, got {type(arguments)}"

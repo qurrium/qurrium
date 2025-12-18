@@ -435,7 +435,7 @@ def folder_with_repeat_times(exp_name: str, repeat_times: int) -> str:
     Returns:
         str: The folder name with repeat times.
     """
-    return f"./{exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}/"
+    return f"{exp_name}.{str(repeat_times).rjust(RJUST_LEN, '0')}"
 
 
 def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) -> tuple[str, str]:
@@ -449,8 +449,18 @@ def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) 
         tuple[str, str]: The folder and filename for the experiment.
     """
 
-    if all(v is not None for v in [commons.serial, commons.summoner_id, commons.summoner_id]):
-        return f"./{commons.summoner_name}/", f"index={commons.serial}.id={commons.exp_id}"
+    if (
+        commons.serial is not None
+        and commons.exp_id is not None
+        and commons.summoner_name is not None
+    ):
+        return (
+            commons.summoner_name,
+            f"index={commons.serial}.id={commons.exp_id}",
+        )
+
+    if commons.folder is not None:
+        return str(commons.folder), f"id={commons.exp_id}"
 
     repeat_times = 1
     folder = folder_with_repeat_times(args.exp_name, repeat_times)

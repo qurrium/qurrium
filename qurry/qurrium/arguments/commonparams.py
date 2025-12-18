@@ -109,6 +109,11 @@ class Commonparams(NamedTuple):
     datetimes: DatetimeDict
     """The datetime of experiment."""
 
+    folder: Optional[str] = None
+    """The folder of experiment, which is set when reading the experiment from file.
+    If this is None, then the experiment is newly created. Only used for internal processing.
+    """
+
     @staticmethod
     def default_value() -> CommonparamsDict:
         """The default value of each field."""
@@ -134,9 +139,10 @@ class Commonparams(NamedTuple):
             dict[str, Any]: The exported common parameters.
         """
         # pylint: disable=no-member
-        commons = jsonablize(self._asdict())
+        commons: dict[str, Any] = jsonablize(self._asdict())
         # pylint: enable=no-member
         commons["backend"] = backend_name_getter(self.backend)
+        commons.pop("folder", None)
         return commons
 
     @classmethod
