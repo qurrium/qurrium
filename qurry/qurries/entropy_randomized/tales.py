@@ -30,12 +30,15 @@ class EntropyMeasureTales(Tales[EntropyMeasureTalesTypes]):
         Returns:
             dict[str, Any]: The serializable data.
         """
+        unitary_operator = self.get("unitary_operator", {})
+        bloch_vector = self.get("bloch_vector", {})
+
         dedicated = {
             "unitary_operator": {
                 n_u_i: {n_u_qi: np.array(op, dtype=str).tolist() for n_u_qi, op in ops.items()}
-                for n_u_i, ops in self["unitary_operator"].items()
+                for n_u_i, ops in unitary_operator.items()
             },
-            "bloch_vector": self["bloch_vector"],
+            "bloch_vector": bloch_vector,
         }
         others = jsonablize({k: v for k, v in self.items() if k not in dedicated})
 
