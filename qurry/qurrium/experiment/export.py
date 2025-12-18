@@ -6,11 +6,18 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 
-from ...capsule import quick_json_write, DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE, jsonablize
+from ...capsule import (
+    quick_json_write,
+    DEFAULT_ENCODING,
+    DEFAULT_INDENT,
+    DEFAULT_MODE,
+    jsonablize,
+    CustomDict,
+)
 from ...capsule.mori import WrittenQueueUnit, WritableQueueUnit, UniversalWriterABC
 
 
-class QurryInfo(dict[str, dict[str, str]]):
+class QurryInfo(CustomDict[str, dict[str, str]]):
     """The type for qurryinfo dictionary."""
 
     def __init__(self, *, qurryinfo_dict: Union[dict[str, dict[str, str]], None] = None):

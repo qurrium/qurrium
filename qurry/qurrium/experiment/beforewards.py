@@ -3,12 +3,14 @@
 import json
 from typing import Optional, Any, Union
 from pathlib import Path
+import warnings
 from dataclasses import dataclass, fields
 
 from qiskit import QuantumCircuit
 
 from ..container import WCKeyable
 from ..utils.qasm import qasm_loads
+from ..exceptions import OldFormatedIncompatibleWarning
 from ...capsule import DEFAULT_ENCODING
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
@@ -162,6 +164,10 @@ class Before(FileReadableWritableObj):
         Returns:
             Before: The experiment's beforewards data.
         """
+        if "adventures" in raw_read:
+            warnings.warn("Reading old format 'adventures' field", OldFormatedIncompatibleWarning)
+            raw_read["advent"] = raw_read.pop("adventures")
+
         if "advent" not in raw_read:
             raise KeyError("The 'advent' field is missing in the raw read data.")
         if not isinstance(raw_read["advent"], dict):

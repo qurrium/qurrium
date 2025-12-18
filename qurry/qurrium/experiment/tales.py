@@ -3,7 +3,9 @@
 import json
 from typing import Any, TypeVar, Generic, cast
 from pathlib import Path
+import warnings
 
+from ..exceptions import OldFormatedIncompatibleWarning, MSG_V7_FILE_FORMAT_INCOMPATIBLE
 from ...capsule import jsonablize, DEFAULT_ENCODING, CustomDict
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
@@ -53,9 +55,6 @@ class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
 
     >>> 42
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def as_typed(self) -> _SPT:
         """Return self as the typed version for type checking."""
@@ -136,12 +135,15 @@ class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
             Tales: The side product container.
         """
         if FOLDER_NAME not in file_index:
+            if "myths" not in file_index:
+                warnings.warn(MSG_V7_FILE_FORMAT_INCOMPATIBLE, OldFormatedIncompatibleWarning)
+                return cls()
             raise KeyError(f"The '{FOLDER_NAME}' field is missing in the file index.")
 
         with open(save_location / file_index[FOLDER_NAME], "r", encoding=DEFAULT_ENCODING) as f:
             side_products = cls.content_loading(json.load(f))
 
-        return side_products
+        return cls(side_products)
 
 
 _SP = TypeVar("_SP", bound="Tales")

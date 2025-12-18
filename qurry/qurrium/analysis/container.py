@@ -2,9 +2,11 @@
 
 from typing import Any, Optional
 from pathlib import Path
+import warnings
 import json
 
 from .analysis import _R
+from ..exceptions import OldFormatedIncompatibleWarning, MSG_V7_FILE_FORMAT_INCOMPATIBLE
 from ...capsule import DEFAULT_ENCODING, DEFAULT_INDENT
 from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 
@@ -110,8 +112,14 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         Returns:
             The analysis instances in dictionary.
         """
+        if analysis_instance is None:
+            raise ValueError("analysis_instance must be provided to read the analyses.")
+
         if FOLDER_NAME not in file_index:
-            raise KeyError(f"The file index does not contain '{FOLDER_NAME}' key.")
+            if "reports" in file_index or "tales" not in file_index:
+                warnings.warn(MSG_V7_FILE_FORMAT_INCOMPATIBLE, OldFormatedIncompatibleWarning)
+                return cls(analysis_instance=analysis_instance)
+            raise KeyError(f"The '{FOLDER_NAME}' field is missing in the file index.")
         if analysis_instance is None:
             raise ValueError("analysis_instance must be provided to read the analyses.")
 
