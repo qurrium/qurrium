@@ -45,8 +45,9 @@ class MultiManager(Generic[_E]):
 
     exps: ExperimentContainer[_E]
     """The experiments container."""
-    # quantity_container: QuantityContainer[tuple[str, ...]]
-    # """The container of quantity."""
+
+    quantity_info: MutltiQuantityInfo
+    """The quantity information among multiple experiments."""
 
     qurryinfo: QurryInfo
     """The qurryinfo of the multi-experiment.
