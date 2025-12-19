@@ -45,7 +45,8 @@ class SUArguments(ArgumentsPrototype):
 
     shadow_basis: ShadowRandomBasis
     """The method to generate random basis for classical shadow.
-    It can be set to :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+    It can be set to 
+    :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
     or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
     random_basis: dict[int, dict[int, int]]
     """The random basis for classical shadow.

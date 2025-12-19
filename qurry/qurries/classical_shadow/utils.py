@@ -38,7 +38,8 @@ def make_samplied_circuit(
     """
     if not isinstance(shadow_basis, ShadowRandomBasis):
         raise TypeError(
-            f"The shadow_basis should be an instance of ShadowRandomBasis, but get {type(shadow_basis)}"
+            "The shadow_basis should be an instance of ShadowRandomBasis, "
+            + f"but get {type(shadow_basis)}"
         )
 
     old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name

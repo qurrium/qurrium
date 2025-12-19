@@ -243,7 +243,8 @@ class EMRProcessEntries(ProcessEntriesPrototype):
 
 @dataclass(frozen=True)
 class EMRTargetSystemResult(AnalysisResultsPrototype):
-    """The target system result of :class:`~qurry.qurries.entropy_randomized.analysis.EMRAnalysis`."""
+    """The target system result of 
+    :class:`~qurry.qurries.entropy_randomized.analysis.EMRAnalysis`."""
 
     __name__ = "EMRTargetSystemResult"
 
