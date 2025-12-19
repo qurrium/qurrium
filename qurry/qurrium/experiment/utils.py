@@ -185,7 +185,7 @@ def _target_dumps_worker(
             The export version of OpenQASM.
 
     Returns:
-        tuple[str, str]: A tuple containing the key as a string and the OpenQASM string of the circuit.
+        A tuple containing the key as a string and the OpenQASM string of the circuit.
     """
     key, circuit = item
     return str(key), qasm_dumps(circuit, qasm_version)
@@ -228,6 +228,91 @@ def make_qasm_strings(
     return circuit_qasm_strings, target_qasm_strings
 
 
+def inner_process_transpile_func(
+    circuits: list[QuantumCircuit],
+    transpile_args: TranspileArgs,
+    backend: Backend,
+    multiprocess: bool = False,
+    pbar: Optional[tqdm.tqdm] = None,
+) -> list[QuantumCircuit]:
+    """The inner process for transpiling the circuits without passmanager.
+
+    Args:
+        circuits (list[QuantumCircuit]):
+            The circuits to be transpiled.
+        transpile_args (TranspileArgs):
+            The transpile arguments.
+        backend (Backend):
+            The backend to be used for transpilation.
+        exp_id (str):
+            The experiment ID, used for warning messages.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to False.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+
+    Returns:
+        list[QuantumCircuit]: The transpiled circuits.
+    """
+    set_pbar_description(pbar, "Circuit transpiling...")
+    transpile_args.pop("num_processes", None)
+    transpiled_circs = transpile(
+        circuits,
+        backend=backend,
+        num_processes=None if multiprocess else 1,
+        **transpile_args,
+    )
+    return transpiled_circs
+
+
+def inner_process_passmanager(
+    circuits: list[QuantumCircuit],
+    transpile_args: TranspileArgs,
+    passmanager_pair: tuple[str, PassManager],
+    exp_id: str,
+    multiprocess: bool = False,
+    pbar: Optional[tqdm.tqdm] = None,
+) -> list[QuantumCircuit]:
+    """The inner process for transpiling the circuits with passmanager.
+
+    Args:
+        circuits (list[QuantumCircuit]):
+            The circuits to be transpiled.
+        transpile_args (TranspileArgs):
+            The transpile arguments.
+        passmanager_pair (tuple[str, PassManager]):
+            The passmanager name and the passmanager to be used.
+        exp_id (str):
+            The experiment ID, used for warning messages.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to False.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+
+    Returns:
+        list[QuantumCircuit]: The transpiled circuits.
+    """
+
+    passmanager_name, passmanager = passmanager_pair
+    if not isinstance(passmanager, PassManager):
+        raise TypeError(
+            "The passmanager must be an instance of PassManager, "
+            + f"not {type(passmanager)} in '{exp_id}'"
+        )
+    set_pbar_description(pbar, f"Circuit transpiling by passmanager '{passmanager_name}'...")
+    transpiled_circs = passmanager.run(
+        circuits=circuits,
+        num_processes=None if multiprocess else 1,  # type: ignore
+    )
+    if len(transpile_args) > 0:
+        warnings.warn(
+            f"Passmanager '{passmanager_name}' is given, "
+            + f"the transpile_args will be ignored in '{exp_id}'",
+            category=TranspileConfigurationIgnored,
+        )
+    return transpiled_circs
+
+
 def process_transpilation(
     circuits: list[QuantumCircuit],
     transpile_args: TranspileArgs,
@@ -259,33 +344,110 @@ def process_transpilation(
         list[QuantumCircuit]: The transpiled circuits.
     """
     if passmanager_pair is None:
-        set_pbar_description(pbar, "Circuit transpiling...")
-        transpile_args.pop("num_processes", None)
-        transpiled_circs = transpile(
-            circuits,
-            backend=backend,
-            num_processes=None if multiprocess else 1,
-            **transpile_args,
-        )
-        return transpiled_circs
+        return inner_process_transpile_func(circuits, transpile_args, backend, multiprocess, pbar)
 
-    passmanager_name, passmanager = passmanager_pair
-    if not isinstance(passmanager, PassManager):
-        raise TypeError(
-            "The passmanager must be an instance of PassManager, "
-            + f"not {type(passmanager)} in '{exp_id}'"
-        )
-    set_pbar_description(pbar, f"Circuit transpiling by passmanager '{passmanager_name}'...")
-    transpiled_circs = passmanager.run(
-        circuits=circuits,
-        num_processes=None if multiprocess else 1,  # type: ignore
+    return inner_process_passmanager(
+        circuits, transpile_args, passmanager_pair, exp_id, multiprocess, pbar
     )
-    if len(transpile_args) > 0:
-        warnings.warn(
-            f"Passmanager '{passmanager_name}' is given, "
-            + f"the transpile_args will be ignored in '{exp_id}'",
-            category=TranspileConfigurationIgnored,
+
+
+def process_duo_transpilation(
+    circuits: list[QuantumCircuit],
+    backend: Backend,
+    transpile_args: TranspileArgs,
+    passmanager_pair: Optional[tuple[str, PassManager]],
+    second_backend: Optional[Backend],
+    second_transpile_args: Optional[TranspileArgs],
+    second_passmanager_pair: Optional[tuple[str, PassManager]],
+    times: int,
+    # other args
+    exp_id: str,
+    multiprocess: bool = False,
+    pbar: Optional[tqdm.tqdm] = None,
+) -> list[QuantumCircuit]:
+    """Process the transpilation of the circuits between 2 list of quantum circuits
+    with respecting to the given backend and transpile arguments.
+
+    Args:
+        circuits (list[QuantumCircuit]):
+            The circuits to be transpiled.
+        backend (Backend):
+            The backend to be used for transpilation.
+        transpile_args (TranspileArgs):
+            The transpile arguments.
+        passmanager_pair (Optional[tuple[str, PassManager]]):
+            The passmanager name and the passmanager to be used.
+        second_backend (Optional[Backend]):
+            The backend to be used for transpilation of the second list of circuits.
+        second_transpile_args (TranspileArgs):
+            The transpile arguments of the second circuit.
+        second_passmanager_pair (Optional[tuple[str, PassManager]]):
+            The passmanager name and the passmanager to be used for the second list of circuits.
+        times (int):
+            The number of circuits for each quantum circuit.
+
+        exp_id (str):
+            The experiment ID, used for warning messages.
+        multiprocess (bool, optional):
+            Whether to use multiprocessing. Defaults to False.
+        pbar (Optional[tqdm.tqdm], optional):
+            The progress bar. Defaults to None.
+
+    Returns:
+        list[QuantumCircuit]: The transpiled circuits.
+    """
+    if len(circuits) != 2 * times:
+        raise ValueError(
+            "The number of circuits should be 2 times the 'times' argument."
+            + f" Get {len(circuits)}, expect {2 * times}."
         )
+
+    transpiled_circs = process_transpilation(
+        circuits=circuits[:times],
+        backend=backend,
+        transpile_args=transpile_args,
+        passmanager_pair=passmanager_pair,
+        exp_id=exp_id,
+        multiprocess=multiprocess,
+        pbar=pbar,
+    )
+
+    assert len(transpiled_circs) == times, (
+        "The number of transpiled circuits is not correct."
+        + f" Get {len(transpiled_circs)}, expect {times}."
+    )
+
+    actual_second_backend = backend if second_backend is None else second_backend
+    if second_passmanager_pair is not None:
+        ignored_transpile_args = (
+            transpile_args if second_transpile_args is None else second_transpile_args
+        )
+        transpiled_circs += inner_process_passmanager(
+            circuits[times:],
+            ignored_transpile_args,
+            second_passmanager_pair,
+            exp_id,
+            multiprocess,
+            pbar,
+        )
+    elif second_transpile_args is not None:
+        transpiled_circs += inner_process_transpile_func(
+            circuits[times:], second_transpile_args, actual_second_backend, multiprocess, pbar
+        )
+    elif passmanager_pair is not None:
+        transpiled_circs += inner_process_passmanager(
+            circuits[times:], transpile_args, passmanager_pair, exp_id, multiprocess, pbar
+        )
+    else:
+        transpiled_circs += inner_process_transpile_func(
+            circuits[times:], transpile_args, actual_second_backend, multiprocess, pbar
+        )
+
+    assert len(transpiled_circs) == 2 * times, (
+        "The number of transpiled circuits is not correct, "
+        + f"expected {2 * times}, but got {len(transpiled_circs)}."
+    )
+
     return transpiled_circs
 
 

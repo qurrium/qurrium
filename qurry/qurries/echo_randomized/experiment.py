@@ -6,7 +6,7 @@ from pathlib import Path
 import warnings
 import tqdm
 
-from qiskit import transpile, QuantumCircuit
+from qiskit import QuantumCircuit
 from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
@@ -27,8 +27,8 @@ from ...qurrium.experiment import (
     memory_usage_factor_expect,
     make_qasm_strings,
     ensure_runnable_backend,
+    process_duo_transpilation,
 )
-from ...qurrium.exceptions import TranspileConfigurationIgnored
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap import DEFAULT_PROCESS_BACKEND
@@ -390,20 +390,13 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
             pbar=pbar,
             **custom_and_main_kwargs,
         )
-        if not isinstance(current_exp.commons.backend, Backend):
-            if isinstance(backend, Backend):
-                set_pbar_description(pbar, "Backend replacing...")
-                current_exp.replace_backend(backend)
-            else:
-                raise ValueError(
-                    "No vaild backend to run, exisited backend: "
-                    + f"{current_exp.commons.backend} as type "
-                    + f"{type(current_exp.commons.backend)}, "
-                    + f"given backend: {backend} as type {type(backend)}."
-                )
         assert isinstance(current_exp.commons.backend, Backend), (
             f"Invalid backend: {current_exp.commons.backend} as "
             + f"type {type(current_exp.commons.backend)}. "
+        )
+        assert isinstance(current_exp.args.second_backend, (Backend, type(None))), (
+            f"Invalid second backend: {current_exp.args.second_backend} as "
+            + f"type {type(current_exp.args.second_backend)}. "
         )
 
         # circuit
@@ -422,99 +415,19 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
         current_exp.beforewards.target_qasm.extend(target_qasm_strings)
 
-        transpiled_circs: list[QuantumCircuit] = []
-        # transpile
-        if passmanager_pair is not None:
-            passmanager_name, passmanager = passmanager_pair
-            set_pbar_description(
-                pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
-            )
-            transpiled_circs += passmanager.run(circuits=cirqs[: current_exp.args.times])
-            if len(current_exp.commons.transpile_args) > 0:
-                warnings.warn(
-                    f"Passmanager '{passmanager_name}' is given, "
-                    + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=TranspileConfigurationIgnored,
-                )
-        else:
-            set_pbar_description(pbar, "Circuit transpiling...")
-            transpile_args = current_exp.commons.transpile_args.copy()
-            transpile_args.pop("num_processes", None)
-            transpiled_circs += transpile(
-                cirqs[: current_exp.args.times],
-                backend=current_exp.commons.backend,
-                num_processes=None if multiprocess else 1,
-                **transpile_args,  # type: ignore
-            )
-
-        assert isinstance(current_exp.args.second_backend, (Backend, type(None))), (
-            "second_backend should be Backend or not given, "
-            + f"but got {type(current_exp.args.second_backend)}."
+        transpiled_circs = process_duo_transpilation(
+            circuits=cirqs,
+            backend=current_exp.commons.backend,
+            transpile_args=current_exp.commons.transpile_args.copy(),
+            passmanager_pair=passmanager_pair,
+            second_backend=current_exp.args.second_backend,
+            second_transpile_args=current_exp.args.second_transpile_args,
+            second_passmanager_pair=second_passmanager_pair,
+            times=current_exp.args.times,
+            exp_id=current_exp.exp_id,
+            multiprocess=multiprocess,
+            pbar=pbar,
         )
-        if second_passmanager_pair is not None:
-            second_passmanager_name, second_passmanager = second_passmanager_pair
-            set_pbar_description(
-                pbar, f"Circuit transpiling by second passmanager '{second_passmanager_name}'..."
-            )
-            transpiled_circs += second_passmanager.run(
-                circuits=cirqs[current_exp.args.times :],
-                num_processes=None if multiprocess else 1,  # type: ignore
-            )
-            if current_exp.args.second_transpile_args is not None:
-                warnings.warn(
-                    f"Passmanager '{passmanager_name}' is given, "
-                    + f"the second_transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=TranspileConfigurationIgnored,
-                )
-        elif current_exp.args.second_transpile_args is not None:
-            second_transpile_args = current_exp.args.second_transpile_args.copy()
-            second_transpile_args.pop("num_processes", None)
-            transpiled_circs += transpile(
-                cirqs[current_exp.args.times :],
-                backend=(
-                    current_exp.commons.backend
-                    if current_exp.args.second_backend is None
-                    else current_exp.args.second_backend
-                ),
-                num_processes=None if multiprocess else 1,
-                **second_transpile_args,
-            )
-        elif passmanager_pair is not None:
-            passmanager_name, passmanager = passmanager_pair
-            set_pbar_description(
-                pbar, f"Circuit transpiling by passmanager '{passmanager_name}'..."
-            )
-
-            transpiled_circs += passmanager.run(
-                circuits=cirqs[current_exp.args.times :],
-                num_processes=None if multiprocess else 1,  # type: ignore
-            )
-            if len(current_exp.commons.transpile_args) > 0:
-                warnings.warn(
-                    f"Passmanager '{passmanager_name}' is given, "
-                    + f"the transpile_args will be ignored in '{current_exp.exp_id}'",
-                    category=TranspileConfigurationIgnored,
-                )
-        else:
-            set_pbar_description(pbar, "Circuit transpiling...")
-            transpile_args = current_exp.commons.transpile_args.copy()
-            transpile_args.pop("num_processes", None)
-            transpiled_circs += transpile(
-                cirqs[current_exp.args.times :],
-                backend=(
-                    current_exp.commons.backend
-                    if current_exp.args.second_backend is None
-                    else current_exp.args.second_backend
-                ),
-                num_processes=None if multiprocess else 1,
-                **transpile_args,
-            )
-
-        assert len(transpiled_circs) == 2 * current_exp.args.times, (
-            "The number of transpiled circuits is not correct, "
-            + f"expected {2 * current_exp.args.times}, but got {len(transpiled_circs)}."
-        )
-
         set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
 
@@ -539,16 +452,12 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         return current_exp
 
     # local execution
-    def run(
-        self,
-        pbar: Optional[tqdm.tqdm] = None,
-    ) -> str:
+    def run(self, pbar: Optional[tqdm.tqdm] = None) -> str:
         """Export the result after running the job.
 
         Args:
             pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Raises:
             ValueError: No circuit ready.

@@ -12,6 +12,7 @@ from .utils import (
     summonner_check,
     make_qasm_strings,
     process_transpilation,
+    process_duo_transpilation,
     make_statesheet,
     create_save_location,
     decide_folder_and_filename,

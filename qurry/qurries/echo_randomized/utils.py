@@ -1,12 +1,9 @@
 """EchoListenRandomized - Utility (:mod:`qurry.qurries.echo_randomized.utils`)"""
 
 from typing import Union, Optional, Literal
-import warnings
 import tqdm
 
-from qiskit import QuantumCircuit, transpile
-from qiskit.providers import Backend
-from qiskit.transpiler.passmanager import PassManager
+from qiskit import QuantumCircuit
 
 from .arguments import ELRArguments
 from .exceptions import (
@@ -15,8 +12,7 @@ from .exceptions import (
     OverlapComparisonSizeDifferent,
     NSG_OVERLAPPING_SIZE,
 )
-from ...qurrium import WCKeyable, TranspileArgs
-from ...qurrium.exceptions import TranspileConfigurationIgnored
+from ...qurrium import WCKeyable
 from ..entropy_randomized import EntropyMeasureTalesTypes
 from ..entropy_randomized.utils import make_samplied_circuit, make_unitary_op_pauli_coeff
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering, MSG_FULL_COVER
@@ -359,78 +355,3 @@ def method_process(
         "unitary_operator": {i: u_op for i, u_op, _p_c in other_results},
         "bloch_vector": {i: p_c for i, _u_op, p_c in other_results},
     }
-
-
-def process_duo_transpilation(
-    circuits: list[QuantumCircuit],
-    backend: Backend,
-    transpile_args: TranspileArgs,
-    passmanager_pair: Optional[tuple[str, PassManager]],
-    second_backend: Backend,
-    second_transpile_args: TranspileArgs,
-    second_passmanager_pair: Optional[tuple[str, PassManager]],
-    times: int,
-    exp_id: str,
-    multiprocess: bool = False,
-    pbar: Optional[tqdm.tqdm] = None,
-) -> list[QuantumCircuit]:
-    """Process the transpilation of the circuits between 2 list of quantum circuits
-    with respecting to the given backend and transpile arguments.
-
-    Args:
-        circuits (list[QuantumCircuit]):
-            The circuits to be transpiled.
-        backend (Backend):
-            The backend to be used for transpilation.
-        transpile_args (TranspileArgs):
-            The transpile arguments.
-        passmanager_pair (Optional[tuple[str, PassManager]]):
-            The passmanager name and the passmanager to be used.
-        second_backend (Backend):
-            The backend to be used for transpilation of the second list of circuits.
-        second_transpile_args (TranspileArgs):
-            The transpile arguments of the second circuit.
-        second_passmanager_pair (Optional[tuple[str, PassManager]]):
-            The passmanager name and the passmanager to be used for the second list of circuits.
-        times (int):
-            The number of circuits for each quantum circuit.
-
-        exp_id (str):
-            The experiment ID, used for warning messages.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to False.
-        pbar (Optional[tqdm.tqdm], optional):
-            The progress bar. Defaults to None.
-
-    Returns:
-        list[QuantumCircuit]: The transpiled circuits.
-    """
-    if passmanager_pair is None:
-        set_pbar_description(pbar, "Circuit transpiling...")
-        transpile_args.pop("num_processes", None)
-        transpiled_circs = transpile(
-            circuits,
-            backend=backend,
-            num_processes=None if multiprocess else 1,
-            **transpile_args,
-        )
-    else:
-        passmanager_name, passmanager = passmanager_pair
-        if not isinstance(passmanager, PassManager):
-            raise TypeError(
-                "The passmanager must be an instance of PassManager, "
-                + f"not {type(passmanager)} in '{exp_id}'"
-            )
-        set_pbar_description(pbar, f"Circuit transpiling by passmanager '{passmanager_name}'...")
-        transpiled_circs = passmanager.run(
-            circuits=circuits[:times],
-            num_processes=None if multiprocess else 1,  # type: ignore
-        )
-        if len(transpile_args) > 0:
-            warnings.warn(
-                f"Passmanager '{passmanager_name}' is given, "
-                + f"the transpile_args will be ignored in '{exp_id}'",
-                category=TranspileConfigurationIgnored,
-            )
-
-    return transpiled_circs
