@@ -267,7 +267,8 @@ class ShadowRandomBasis:
         """Initialize the ShadowRandomBasis with specified basis gates.
 
         Args:
-            basis_0_gates (tuple[Gate, ...]): Tuple of Gate objects representing the measurement bases.
+            basis_0_gates (tuple[Gate, ...]):
+                Tuple of Gate objects representing the measurement bases.
         """
         tmp_gates = (basis_0_gates, basis_1_gates, basis_2_gates)
 

@@ -248,7 +248,6 @@ def randomized_entangled_entropy_mitigated_v1(
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     workers_num: Optional[int] = None,
     existed_all_system: Optional[AllSystemResultV1] = None,
-    pbar: Optional[tqdm.tqdm] = None,
 ) -> tuple[TargetSystemResultV1, AllSystemResultV1, MitigatedResult]:
     """Calculate entangled entropy with depolarizing error mitigation.
     The entropy we compute is the Second Order Rényi Entropy.
@@ -380,11 +379,6 @@ def randomized_entangled_entropy_mitigated_v1(
             All system source should contain
             `purityCellsAllSys`, `bitStringRange`, `measureActually`, `source` for its name.
             This can save a lot of time
-            Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional):
-            The progress bar API,
-            you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
-            This function will update the progress bar description.
             Defaults to None.
 
     Returns:
