@@ -1,5 +1,6 @@
 """ShadowUnveil - Analysis (:mod:`qurry.qurries.classical_shadow.analysis`)"""
 
+# pylint: disable=too-many-lines
 from typing import Optional, Iterable, Any, Union, Literal
 from dataclasses import dataclass
 import numpy as np

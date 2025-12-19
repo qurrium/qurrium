@@ -73,10 +73,10 @@ def rho_m_core_py(
 
             Here are the built-in basis sets:
             - `RX_RY_RZ`:
-                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, 
+                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`,
                 and :math:`R_Z(0)` gates.
             - `H_H-Sdg_I`:
-                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, 
+                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
 
     Returns:
@@ -309,10 +309,10 @@ def rho_core(
 
             Here are the built-in basis sets:
             - `RX_RY_RZ`:
-                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, 
+                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`,
                 and :math:`R_Z(0)` gates.
             - `H_H-Sdg_I`:
-                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, 
+                Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
 
     Returns:

@@ -81,9 +81,9 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             shadow_basis_method (Optional[ShadowBasisType], optional):
                 The classical shadow basis for sampling. It can be set to
                 :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
-                or 
+                or
                 :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
-                Defaults to None, which use the default Pauli basis from 
+                Defaults to None, which use the default Pauli basis from
                 :meth:`ShadowBasisMethod.`.
             random_basis (Optional[dict[int, dict[int, int]]], optional):
                 The random basis for classical shadow.

@@ -14,7 +14,7 @@ from .parallelmanager import (
     DEFAULT_POOL_SIZE,
     DEFAULT_START_METHOD,
     very_easy_chunk_size,
-    very_easy_chunk_distribution
+    very_easy_chunk_distribution,
 )
 from .progressbar import qurry_progressbar, set_pbar_description
 from .datetime import current_time, DatetimeDict
