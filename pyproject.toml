@@ -233,8 +233,9 @@ disable = [
 ]
 # Respecting command line options of pylint
 # This will be useful when you configure pylint in your IDE
-# --max-line-length=105
-# --max-parents=10
+# pylint ./qurry
+# --max-line-length=100 --max-parents=10
+# --ignore-docstrings --ignore-comments --min-similarity-lines=6
 # --disable=R0801,R0902,R0903,R0904,R0912,R0913,R0914,R0915,R0917,R1702
 
 
@@ -258,3 +259,11 @@ lint.ignore = ["F401", "E203", "W291", "F841"]
 # module level import of this package need before boorust setup
 "qurry/process/utils/dummy.py" = ["E731"]
 # The only file allows lambda assignment for a specific function
+
+# Respecting command line options of ruff
+# This will be useful when you configure ruff in your IDE
+# ruff check 
+# --line-length=100 --target-version=py39 --select=E4,E7,E9,F 
+# --ignore=F401,E203,W291,F841 ./qurry
+# Or with format:
+# ruff format --line-length=100 ./qurry
