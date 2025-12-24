@@ -29,15 +29,7 @@ from .jsonablize import (
     parse as jsonablize,
     quick_json_write as quickJSON,
     quick_json_write,
-    sort_hashable_ahead,
 )
 # pylint: enable=reimported
 
-__all__ = [
-    "key_tuple_loads",
-    "tuple_str_parse",
-    "jsonablize",
-    "quickJSON",
-    "quick_json_write",
-    "sort_hashable_ahead",
-]
+__all__ = ["key_tuple_loads", "tuple_str_parse", "jsonablize", "quickJSON", "quick_json_write"]

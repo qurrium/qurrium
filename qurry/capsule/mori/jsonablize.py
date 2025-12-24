@@ -1,20 +1,19 @@
 """The JSON Writer (:mod:`qurry.capsule.mori.jsonablize`)"""
 
 import os
-from typing import Union, Any, Optional, TypeVar
-from collections import OrderedDict
-from collections.abc import Iterable, Hashable
+from typing import Union, Any, Optional
 import json
 from pathlib import Path
 import numpy as np
 
 from ..utils import DEFAULT_ENCODING, DEFAULT_INDENT
 
-_K = TypeVar("_K")
-_V = TypeVar("_V")
+
+SCALAR_VALUES = (str, int, float, bool, type(None))
+"""The scalar value types."""
 
 
-def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
+def value_parse(v: Any) -> Union[str, int, float, bool, None]:
     """Make value JSON-allowable.
     If a value is not allowed by :func:`~json.dumps`, then return its `str` representation.
 
@@ -25,11 +24,13 @@ def value_parse(v: Any) -> Union[Iterable, str, int, float, bool, None]:
         A JSON-allowable value, which can be an iterable, str, int, float, bool or None.
     """
 
-    try:
-        json.dumps(v)
+    # skip for basic supported types
+    if isinstance(v, SCALAR_VALUES):
         return v
-    except TypeError:
+    # Check for complex numbers
+    if isinstance(v, complex):
         return str(v)
+    return str(v)
 
 
 def key_parse(k: Any) -> Union[str, int, float, bool, None]:
@@ -43,12 +44,11 @@ def key_parse(k: Any) -> Union[str, int, float, bool, None]:
         A JSON-allowable key, which can be str, int, float, bool or None.
     """
 
+    if isinstance(k, SCALAR_VALUES):
+        return k
+    # Convert tuple keys to strings
     if isinstance(k, tuple):
         return str(k)
-    if isinstance(k, (str, int, float, bool)):
-        return k
-    if k is None:
-        return k
     return str(k)
 
 
@@ -62,9 +62,7 @@ def parse(o: Any) -> Any:
         Any: JSON-allowable object.
     """
 
-    if isinstance(o, list):
-        return [parse(v) for v in o]
-    if isinstance(o, tuple):
+    if isinstance(o, (list, tuple)):
         return [parse(v) for v in o]
     if isinstance(o, dict):
         return {key_parse(k): parse(v) for k, v in o.items()}
@@ -75,25 +73,16 @@ def parse(o: Any) -> Any:
     return value_parse(o)
 
 
-def sort_hashable_ahead(o: dict[_K, _V]) -> dict[_K, _V]:
-    """Make hashable values be the ahead in dictionary."
+def is_scalar_list(o: Any) -> bool:
+    """Check if the object is a list of scalar values.
 
     Args:
-        o (dict): Unsorted dictionary.
+        o (Any): Object to be checked.
 
     Returns:
-        dict: Sorted dictionary.
+        bool: True if the object is a list of scalar values, False otherwise.
     """
-    sort_o = OrderedDict()
-    for k, v in o.items():
-        if isinstance(v, Hashable):
-            sort_o[k] = v
-
-    for k, v in o.items():
-        if k not in sort_o:
-            sort_o[k] = v
-
-    return sort_o
+    return isinstance(o, list) and all(isinstance(x, SCALAR_VALUES) for x in o)
 
 
 def quick_json_write(
@@ -103,6 +92,7 @@ def quick_json_write(
     indent: int = DEFAULT_INDENT,
     encoding: str = DEFAULT_ENCODING,
     jsonable: bool = False,
+    cls: Optional[type[json.JSONEncoder]] = None,
     save_location: Union[Path, str] = Path("./"),
     mute: bool = True,
 ) -> Optional[str]:
@@ -118,6 +108,8 @@ def quick_json_write(
             Whether to transpile all object to JSON-allowable object.
             If True, it will use :func:`parse` to transpile the content.
             Defaults to False.
+        cls (Optional[type[json.JSONEncoder]], optional):
+            The JSON encoder class. Defaults to :class:`MoriJSONEncoder`.
         save_location (Union[Path, str], optional): Location of files. Defaults to Path('./').
         mute (bool, optional): Mute the exportation. Defaults to True.
 
@@ -133,9 +125,9 @@ def quick_json_write(
 
     with open(save_loc_w_name, mode, encoding=encoding) as file:
         if jsonable:
-            json.dump(parse(content), file, indent=indent, ensure_ascii=False)
+            json.dump(parse(content), file, indent=indent, ensure_ascii=False, cls=cls)
         else:
-            json.dump(content, file, indent=indent, ensure_ascii=False)
+            json.dump(content, file, indent=indent, ensure_ascii=False, cls=cls)
     if not mute:
         return f"'{save_loc_w_name}' exported successfully."
     return None
