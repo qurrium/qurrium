@@ -219,14 +219,14 @@ def preparing_all_system(
         selected_clregs_sorted_existed_all_system = sorted(
             existed_all_system["classical_registers_actually"]
         )
-        if selected_clregs_sorted_existed_all_system != total_system_size:
+        if total_system_size != len(selected_clregs_sorted_existed_all_system):
             raise ValueError(
                 "The number of classical registers is not matched with the existed all system. "
                 + "total_system_size != "
                 + "len(existed_all_system['classical_registers_actually']): "
                 + f"{total_system_size} != {len(selected_clregs_sorted_existed_all_system)}"
             )
-        if selected_clregs_sorted_existed_all_system != selected_clregs_sorted:
+        if selected_clregs_sorted != selected_clregs_sorted_existed_all_system:
             raise ValueError(
                 "The selected classical registers is not matched with the existed all system. "
                 + "selected_classical_registers != "
