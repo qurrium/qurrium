@@ -63,10 +63,8 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         num_qubits = target_circuit.num_qubits
         degree = qubit_selector(num_qubits, degree=degree)
 
-        exp_name = f"{exp_name}.degree_{degree[0]}_{degree[1]}.{SHORT_NAME}"
-
         return EMHArguments.filter(
-            exp_name=exp_name,
+            exp_name=f"{exp_name}.{SHORT_NAME}",
             target_keys=[target_key],
             degree=degree,
             **custom_kwargs,

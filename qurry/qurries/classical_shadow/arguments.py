@@ -213,7 +213,7 @@ class SUOutputArgs(OutputArgs):
     """
 
 
-SHORT_NAME = "qurshady_entropy"
+SHORT_NAME = "classical_shadow"
 """The short name of :class:`~qurry.qurries.classical_shadow.qurry.ShadowUnveil`."""
 
 ACRONYM = "SU"

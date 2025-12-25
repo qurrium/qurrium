@@ -53,7 +53,7 @@ class EMHOutputArgs(OutputArgs):
     """The degree range."""
 
 
-SHORT_NAME = "qurrent_hadamard"
+SHORT_NAME = "entropy_hadamard"
 """The short name of :class:`~qurry.qurries.entropy_hadamard.qurry.EntropyMeasureHadamard`."""
 
 ACRONYM = "EMH"

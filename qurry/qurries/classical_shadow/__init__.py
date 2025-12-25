@@ -90,12 +90,12 @@ Reference:
             bdsk-url-1 = {https://doi.org/10.1038/s42254-022-00535-2}
         }
 
-- Short name: `qurshady_entropy`
+- Short name: `classical_shadow`
 - Acronym: `SU`
 
 """
 
 from .analysis import SUAnalysis
-from .arguments import SUMeasureArgs
+from .arguments import SUMeasureArgs, SHORT_NAME, ACRONYM
 from .experiment import SUExperiment
 from .qurry import ShadowUnveil

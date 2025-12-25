@@ -62,7 +62,7 @@ class SOOutputArgs(OutputArgs):
     """The direction of the string operator, either 'x' or 'y'."""
 
 
-SHORT_NAME = "qurstrop"
+SHORT_NAME = "string_operator"
 """The short name of :class:`~qurry.qurries.string_operator.qurry.StringOperator`."""
 
 ACRONYM = "SO"

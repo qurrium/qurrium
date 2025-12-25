@@ -9,7 +9,7 @@
 
     2.  The initial proposed name for the package was "xproc", short for "experimental process".
 
-    3.  Another module, "qurrech", combines "qurr" with "ech",
+    3.  Another module, which has been merged, "qurrech", combines "qurr" with "ech",
         where "ech" is short for "echo",
         the Loschmidt echo being a key concept in quantum information theory.
         This inspired us to adopt "qurry", derived from "qurr" and the suffix "ry",
@@ -30,14 +30,16 @@
 
     How to name a new Qurrium Runtime Realization:
 
-    - For the short name of a new Qurrium, please follow the rules below:
-        1.  Start with the prefix "qurr", derived from "qurrium".
-        2.  Add a suffix that reflects the core concept or method of the realization.
+    - For the short name of a new Qurrium Runtime, please follow the rules below:
+        1.  Use a descriptive short name that clearly indicates the realization's function.
             For example:
-            - "ent" for entropy-related realizations (e.g., qurrent for entropy measurements).
-            - "ech" for echo-related realizations (e.g., qurrech for Loschmidt echo measurements).
-        3.  Ensure the suffix is concise and indicative of the realization's purpose.
-        4.  Combine the prefix and suffix to form a unique and descriptive short name.
+            - "entropy_randomized" for "entropy" "randomized measure"
+            - "echo_hadamard" for Loschmidt "echo" "hadamard test"
+            - "wave_function_overlap" for "wave function" "overlap", the another name of "echo"
+            - "classical_shadow" for classical shadow realizations.
+        2.  Use lowercase letters and separate words with underscores (_).
+        3.  Ensure the short name is unique within the Qurrium framework to avoid conflicts.
+        4.  Use this short name as the module name in the `qurry.qurries` package.
 
     - For the :class:`~qurrium.qurrium.QurriumPrototype` subclass name,
         please follow the rules below:

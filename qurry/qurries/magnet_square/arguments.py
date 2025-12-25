@@ -96,7 +96,7 @@ class MSOutputArgs(ZMSOutputArgs):
     Defaults to 'z'."""
 
 
-SHORT_NAME = "qurmagsq_generic"
+SHORT_NAME = "magnet_square"
 """The short name of :class:`~qurry.qurries.magnet_square.qurry.MagnetSquare`."""
 
 ACRONYM = "MS"

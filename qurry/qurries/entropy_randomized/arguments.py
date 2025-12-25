@@ -178,7 +178,7 @@ class EMROutputArgs(OutputArgs):
     """
 
 
-SHORT_NAME = "qurrent_randomized"
+SHORT_NAME = "entropy_randomized"
 """The short name of
 :class:`~qurry.qurries.entropy_randomized.qurry.EntropyMeasureRandomized`."""
 

@@ -65,10 +65,8 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         target_key, target_circuit = targets[0]
         actual_qubits = target_circuit.num_qubits
 
-        exp_name = f"{exp_name}.{SHORT_NAME}"
-
         return MSArguments.filter(
-            exp_name=exp_name,
+            exp_name=f"{exp_name}.{SHORT_NAME}",
             target_keys=[target_key],
             unitary_operator=unitary_operator,
             num_qubits=actual_qubits,

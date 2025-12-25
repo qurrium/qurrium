@@ -35,7 +35,7 @@ class ZMSOutputArgs(OutputArgs):
     :meth:`~qurry.qurries.magnet_square_z.qurry.ZDirMagnetSquare.output`."""
 
 
-SHORT_NAME = "qurmagsq_zdir"
+SHORT_NAME = "magnet_square_z"
 """The short name of :class:`~qurry.qurries.magnet_square_z.qurry.ZDirMagnetSquare`."""
 
 ACRONYM = "ZMS"

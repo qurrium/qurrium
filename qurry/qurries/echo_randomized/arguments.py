@@ -317,7 +317,7 @@ class ELROutputArgs(OutputArgs):
     """The passmanager for the second quantum circuit."""
 
 
-SHORT_NAME = "qurrech_randomized"
+SHORT_NAME = "echo_randomized"
 """The short name of :class:`~qurry.qurries.echo_randomized.qurry.EchoListenRandomized`."""
 
 ACRONYM = "ELR"

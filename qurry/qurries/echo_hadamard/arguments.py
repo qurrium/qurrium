@@ -55,7 +55,7 @@ class ELHOutputArgs(OutputArgs):
     """The degree range."""
 
 
-SHORT_NAME = "qurrech_hadamard"
+SHORT_NAME = "echo_hadamard"
 """The short name of :class:`~qurry.qurries.echo_hadamard.qurry.EchoListenHadamard`."""
 
 ACRONYM = "ELH"

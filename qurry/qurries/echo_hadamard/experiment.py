@@ -74,10 +74,8 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
 
         degree = qubit_selector(num_qubits_01, degree=degree)
 
-        exp_name = f"{exp_name}.degree_{degree[0]}_{degree[1]}.{SHORT_NAME}"
-
         return ELHArguments.filter(
-            exp_name=exp_name,
+            exp_name=f"{exp_name}.{SHORT_NAME}",
             target_keys=[target_key_01, target_key_02],
             degree=degree,
             **custom_kwargs,

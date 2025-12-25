@@ -24,7 +24,7 @@ Reference:
             url = {https://link.aps.org/doi/10.1103/PhysRevResearch.4.L022020}
         }
 
-- Short Name: `qurstrop`
+- Short Name: `string_operator`
 - Abbreviation: `SO`
 
 """
@@ -37,6 +37,6 @@ from .utils import (
     STRING_OPERATOR,
 )
 from .analysis import SOAnalysis
-from .arguments import SOMeasureArgs
+from .arguments import SOMeasureArgs, SHORT_NAME, ACRONYM
 from .experiment import SOExperiment
 from .qurry import StringOperator

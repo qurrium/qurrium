@@ -56,10 +56,8 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
         target_key, target_circuit = targets[0]
         actual_qubits = target_circuit.num_qubits
 
-        exp_name = f"{exp_name}.{SHORT_NAME}"
-
         return ZMSArguments.filter(
-            exp_name=exp_name,
+            exp_name=f"{exp_name}.{SHORT_NAME}",
             target_keys=[target_key],
             num_qubits=actual_qubits,
             **custom_kwargs,
