@@ -1,13 +1,9 @@
 """Test qurry.process.magnet_square module."""
 
 from typing import TypedDict, Literal, Union
-import os
 from itertools import combinations
-import json
 import pytest
-import numpy as np
 
-from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.magnet_square import (
     magnet_square_availability,
     magnet_square,
@@ -15,10 +11,7 @@ from qurry.process.magnet_square import (
     MagnetSquareResult,
 )
 
-DUMMY_CASE_FILE_MS = os.path.join(os.path.dirname(__file__), "dummy_data", "magnet_square.json")
-DUMMY_CASE_FILE_MSZDIR = os.path.join(
-    os.path.dirname(__file__), "dummy_data", "magnet_square_zdir.json"
-)
+from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
 
 
 class MagnetSquareZdirTarget(TypedDict):
@@ -75,20 +68,26 @@ ANSWERS = {
 ANSWERS_ERROR = 0.05
 
 
-with open(DUMMY_CASE_FILE_MSZDIR, "r") as f:
-    DUMMY_CASES_JSON_MSZDIR: list[MagnetSquareZdirCase] = json.load(f)
-
+DUMMY_CASE_FILE_MSZDIR = get_dummy_file_path("magnet_square_zdir.json")
+DUMMY_CASES_JSON_MSZDIR: list[MagnetSquareZdirCase] = quick_json_read(DUMMY_CASE_FILE_MSZDIR)
 mszdir_cases_entries = [
     (case["target"], case["answer"], case["case_name"]) for case in DUMMY_CASES_JSON_MSZDIR
 ]
 
 
-with open(DUMMY_CASE_FILE_MS, "r") as f:
-    DUMMY_CASES_JSON_MS: list[MagnetSquareCase] = json.load(f)
-
+DUMMY_CASE_FILE_MS = get_dummy_file_path("magnet_square.json")
+DUMMY_CASES_JSON_MS: list[MagnetSquareCase] = quick_json_read(DUMMY_CASE_FILE_MS)
 ms_cases_entries = [
     (case["target"], case["answer"], case["case_name"]) for case in DUMMY_CASES_JSON_MS
 ]
+
+
+def test_availability():
+    """Test the availability of the Rust backend for the magnet_square function."""
+
+    assert magnet_square_availability[1]["Rust"], (
+        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
+    )
 
 
 @pytest.mark.parametrize(["target", "answer", "case_name"], mszdir_cases_entries)
@@ -96,10 +95,6 @@ def test_magnet_square_zdir(
     target: MagnetSquareZdirTarget, answer: MagnetSquareResult, case_name: str
 ):
     """Test the z_dir_magnetic_square_core function."""
-
-    assert magnet_square_availability[1]["Rust"], (
-        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
-    )
 
     assert len(target["counts"]) == 1, (
         "The counts should be a single item for the z_dir_magnetic_square_core function."
@@ -118,18 +113,18 @@ def test_magnet_square_zdir(
         backend="Rust",
     )
 
-    comparison_target: list[tuple[str, Union[float, np.float64]]] = [
+    comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result["magnet_square"]),
         ("Rust", rust_result["magnet_square"]),
         ("Answer", answer["magnet_square"]),
     ]
     for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
-        assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+        assert numerical_tolerance_check(result_1, result_02), (
             f"{name_1} and {name_02} results are not equal in z_dir_magnetic_square_core: "
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
-        assert np.abs(result_1 - ANSWERS[case_name]) < ANSWERS_ERROR, (
+        assert numerical_tolerance_check(result_1, ANSWERS[case_name]), (
             f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )
@@ -138,10 +133,6 @@ def test_magnet_square_zdir(
 @pytest.mark.parametrize(["target", "answer", "case_name"], ms_cases_entries)
 def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, case_name: str):
     """Test the z_dir_magnetic_square_core function."""
-
-    assert magnet_square_availability[1]["Rust"], (
-        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
-    )
 
     predict_counts_num = target["num_qubits"] * (target["num_qubits"] - 1)
     assert len(target["counts"]) == predict_counts_num, (
@@ -161,18 +152,18 @@ def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, c
         backend="Rust",
     )
 
-    comparison_target: list[tuple[str, Union[float, np.float64]]] = [
+    comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result["magnet_square"]),
         ("Rust", rust_result["magnet_square"]),
         ("Answer", answer["magnet_square"]),
     ]
     for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
-        assert np.abs(result_1 - result_02) < NUMERICAL_ERROR_TOLERANCE, (
+        assert numerical_tolerance_check(result_1, result_02), (
             f"{name_1} and {name_02} results are not equal in magnet_square_core: "
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
-        assert np.abs(result_1 - ANSWERS[case_name]) < ANSWERS_ERROR, (
+        assert numerical_tolerance_check(result_1, ANSWERS[case_name]), (
             f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )
