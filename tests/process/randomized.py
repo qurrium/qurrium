@@ -1,11 +1,11 @@
 """Test qurry.process.randomized_measure module."""
 
-from typing import TypedDict, Literal, Union
+from typing import TypedDict, Any, Union
 from itertools import combinations
 import pytest
 import numpy as np
 
-from qurry.process.utils import cycling_slice, randomized_availability, NUMERICAL_ERROR_TOLERANCE
+from qurry.process.utils import cycling_slice, randomized_availability
 from qurry.process.randomized_measure.entangled_entropy_v1.entangled_entropy import (
     entangled_entropy_core,
 )
@@ -52,39 +52,34 @@ EASY_DUMMY_PATH = get_dummy_file_path("easy_dummy.json")
 easy_dummy_raw: dict[str, dict[str, int]] = quick_json_read(EASY_DUMMY_PATH)
 easy_dummy: dict[int, dict[str, int]] = {int(k): v for k, v in easy_dummy_raw.items()}
 
-DUMMY_CASE_FILE = get_dummy_file_path("randomized.json")
-DUMMY_CASES_JSON: list[RandomizedMeasureCase] = [
-    {
+
+def process_json_read(raw_read_item: dict[str, Any]) -> RandomizedMeasureCase:
+    """Process the raw read item from JSON to RandomizedMeasureCase.
+
+    Args:
+        raw_read_item (dict[str, Any]): The raw read item from JSON.
+
+    Returns:
+        RandomizedMeasureCase: The processed RandomizedMeasureCase.
+    """
+    return {
         "target": {
-            "shots": case["target"]["shots"],
-            "selected_range": tuple(case["target"]["selected_range"])
-            if isinstance(case["target"]["selected_range"], list)
-            else case["target"]["selected_range"],
-            "absolute_range": tuple(case["target"]["absolute_range"]),
+            "shots": raw_read_item["target"]["shots"],
+            "selected_range": tuple(raw_read_item["target"]["selected_range"])
+            if isinstance(raw_read_item["target"]["selected_range"], list)
+            else raw_read_item["target"]["selected_range"],
+            "absolute_range": tuple(raw_read_item["target"]["absolute_range"]),
         },
-        "easy_dummy_usage": case["easy_dummy_usage"],
+        "easy_dummy_usage": raw_read_item["easy_dummy_usage"],
     }
-    for case in quick_json_read(DUMMY_CASE_FILE)
-]
+
+
+DUMMY_CASE_FILE = get_dummy_file_path("randomized.json")
+DUMMY_CASES_JSON = [process_json_read(case) for case in quick_json_read(DUMMY_CASE_FILE)]
 randomized_cases_entries = [
     (case["target"], [easy_dummy[idx] for idx in case["easy_dummy_usage"]])
     for case in DUMMY_CASES_JSON
 ]
-
-
-def test_availability():
-    """Test the availability of the Rust backend for the entangled_entropy_core function."""
-
-    for availability_item in [
-        randomized_availability,
-        entangled_availability,
-        entangled_v1_availability,
-        overlap_availability,
-        overlap_v1_availability,
-    ]:
-        assert availability_item[1]["Rust"], (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
 
 
 def selected_and_cycling_selected_making(
@@ -178,6 +173,21 @@ def averaging_cells(cells: Union[dict[int, float], dict[int, np.float64]]) -> np
         np.float64: The average value of the cells.
     """
     return np.average(np.array(list(cells.values())))
+
+
+def test_availability():
+    """Test the availability of the Rust backend for the entangled_entropy_core function."""
+
+    for availability_item in [
+        randomized_availability,
+        entangled_availability,
+        entangled_v1_availability,
+        overlap_availability,
+        overlap_v1_availability,
+    ]:
+        assert availability_item[1]["Rust"] != "Error", (
+            "Rust is not available." + f" Check the error: {availability_item[2]}"
+        )
 
 
 @pytest.mark.parametrize(["target", "counts"], randomized_cases_entries)

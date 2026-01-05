@@ -85,7 +85,7 @@ ms_cases_entries = [
 def test_availability():
     """Test the availability of the Rust backend for the magnet_square function."""
 
-    assert magnet_square_availability[1]["Rust"], (
+    assert magnet_square_availability[1]["Rust"] != "Error", (
         f"Rust is not available. Check the error: {magnet_square_availability[2]}"
     )
 
@@ -124,7 +124,7 @@ def test_magnet_square_zdir(
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
-        assert numerical_tolerance_check(result_1, ANSWERS[case_name]), (
+        assert numerical_tolerance_check(result_1, ANSWERS[case_name], ANSWERS_ERROR), (
             f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )

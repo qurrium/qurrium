@@ -48,7 +48,7 @@ ensemble_cases_entries: list[tuple[EnsembleTarget, float]] = [
 def test_availability():
     """Test the availability of the Rust backend for the ensemble_cell function."""
 
-    assert randomized_availability[1]["Rust"], (
+    assert randomized_availability[1]["Rust"] != "Error", (
         f"Rust is not available. Check the error: {randomized_availability[2]}"
     )
 

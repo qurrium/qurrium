@@ -38,7 +38,7 @@ hadamard_cases_entries = [(case["target"], case["answer"]) for case in DUMMY_CAS
 def test_availability():
     """Test the availability of the Rust backend for the purity_echo_core function."""
 
-    assert purity_echo_core_availability[1]["Rust"], (
+    assert purity_echo_core_availability[1]["Rust"] != "Error", (
         f"Rust is not available. Check the error: {purity_echo_core_availability[2]}"
     )
 
