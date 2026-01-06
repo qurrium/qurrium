@@ -14,8 +14,6 @@ from qurry.process.utils.bit_slice import (
     cycling_slice as cycling_slice_py,
     cycling_slice_rust,
 )
-
-# pylint: disable=import-error
 from qurry.boorust.test import test_bit_slice as self_test_bit_slice  # type: ignore
 
 
@@ -27,7 +25,7 @@ def test_availability():
         bit_slice_availability,
         dummy_availability,
     ]:
-        assert availability_item[1]["Rust"], (
+        assert availability_item[1]["Rust"] != "Error", (
             "Rust is not available." + f" Check the error: {availability_item[2]}"
         )
 
@@ -46,16 +44,12 @@ test_setup_selector: list[tuple[int, Union[int, tuple[int, int]], str]] = [
     (8, (-5, -1), "Case: tuple[-int, -int]"),
     (8, (3, -2), "Case: tuple[int, -int]"),
 ]
-test_setup_cycling: list[tuple[Union[int, tuple[int, int]], str]] = []
 
 
 @pytest.mark.parametrize("test_items", test_setup_selector)
 def test_qubit_selector(test_items: tuple[int, Union[int, tuple[int, int]], str]):
     """Test the qubit_selector function."""
 
-    assert bit_slice_availability[1]["Rust"], (
-        "Rust is not available." + f" Check the error: {bit_slice_availability[2]}"
-    )
     qubit_selector_py_result = qubit_selector_py(*test_items[:1])
     qubit_selector_rust_result = qubit_selector_rust(*test_items[:1])
 
