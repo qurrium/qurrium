@@ -1,7 +1,6 @@
 """Test qurry.process.string_operator module."""
 
 from typing import TypedDict, Literal
-import os
 from itertools import combinations
 import pytest
 
@@ -11,10 +10,7 @@ from qurry.process.string_operator import (
     StringOperatorResult,
 )
 
-from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
-
-
-FILE_LOCATION = os.path.join(os.path.dirname(__file__), "strop-case.json")
+from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
 
 
 class StringOperatorTarget(TypedDict):

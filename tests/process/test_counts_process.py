@@ -15,7 +15,7 @@ from qurry.process.utils.counts_process import (
     rho_m_flatten_counts_list_vectorize_rust,
 )
 
-from utils import quick_json_read, get_dummy_file_path
+from utilities import quick_json_read, get_dummy_file_path
 
 
 EASY_DUMMY_PATH = get_dummy_file_path("easy_dummy.json")

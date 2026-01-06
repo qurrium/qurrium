@@ -25,7 +25,7 @@ from qurry.process.randomized_measure import (
     overlap_v1_availability,
 )
 
-from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check
+from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check
 
 
 class RandomizedMeasureTarget(TypedDict):

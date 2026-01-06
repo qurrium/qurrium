@@ -11,7 +11,7 @@ from qurry.process.magnet_square import (
     MagnetSquareResult,
 )
 
-from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
 
 
 class MagnetSquareZdirTarget(TypedDict):
@@ -163,7 +163,7 @@ def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, c
             f"{name_1}: {result_1}, {name_02}: {result_02}."
         )
     for name_1, result_1 in comparison_target:
-        assert numerical_tolerance_check(result_1, ANSWERS[case_name]), (
+        assert numerical_tolerance_check(result_1, ANSWERS[case_name], ANSWERS_ERROR), (
             f"Result by {name_1} {result_1} is not close to expected "
             f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
         )

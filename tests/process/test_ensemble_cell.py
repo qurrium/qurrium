@@ -7,7 +7,7 @@ import pytest
 from qurry.process.utils import randomized_availability
 from qurry.process.utils.randomized import ensemble_cell as ensemble_cell_py, ensemble_cell_rust
 
-from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
 
 
 class EnsembleTarget(TypedDict):

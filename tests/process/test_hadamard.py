@@ -7,7 +7,7 @@ import pytest
 from qurry.process.hadamard_test import purity_echo_core_availability
 from qurry.process.hadamard_test.purity_echo_core import purity_echo_core
 
-from utils import quick_json_read, get_dummy_file_path, numerical_tolerance_check
+from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check
 
 
 class HadamardTarget(TypedDict):
