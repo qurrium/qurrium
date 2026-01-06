@@ -159,10 +159,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Wheel build files
 wheelhouse/
 
+# Other filesystem artifacts
 .DS_Store
 @eaDir
 
-
+# Test export folders
 tests/qurrium/exports/
