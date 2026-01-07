@@ -25,22 +25,28 @@ class BasicArgs(TypedDict, total=False):
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
     shots: int
+    """Shots of the job."""
     backend: Optional[Backend]
+    """The quantum backend."""
     exp_name: str
+    """ The name of the experiment."""
     run_args: RunArgsType
+    """Arguments for :meth:`Backend.run`."""
     transpile_args: Optional[TranspileArgs]
+    """Arguments of :func:`~qiskit.compiler.transpile`."""
     passmanager: PassManagerType
+    """The passmanager."""
     tags: Optional[tuple[str, ...]]
-    # already built exp
-    exp_id: Optional[str]
-    new_backend: Optional[Backend]
-    revive: bool
-    replace_circuits: bool
+    """Given tags for the experiment to describe it."""
     # process tool
     qasm_version: Literal["qasm2", "qasm3"]
+    """The export version of OpenQASM."""
     export: bool
+    """Whether to export the experiment."""
     save_location: Optional[Union[Path, str]]
+    """The location to save the experiment."""
     pbar: Optional[tqdm.tqdm]
+    """The progress bar for showing the progress of the experiment."""
 
 
 _MA = TypeVar("_MA", bound=BasicArgs)
