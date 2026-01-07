@@ -248,7 +248,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Given the experiment multiple tags to make a dictionary for recongnizing it.
+                Given tags for the experiment to describe it.
                 Defaults to None.
             serial (Optional[int], optional):
                 Index of experiment in
@@ -392,7 +392,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             passmanager_pair (Optional[tuple[str, PassManager]], optional):
                 The passmanager pair for transpile. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Given the experiment multiple tags to make a dictionary for recongnizing it.
+                Given tags for the experiment to describe it.
                 Defaults to None.
 
             serial (Optional[int], optional):

@@ -166,7 +166,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Given the experiment multiple tags to make a dictionary for recongnizing it.
+                Given tags for the experiment to describe it.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
@@ -251,7 +251,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
             tags (Optional[tuple[str, ...]], optional):
-                Given the experiment multiple tags to make a dictionary for recongnizing it.
+                Given tags for the experiment to describe it.
                 Defaults to None.
 
             exp_id (Optional[str], optional):
