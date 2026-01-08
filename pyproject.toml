@@ -199,6 +199,9 @@ filterwarnings = ["ignore::DeprecationWarning"]
 # Qiskit DeprecationWarning is very annoying,
 # it can raise 100k+ warnings in a single test. WTF?
 
+log_cli = false
+testpaths = ["tests"]
+
 [tool.coverage.run]
 include = ["./qurry/*"]
 omit = ["./tests/*"]

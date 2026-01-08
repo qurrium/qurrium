@@ -166,5 +166,6 @@ wheelhouse/
 .DS_Store
 @eaDir
 
-# Test export folders
-tests/qurrium/exports/
+# Test logs and export folders
+tests/exports/
+tests/logs/
