@@ -101,7 +101,7 @@ class Before:
                 save_location=save_location,
                 mute=True,
             )
-            file_index[key] = str(Path(summoner_name) / filename)
+            file_index[key] = str(Path(save_location) / filename)
 
         return file_index
 

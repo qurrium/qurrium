@@ -115,7 +115,7 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
             mute=True,
         )
 
-        return {"multiquantity": str(Path(summoner_name) / "multiquantity.json")}
+        return {"multiquantity": str(Path(save_location) / "multiquantity.json")}
 
     @classmethod
     def content_loading(

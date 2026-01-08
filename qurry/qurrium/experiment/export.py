@@ -214,18 +214,22 @@ class Export(UniversalWriterABC):
                 the second element is the dictionary of files of experiment.
         """
 
-        folder_path = Path(self.folder)
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
+        exp_folder_path = Path(self.folder)
+        abs_exp_folder_path = Path(self.save_location) / exp_folder_path
+        if not os.path.exists(abs_exp_folder_path):
+            os.makedirs(abs_exp_folder_path)
 
         files = {
-            "folder": folder_path,
-            "qurryinfo": folder_path / "qurryinfo.json",
+            "save_location": str(self.save_location),
+            "folder": exp_folder_path,
+            "qurryinfo": exp_folder_path / "qurryinfo.json",
         }
         for unit in self.folder_filenames_writtens:
-            files[unit["folder"]] = folder_path / unit["folder"] / unit["filename"]
-            if not os.path.exists(folder_path / unit["folder"]):
-                os.mkdir(folder_path / unit["folder"])
+            unit_path = exp_folder_path / unit["folder"]
+            abs_unit_path = Path(self.save_location) / unit_path
+            if not os.path.exists(abs_unit_path):
+                os.mkdir(abs_unit_path)
+            files[unit["folder"]] = unit_path / unit["filename"]
         files_str = {k: str(v) for k, v in files.items()}
 
         for unit in self.folder_filenames_writtens:
