@@ -1,4 +1,4 @@
-"""Utility functions for testing qurry package."""
+"""Utility functions for tests in the qurry.process module."""
 
 from typing import Any, Union
 import os
