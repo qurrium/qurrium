@@ -1,4 +1,4 @@
-"""Circuit Cases for testing.
+"""Circuit Cases for testing. (:mod:`utilities.circuits`)
 
 This module contains the circuit cases for testing the qurry package.
 
@@ -13,7 +13,7 @@ from qurry.recipe import Intracell
 from qurry.recipe.n_body import OneBody, TwoBody
 
 
-def cnot_dyn(
+def add_cnot_dyn(
     qc: QuantumCircuit,
     control_qubit: int,
     target_qubit: int,
@@ -77,7 +77,7 @@ def cnot_dyn(
     The ability to use a switch statement via Qiakit in this way is a future release capability.
 
     Returns:
-        QuantumCircuit
+        QuantumCircuit: The circuit with the long range CNOT added.
     """
     assert target_qubit > control_qubit
     n = target_qubit - control_qubit - 1
@@ -134,8 +134,8 @@ def cnot_dyn(
     return qc
 
 
-class CNOTDynCase4To8(OneBody):
-    """CNOTDynCase4To8: A circuit with 4 to 8 qubits and a CNOT gate
+class CXDynamic(OneBody):
+    """A circuit with 4 to 8 qubits and a CNOT gate
     between first qubits and last using Bell pairs.
 
     Or provide a comparison with the normal CNOT gate.
@@ -250,15 +250,14 @@ class CNOTDynCase4To8(OneBody):
             c2 = ClassicalRegister(n - k, "c2")
             self.add_register(c1, c2)
 
-            cnot_dyn(self, control_qubit, target_qubit, c1, c2, add_barriers=True)
+            add_cnot_dyn(self, control_qubit, target_qubit, c1, c2, add_barriers=True)
 
         else:
             self.cx(0, self.num_qubits - 1)
 
 
-class DummyTwoBodyWithDedicatedClbits(TwoBody):
-    """DummyTwoBodyWithDedicatedClbit:
-    A dummy circuit to simulate a two-body interaction
+class TwoBodyWithMeasurement(TwoBody):
+    """A dummy circuit to simulate a two-body interaction
     with dedicated classical bits and reset gate.
     But the last 2 qubits will be not measured and reset.
 
@@ -349,7 +348,7 @@ class DummyTwoBodyWithDedicatedClbits(TwoBody):
             self.reset(i)
 
 
-def ghz_overlap_case(
+def make_ghz_overlap_case(
     num_qubits: int,
     case_name: Union[
         str, Literal["00", "01", "10", "11", "x-init-GHZ", "intracell-plus", "singlet"]
@@ -362,7 +361,7 @@ def ghz_overlap_case(
         circ_name (str): The name of the circuit.
 
     Returns:
-        dict[str, dict[str, object]]: The GHZ overlap case.
+        QuantumCircuit: The generated GHZ overlap test case.
     """
 
     if num_qubits % 2 != 0:
