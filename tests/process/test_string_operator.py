@@ -10,7 +10,13 @@ from qurry.process.string_operator import (
     StringOperatorResult,
 )
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    FloatType,
+    assert_rust_available,
+)
 
 
 class StringOperatorTarget(TypedDict):
@@ -79,9 +85,7 @@ ANSWERS_ERROR = 0.05
 def test_availability():
     """Test the availability of the Rust backend for the string_operator function."""
 
-    assert string_operator_availability[1]["Rust"] != "Error", (
-        f"Rust is not available. Check the error: {string_operator_availability[1]}"
-    )
+    assert_rust_available([string_operator_availability])
 
 
 @pytest.mark.parametrize(["target", "answer", "case_tags"], string_operator_cases_entries)

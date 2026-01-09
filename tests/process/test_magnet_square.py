@@ -11,7 +11,13 @@ from qurry.process.magnet_square import (
     MagnetSquareResult,
 )
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    FloatType,
+    assert_rust_available,
+)
 
 
 class MagnetSquareZdirTarget(TypedDict):
@@ -85,9 +91,7 @@ ms_cases_entries = [
 def test_availability():
     """Test the availability of the Rust backend for the magnet_square function."""
 
-    assert magnet_square_availability[1]["Rust"] != "Error", (
-        f"Rust is not available. Check the error: {magnet_square_availability[2]}"
-    )
+    assert_rust_available([magnet_square_availability])
 
 
 @pytest.mark.parametrize(["target", "answer", "case_name"], mszdir_cases_entries)

@@ -16,18 +16,19 @@ from qurry.process.utils.bit_slice import (
 )
 from qurry.boorust.test import test_bit_slice as self_test_bit_slice  # type: ignore
 
+from utilities import assert_rust_available
+
 
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    for availability_item in [
-        counts_process_availability,
-        bit_slice_availability,
-        dummy_availability,
-    ]:
-        assert availability_item[1]["Rust"] != "Error", (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
+    assert_rust_available(
+        [
+            counts_process_availability,
+            bit_slice_availability,
+            dummy_availability,
+        ]
+    )
 
 
 def test_bit_slice():
@@ -35,35 +36,53 @@ def test_bit_slice():
     self_test_bit_slice()
 
 
-test_setup_selector: list[tuple[int, Union[int, tuple[int, int]], str]] = [
-    (8, 6, "Case: int"),
-    (8, (2, 8), "Case: tuple[int, int]"),
-    (8, 7, "Case: int"),
-    (8, (0, 7), "Case: tuple[int, int]"),
-    (8, (-2, 5), "Case: tuple[-int, int]"),
-    (8, (-5, -1), "Case: tuple[-int, -int]"),
-    (8, (3, -2), "Case: tuple[int, -int]"),
+cases_entries: list[tuple[str, Union[int, tuple[int, int], None]]] = [
+    ("01234567", 6),
+    ("01234567", (2, 8)),
+    ("01234567", 7),
+    ("01234567", (0, 7)),
+    ("01234567", (-2, 5)),
+    ("01234567", (-5, -1)),
+    ("01234567", (3, -2)),
+    ("01234567", None),
 ]
 
 
-@pytest.mark.parametrize("test_items", test_setup_selector)
-def test_qubit_selector(test_items: tuple[int, Union[int, tuple[int, int]], str]):
+@pytest.mark.parametrize(["dummy_string", "degree"], cases_entries)
+def test_qubit_selector(dummy_string: str, degree: Union[int, tuple[int, int], None]):
     """Test the qubit_selector function."""
 
-    qubit_selector_py_result = qubit_selector_py(*test_items[:1])
-    qubit_selector_rust_result = qubit_selector_rust(*test_items[:1])
+    if isinstance(degree, tuple):
+        if len(degree) != 2:
+            raise ValueError("Degree tuple must have exactly two elements.")
+        case_desc = (
+            "tuple["
+            + ("-" if degree[0] < 0 else "")
+            + "int, "
+            + ("-" if degree[1] < 0 else "")
+            + "int]"
+        )
+    elif isinstance(degree, int):
+        case_desc = "int"
+    elif degree is None:
+        case_desc = "None"
+    else:
+        raise ValueError("Degree must be an int, tuple of two ints, or None.")
 
-    assert qubit_selector_rust_result == qubit_selector_py_result, (
+    selected_by_py = qubit_selector_py(len(dummy_string), degree)
+    selected_by_rust = qubit_selector_rust(len(dummy_string), degree)
+
+    assert selected_by_rust == selected_by_py, (
         "Rust and Python results are not equal in"
-        + f"qubit_selector at {test_items[2]}: {test_items[0]} qubits {test_items[1]}."
+        + f"qubit_selector with string '{dummy_string}' and degree {degree} "
+        + f"by selection input of {case_desc}."
     )
 
-    selected = qubit_selector_py_result
-
-    cycling_slice_py_result = cycling_slice_py("01234567", *selected, 1)
-    cycling_slice_rust_result = cycling_slice_rust("01234567", *selected, 1)
+    cycling_slice_py_result = cycling_slice_py(dummy_string, *selected_by_py, 1)
+    cycling_slice_rust_result = cycling_slice_rust(dummy_string, *selected_by_py, 1)
 
     assert cycling_slice_rust_result == cycling_slice_py_result, (
         "Rust and Python results are not equal in"
-        + f"cycling_slice at {test_items[2]}: {test_items[0]} qubits {test_items[1]}."
+        + f"cycling_slice with string '{dummy_string}' and degree {degree} "
+        + f"by selection input of {case_desc}."
     )

@@ -20,7 +20,13 @@ from qurry.process.classical_shadow import (
     verify_purity_value_kind,
 )
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    FloatType,
+    assert_rust_available,
+)
 
 
 class ClassicalShadowTarget(TypedDict):
@@ -178,15 +184,12 @@ METHODS_BY_KIND = generate_trying_methods()
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    for module_location, avails_backends, errors in [
-        classical_shadow_rho_process_availability,
-        classical_shadow_matrix_availability,
-    ]:
-        for backend, status in avails_backends.items():
-            assert status != "Error", (
-                f"{backend} is not available in {module_location}. "
-                + f"Check the error: {errors.get(backend)}."
-            )
+    assert_rust_available(
+        [
+            classical_shadow_rho_process_availability,
+            classical_shadow_matrix_availability,
+        ]
+    )
 
 
 @pytest.mark.parametrize(["target", "answer", "kind_name"], shadow_cases_entries)

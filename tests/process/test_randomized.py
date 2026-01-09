@@ -25,7 +25,12 @@ from qurry.process.randomized_measure import (
     overlap_v1_availability,
 )
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    assert_rust_available,
+)
 
 
 class RandomizedMeasureTarget(TypedDict):
@@ -178,16 +183,15 @@ def averaging_cells(cells: Union[dict[int, float], dict[int, np.float64]]) -> np
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    for availability_item in [
-        randomized_availability,
-        entangled_availability,
-        entangled_v1_availability,
-        overlap_availability,
-        overlap_v1_availability,
-    ]:
-        assert availability_item[1]["Rust"] != "Error", (
-            "Rust is not available." + f" Check the error: {availability_item[2]}"
-        )
+    assert_rust_available(
+        [
+            randomized_availability,
+            entangled_availability,
+            entangled_v1_availability,
+            overlap_availability,
+            overlap_v1_availability,
+        ]
+    )
 
 
 @pytest.mark.parametrize(["target", "counts"], randomized_cases_entries)

@@ -7,7 +7,13 @@ import pytest
 from qurry.process.utils import randomized_availability
 from qurry.process.utils.randomized import ensemble_cell as ensemble_cell_py, ensemble_cell_rust
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check, FloatType
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    FloatType,
+    assert_rust_available,
+)
 
 
 class EnsembleTarget(TypedDict):
@@ -48,9 +54,7 @@ ensemble_cases_entries: list[tuple[EnsembleTarget, float]] = [
 def test_availability():
     """Test the availability of the Rust backend for the ensemble_cell function."""
 
-    assert randomized_availability[1]["Rust"] != "Error", (
-        f"Rust is not available. Check the error: {randomized_availability[2]}"
-    )
+    assert_rust_available([randomized_availability])
 
 
 @pytest.mark.parametrize(["target", "answer"], ensemble_cases_entries)

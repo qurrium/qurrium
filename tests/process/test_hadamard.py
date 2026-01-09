@@ -7,7 +7,12 @@ import pytest
 from qurry.process.hadamard_test import purity_echo_core_availability
 from qurry.process.hadamard_test.purity_echo_core import purity_echo_core
 
-from utilities import quick_json_read, get_dummy_file_path, numerical_tolerance_check
+from utilities import (
+    quick_json_read,
+    get_dummy_file_path,
+    numerical_tolerance_check,
+    assert_rust_available,
+)
 
 
 class HadamardTarget(TypedDict):
@@ -38,9 +43,7 @@ hadamard_cases_entries = [(case["target"], case["answer"]) for case in DUMMY_CAS
 def test_availability():
     """Test the availability of the Rust backend for the purity_echo_core function."""
 
-    assert purity_echo_core_availability[1]["Rust"] != "Error", (
-        f"Rust is not available. Check the error: {purity_echo_core_availability[2]}"
-    )
+    assert_rust_available([purity_echo_core_availability])
 
 
 @pytest.mark.parametrize(["target", "answer"], hadamard_cases_entries)

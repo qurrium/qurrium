@@ -1,11 +1,12 @@
 """Utility functions for tests in the qurry.process module."""
 
-from typing import Any, Union
+from typing import Any, Union, Literal, Optional
 import os
 import json
 import numpy as np
 
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
+from qurry.process.availability import PostProcessingBackendLabel
 
 FloatType = Union[float, np.float64]
 """The type alias for :class:`float` and :class:`~numpy.float64`."""
@@ -58,3 +59,24 @@ def numerical_tolerance_check(
     """
 
     return np.abs(value1 - value2) <= tolerance
+
+
+AvailStatusType = tuple[
+    str,
+    dict[PostProcessingBackendLabel, Literal["Yes", "Error", "Depr.", "No"]],
+    dict[PostProcessingBackendLabel, Optional[ImportError]],
+]
+"""The type alias for availability status list."""
+
+
+def assert_rust_available(avail_status_list: list[AvailStatusType]):
+    """Check if the Rust backend is available.
+
+    Args:
+        avail_status_list (list[AvailStatusType]): The availability status list.
+    """
+
+    for availability_item in avail_status_list:
+        assert availability_item[1]["Rust"] != "Error", (
+            f"Rust is not available. Check the error: {availability_item[2]}"
+        )
