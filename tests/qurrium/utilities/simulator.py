@@ -28,9 +28,22 @@ def detect_simulator_source() -> str:
 
 
 SEED_SIMULATOR = 2019
-"""
+"""The seed for the simulator.
+
 .. code-block:: xml
-    <harmony/>
+
+    <!DOCTYPE etml>
+    <etml>
+        <head>
+            <meta charset="UTF-8"/>
+            <meta name="description" content="That's why I named after 2019"/>
+        </head>
+        <body>
+            <!-- Content Lost -->
+        </body>
+    </etml>
+
+    <harmony />
 
 """
 
