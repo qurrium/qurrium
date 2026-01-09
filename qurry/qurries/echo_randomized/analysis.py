@@ -15,7 +15,7 @@ from ...qurrium import (
 )
 from ...qurrium.utils import bitstring_mapping_getter
 from ...process.availability import PostProcessingBackendLabel
-from ...process.utils import single_counts_recount_pyrust
+from ...process.utils import counts_list_recount_pyrust
 from ...process.randomized_measure.wavefunction_overlap import (
     randomized_overlap_echo,
     DEFAULT_PROCESS_BACKEND,
@@ -562,6 +562,17 @@ class ELRAnalysis(
                 f"counts_used should be Iterable[int] or None, but got {type(counts_used)}."
             )
 
+        first_counts_of_last_clreg = counts_list_recount_pyrust(
+            first_counts,
+            len(next(iter(first_counts[0]))),
+            list(final_mapping_1.values()),
+        )
+        second_counts_of_last_clreg = counts_list_recount_pyrust(
+            second_counts,
+            len(next(iter(second_counts[0]))),
+            list(final_mapping_2.values()),
+        )
+
         return (
             analyze_arguments,
             ELRMiddleware(
@@ -580,8 +591,8 @@ class ELRAnalysis(
                 shots=commonparams.shots,
                 selected_classical_registers=selected_classical_registers,
             ),
-            first_counts,
-            second_counts,
+            first_counts_of_last_clreg,
+            second_counts_of_last_clreg,
         )
 
     @classmethod
@@ -611,31 +622,18 @@ class ELRAnalysis(
         Returns:
             The result of the analysis.
         """
-        analyze_arguments, middleware_entries, postprocess_entries, first_counts, second_counts = (
-            cls.generate_entries(
-                arguments,
-                commonparams,
-                counts,
-                analyze_arguments,
-            )
+        (
+            analyze_arguments,
+            middleware_entries,
+            postprocess_entries,
+            first_counts_of_last_clreg,
+            second_counts_of_last_clreg,
+        ) = cls.generate_entries(
+            arguments,
+            commonparams,
+            counts,
+            analyze_arguments,
         )
-
-        first_counts_of_last_clreg = [
-            single_counts_recount_pyrust(
-                single_counts,
-                len(next(iter(first_counts[0]))),
-                list(middleware_entries.final_mapping_1.values()),
-            )
-            for single_counts in first_counts
-        ]
-        second_counts_of_last_clreg = [
-            single_counts_recount_pyrust(
-                single_counts,
-                len(next(iter(second_counts[0]))),
-                list(middleware_entries.final_mapping_2.values()),
-            )
-            for single_counts in second_counts
-        ]
 
         wavefunction_overlap_dict = cls.quantities(
             shots=commonparams.shots,

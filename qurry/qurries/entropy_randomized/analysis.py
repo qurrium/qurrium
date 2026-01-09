@@ -21,6 +21,7 @@ from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
     DEFAULT_PROCESS_BACKEND,
 )
+from ...process.utils import counts_list_recount_pyrust
 from ...process.utils.purity import MitigatedResult, AllowedMitigatedInput
 
 
@@ -562,6 +563,12 @@ class EMRAnalysis(
                 f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
             )
 
+        counts_of_last_clreg = counts_list_recount_pyrust(
+            counts,
+            len(next(iter(counts[0]))),
+            list(final_mapping.values()),
+        )
+
         return (
             analyze_arguments,
             EMRMiddleware(
@@ -575,11 +582,13 @@ class EMRAnalysis(
             ),
             EMRProcessEntries(
                 shots=commonparams.shots,
-                selected_classical_registers=[final_mapping[qi] for qi in selected_qubits],
+                selected_classical_registers=[
+                    arguments.registers_mapping[qi] for qi in selected_qubits
+                ],
                 existed_all_system=existed_all_system,
                 backend=analyze_arguments.get("backend", DEFAULT_PROCESS_BACKEND),
             ),
-            counts,
+            counts_of_last_clreg,
         )
 
     @classmethod
@@ -612,7 +621,7 @@ class EMRAnalysis(
         Returns:
             The result of the analysis.
         """
-        analyze_arguments, middleware_entries, postprocess_entries, selected_counts = (
+        analyze_arguments, middleware_entries, postprocess_entries, counts_of_last_clreg = (
             cls.generate_entries(
                 arguments,
                 commonparams,
@@ -621,9 +630,10 @@ class EMRAnalysis(
                 existed_all_system,
             )
         )
+
         tgt_sys_dict, all_sys_dict, mitigated_dict = cls.quantities(
             shots=commonparams.shots,
-            counts=selected_counts,
+            counts=counts_of_last_clreg,
             selected_classical_registers=postprocess_entries.selected_classical_registers,
             existed_all_system=postprocess_entries.existed_all_system,
             backend=postprocess_entries.backend,
