@@ -1,11 +1,10 @@
 """Miscellaneous utilities for testing. (:mod:`utilities.other`)"""
 
-from typing import TypedDict, Any, Optional, Iterable, NamedTuple, Generic, Union, cast, TypeVar
+from typing import Optional, Iterable, NamedTuple, Generic, Union, cast, TypeVar
 import os
 from pathlib import Path
+import logging
 import numpy as np
-
-from qiskit import QuantumCircuit
 
 from qurry.qurrium import QurriumPrototype
 from qurry.qurrium.container import _MA
@@ -44,15 +43,6 @@ def make_current_time_str():
     return current_time().replace(":", "").replace("-", "").replace(" ", "_")
 
 
-class CaseDataDict(TypedDict):
-    """Case data dictionary for testing."""
-
-    circuit: QuantumCircuit
-    """The quantum circuit to be tested."""
-    expect_answer: float
-    """The expected answer for the test case."""
-
-
 class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
     """The case entries tuple for testing."""
 
@@ -62,8 +52,8 @@ class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
     """The measurement input draft."""
     analyze_entries: _RA
     """The analysis input."""
-    expect_answer: float
-    """The expected answer."""
+    expect_answer: dict[str, tuple[str, float]]
+    """The expected answer on respecting results and fields."""
 
     def measure_entries_with_tags(self, *more_tags: str) -> _MA:
         """Get the measurement input.
@@ -87,11 +77,13 @@ class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
         return tags_to_name(self.tags)
 
 
-class AnalysisResultCheckReport(NamedTuple):
+class AnalysisResultChecker(NamedTuple):
     """The analysis result check report."""
 
     name: str
     """The name of the test item."""
+    result_name: str
+    """The name of the analysis result."""
     target_field: str
     """The name of the target field."""
     got_answer: float
@@ -102,35 +94,68 @@ class AnalysisResultCheckReport(NamedTuple):
     """The difference between the answer and the expected answer."""
     threshold: float
     """The threshold for the check."""
-    is_correct: bool
-    """Whether the answer is correct or not."""
 
-    def make_logger(self) -> str:
+    @property
+    def is_correct(self) -> bool:
+        """Check if the answer is correct within the threshold.
+
+        Returns:
+            bool: True if the answer is correct, False otherwise.
+        """
+        return self.diff < self.threshold
+
+    def make_logger(self, logger: logging.Logger, extra_msg: Optional[str] = None) -> str:
         """Make logger string for the report.
+
+        Args:
+            logger (logging.Logger): The logger to use.
+            extra_msg (Optional[str], optional):
+                Extra message to include. Defaults to None.
 
         Returns:
             str: The logger string.
         """
         status = "PASS" if self.is_correct else "FAIL"
-        return (
-            f"{self.name} | {self.target_field} | {status} | "
+        msg = (
+            f"{status} - {self.name} - {self.result_name}.{self.target_field} | "
             + f"Got: {self.got_answer}, Expect: {self.expect_answer}, "
             + f"Diff: {self.diff} < Threshold: {self.threshold}"
+        )
+        if extra_msg is not None:
+            msg += f" | {extra_msg}"
+        if self.is_correct:
+            logger.info(msg)
+        else:
+            logger.error(msg)
+
+        return msg
+
+    def assert_correct(self) -> None:
+        """Assert that the answer is correct.
+
+        Raises:
+            AssertionError: If the answer is not correct.
+        """
+        assert self.is_correct, (
+            f"{self.name} | The result of '{self.target_field}' is not correct: "
+            + f"{self.diff} !< {self.threshold}, {self.got_answer} != {self.expect_answer}."
         )
 
 
 def check_analysis_result(
     result: AnalysisResultsPrototype,
+    result_name: str,
     target_field: str,
     expect_answer: float,
     name: str,
     threshold: float = NUMERICAL_ERROR_TOLERANCE,
     other_fields: Optional[list[str]] = None,
-) -> AnalysisResultCheckReport:
+) -> AnalysisResultChecker:
     """Check the analysis result for a specific field.
 
     Args:
         result (AnalysisResultsPrototype): The analysis result to check.
+        result_name (str): The name of the analysis result.
         target_field (str): The name of the target field to check.
         expect_answer (float): The expected answer to compare against.
         name (str): The name of the test item.
@@ -154,20 +179,15 @@ def check_analysis_result(
         )
 
     diff = np.abs(getattr(result, target_field) - expect_answer)
-    is_correct = diff < threshold
-    assert is_correct, (
-        f"{name} | The result of '{target_field}' is not correct: "
-        + f"{diff} !< {threshold}, {getattr(result, target_field)} != {expect_answer}."
-    )
 
-    return AnalysisResultCheckReport(
+    return AnalysisResultChecker(
         name=name,
+        result_name=result_name,
         target_field=target_field,
         got_answer=float(getattr(result, target_field)),
         expect_answer=expect_answer,
         diff=float(diff),
         threshold=threshold,
-        is_correct=is_correct,
     )
 
 
@@ -184,6 +204,22 @@ def tags_to_name(iterable: Iterable[str]) -> str:
     if item_name:
         return item_name
     raise ValueError("The iterable is empty, cannot create an item name.")
+
+
+def make_config_list_and_tagged_case(
+    case_entries_list: list[CaseEntriesTuple[_MA, _RA]],
+):
+    config_list = []
+    cases_with_tags: dict[tuple[str, ...], CaseEntriesTuple[_MA, _RA]] = {}
+
+    for i, case_entries in enumerate(case_entries_list):
+        config = case_entries.measure_entries_with_tags(f"index_{i}")
+        if "tags" not in config:
+            config["tags"] = (f"index_{i}",)
+        config_list.append(config)
+        cases_with_tags[config["tags"]] = case_entries  # type: ignore
+
+    return config_list, cases_with_tags
 
 
 _CET = TypeVar("_CET", bound=CaseEntriesTuple)
@@ -211,3 +247,23 @@ def make_specific_analysis_args(
         exp_id: analysis_entries_dict[config["tags"]].analyze_entries
         for exp_id, config in exp_method.multimanagers[summoner_id].beforewards.exps_config.items()
     }
+
+
+def multi_read_tests_exported_files(
+    exp_method: QurriumPrototype, summoner_id: str, save_location: Path
+) -> None:
+    """Multi-read the exported files for testing.
+
+    Args:
+        exp_method (QurriumPrototype): The experiment method.
+        summoner_id (str): The ID of the summoner.
+        save_location (Path): The location where the files are saved.
+    """
+
+    read_summoner_id = exp_method.multiRead(
+        summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
+        save_location=save_location,
+    )
+    assert read_summoner_id == summoner_id, (
+        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
+    )

@@ -1,12 +1,26 @@
 """The random utilities for testing (:mod:`utilities.random_stuff`)."""
 
-from typing import Literal, Union
+from typing import Literal, Union, Any
 import os
-
-from .other import quick_json_read
+import json
 
 SEED_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_unitary_seeds.json")
 BASIS_FILE_LOCATION = os.path.join(os.path.dirname(__file__), "random_basis.json")
+
+
+def quick_json_read(file_path: str) -> Any:
+    """Quickly read a JSON file and return its content.
+
+    Args:
+        file_path (str): The path to the JSON file.
+
+    Returns:
+        Any: The content of the JSON file.
+    """
+
+    with open(file_path, "r") as f:
+        data = json.load(f)
+    return data
 
 
 def prepare_random_unitary_seeds(

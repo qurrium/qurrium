@@ -224,10 +224,15 @@ class CXDynamic(OneBody):
             raise AttributeError("Attribute 'export' is read-only.")
         self._export: Literal["dynamic", "comparison"] = export
 
-    def __init__(self, num_qubits, export: Literal["dynamic", "comparison"] = "dynamic") -> None:
+    def __init__(
+        self,
+        num_qubits,
+        export: Literal["dynamic", "comparison"] = "dynamic",
+        name: Optional[str] = None,
+    ) -> None:
         if num_qubits < 4 or num_qubits > 8:
             raise ValueError("Number of qubits must be between 4 and 8")
-        super().__init__()
+        super().__init__(name=name)
         self.num_qubits = num_qubits
         self.export = export
 
@@ -311,7 +316,12 @@ class TwoBodyWithMeasurement(TwoBody):
             raise AttributeError("Attribute 'clbit_num_cluster' is read-only.")
         self._clbit_num_cluster = clbit_num_cluster
 
-    def __init__(self, num_qubits, clbit_num_cluster: int = 4) -> None:
+    def __init__(
+        self,
+        num_qubits,
+        clbit_num_cluster: int = 4,
+        name: Optional[str] = None,
+    ) -> None:
         if num_qubits % 2 != 0:
             raise ValueError("Number of qubits must be even number")
         if num_qubits < 4:
@@ -321,7 +331,7 @@ class TwoBodyWithMeasurement(TwoBody):
             )
         if clbit_num_cluster < 1:
             raise ValueError("Number of classical bits must be greater than 0")
-        super().__init__()
+        super().__init__(name=name)
         self.num_qubits = num_qubits
         self.clbit_num_cluster = clbit_num_cluster
 
