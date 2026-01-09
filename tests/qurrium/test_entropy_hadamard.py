@@ -1,17 +1,9 @@
 """Test the Qurrium Runtime :class:`EntropyMeasureHadamard`.
 
 It's from :class:`~qurry.qurry.qurries.entropy_hadamard.qurry.EntropyMeasureHadamard`.
-
-- hadamard test at shots = 1024
-    - [4-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
-    - [4-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
-    - [4-topological-period] 0.033203125 <= 0.25. 0.283203125 ~= 0.25
-    - [6-trivial] 0.0 <= 0.25. 1.0 ~= 1.0
-    - [6-GHZ] 0.005859375 <= 0.25. 0.505859375 ~= 0.5
-    - [6-topological-period] 0.041015625 <= 0.25. 0.291015625 ~= 0.25
-
 """
 
+from typing import TypedDict
 import logging
 import pytest
 
@@ -19,18 +11,33 @@ from qurry.qurries.entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArg
 from qurry.qurries.entropy_hadamard.analysis import EMHAnalyzeArgs, EMHAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
 
+from qiskit import QuantumCircuit
+
 from utilities.simulator import get_seeded_simulator
 from utilities.other import (
     CaseEntriesTuple,
-    CaseDataDict,
     check_analysis_result,
     EXPORT_DIR,
+    make_config_list_and_tagged_case,
     make_specific_analysis_args,
+    multi_read_tests_exported_files,
 )
 
 logger = logging.getLogger(__name__)
 
 SIMULATOR = get_seeded_simulator()
+
+THREDHOLD = 0.25
+
+
+class CaseDataDict(TypedDict):
+    """Case data dictionary for testing."""
+
+    circuit: QuantumCircuit
+    """The quantum circuit to be tested."""
+    expect_answer: float
+    """The expected answer for the test case."""
+
 
 case_datas: list[CaseDataDict] = [
     {"circuit": TrivialParamagnet(4, name="4-trivial"), "expect_answer": 1.0},
@@ -51,12 +58,10 @@ CASES: list[CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]] = [
             "shots": 1024,
         },
         analyze_entries={},
-        expect_answer=case_data["expect_answer"],
+        expect_answer={"default": ("purity", case_data["expect_answer"])},
     )
     for case_data in case_datas
 ]
-
-THREDHOLD = 0.25
 
 
 @pytest.mark.parametrize("case_entries", CASES)
@@ -73,15 +78,21 @@ def test_measure_and_analyze(
     exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
     analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
 
-    check_report = check_analysis_result(
-        analysis_01.results["default"],
-        target_field="purity",
-        expect_answer=case_entries.expect_answer,
-        name=case_entries.name,
-        threshold=THREDHOLD,
-    )
-
-    logger.info(check_report.make_logger())
+    checker_list = [
+        check_analysis_result(
+            analysis_01.results[key],
+            result_name=key,
+            target_field=target_field,
+            expect_answer=expect_answer_value,
+            name=case_entries.name,
+            threshold=THREDHOLD,
+        )
+        for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
+    ]
+    for checker in checker_list:
+        checker.make_logger(logger)
+    for checker in checker_list:
+        checker.assert_correct()
 
 
 def test_multi_output_all() -> None:
@@ -89,14 +100,7 @@ def test_multi_output_all() -> None:
 
     exp_method = EntropyMeasureHadamard()
 
-    config_list = []
-    cases_with_tags: dict[tuple[str, ...], CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]] = {}
-    for i, case_entries in enumerate(CASES):
-        config = case_entries.measure_entries_with_tags(f"index_{i}")
-        if "tags" not in config:
-            config["tags"] = (f"index_{i}",)
-        config_list.append(config)
-        cases_with_tags[config["tags"]] = case_entries  # type: ignore
+    config_list, cases_with_tags = make_config_list_and_tagged_case(CASES)
 
     summoner_id = exp_method.multiOutput(
         config_list,
@@ -119,21 +123,28 @@ def test_multi_output_all() -> None:
         summoner_id
     ].all_reports(report_name)
 
+    checker_list = []
     for tags, report_list in test_report.items():
-        for report in report_list:
-            check_report = check_analysis_result(
-                report.results["default"],
-                target_field="purity",
-                expect_answer=cases_with_tags[tags].expect_answer,
+        assert len(report_list) == 1, (
+            f"The report list length is wrong for tags {tags}: {len(report_list)} != 1."
+        )
+        checker_list += [
+            check_analysis_result(
+                report_list[0].results[key],
+                result_name=key,
+                target_field=target_field,
+                expect_answer=expect_answer_value,
                 name=cases_with_tags[tags].name,
                 threshold=THREDHOLD,
             )
-            logger.info(check_report.make_logger() + "| multi-output all")
+            for key, (target_field, expect_answer_value) in cases_with_tags[
+                tags
+            ].expect_answer.items()
+        ]
 
-    read_summoner_id = exp_method.multiRead(
-        summoner_name=exp_method.multimanagers[summoner_id].summoner_name,
-        save_location=EXPORT_DIR,
-    )
-    assert read_summoner_id == summoner_id, (
-        f"The read summoner id is wrong: {read_summoner_id} != {summoner_id}."
-    )
+    for checker in checker_list:
+        checker.make_logger(logger, extra_msg="multi-output all")
+    for checker in checker_list:
+        checker.assert_correct()
+
+    multi_read_tests_exported_files(exp_method, summoner_id, EXPORT_DIR)
