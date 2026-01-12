@@ -9,6 +9,7 @@ from qiskit.transpiler.passmanager import PassManager
 
 from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, TranspileArgs, WCKeyable
 from ...tools import backend_name_getter
+from ...process.utils import QubitSelectionType
 
 
 @dataclass(frozen=True)
@@ -220,13 +221,13 @@ class ELRMeasureArgs(BasicArgs, total=False):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure_1: Union[tuple[int, int], int, list[int], None]
+    measure_1: QubitSelectionType
     """The measure range for the first quantum circuit."""
-    measure_2: Union[tuple[int, int], int, list[int], None]
+    measure_2: QubitSelectionType
     """The measure range for the second quantum circuit."""
-    unitary_loc_1: Union[tuple[int, int], int, list[int], None]
+    unitary_loc_1: QubitSelectionType
     """The range of the unitary operator for the first quantum circuit."""
-    unitary_loc_2: Union[tuple[int, int], int, list[int], None]
+    unitary_loc_2: QubitSelectionType
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
@@ -272,13 +273,13 @@ class ELROutputArgs(OutputArgs):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure_1: Union[tuple[int, int], int, list[int], None]
+    measure_1: QubitSelectionType
     """The measure range for the first quantum circuit."""
-    measure_2: Union[tuple[int, int], int, list[int], None]
+    measure_2: QubitSelectionType
     """The measure range for the second quantum circuit."""
-    unitary_loc_1: Union[tuple[int, int], int, list[int], None]
+    unitary_loc_1: QubitSelectionType
     """The range of the unitary operator for the first quantum circuit."""
-    unitary_loc_2: Union[tuple[int, int], int, list[int], None]
+    unitary_loc_2: QubitSelectionType
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Confirm that not all unitary operator are covered by the measure."""

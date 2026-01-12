@@ -1,6 +1,6 @@
 """EchoListenRandomized - Utility (:mod:`qurry.qurries.echo_randomized.utils`)"""
 
-from typing import Union, Optional, Literal
+from typing import Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -16,28 +16,28 @@ from ...qurrium import WCKeyable
 from ..entropy_randomized import EntropyMeasureTalesTypes
 from ..entropy_randomized.utils import make_samplied_circuit, make_unitary_op_pauli_coeff
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering, MSG_FULL_COVER
-from ...process.utils import qubit_mapper
+from ...process.utils import qubit_mapper, QubitSelectionType
 from ...process.randomized_measure import generate_random_unitary
 from ...tools import ParallelManager, set_pbar_description
 
 
 def create_config(
     actual_qubits: int,
-    measure: Optional[Union[list[int], tuple[int, int], int]],
-    unitary_loc: Optional[Union[tuple[int, int], int]],
+    measure: QubitSelectionType,
+    unitary_loc: QubitSelectionType,
     which_circuit: Literal["1", "2"],
 ):
     """Create the configuration for the randomized measure.
 
     Args:
         actual_qubits (int): The number of qubits in the circuit.
-        measure (Optional[Union[list[int], tuple[int, int], int]]):
+        measure (QubitSelectionType):
             The selected qubits for the measurement.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
             If it is tuple, then it will return the mapping of the qubits in the range.
             If it is list, then it will return the mapping of the selected qubits.
-        unitary_loc (Optional[Union[tuple[int, int], int]]):
+        unitary_loc (QubitSelectionType):
             The range of the unitary operator.
         which_circuit (Literal["1", "2"]): Which circuit this configuration belongs to.
 
@@ -76,34 +76,34 @@ def create_config(
 def overlapping_given_check(
     actual_qubits_1: int,
     actual_qubits_2: int,
-    measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
-    measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
-    unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
-    unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
+    measure_1: QubitSelectionType = None,
+    measure_2: QubitSelectionType = None,
+    unitary_loc_1: QubitSelectionType = None,
+    unitary_loc_2: QubitSelectionType = None,
 ):
     """Check whether the two circuits have overlapping qubits.
 
     Args:
         actual_qubits_1 (int): The number of qubits in the first circuit.
         actual_qubits_2 (int): The number of qubits in the second circuit.
-        measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        measure_1 (QubitSelectionType, optional):
             The selected qubits for the measurement for the first quantum circuit.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
             If it is tuple, then it will return the mapping of the qubits in the range.
             If it is list, then it will return the mapping of the selected qubits.
             Defaults to None.
-        measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        measure_2 (QubitSelectionType, optional):
             The selected qubits for the measurement for the second quantum circuit.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
             If it is tuple, then it will return the mapping of the qubits in the range.
             If it is list, then it will return the mapping of the selected qubits.
             Defaults to None.
-        unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        unitary_loc_1 (QubitSelectionType, optional):
             The range of the unitary operator for the first quantum circuit.
             Defaults to None.
-        unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        unitary_loc_2 (QubitSelectionType, optional):
             The range of the unitary operator for the second quantum circuit.
             Defaults to None.
 
@@ -166,10 +166,10 @@ def unitary_full_cover_check(
     unitary_loc_not_cover_measure: bool,
     measured_but_not_unitary_located_1: list[int],
     measured_but_not_unitary_located_2: list[int],
-    measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
-    measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
-    unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
-    unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
+    measure_1: QubitSelectionType = None,
+    measure_2: QubitSelectionType = None,
+    unitary_loc_1: QubitSelectionType = None,
+    unitary_loc_2: QubitSelectionType = None,
 ):
     """Check whether the unitary operator covers the measurement.
 
@@ -180,16 +180,16 @@ def unitary_full_cover_check(
             The qubits that are measured but not located in the first circuit.
         measured_but_not_unitary_located_2 (list[int]):
             The qubits that are measured but not located in the second circuit.
-        measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        measure_1 (QubitSelectionType, optional):
             The selected qubits for the measurement for the first quantum circuit.
             Defaults to None.
-        measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+        measure_2 (QubitSelectionType, optional):
             The selected qubits for the measurement for the second quantum circuit.
             Defaults to None.
-        unitary_loc_1 (Optional[Union[tuple[int, int], int]], optional):
+        unitary_loc_1 (QubitSelectionType, optional):
             The range of the unitary operator for the first quantum circuit.
             Defaults to None.
-        unitary_loc_2 (Optional[Union[tuple[int, int], int]], optional):
+        unitary_loc_2 (QubitSelectionType, optional):
             The range of the unitary operator for the second quantum circuit.
             Defaults to None.
 

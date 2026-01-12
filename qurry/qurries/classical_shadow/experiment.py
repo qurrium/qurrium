@@ -1,6 +1,6 @@
 """ShadowUnveil - Experiment (:mod:`qurry.qurries.classical_shadow.experiment`)"""
 
-from typing import Union, Optional, Any
+from typing import Optional, Any
 from collections.abc import Iterable
 import tqdm
 import numpy as np
@@ -13,7 +13,7 @@ from .utils import make_samplied_circuit
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...tools import ParallelManager, set_pbar_description
-from ...process.utils import qubit_mapper
+from ...process.utils import qubit_mapper, QubitSelectionType
 from ...process.classical_shadow import (
     generate_random_basis,
     check_random_basis,
@@ -49,8 +49,8 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         snapshots: int = 100,
-        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
         shadow_basis_method: Optional[ShadowBasisType] = None,
         random_basis: Optional[dict[int, dict[int, int]]] = None,
@@ -70,9 +70,9 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 The number of random unitary operator, previously called `times`
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure (QubitSelectionType, optional):
                 The measure range. Defaults to None.
-            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc (QubitSelectionType, optional):
                 The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Confirm that not all unitary operator are covered by the measure.

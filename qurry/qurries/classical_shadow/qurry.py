@@ -21,6 +21,7 @@ from ...qurrium import (
     SpecificAnalyzeArgs,
     WCKeyable,
 )
+from ...process.utils import QubitSelectionType
 from ...process.classical_shadow import (
     JAX_AVAILABLE,
     ShadowBasisType,
@@ -164,8 +165,8 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         self,
         wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         snapshots: int = 100,
-        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
         shadow_basis_method: Optional[ShadowBasisType] = None,
         random_basis: Optional[dict[int, dict[int, int]]] = None,
@@ -192,9 +193,9 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 The number of random unitary operator, previously called `times`
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure (QubitSelectionType, optional):
                 The measure range. Defaults to None.
-            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc (QubitSelectionType, optional):
                 The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
@@ -293,8 +294,8 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         self,
         wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
         snapshots: int = 100,
-        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
         shadow_basis_method: Optional[ShadowBasisType] = None,
         random_basis: Optional[dict[int, dict[int, int]]] = None,
@@ -321,9 +322,9 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 The number of random unitary operator, previously called `times`
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure (QubitSelectionType, optional):
                 The measure range. Defaults to None.
-            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc (QubitSelectionType, optional):
                 The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.

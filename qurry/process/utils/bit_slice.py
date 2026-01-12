@@ -4,7 +4,6 @@ from typing import Union, Optional, Sequence, TypeVar, overload
 
 from ..availability import availablility
 
-# pylint:disable=no-name-in-module,import-error,unused-import
 from ...boorust.bit_slice import (  # type: ignore
     qubit_selector_rust,
     cycling_slice_rust,
@@ -90,7 +89,7 @@ def cycling_slice(target, start, end, step=1):
     """Slice a iterable object with cycling.
 
     Args:
-        target (_SliceableT): The target object.
+        target (Union[list[_ItemT], tuple[_ItemT], str]): The target object.
         start (int): Index of start.
         end (int): Index of end.
         step (int, optional): Step of slice. Defaults to 1.
@@ -162,16 +161,26 @@ def qubit_mapper_2_int(
     return {qi: ci for ci, qi in enumerate(qi_list)}
 
 
+QubitSelectionType = Union[Sequence[int], int, tuple[int, int], None]
+"""Type for qubit selection.
+
+The selected qubits.
+- `None`, for the mapping of all qubits.
+- `int`, for the mapping of the last n qubits.
+- `tuple[int, int]`, for the mapping of the qubits in the range.
+- `~typing.Sequence[int]`, for the mapping of the selected qubits.
+"""
+
+
 def qubit_mapper(
-    actual_num_qubits: int,
-    selected_qubits: Optional[Union[Sequence[int], int, tuple[int, int]]] = None,
+    actual_num_qubits: int, selected_qubits: QubitSelectionType = None
 ) -> dict[int, int]:
     """Map the index of selected qubits to the index of the classical register.
 
     Args:
         actual_num_qubits (int):
             The actual number of qubits.
-        selected_qubits (Optional[Union[Sequence[int], int, tuple[int, int]]], optional):
+        selected_qubits (QubitSelectionType, optional):
             The selected qubits.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
@@ -190,8 +199,7 @@ def qubit_mapper(
         ValueError: Invalid input for selected qubits.
 
     Returns:
-        dict[int, int]:
-            The mapping of the index of selected qubits to the index of the classical register.
+        The mapping of the index of selected qubits to the index of the classical register.
     """
     if selected_qubits is None:
         return {i: i for i in range(actual_num_qubits)}
@@ -298,3 +306,18 @@ def is_cycling_slice_active(
             + f"does not match dummyStringSlice '{_dummy_string_slice}'"
         )
     return is_avtive_cycling_slice
+
+
+__all__ = [
+    "BACKEND_AVAILABLE",
+    "qubit_selector",
+    "qubit_selector_rust",
+    "cycling_slice",
+    "cycling_slice_rust",
+    "qubit_mapper_2_int",
+    "qubit_mapper",
+    "QubitSelectionType",
+    "degree_handler",
+    "degree_handler_rust",
+    "is_cycling_slice_active",
+]

@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Experiment (:mod:`qurry.qurries.entropy_randomized.experiment`)"""
 
-from typing import Union, Optional, Any
+from typing import Optional, Any
 from collections.abc import Iterable
 import tqdm
 
@@ -12,7 +12,7 @@ from .tales import EntropyMeasureTales, EntropyMeasureTalesTypes
 from .utils import method_process
 from .exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
-from ...process.utils import qubit_mapper
+from ...process.utils import qubit_mapper, QubitSelectionType
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.entangled_entropy import (
     PostProcessingBackendLabel,
@@ -47,8 +47,8 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         times: int = 100,
-        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
         random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
         **custom_kwargs: Any,
@@ -66,14 +66,14 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
             times (int, optional):
                 The number of random unitary operator. Defaults to 100.
                 It will denote as :math:`N_U` in the experiment name.
-            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure (QubitSelectionType, optional):
                 The selected qubits for the measurement.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc (QubitSelectionType, optional):
                 The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Confirm that not all unitary operator are covered by the measure.

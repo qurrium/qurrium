@@ -18,6 +18,7 @@ from .bit_slice import (
     cycling_slice,
     degree_handler,
     qubit_mapper,
+    QubitSelectionType,
     is_cycling_slice_active,
     BACKEND_AVAILABLE as bit_slice_availability,
 )

@@ -29,6 +29,7 @@ from ...qurrium.experiment import (
     ensure_runnable_backend,
     process_duo_transpilation,
 )
+from ...process.utils import QubitSelectionType
 from ...process.availability import PostProcessingBackendLabel
 from ...process.randomized_measure import check_random_unitary_seeds
 from ...process.randomized_measure.wavefunction_overlap import DEFAULT_PROCESS_BACKEND
@@ -62,10 +63,10 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
         times: int = 100,
-        measure_1: Optional[Union[list[int], tuple[int, int], int]] = None,
-        measure_2: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc_1: Optional[Union[tuple[int, int], int]] = None,
-        unitary_loc_2: Optional[Union[tuple[int, int], int]] = None,
+        measure_1: QubitSelectionType = None,
+        measure_2: QubitSelectionType = None,
+        unitary_loc_1: QubitSelectionType = None,
+        unitary_loc_2: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
         second_backend: Optional[Backend] = None,
         second_transpile_args: Optional[TranspileArgs] = None,
@@ -85,24 +86,24 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
             times (int):
                 The number of random unitary operator. Defaults to 100.
                 It will denote as :math:`N_U` in the experiment name.
-            measure_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure_1 (QubitSelectionType, optional):
                 The selected qubits for the measurement for the first quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            measure_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure_2 (QubitSelectionType, optional):
                 The selected qubits for the measurement for the second quantum circuit.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            unitary_loc_1 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc_1 (QubitSelectionType, optional):
                 The range of the unitary operator for the first quantum circuit.
                 Defaults to None.
-            unitary_loc_2 (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc_2 (QubitSelectionType, optional):
                 The range of the unitary operator for the second quantum circuit.
                 Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):

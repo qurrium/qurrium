@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from qiskit import QuantumCircuit
 
 from ...qurrium import ArgumentsPrototype, BasicArgs, OutputArgs, WCKeyable
+from ...process.utils import QubitSelectionType
 
 
 @dataclass(frozen=True)
@@ -105,9 +106,9 @@ class EMRMeasureArgs(BasicArgs, total=False):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Union[tuple[int, int], int, list[int], None]
+    measure: QubitSelectionType
     """The measure range."""
-    unitary_loc: Union[tuple[int, int], int, list[int], None]
+    unitary_loc: QubitSelectionType
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
@@ -145,9 +146,9 @@ class EMROutputArgs(OutputArgs):
     times: int
     """The number of random unitary operator. 
     It will denote as :math:`N_U` in the experiment name."""
-    measure: Union[tuple[int, int], int, list[int], None]
+    measure: QubitSelectionType
     """The measure range."""
-    unitary_loc: Union[tuple[int, int], int, list[int], None]
+    unitary_loc: QubitSelectionType
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
