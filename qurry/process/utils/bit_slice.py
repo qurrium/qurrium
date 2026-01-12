@@ -161,7 +161,7 @@ def qubit_mapper_2_int(
     return {qi: ci for ci, qi in enumerate(qi_list)}
 
 
-QubitSelectionType = Union[Sequence[int], int, tuple[int, int], None]
+QubitSelectionType = Union[list[int], int, tuple[int, int], None]
 """Type for qubit selection.
 
 The selected qubits.
