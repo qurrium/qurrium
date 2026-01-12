@@ -361,7 +361,7 @@ class TwoBodyWithMeasurement(TwoBody):
 def make_ghz_overlap_case(
     num_qubits: int,
     case_name: Union[
-        str, Literal["00", "01", "10", "11", "x-init-GHZ", "intracell-plus", "singlet"]
+        str, Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]
     ],
 ) -> QuantumCircuit:
     """Generate a GHZ overlap test case.
@@ -383,7 +383,7 @@ def make_ghz_overlap_case(
         return Intracell(num_qubits, "plus")
     if case_name == "singlet":
         return Intracell(num_qubits, "singlet")
-    if case_name == "x-init-GHZ":
+    if case_name == "x-init-ghz":
         qc = QuantumCircuit(num_qubits)
         qc.x(0)
         qc.h(0)

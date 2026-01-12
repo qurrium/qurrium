@@ -10,7 +10,6 @@ from qurry.qurrium import QurriumPrototype
 from qurry.qurrium.container import _MA
 from qurry.qurrium.analysis import _RA, AnalysisResultsPrototype
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
-from qurry.tools.datetime import current_time
 
 FloatType = Union[float, np.float64]
 """The type alias for :class:`float` and :class:`~numpy.float64`."""
@@ -32,15 +31,6 @@ def get_test_export_dir() -> Path:
 
 EXPORT_DIR = get_test_export_dir()
 """The export directory for test outputs."""
-
-
-def make_current_time_str():
-    """Make the current time string for filenames.
-
-    Returns:
-        str: The current time string.
-    """
-    return current_time().replace(":", "").replace("-", "").replace(" ", "_")
 
 
 class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
