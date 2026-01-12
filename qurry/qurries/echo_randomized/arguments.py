@@ -231,7 +231,7 @@ class ELRMeasureArgs(BasicArgs, total=False):
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    second_backend: Union[Backend, str, None]
+    second_backend: Union[Backend, None]
     """The extra backend for the second group of quantum circuits.
     If None, then use the same backend as the first quantum circuit.
     """
@@ -283,7 +283,7 @@ class ELROutputArgs(OutputArgs):
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Confirm that not all unitary operator are covered by the measure."""
-    second_backend: Union[Backend, str, None]
+    second_backend: Union[Backend, None]
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
