@@ -14,7 +14,6 @@ from qurry.process.utils.bit_slice import (
     cycling_slice as cycling_slice_py,
     cycling_slice_rust,
 )
-from qurry.boorust.test import test_bit_slice as self_test_bit_slice  # type: ignore
 
 from utilities import assert_rust_available
 
@@ -29,11 +28,6 @@ def test_availability():
             dummy_availability,
         ]
     )
-
-
-def test_bit_slice():
-    """Test the test_bit_slice function."""
-    self_test_bit_slice()
 
 
 cases_entries: list[tuple[str, Union[int, tuple[int, int], None]]] = [
