@@ -380,11 +380,11 @@ def make_ghz_overlap_case(
         raise ValueError("Number of qubits must be greater than 0")
 
     if case_name == "intracell-plus":
-        return Intracell(num_qubits, "plus")
+        return Intracell(num_qubits, "plus", name="ghz_intracell_plus")
     if case_name == "singlet":
-        return Intracell(num_qubits, "singlet")
+        return Intracell(num_qubits, "singlet", name="ghz_singlet")
     if case_name == "x-init-ghz":
-        qc = QuantumCircuit(num_qubits)
+        qc = QuantumCircuit(num_qubits, name="ghz_x_init")
         qc.x(0)
         qc.h(0)
         for i in range(num_qubits - 1):
@@ -395,7 +395,7 @@ def make_ghz_overlap_case(
     if case_name not in ["00", "01", "10", "11"]:
         raise ValueError(f"Invalid case name: {case_name}.")
 
-    qc = QuantumCircuit(num_qubits)
+    qc = QuantumCircuit(num_qubits, name=f"ghz_{case_name}")
 
     for i in range(0, num_qubits, 2):
         if case_name[i % 2] == "1":
@@ -404,3 +404,24 @@ def make_ghz_overlap_case(
             qc.x(i + 1)
 
     return qc
+
+
+def preparing_circuits_lib(
+    raw_circuits_lib: dict[str, QuantumCircuit],
+) -> dict[str, QuantumCircuit]:
+    """Prepare a library of circuits for testing.
+
+    Args:
+        raw_circuits_lib (dict[str, QuantumCircuit]):
+            A dictionary of circuit names and their corresponding QuantumCircuit objects.
+
+    Returns:
+        dict[str, QuantumCircuit]: A dictionary of circuit names and their corresponding QuantumCircuit objects.
+    """
+    circuits_lib: dict[str, QuantumCircuit] = {}
+
+    for circ_name, circuit in raw_circuits_lib.items():
+        circuit.name = circ_name
+        circuits_lib[circ_name] = circuit
+
+    return circuits_lib

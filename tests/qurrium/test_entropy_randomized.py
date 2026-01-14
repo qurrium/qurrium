@@ -9,7 +9,7 @@ import pytest
 
 from qurry.qurries.entropy_randomized import EntropyMeasureRandomized, EMRMeasureArgs
 from qurry.qurries.entropy_randomized.analysis import EMRAnalyzeArgs, EMRAnalysis
-from qurry.recipe import TrivialParamagnet, GHZ, TopologicalParamagnet
+from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
 from qiskit import QuantumCircuit
 
@@ -60,10 +60,10 @@ class CaseDataDict(CaseDataDictABC, total=False):
 case_datas: list[CaseDataDict] = [
     {"circuit": TrivialParamagnet(4, name="4-trivial"), "target_purity": 1.0},
     {"circuit": GHZ(4, name="4-GHZ"), "target_purity": 0.5},
-    {"circuit": TopologicalParamagnet(4, name="4-topological-period"), "target_purity": 0.25},
+    {"circuit": Cluster(4, name="4-topological-period"), "target_purity": 0.25},
     {"circuit": TrivialParamagnet(6, name="6-trivial"), "target_purity": 1.0},
     {"circuit": GHZ(6, name="6-GHZ"), "target_purity": 0.5},
-    {"circuit": TopologicalParamagnet(6, name="6-topological-period"), "target_purity": 0.25},
+    {"circuit": Cluster(6, name="6-topological-period"), "target_purity": 0.25},
     {
         "circuit": TwoBodyWithMeasurement(4, name="4-dummy-2-body-with-clbits"),
         "target_purity": 1.0,
@@ -109,9 +109,13 @@ case_datas_extra: list[CaseDataDict] = [
 if SIM_DEFAULT_SOURCE == "qiskit_aer":
     case_datas.extend(case_datas_extra)  # only add these cases when Qiskit Aer is used
 
+DEFAULT_SELECTED_QUBITS = list(range(-2, 0))
+DEFAULT_SHOTS = 1024
+DEFAULT_TIMES = 50
+
 
 def make_case_entries(
-    case_data: CaseDataDict, times: int = 50, shots: int = 1024
+    case_data: CaseDataDict, times: int = DEFAULT_TIMES, shots: int = DEFAULT_SHOTS
 ) -> CaseEntriesTuple[EMRMeasureArgs, EMRAnalyzeArgs]:
     """Make case entries from case data.
 
@@ -145,7 +149,9 @@ def make_case_entries(
             "shots": shots,
             "measure": case_data.get("measure_range", None),
         },
-        analyze_entries={"selected_qubits": case_data.get("selected_qubits", list(range(-2, 0)))},
+        analyze_entries={
+            "selected_qubits": case_data.get("selected_qubits", DEFAULT_SELECTED_QUBITS)
+        },
         expect_answer=expect_answer,
     )
 

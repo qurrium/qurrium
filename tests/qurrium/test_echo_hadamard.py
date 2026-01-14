@@ -1,14 +1,14 @@
-"""Test the Qurrium Runtime :class:`EntropyMeasureHadamard`.
+"""Test the Qurrium Runtime :class:`EchoListenHadamard`.
 
-It's from :class:`~qurry.qurry.qurries.entropy_hadamard.qurry.EntropyMeasureHadamard`.
+It's from :class:`~qurry.qurry.qurries.echo_hadamard.qurry.EchoListenHadamard`.
 """
 
-from typing import TypedDict
+from typing import TypedDict, Optional
 import logging
 import pytest
 
-from qurry.qurries.entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArgs
-from qurry.qurries.entropy_hadamard.analysis import EMHAnalyzeArgs, EMHAnalysis
+from qurry.qurries.echo_hadamard import EchoListenHadamard, ELHMeasureArgs
+from qurry.qurries.echo_hadamard.analysis import ELHAnalyzeArgs, ELHAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
 from qiskit import QuantumCircuit
@@ -22,45 +22,73 @@ from utilities.other import (
     make_specific_analysis_args,
     multi_read_tests_exported_files,
 )
+from utilities.circuits import preparing_circuits_lib
 
 logger = logging.getLogger(__name__)
 
 SIMULATOR = get_seeded_simulator()
 
-THREDHOLD = 0.25
+THREDHOLD = 0.05
 
 
 class CaseDataDict(TypedDict):
     """Case data dictionary for testing."""
 
-    circuit: QuantumCircuit
+    circuits: tuple[QuantumCircuit, QuantumCircuit]
     """The quantum circuit to be tested."""
     expect_answer: float
     """The expected answer for the test case."""
 
 
+circuits_lib = preparing_circuits_lib(
+    {
+        "4_trivial": TrivialParamagnet(4),
+        "4_ghz": GHZ(4),
+        "4_topological-period": Cluster(4),
+        "6_trivial": TrivialParamagnet(6),
+        "6_ghz": GHZ(6),
+        "6_topological-period": Cluster(6),
+    }
+)
+
+
+def making_pair(name1: str, name2: Optional[str] = None) -> tuple[QuantumCircuit, QuantumCircuit]:
+    """Make a pair of circuits from names.
+
+    Args:
+        name1 (str): The name of the first circuit.
+        name2 (str): The name of the second circuit. If None, use name1.
+
+    Returns:
+        tuple[QuantumCircuit, QuantumCircuit]: The pair of circuits.
+    """
+    if name2 is None:
+        name2 = name1
+    return (circuits_lib[name1].copy(), circuits_lib[name2].copy())
+
+
 case_datas: list[CaseDataDict] = [
-    {"circuit": TrivialParamagnet(4, name="4-trivial"), "expect_answer": 1.0},
-    {"circuit": GHZ(4, name="4-GHZ"), "expect_answer": 0.5},
-    {"circuit": Cluster(4, name="4-topological-period"), "expect_answer": 0.25},
-    {"circuit": TrivialParamagnet(6, name="6-trivial"), "expect_answer": 1.0},
-    {"circuit": GHZ(6, name="6-GHZ"), "expect_answer": 0.5},
-    {"circuit": Cluster(6, name="6-topological-period"), "expect_answer": 0.25},
+    {"circuits": making_pair("4_trivial"), "expect_answer": 1.0},
+    {"circuits": making_pair("4_ghz"), "expect_answer": 0.5},
+    {"circuits": making_pair("4_topological-period"), "expect_answer": 0.25},
+    {"circuits": making_pair("6_trivial"), "expect_answer": 1.0},
+    {"circuits": making_pair("6_ghz"), "expect_answer": 0.5},
+    {"circuits": making_pair("6_topological-period"), "expect_answer": 0.25},
 ]
 
 DEFAULT_DEGREE = (0, 2)
 
-
-CASES: list[CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]] = [
+CASES: list[CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs]] = [
     CaseEntriesTuple(
-        tags=("hadamard", case_data["circuit"].name),
+        tags=("hadamard", f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}"),
         measure_entries={
-            "wave": case_data["circuit"],
+            "wave1": case_data["circuits"][0],
+            "wave2": case_data["circuits"][1],
             "degree": DEFAULT_DEGREE,
             "backend": SIMULATOR,
         },
         analyze_entries={},
-        expect_answer={"default": ("purity", case_data["expect_answer"])},
+        expect_answer={"default": ("echo", case_data["expect_answer"])},
     )
     for case_data in case_datas
 ]
@@ -68,15 +96,15 @@ CASES: list[CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs],
+    case_entries: CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
     Args:
-        case_entries (CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]): The test case item.
+        case_entries (CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs]): The test case item.
     """
 
-    exp_method = EntropyMeasureHadamard()
+    exp_method = EchoListenHadamard()
     exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
     analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
 
@@ -100,14 +128,14 @@ def test_measure_and_analyze(
 def test_multi_output_all() -> None:
     """Test the multi-output experiment for all cases."""
 
-    exp_method = EntropyMeasureHadamard()
+    exp_method = EchoListenHadamard()
 
     config_list, cases_with_tags = make_config_list_and_tagged_case(CASES)
 
     summoner_id = exp_method.multiOutput(
         config_list,
         backend=SIMULATOR,
-        summoner_name="entropy_hadamard",
+        summoner_name="echo_hadamard",
         save_location=EXPORT_DIR,
         multiprocess_build=True,
         multiprocess_write=False,
@@ -121,7 +149,7 @@ def test_multi_output_all() -> None:
             exp_method, summoner_id, cases_with_tags
         ),
     )
-    test_report: dict[tuple[str, ...], list[EMHAnalysis]] = exp_method.multimanagers[
+    test_report: dict[tuple[str, ...], list[ELHAnalysis]] = exp_method.multimanagers[
         summoner_id
     ].all_reports(report_name)
 
