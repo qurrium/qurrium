@@ -1,6 +1,7 @@
 """ShadowUnveil - Experiment (:mod:`qurry.qurries.classical_shadow.experiment`)"""
 
-from typing import Optional, Any
+from typing import Optional, Any, Union
+from pathlib import Path
 from collections.abc import Iterable
 import tqdm
 import numpy as np
@@ -25,6 +26,7 @@ from ...process.classical_shadow import (
     DEFAULT_TRACE_METHOD,
     ListTraceMethodType,
     DEFAULT_LIST_TRACE_METHOD,
+    measurements_export,
 )
 
 
@@ -487,3 +489,37 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         )
         self.reports[analysis.serial] = analysis
         return analysis
+
+    def get_basis_spin_format(
+        self,
+        counts_used: Optional[Iterable[int]] = None,
+        filename: Union[str, Path, None] = None,
+    ) -> tuple[list[list[int]], list[list[int]]]:
+        """Get the basis-spin format from the counts and random basis of experiment,
+        which uses in `Predicting Properties of Quantum Many-Body Systems
+        <https://github.com/hsinyuan-huang/predicting-quantum-properties>`_ .
+
+        Args:
+            counts_used (Optional[Iterable[int]], optional):
+                The index of the counts used. Defaults to None.
+            filename (Union[str, Path, None], optional):
+                The filename to export the basis-spin format.
+                If it is None, it will not export to a file. Defaults to None.
+
+        Returns:
+            A tuple containing a list of pauli basis and a list of spin outcomes.
+        """
+
+        basis_and_spin = self.analysis_type().convert_to_basis_spin(
+            self.commons.shots,
+            self.afterwards.counts,
+            self.args.registers_mapping,
+            self.args.random_basis,
+            counts_used,
+        )
+        if filename is None:
+            return basis_and_spin
+
+        measurements_export(*basis_and_spin, len(self.args.registers_mapping), filename)
+
+        return basis_and_spin
