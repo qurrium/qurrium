@@ -96,6 +96,7 @@ from .utils import (
     check_random_basis,
     check_random_basis_array,
     spreadout,
+    convert_to_basis_spin,
     measurements_export,
     measurements_read,
 )

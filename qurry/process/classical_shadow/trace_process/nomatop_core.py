@@ -7,7 +7,7 @@ from typing import Iterable, Literal, Union, Optional
 
 from .nomatmul_trace import nomatmul_trace_core, NonMatMulTraceMethod
 from .bitwise import bitwise_core, BitWiseTraceMethod
-from ..utils import multi_counts_to_basis_spin
+from ..utils import convert_to_basis_spin
 from ...utils import shot_counts_selected_clreg_checker_pyrust, BaseMethodEnum
 
 
@@ -138,7 +138,7 @@ def trace_nomatop_core(
         selected_classical_registers=selected_classical_registers,
     )
     selected_clreg_sorted = sorted(selected_classical_registers)
-    pauli_basis, spin_outcome = multi_counts_to_basis_spin(shots, counts, random_unitary_array)
+    pauli_basis, spin_outcome = convert_to_basis_spin(shots, counts, random_unitary_array)
 
     if isinstance(trace_method, str):
         trace_method = NonMatOpTraceMethod.from_string(trace_method)

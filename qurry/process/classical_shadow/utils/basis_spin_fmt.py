@@ -16,7 +16,7 @@ from typing import Literal, Union, Sequence
 from pathlib import Path
 
 
-def multi_counts_to_basis_spin(
+def convert_to_basis_spin(
     shots: int,
     counts: list[dict[str, int]],
     random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
@@ -32,8 +32,7 @@ def multi_counts_to_basis_spin(
             The random basis for classical shadow.
 
     Returns:
-        tuple[list[list[int]], list[list[int]]]:
-            A tuple containing a list of pauli basis and a list of spin outcomes
+        A tuple containing a list of pauli basis and a list of spin outcomes.
     """
     pauli_basis, spin_outcome = [], []
     for idx, (single_counts, single_random_basis) in enumerate(zip(counts, random_basis_array)):
@@ -90,6 +89,7 @@ def measurements_export(
                 " ".join(
                     (f"{chr(88 + pauli)} {spin}" for pauli, spin in zip(single_pauli, single_spin))
                 )
+                + "\n"
             )
 
     return filename
