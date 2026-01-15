@@ -5,6 +5,7 @@ from pathlib import Path
 from collections.abc import Iterable
 import tqdm
 import numpy as np
+import numpy.typing as npt
 
 from qiskit import QuantumCircuit
 
@@ -243,9 +244,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         self,
         selected_qubits: Optional[Iterable[int]] = None,
         # estimation of given operators
-        given_operators: Optional[
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-        ] = None,
+        given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
@@ -260,7 +259,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+            given_operators (Optional[list[npt.NDArray[np.complex128]]]):
                 The list of the operators to estimate. Defaults to None.
             accuracy_prob_comp_delta (float, optional):
                 The accuracy probability component delta. Defaults to 0.01.
@@ -370,9 +369,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         self,
         selected_qubits: Optional[Iterable[int]] = None,
         # estimation of given operators
-        given_operators: Optional[
-            list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]
-        ] = None,
+        given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
         accuracy_prob_comp_delta: float = 0.01,
         max_shadow_norm: Optional[float] = None,
         # other config
@@ -387,7 +384,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             selected_qubits (Optional[Iterable[int]], optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+            given_operators (Optional[list[npt.NDArray[np.complex128]]]):
                 The list of the operators to estimate. Defaults to None.
             accuracy_prob_comp_delta (float, optional):
                 The accuracy probability component delta. Defaults to 0.01.

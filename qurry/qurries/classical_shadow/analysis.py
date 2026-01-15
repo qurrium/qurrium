@@ -49,7 +49,7 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     selected_qubits: Optional[list[int]]
     """The selected qubits."""
     # estimation of given operators
-    given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]
+    given_operators: Optional[list[npt.NDArray[np.complex128]]]
     """The list of the operators to estimate."""
     accuracy_prob_comp_delta: float
     """The accuracy probability for computing delta."""
@@ -773,7 +773,7 @@ class SUAnalysis(
         random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
         selected_classical_registers: Optional[Iterable[int]],
         # estimation of given operators
-        given_operators: Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]],
+        given_operators: Optional[list[npt.NDArray[np.complex128]]],
         accuracy_prob_comp_delta: float,
         max_shadow_norm: Optional[float],
         # other config
