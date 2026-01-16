@@ -15,7 +15,7 @@ use crate::counts_process::{
     shot_counts_selected_clreg_checker, single_counts_recount_rust,
 };
 use crate::hadamard::purity_echo_core_rust;
-use crate::magnet_square::{magnetic_square_core_rust, z_dir_magnetic_square_core_rust};
+use crate::magnet_square::{magnet_square_core_rust, z_dir_magnet_square_core_rust};
 use crate::randomized::echo::v1::overlap_echo_core_rust;
 use crate::randomized::echo::v2::overlap_echo_core_2_rust;
 use crate::randomized::entropy::v1::entangled_entropy_core_rust;
@@ -73,9 +73,9 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     hadamard.add_function(wrap_pyfunction!(purity_echo_core_rust, &hadamard)?)?;
 
     let magnet_square = PyModule::new(parent_module.py(), "magnet_square")?;
-    magnet_square.add_function(wrap_pyfunction!(magnetic_square_core_rust, &magnet_square)?)?;
+    magnet_square.add_function(wrap_pyfunction!(magnet_square_core_rust, &magnet_square)?)?;
     magnet_square.add_function(wrap_pyfunction!(
-        z_dir_magnetic_square_core_rust,
+        z_dir_magnet_square_core_rust,
         &magnet_square
     )?)?;
 

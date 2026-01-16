@@ -8,7 +8,7 @@ import numpy as np
 import tqdm
 
 from ..availability import PostProcessingBackendLabel
-from .magsq_core import magnetic_square_core, z_dir_magnetic_square_core, DEFAULT_PROCESS_BACKEND
+from .magsq_core import magnet_square_core, z_dir_magnet_square_core, DEFAULT_PROCESS_BACKEND
 
 
 class MagnetSquareResult(TypedDict):
@@ -22,14 +22,14 @@ class MagnetSquareResult(TypedDict):
     """Taking time."""
 
 
-def magnet_square(
+def magnetization_square(
     shots: int,
     counts: list[dict[str, int]],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> MagnetSquareResult:
-    """Calculate the magnet square.
+    """Calculate the magnetization square.
 
     Args:
         shots (int): Number of shots.
@@ -44,7 +44,7 @@ def magnet_square(
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description("Magnetization Square being calculated.")
 
-    magsq, magnet_square_cells, taking_time = magnetic_square_core(
+    magsq, magnet_square_cells, taking_time = magnet_square_core(
         shots=shots, counts=counts, num_qubits=num_qubits, backend=backend
     )
     if isinstance(pbar, tqdm.tqdm):
@@ -57,16 +57,14 @@ def magnet_square(
     }
 
 
-def z_dir_magnet_square(
+def z_dir_magnetization_square(
     shots: int,
     single_counts: dict[str, int],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     pbar: Optional[tqdm.tqdm] = None,
 ) -> MagnetSquareResult:
-    """Calculate the magnet square for Z direction.
-
-    Signle counts is only working for Z direction.
+    """Calculate the magnetization square for Z direction.
 
     Args:
         shots (int): Number of shots.
@@ -81,7 +79,7 @@ def z_dir_magnet_square(
     if isinstance(pbar, tqdm.tqdm):
         pbar.set_description("Z Direction Magnetization Square being calculated.")
 
-    magsq, magnet_square_cells, taking_time = z_dir_magnetic_square_core(
+    magsq, magnet_square_cells, taking_time = z_dir_magnet_square_core(
         shots=shots, single_counts=single_counts, num_qubits=num_qubits, backend=backend
     )
 

@@ -14,7 +14,7 @@ from ...qurrium import (
     AnalysisResultsPrototype,
 )
 from ...process.magnet_square.magnet_square import (
-    z_dir_magnet_square,
+    z_dir_magnetization_square,
     MagnetSquareResult,
     DEFAULT_PROCESS_BACKEND,
     PostProcessingBackendLabel,
@@ -157,7 +157,7 @@ class ZMSAnalysis(
             MagnetSquareResult: The result of the magnet square.
         """
 
-        return z_dir_magnet_square(
+        return z_dir_magnetization_square(
             shots=shots, single_counts=single_counts, num_qubits=num_qubits, backend=backend
         )
 

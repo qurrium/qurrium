@@ -10,10 +10,9 @@ from ..availability import availablility, default_postprocessing_backend, PostPr
 from ..utils import single_counts_recount_proto
 from ...tools import DEFAULT_POOL_SIZE
 
-# pylint:disable=no-name-in-module,import-error
 from ...boorust.magnet_square import (  # type: ignore
-    magnetic_square_core_rust,
-    z_dir_magnetic_square_core_rust,
+    magnet_square_core_rust,
+    z_dir_magnet_square_core_rust,
 )
 
 BACKEND_AVAILABLE = availablility("magnet_square.magnsq_core", [("Rust", True, None)])
@@ -78,7 +77,7 @@ def magsq_cell_wrapper(arguments: tuple[int, dict[str, int], int]) -> tuple[int,
     return magsq_cell_py(*arguments)
 
 
-def magnetic_square_core(
+def magnet_square_core(
     shots: int,
     counts: list[dict[str, int]],
     num_qubits: int,
@@ -105,7 +104,7 @@ def magnetic_square_core(
         )
 
     if backend == "Rust":
-        return magnetic_square_core_rust(shots, counts, num_qubits)
+        return magnet_square_core_rust(shots, counts, num_qubits)
 
     sample_counts_sum = sum(counts[0].values())
     assert shots == sample_counts_sum, (
@@ -125,7 +124,7 @@ def magnetic_square_core(
     return magnetsq, magnetsq_cell_dict, taken
 
 
-def z_dir_magnetic_square_core(
+def z_dir_magnet_square_core(
     shots: int,
     single_counts: dict[str, int],
     num_qubits: int,
@@ -146,7 +145,7 @@ def z_dir_magnetic_square_core(
     """
 
     if backend == "Rust":
-        return z_dir_magnetic_square_core_rust(shots, single_counts, num_qubits)
+        return z_dir_magnet_square_core_rust(shots, single_counts, num_qubits)
 
     sample_counts_sum = sum(single_counts.values())
     assert shots == sample_counts_sum, (

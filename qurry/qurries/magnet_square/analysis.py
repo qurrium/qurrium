@@ -14,7 +14,7 @@ from ..magnet_square_z.analysis import (
 )
 from ...qurrium import Commonparams, AnalysisPrototype
 from ...process.magnet_square.magnet_square import (
-    magnet_square,
+    magnetization_square,
     MagnetSquareResult,
     DEFAULT_PROCESS_BACKEND,
     PostProcessingBackendLabel,
@@ -150,7 +150,7 @@ class MSAnalysis(
             MagnetSquareResult: The result of the magnet square.
         """
 
-        return magnet_square(shots=shots, counts=counts, num_qubits=num_qubits, backend=backend)
+        return magnetization_square(shots=shots, counts=counts, num_qubits=num_qubits, backend=backend)
 
     @classmethod
     def generate_entries(
