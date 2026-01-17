@@ -7,11 +7,11 @@ from typing import TypedDict, Optional
 import logging
 import pytest
 
+from qiskit import QuantumCircuit
+
 from qurry.qurries.echo_randomized import EchoListenRandomized, ELRMeasureArgs
 from qurry.qurries.echo_randomized.analysis import ELRAnalyzeArgs, ELRAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
-
-from qiskit import QuantumCircuit
 
 from utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from utilities.other import (
@@ -37,7 +37,7 @@ SIMULATOR = get_seeded_simulator()
 
 RANDOM_UNITARY_SEEDS = prepare_random_unitary_seeds()
 
-THREDHOLD = 0.125
+THRESHOLD = 0.125
 
 
 class CaseDataDictABC(TypedDict):
@@ -221,7 +221,7 @@ def make_case_entries(
     random_unitary_seeds = {i: RANDOM_UNITARY_SEEDS[actual_qubits_num][i] for i in range(times)}
 
     return CaseEntriesTuple(
-        tags=("randomized", f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}"),
+        tags=(f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}",),
         measure_entries={
             "wave1": case_data["circuits"][0],
             "wave2": case_data["circuits"][1],
@@ -264,7 +264,7 @@ def test_measure_and_analyze(
             target_field=target_field,
             expect_answer=expect_answer_value,
             name=case_entries.name,
-            threshold=THREDHOLD,
+            threshold=THRESHOLD,
         )
         for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
     ]
@@ -315,7 +315,7 @@ def test_multi_output_all() -> None:
                 target_field=target_field,
                 expect_answer=expect_answer_value,
                 name=cases_with_tags[tags].name,
-                threshold=THREDHOLD,
+                threshold=THRESHOLD,
             )
             for key, (target_field, expect_answer_value) in cases_with_tags[
                 tags

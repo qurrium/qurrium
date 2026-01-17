@@ -7,11 +7,11 @@ from typing import TypedDict, Optional
 import logging
 import pytest
 
+from qiskit import QuantumCircuit
+
 from qurry.qurries.entropy_randomized import EntropyMeasureRandomized, EMRMeasureArgs
 from qurry.qurries.entropy_randomized.analysis import EMRAnalyzeArgs, EMRAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
-
-from qiskit import QuantumCircuit
 
 from utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from utilities.other import (
@@ -32,7 +32,7 @@ SIMULATOR = get_seeded_simulator()
 
 RANDOM_UNITARY_SEEDS = prepare_random_unitary_seeds()
 
-THREDHOLD = 0.25
+THRESHOLD = 0.25
 
 
 class CaseDataDictABC(TypedDict):
@@ -140,7 +140,7 @@ def make_case_entries(
         expect_answer["mitigated"] = ("mitigated_purity", mitigated_purity)
 
     return CaseEntriesTuple(
-        tags=("randomized", case_data["circuit"].name),
+        tags=(case_data["circuit"].name,),
         measure_entries={
             "wave": case_data["circuit"],
             "backend": SIMULATOR,
@@ -180,7 +180,7 @@ def test_measure_and_analyze(
             target_field=target_field,
             expect_answer=expect_answer_value,
             name=case_entries.name,
-            threshold=THREDHOLD,
+            threshold=THRESHOLD,
         )
         for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
     ]
@@ -262,7 +262,7 @@ def test_multi_output_all() -> None:
                 target_field=target_field,
                 expect_answer=expect_answer_value,
                 name=cases_with_tags[tags].name,
-                threshold=THREDHOLD,
+                threshold=THRESHOLD,
             )
             for key, (target_field, expect_answer_value) in cases_with_tags[
                 tags

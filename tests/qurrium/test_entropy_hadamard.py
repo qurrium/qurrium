@@ -7,11 +7,11 @@ from typing import TypedDict
 import logging
 import pytest
 
+from qiskit import QuantumCircuit
+
 from qurry.qurries.entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArgs
 from qurry.qurries.entropy_hadamard.analysis import EMHAnalyzeArgs, EMHAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
-
-from qiskit import QuantumCircuit
 
 from utilities.simulator import get_seeded_simulator
 from utilities.other import (
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 SIMULATOR = get_seeded_simulator()
 
-THREDHOLD = 0.25
+THRESHOLD = 0.25
 
 
 class CaseDataDict(TypedDict):
@@ -53,7 +53,7 @@ DEFAULT_DEGREE = (0, 2)
 
 CASES: list[CaseEntriesTuple[EMHMeasureArgs, EMHAnalyzeArgs]] = [
     CaseEntriesTuple(
-        tags=("hadamard", case_data["circuit"].name),
+        tags=(case_data["circuit"].name,),
         measure_entries={
             "wave": case_data["circuit"],
             "degree": DEFAULT_DEGREE,
@@ -87,7 +87,7 @@ def test_measure_and_analyze(
             target_field=target_field,
             expect_answer=expect_answer_value,
             name=case_entries.name,
-            threshold=THREDHOLD,
+            threshold=THRESHOLD,
         )
         for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
     ]
@@ -137,7 +137,7 @@ def test_multi_output_all() -> None:
                 target_field=target_field,
                 expect_answer=expect_answer_value,
                 name=cases_with_tags[tags].name,
-                threshold=THREDHOLD,
+                threshold=THRESHOLD,
             )
             for key, (target_field, expect_answer_value) in cases_with_tags[
                 tags
