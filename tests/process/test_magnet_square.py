@@ -6,8 +6,8 @@ import pytest
 
 from qurry.process.magnet_square import (
     magnet_square_availability,
-    magnet_square,
-    z_dir_magnet_square,
+    magnetization_square,
+    z_dir_magnetization_square,
     MagnetSquareResult,
 )
 
@@ -42,9 +42,9 @@ class MagnetSquareZdirCase(TypedDict):
     """The raw read magnet square z direction unit type."""
 
     target: MagnetSquareZdirTarget
-    """The target parameters for the z_dir_magnet_square function."""
+    """The target parameters for the z_dir_magnetization_square function."""
     answer: MagnetSquareResult
-    """The expected answer from the z_dir_magnet_square function."""
+    """The expected answer from the z_dir_magnetization_square function."""
     case_name: str
     """The case name."""
 
@@ -104,13 +104,13 @@ def test_magnet_square_zdir(
         "The counts should be a single item for the z_dir_magnetic_square_core function."
     )
 
-    py_result = z_dir_magnet_square(
+    py_result = z_dir_magnetization_square(
         shots=target["shots"],
         single_counts=target["counts"][0],
         num_qubits=target["num_qubits"],
         backend="Python",
     )
-    rust_result = z_dir_magnet_square(
+    rust_result = z_dir_magnetization_square(
         shots=target["shots"],
         single_counts=target["counts"][0],
         num_qubits=target["num_qubits"],
@@ -143,13 +143,13 @@ def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, c
         f"The counts should have {predict_counts_num} items, but got {len(target['counts'])} for {case_name}"
     )
 
-    py_result = magnet_square(
+    py_result = magnetization_square(
         shots=target["shots"],
         counts=target["counts"],
         num_qubits=target["num_qubits"],
         backend="Python",
     )
-    rust_result = magnet_square(
+    rust_result = magnetization_square(
         shots=target["shots"],
         counts=target["counts"],
         num_qubits=target["num_qubits"],
