@@ -18,7 +18,6 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -27,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.urls]
 Issues = "https://github.com/qurrium/qurrium/issues"
@@ -143,7 +142,7 @@ before-all = [
 ]
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} && pipx run abi3audit --strict --report {wheel}"
 # Attention: If you are building universal2 binaries, 
-# confirm that you are using universal2 Python since version 3.9
+# confirm that you are using universal2 Python since version 3.10
 # It can be check by `python -c "from setuptools._distutils.util import get_platform; print(get_platform())"`
 # You should see something like `macosx-*-universal2` in the output.
 
@@ -244,8 +243,8 @@ disable = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
-# We only support Python 3.9+, this is the minimum version.
+target-version = "py310"
+# We only support Python 3.10+, this is the minimum version.
 # This will need to be updated when we start to support Python 3.10+ specific syntax.
 
 lint.select = [
