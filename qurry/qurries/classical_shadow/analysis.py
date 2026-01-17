@@ -1,12 +1,13 @@
 """ShadowUnveil - Analysis (:mod:`qurry.qurries.classical_shadow.analysis`)"""
 
 # pylint: disable=too-many-lines
-from typing import Optional, Iterable, Any, Union, Literal
+from typing import Optional, Iterable, Any, Union, Literal, overload, TypeVar, Generic
 from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
 from .arguments import SUArguments
+from .utils import get_random_basis_array
 from ...qurrium import (
     Commonparams,
     AnalysisPrototype,
@@ -37,7 +38,6 @@ from ...process.classical_shadow import (
     ClassicalShadowBasic,
     ClassicalShadowPurity,
     EstimationOfObservable,
-    convert_to_basis_spin,
 )
 
 
@@ -722,19 +722,79 @@ class SUEstimationResult(AnalysisResultsPrototype):
         )
 
 
+_K_Inst = TypeVar("_K_Inst", bound=str)
+"""The key type variable for SUResultsType and SUResults."""
+_V_Inst = TypeVar("_V_Inst", bound=AnalysisResultsPrototype)
+"""The value type variable for SUResultsType and SUResults."""
+
+
+class SUResultsType(
+    Generic[_K_Inst, _V_Inst],
+    dict[
+        Union[str, Literal["basic", "purity", "estimation"], _K_Inst],
+        Union[type[SUBasicResult], type[SUPurityResult], type[SUEstimationResult], type[_V_Inst]],
+    ],
+):
+    """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
+
+    @overload
+    def __getitem__(self, key: Literal["basic"]) -> type[SUBasicResult]: ...
+    @overload
+    def __getitem__(self, key: Literal["purity"]) -> type[SUPurityResult]: ...
+    @overload
+    def __getitem__(self, key: Literal["estimation"]) -> type[SUEstimationResult]: ...
+    @overload
+    def __getitem__(self, key: _K_Inst) -> type[_V_Inst]: ...
+    @overload
+    def __getitem__(
+        self, key: str
+    ) -> Union[type[SUBasicResult], type[SUPurityResult], type[SUEstimationResult]]: ...
+
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+
+class SUResults(
+    Generic[_K_Inst, _V_Inst],
+    dict[
+        Union[str, Literal["basic", "purity", "estimation"], _K_Inst],
+        Union[SUBasicResult, SUPurityResult, SUEstimationResult, _V_Inst],
+    ],
+):
+    """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
+
+    @overload
+    def __getitem__(self, key: Literal["basic"]) -> SUBasicResult: ...
+    @overload
+    def __getitem__(self, key: Literal["purity"]) -> SUPurityResult: ...
+    @overload
+    def __getitem__(self, key: Literal["estimation"]) -> SUEstimationResult: ...
+    @overload
+    def __getitem__(self, key: _K_Inst) -> _V_Inst: ...
+    @overload
+    def __getitem__(self, key: str) -> Union[SUBasicResult, SUPurityResult, SUEstimationResult]: ...
+
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+
 class SUAnalysis(
+    Generic[_K_Inst, _V_Inst],
     AnalysisPrototype[
         SUArguments,
         SUAnalyzeArgs,
         SUMiddleware,
         SUProcessEntries,
-        Union[SUBasicResult, SUPurityResult, SUEstimationResult],
-    ]
+        Union[SUBasicResult, SUPurityResult, SUEstimationResult, _V_Inst],
+    ],
 ):
     """The container for the analysis of
     :class:`~qurry.qurries.classical_shadow.experiment.SUExperiment`."""
 
     __name__ = "SUAnalysis"
+
+    results: SUResults[_K_Inst, _V_Inst]
+    """The results of the analysis."""
 
     @classmethod
     def analyze_arguments_type(cls) -> type[SUAnalyzeArgs]:
@@ -752,18 +812,15 @@ class SUAnalysis(
         return SUProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[
-        Union[str, Literal["basic", "purity", "estimation"]],
-        Union[type[SUBasicResult], type[SUPurityResult], type[SUEstimationResult]],
-    ]:
+    def available_results_types(cls) -> SUResultsType[_K_Inst, _V_Inst]:
         """The available result types for this analysis."""
-        return {
-            "basic": SUBasicResult,
-            "purity": SUPurityResult,
-            "estimation": SUEstimationResult,
-        }
+        return SUResultsType(
+            {
+                "basic": SUBasicResult,
+                "purity": SUPurityResult,
+                "estimation": SUEstimationResult,
+            }
+        )
 
     @classmethod
     def quantities(
@@ -912,74 +969,6 @@ class SUAnalysis(
             estimate_trace_method=estimate_trace_method,
         )
 
-    @staticmethod
-    def get_random_basis_array(
-        registers_mapping: dict[int, int],
-        random_basis: dict[int, dict[int, int]],
-        counts_used: Optional[Iterable[int]] = None,
-    ) -> list[list[Union[Literal[0, 1, 2], int]]]:
-        """Get the random basis array from the random basis,
-        register mapping, and counts used.
-
-        The random basis follow normal register mapping
-        for it does not need to consider extra classical registers
-        but effect by count_used.
-
-        Args:
-            registers_mapping (dict[int, int]):
-                The mapping of the classical registers of measurement with quantum registers.
-            random_basis (dict[int, dict[int, int]]):
-                The random basis mapping.
-            counts_used (Optional[Iterable[int]], optional):
-                The counts used. Defaults to None.
-
-        Returns:
-            list[list[Union[Literal[0, 1, 2], int]]]: The random basis array.
-        """
-        all_clregs = sorted(registers_mapping.values())
-
-        random_basis_array: list[list[Union[Literal[0, 1, 2], int]]] = []
-        for i in range(len(random_basis) if counts_used is None else max(counts_used) + 1):
-            tmp = {ci: random_basis[i][n_u_qi] for n_u_qi, ci in registers_mapping.items()}
-            random_basis_array.append([tmp[j] for j in all_clregs])
-
-        return random_basis_array
-
-    @classmethod
-    def convert_to_basis_spin(
-        cls,
-        shots: int,
-        counts: list[dict[str, int]],
-        registers_mapping: dict[int, int],
-        random_basis: dict[int, dict[int, int]],
-        counts_used: Optional[Iterable[int]] = None,
-    ) -> tuple[list[list[int]], list[list[int]]]:
-        """Convert the random basis to basis-spin format,
-        which uses in `Predicting Properties of Quantum Many-Body Systems
-        <https://github.com/hsinyuan-huang/predicting-quantum-properties>`_ .
-
-        Args:
-            shots (int):
-                The number of shots.
-            counts (list[dict[str, int]]):
-                The counts from the experiment.
-            registers_mapping (dict[int, int]):
-                The mapping of the classical registers of measurement with quantum registers.
-            random_basis (dict[int, dict[int, int]]):
-                The random basis mapping.
-            counts_used (Optional[Iterable[int]], optional):
-                The counts used. Defaults to None.
-
-        Returns:
-            A tuple containing a list of pauli basis and a list of spin outcomes.
-        """
-
-        return convert_to_basis_spin(
-            shots,
-            counts,
-            cls.get_random_basis_array(registers_mapping, random_basis, counts_used),
-        )
-
     @classmethod
     def generate_entries(
         cls,
@@ -1044,7 +1033,7 @@ class SUAnalysis(
         # random basis follow normal register mapping
         # for it does not need to consider extra classical registers
         # but effect by count_used
-        random_basis_array = cls.get_random_basis_array(
+        random_basis_array = get_random_basis_array(
             arguments.registers_mapping, random_basis, counts_used
         )
 
@@ -1127,10 +1116,7 @@ class SUAnalysis(
             estimate_trace_method=postprocess_entries.estimate_trace_method,
         )
 
-        results: dict[
-            Union[str, Literal["basic", "purity", "estimation"]],
-            Union[SUBasicResult, SUPurityResult, SUEstimationResult],
-        ] = {"basic": SUBasicResult(**cs_basic_obj)}
+        results = SUResults[_K_Inst, _V_Inst]({"basic": SUBasicResult(**cs_basic_obj)})
         if cs_trace_obj is not None:
             results["purity"] = SUPurityResult(**cs_trace_obj)
         if cs_estimation_obj is not None:

@@ -11,7 +11,7 @@ from qiskit import QuantumCircuit
 
 from .analysis import SUAnalysis
 from .arguments import SUArguments, SHORT_NAME
-from .utils import make_samplied_circuit
+from .utils import make_samplied_circuit, get_basis_spin
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...tools import ParallelManager, set_pbar_description
@@ -507,7 +507,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             A tuple containing a list of pauli basis and a list of spin outcomes.
         """
 
-        basis_and_spin = self.analysis_type().convert_to_basis_spin(
+        basis_and_spin = get_basis_spin(
             self.commons.shots,
             self.afterwards.counts,
             self.args.registers_mapping,
