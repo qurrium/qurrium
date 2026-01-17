@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Analysis (:mod:`qurry.qurries.entropy_randomized.analysis`)"""
 
-from typing import Union, Optional, Iterable, Literal, Any
+from typing import Union, Optional, Iterable, Literal, Any, overload
 from dataclasses import dataclass
 import numpy as np
 
@@ -435,6 +435,52 @@ class EMRMitigatedResult(AnalysisResultsPrototype):
         return export_content
 
 
+class EMRResultsType(
+    dict[
+        Union[str, Literal["target_system", "all_system", "mitigated"]],
+        Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]],
+    ],
+):
+    """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
+
+    @overload
+    def __getitem__(self, key: Literal["target_system"]) -> type[EMRTargetSystemResult]: ...
+    @overload
+    def __getitem__(self, key: Literal["all_system"]) -> type[EMRAllSystemResult]: ...
+    @overload
+    def __getitem__(self, key: Literal["mitigated"]) -> type[EMRMitigatedResult]: ...
+    @overload
+    def __getitem__(
+        self, key: str
+    ) -> Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]]: ...
+
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+
+class EMRResults(
+    dict[
+        Union[str, Literal["target_system", "all_system", "mitigated"]],
+        Union[EMRTargetSystemResult, EMRAllSystemResult, EMRMitigatedResult],
+    ]
+):
+    """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
+
+    @overload
+    def __getitem__(self, key: Literal["target_system"]) -> EMRTargetSystemResult: ...
+    @overload
+    def __getitem__(self, key: Literal["all_system"]) -> EMRAllSystemResult: ...
+    @overload
+    def __getitem__(self, key: Literal["mitigated"]) -> EMRMitigatedResult: ...
+    @overload
+    def __getitem__(
+        self, key: str
+    ) -> Union[EMRTargetSystemResult, EMRAllSystemResult, EMRMitigatedResult]: ...
+
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+
 class EMRAnalysis(
     AnalysisPrototype[
         EMRArguments,
@@ -448,6 +494,9 @@ class EMRAnalysis(
     :class:`~qurry.qurries.entropy_randomized.experiment.EMRExperiment`."""
 
     __name__ = "EMRAnalysis"
+
+    results: EMRResults
+    """The results of the analysis."""
 
     @classmethod
     def analyze_arguments_type(cls) -> type[EMRAnalyzeArgs]:
@@ -465,18 +514,15 @@ class EMRAnalysis(
         return EMRProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[
-        Union[str, Literal["target_system", "all_system", "mitigated"]],
-        Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]],
-    ]:
+    def available_results_types(cls) -> EMRResultsType:
         """The results type for this analysis."""
-        return {
-            "target_system": EMRTargetSystemResult,
-            "all_system": EMRAllSystemResult,
-            "mitigated": EMRMitigatedResult,
-        }
+        return EMRResultsType(
+            {
+                "target_system": EMRTargetSystemResult,
+                "all_system": EMRAllSystemResult,
+                "mitigated": EMRMitigatedResult,
+            }
+        )
 
     @classmethod
     def quantities(
@@ -647,11 +693,13 @@ class EMRAnalysis(
             analyze_arguments=analyze_arguments,
             middleware_entries=middleware_entries,
             postprocess_entries=postprocess_entries,
-            results={
-                "target_system": tgt_sys_result,
-                "all_system": all_sys_result,
-                "mitigated": mitigated_result,
-            },
+            results=EMRResults(
+                {
+                    "target_system": tgt_sys_result,
+                    "all_system": all_sys_result,
+                    "mitigated": mitigated_result,
+                }
+            ),
             serial=serial,
             outfields=outfields,
             datetime=datetime,
