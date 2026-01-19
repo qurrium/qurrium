@@ -1,7 +1,8 @@
 """ShadowUnveil - Analysis (:mod:`qurry.qurries.classical_shadow.analysis`)"""
 
 # pylint: disable=too-many-lines
-from typing import Optional, Iterable, Any, Union, Literal, overload, TypeVar, Generic
+from typing import Any, Literal, overload, TypeVar, Generic
+from collections.abc import Iterable
 from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
@@ -46,14 +47,14 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     :meth:`~qurry.qurries.classical_shadow.experiment.SUExperiment.analyze`.
     """
 
-    selected_qubits: Optional[list[int]]
+    selected_qubits: list[int] | None
     """The selected qubits."""
     # estimation of given operators
-    given_operators: Optional[list[npt.NDArray[np.complex128]]]
+    given_operators: list[npt.NDArray[np.complex128]] | None
     """The list of the operators to estimate."""
     accuracy_prob_comp_delta: float
     """The accuracy probability for computing delta."""
-    max_shadow_norm: Optional[float]
+    max_shadow_norm: float | None
     """The maximum shadow norm of the given operators."""
     # other config
     rho_method: RhoMethodType
@@ -62,7 +63,7 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     """The method to compute the trace."""
     estimate_trace_method: ListTraceMethodType
     """The method to estimate the trace."""
-    counts_used: Optional[Iterable[int]]
+    counts_used: Iterable[int] | None
     """The index of the counts used."""
 
 
@@ -163,9 +164,9 @@ class SUMiddleware(AnalysisMiddlewarePrototype):
     
     More details can be found in :func:`~qurry.qurrium.utils.counts.bitstring_mapping_getter`.
     """
-    unitary_located: Optional[list[int]] = None
+    unitary_located: list[int] | None = None
     """The range of the unitary operator."""
-    counts_used: Optional[Iterable[int]] = None
+    counts_used: Iterable[int] | None = None
     """The index of the counts used. If not specified, then use all counts."""
 
     def export(self) -> dict[str, Any]:
@@ -219,13 +220,13 @@ class SUProcessEntries(ProcessEntriesPrototype):
 
     __name__ = "SUProcessEntries"
 
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]]
+    random_basis_array: list[list[Literal[0, 1, 2] | int]]
     """The random basis for classical shadow."""
-    selected_classical_registers: Optional[Iterable[int]]
+    selected_classical_registers: list[int] | None
     """The list of **the index of the selected_classical_registers**."""
 
     # esitimation of given operators
-    given_operators: Optional[list[npt.NDArray]]
+    given_operators: list[npt.NDArray] | None
     """The list of the operators to estimate."""
     accuracy_predict_epsilon: float
     r"""The prediction of accuracy, which used the notation :math:`\epsilon`
@@ -245,7 +246,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: Optional[float]
+    maximum_shadow_norm: float | None
     r"""The maximum shadow norm, which is defined in the supplementary material 
     with value between 0 and 1.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
@@ -473,11 +474,11 @@ class SUPurityResult(AnalysisResultsPrototype):
 
     __name__ = "SUPurityResult"
 
-    purity: Union[np.float64, float]
+    purity: np.float64 | float
     """The purity of the density matrix."""
-    entropy: Union[np.float64, float]
+    entropy: np.float64 | float
     """The second Renyi entropy of the density matrix."""
-    purity_value_kind: Union[PurityValueKind, str]
+    purity_value_kind: PurityValueKind | str
     """The kind of purity value."""
     taking_time: float
     """The time taken for the calculation."""
@@ -528,7 +529,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
 
     __name__ = "SUEstimationResult"
 
-    estimate_of_given_operators: Union[list[np.complex128], list[complex]]
+    estimate_of_given_operators: list[np.complex128] | list[complex]
     """The estimation of the given operators."""
     corresponding_rhos: list[npt.NDArray[np.complex128]]
     """The corresponding Rho for each given operator."""
@@ -731,8 +732,8 @@ _V_Inst = TypeVar("_V_Inst", bound=AnalysisResultsPrototype)
 class SUResultsType(
     Generic[_K_Inst, _V_Inst],
     dict[
-        Union[str, Literal["basic", "purity", "estimation"], _K_Inst],
-        Union[type[SUBasicResult], type[SUPurityResult], type[SUEstimationResult], type[_V_Inst]],
+        Literal["basic", "purity", "estimation"] | _K_Inst | str,
+        type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_V_Inst],
     ],
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -748,7 +749,7 @@ class SUResultsType(
     @overload
     def __getitem__(
         self, key: str
-    ) -> Union[type[SUBasicResult], type[SUPurityResult], type[SUEstimationResult]]: ...
+    ) -> type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_V_Inst]: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
@@ -757,8 +758,8 @@ class SUResultsType(
 class SUResults(
     Generic[_K_Inst, _V_Inst],
     dict[
-        Union[str, Literal["basic", "purity", "estimation"], _K_Inst],
-        Union[SUBasicResult, SUPurityResult, SUEstimationResult, _V_Inst],
+        Literal["basic", "purity", "estimation"] | _K_Inst | str,
+        SUBasicResult | SUPurityResult | SUEstimationResult | _V_Inst,
     ],
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -772,7 +773,9 @@ class SUResults(
     @overload
     def __getitem__(self, key: _K_Inst) -> _V_Inst: ...
     @overload
-    def __getitem__(self, key: str) -> Union[SUBasicResult, SUPurityResult, SUEstimationResult]: ...
+    def __getitem__(
+        self, key: str
+    ) -> SUBasicResult | SUPurityResult | SUEstimationResult | _V_Inst: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
@@ -785,7 +788,8 @@ class SUAnalysis(
         SUAnalyzeArgs,
         SUMiddleware,
         SUProcessEntries,
-        Union[SUBasicResult, SUPurityResult, SUEstimationResult, _V_Inst],
+        SUResultsType[_K_Inst, _V_Inst],
+        SUResults[_K_Inst, _V_Inst],
     ],
 ):
     """The container for the analysis of
@@ -827,20 +831,18 @@ class SUAnalysis(
         cls,
         shots: int,
         counts: list[dict[str, int]],
-        random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-        selected_classical_registers: Optional[Iterable[int]],
+        random_basis_array: list[list[Literal[0, 1, 2] | int]],
+        selected_classical_registers: Iterable[int] | None,
         # estimation of given operators
-        given_operators: Optional[list[npt.NDArray[np.complex128]]],
+        given_operators: list[npt.NDArray[np.complex128]] | None,
         accuracy_prob_comp_delta: float,
-        max_shadow_norm: Optional[float],
+        max_shadow_norm: float | None,
         # other config
         rho_method: RhoMethodType,
         shadow_basis: ShadowBasisType,
         trace_method: TraceMethodType,
         estimate_trace_method: ListTraceMethodType,
-    ) -> tuple[
-        ClassicalShadowBasic, Optional[ClassicalShadowPurity], Optional[EstimationOfObservable]
-    ]:
+    ) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity | None, EstimationOfObservable | None]:
         r"""Calculate the classical shadow quantities.
 
         Args:
@@ -976,7 +978,7 @@ class SUAnalysis(
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: SUAnalyzeArgs,
-        random_basis: Optional[dict[int, dict[int, int]]] = None,
+        random_basis: dict[int, dict[int, int]] | None = None,
     ) -> tuple[SUAnalyzeArgs, SUMiddleware, SUProcessEntries, list[dict[str, int]]]:
         """Generate the entries for analysis.
 
@@ -985,7 +987,7 @@ class SUAnalysis(
             commonparams (Commonparams): The common parameters for the experiment.
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (SUAnalyzeArgs): The analyze arguments.
-            random_basis (Optional[dict[int, dict[int, int]]], optional):
+            random_basis (dict[int, dict[int, int]] | None, optional):
                 The random basis for classical shadow. Defaults to None.
 
         Returns:
@@ -1015,9 +1017,6 @@ class SUAnalysis(
         bitstring_mapping, final_mapping = bitstring_mapping_getter(
             counts, arguments.registers_mapping
         )
-        counts = counts_list_recount_pyrust(
-            counts, len(next(iter(counts[0].keys()))), list(final_mapping.values())
-        )
 
         selected_qubits = analyze_arguments.get("selected_qubits", None)
         selected_qubits = (
@@ -1029,6 +1028,12 @@ class SUAnalysis(
             raise ValueError(
                 f"selected_qubits should not have duplicated elements, but got {selected_qubits}."
             )
+
+        counts_of_last_clreg = counts_list_recount_pyrust(
+            counts,
+            len(next(iter(counts[0]))),
+            list(final_mapping.values()),
+        )
 
         # random basis follow normal register mapping
         # for it does not need to consider extra classical registers
@@ -1064,7 +1069,7 @@ class SUAnalysis(
                     "estimate_trace_method", DEFAULT_LIST_TRACE_METHOD
                 ),
             ),
-            counts,
+            counts_of_last_clreg,
         )
 
     @classmethod
@@ -1075,9 +1080,9 @@ class SUAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: SUAnalyzeArgs,
         serial: int,
-        outfields: Union[dict[str, Any], None] = None,
-        datetime: Union[str, None] = None,
-        random_basis: Optional[dict[int, dict[int, int]]] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
+        random_basis: dict[int, dict[int, int]] | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -1087,10 +1092,10 @@ class SUAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (SUAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            random_basis (Optional[dict[int, dict[int, int]]], optional):
+            outfields (dict[str, Any] | None, optional): The output fields. Defaults to None.
+            datetime (str | None, optional): The datetime string. Defaults to None.
+            random_basis (dict[int, dict[int, int]] | None, optional):
                 The random basis for classical shadow. Defaults to None.
-            outfields (dict[str, Any], optional): The output fields. Defaults to None.
-            datetime (str, optional): The datetime string. Defaults to None.
 
         Returns:
             The analysis result.
