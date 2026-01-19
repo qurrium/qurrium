@@ -1056,7 +1056,9 @@ class SUAnalysis(
             SUProcessEntries(
                 shots=commonparams.shots,
                 random_basis_array=random_basis_array,
-                selected_classical_registers=sorted([final_mapping[qi] for qi in selected_qubits]),
+                selected_classical_registers=[
+                    arguments.registers_mapping[qi] for qi in selected_qubits
+                ],
                 # estimation of given operators
                 given_operators=analyze_arguments.get("given_operators", None),
                 accuracy_predict_epsilon=analyze_arguments.get("accuracy_prob_comp_delta", 0.01),
