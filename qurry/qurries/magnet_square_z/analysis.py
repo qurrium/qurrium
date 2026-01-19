@@ -1,6 +1,6 @@
 """ZDirMagnetSquare - Analysis (:mod:`qurry.qurries.magnet_square_z.analysis`)"""
 
-from typing import Union, Optional, Literal, Any
+from typing import Literal, Any
 from dataclasses import dataclass
 import numpy as np
 
@@ -54,11 +54,11 @@ class ZMSDefaultResult(AnalysisResultsPrototype):
 
     __name__ = "ZMSDefaultResult"
 
-    magnet_square: Union[float, np.float64]
+    magnet_square: float | np.float64
     """Magnetic Square."""
-    magnet_square_cells: Union[dict[int, float], dict[int, np.float64]]
+    magnet_square_cells: dict[int, float] | dict[int, np.float64]
     """Magnetic Square cells."""
-    taking_time: Optional[float] = None
+    taking_time: float | None = None
     """Taking time."""
 
     def side_product_fields(self) -> tuple[str, ...]:
@@ -106,7 +106,8 @@ class ZMSAnalysis(
         ZMSAnalyzeArgs,
         ZMSMiddleware,
         ZMSProcessEntries,
-        ZMSDefaultResult,
+        dict[Literal["default"] | str, type[ZMSDefaultResult]],
+        dict[str | Literal["default"], ZMSDefaultResult],
     ]
 ):
     """The container for the analysis of
@@ -130,9 +131,7 @@ class ZMSAnalysis(
         return ZMSProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[Union[str, Literal["default"]], type[ZMSDefaultResult]]:
+    def available_results_types(cls) -> dict[str | Literal["default"], type[ZMSDefaultResult]]:
         """The results type for this analysis."""
         return {"default": ZMSDefaultResult}
 
@@ -204,8 +203,8 @@ class ZMSAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: ZMSAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -215,9 +214,9 @@ class ZMSAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (ZMSAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

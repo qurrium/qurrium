@@ -1,6 +1,7 @@
 """EntropyMeasureRandomized - Analysis (:mod:`qurry.qurries.entropy_randomized.analysis`)"""
 
-from typing import Union, Optional, Iterable, Literal, Any, overload
+from typing import Literal, Any, overload
+from collections.abc import Iterable
 from dataclasses import dataclass
 import numpy as np
 
@@ -30,13 +31,13 @@ class EMRAnalyzeArgs(AnalyzeArgs, total=False):
     :meth:`~qurry.qurries.entropy_randomized.experiment.EMRExperiment.analyze`.
     """
 
-    selected_qubits: Optional[list[int]]
+    selected_qubits: list[int] | None
     """The selected qubits."""
     independent_all_system: bool
     """If True, then calculate the all system independently."""
     backend: PostProcessingBackendLabel
     """The backend for the process."""
-    counts_used: Optional[Iterable[int]]
+    counts_used: Iterable[int] | None
     """The index of the counts used."""
 
 
@@ -137,9 +138,9 @@ class EMRMiddleware(AnalysisMiddlewarePrototype):
     
     More details can be found in :func:`~qurry.qurrium.utils.counts.bitstring_mapping_getter`.
     """
-    unitary_located: Optional[list[int]] = None
+    unitary_located: list[int] | None = None
     """The range of the unitary operator."""
-    counts_used: Optional[Iterable[int]] = None
+    counts_used: Iterable[int] | None = None
     """The index of the counts used. If not specified, then use all counts."""
 
     def export(self) -> dict[str, Any]:
@@ -195,7 +196,7 @@ class EMRProcessEntries(ProcessEntriesPrototype):
 
     selected_classical_registers: list[int]
     """The selected classical registers."""
-    existed_all_system: Optional[AllSystemResult]
+    existed_all_system: AllSystemResult | None
     """The source of all system."""
     backend: PostProcessingBackendLabel
     """The backend for the process."""
@@ -249,20 +250,20 @@ class EMRTargetSystemResult(AnalysisResultsPrototype):
 
     __name__ = "EMRTargetSystemResult"
 
-    purity: Union[np.float64, float]
+    purity: np.float64 | float
     """The purity of the system."""
-    entropy: Union[np.float64, float]
+    entropy: np.float64 | float
     """The entropy of the system."""
-    purity_sd: Union[np.float64, float]
+    purity_sd: np.float64 | float
     """The standard deviation of the purity."""
-    entropy_sd: Union[np.float64, float]
+    entropy_sd: np.float64 | float
     """The standard deviation of the entropy."""
-    purity_cells: Union[dict[int, np.float64], dict[int, float]]
+    purity_cells: dict[int, np.float64] | dict[int, float]
     """The purity of each single count."""
 
     num_classical_registers: int
     """The number of classical registers."""
-    classical_registers: Optional[list[int]]
+    classical_registers: list[int] | None
     """The list of the index of the selected classical registers."""
     classical_registers_actually: list[int]
     """The list of the index of the selected classical registers which is actually used."""
@@ -362,7 +363,7 @@ class EMRAllSystemResult(EMRTargetSystemResult):
     """The datetime string when preparing the all system result."""
     result_hash_id: str
     """The hash id of the result for verification."""
-    all_system_source: Union[str, Literal["independent"]]
+    all_system_source: Literal["independent"] | str
     """The name of source of all system.
 
     - independent: The all system is calculated independently.
@@ -437,8 +438,8 @@ class EMRMitigatedResult(AnalysisResultsPrototype):
 
 class EMRResultsType(
     dict[
-        Union[str, Literal["target_system", "all_system", "mitigated"]],
-        Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]],
+        Literal["target_system", "all_system", "mitigated"] | str,
+        type[EMRTargetSystemResult] | type[EMRAllSystemResult] | type[EMRMitigatedResult],
     ],
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -452,7 +453,7 @@ class EMRResultsType(
     @overload
     def __getitem__(
         self, key: str
-    ) -> Union[type[EMRTargetSystemResult], type[EMRAllSystemResult], type[EMRMitigatedResult]]: ...
+    ) -> type[EMRTargetSystemResult] | type[EMRAllSystemResult] | type[EMRMitigatedResult]: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
@@ -460,8 +461,8 @@ class EMRResultsType(
 
 class EMRResults(
     dict[
-        Union[str, Literal["target_system", "all_system", "mitigated"]],
-        Union[EMRTargetSystemResult, EMRAllSystemResult, EMRMitigatedResult],
+        Literal["target_system", "all_system", "mitigated"] | str,
+        EMRTargetSystemResult | EMRAllSystemResult | EMRMitigatedResult,
     ]
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -475,7 +476,7 @@ class EMRResults(
     @overload
     def __getitem__(
         self, key: str
-    ) -> Union[EMRTargetSystemResult, EMRAllSystemResult, EMRMitigatedResult]: ...
+    ) -> EMRTargetSystemResult | EMRAllSystemResult | EMRMitigatedResult: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
@@ -487,16 +488,14 @@ class EMRAnalysis(
         EMRAnalyzeArgs,
         EMRMiddleware,
         EMRProcessEntries,
-        Union[EMRTargetSystemResult, EMRAllSystemResult, EMRMitigatedResult],
+        EMRResultsType,
+        EMRResults,
     ]
 ):
     """The container for the analysis of
     :class:`~qurry.qurries.entropy_randomized.experiment.EMRExperiment`."""
 
     __name__ = "EMRAnalysis"
-
-    results: EMRResults
-    """The results of the analysis."""
 
     @classmethod
     def analyze_arguments_type(cls) -> type[EMRAnalyzeArgs]:
@@ -529,8 +528,8 @@ class EMRAnalysis(
         cls,
         shots: int,
         counts: list[dict[str, int]],
-        selected_classical_registers: Optional[Iterable[int]] = None,
-        existed_all_system: Optional[AllSystemResult] = None,
+        selected_classical_registers: Iterable[int] | None = None,
+        existed_all_system: AllSystemResult | None = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     ) -> tuple[TargetSystemResult, AllSystemResult, MitigatedResult]:
         """Randomized entangled entropy with complex.
@@ -540,9 +539,9 @@ class EMRAnalysis(
                 The number of shots.
             counts (list[dict[str, int]]):
                 The counts of the experiment.
-            selected_classical_registers (Optional[Iterable[int]], optional):
+            selected_classical_registers: Iterable[int] | None = None,
                 The selected classical registers. Defaults to None.
-            existed_all_system (Optional[AllSystemResult], optional):
+            existed_all_system: AllSystemResult | None = None,
                 The source of all system. Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
@@ -566,7 +565,7 @@ class EMRAnalysis(
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: EMRAnalyzeArgs,
-        existed_all_system: Optional[AllSystemResult] = None,
+        existed_all_system: AllSystemResult | None = None,
     ) -> tuple[EMRAnalyzeArgs, EMRMiddleware, EMRProcessEntries, list[dict[str, int]]]:
         """Generate the entries for analysis.
 
@@ -575,7 +574,7 @@ class EMRAnalysis(
             commonparams (Commonparams): The common parameters for the experiment.
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (EMRAnalyzeArgs): The analyze arguments.
-            existed_all_system (Optional[AllSystemResult], optional):
+            existed_all_system: AllSystemResult | None = None,
                 The source of all system. Defaults to None.
 
         Returns:
@@ -645,9 +644,9 @@ class EMRAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: EMRAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
-        existed_all_system: Optional[AllSystemResult] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
+        existed_all_system: AllSystemResult | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -657,11 +656,11 @@ class EMRAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (EMRAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
-            existed_all_system (Optional[AllSystemResult], optional):
+            existed_all_system (AllSystemResult | None, optional):
                 The source of all system. Defaults to None.
 
         Returns:
@@ -728,7 +727,7 @@ class EMRAnalysis(
             counts_used_self
         ) == set(count_used)
 
-    def get_all_system_result(self) -> Optional[AllSystemResult]:
+    def get_all_system_result(self) -> AllSystemResult | None:
         """Get the all system result.
 
         Returns:

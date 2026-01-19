@@ -1,6 +1,6 @@
 """EchoListenHadamard - Analysis (:mod:`qurry.qurries.echo_hadamard.analysis`)"""
 
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal
 from dataclasses import dataclass
 
 from .arguments import ELHArguments
@@ -54,7 +54,8 @@ class ELHAnalysis(
         ELHAnalyzeArgs,
         ELHMiddleware,
         ELHProcessEntries,
-        ELHDefaultResults,
+        dict[Literal["default"] | str, type[ELHDefaultResults]],
+        dict[Literal["default"] | str, ELHDefaultResults],
     ]
 ):
     """The instance for the analysis of
@@ -79,9 +80,7 @@ class ELHAnalysis(
         return ELHProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[Union[str, Literal["default"]], type[ELHDefaultResults]]:
+    def available_results_types(cls) -> dict[Literal["default"] | str, type[ELHDefaultResults]]:
         """The results type for this analysis."""
         return {"default": ELHDefaultResults}
 
@@ -144,8 +143,8 @@ class ELHAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: ELHAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -155,9 +154,9 @@ class ELHAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (ELHAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

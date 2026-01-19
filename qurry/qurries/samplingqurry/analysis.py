@@ -1,6 +1,6 @@
 """SamplingExecuter - Analysis (:mod:`qurry.qurries.samplingqurry.analysis`))"""
 
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal
 from dataclasses import dataclass
 
 from ...qurrium import (
@@ -20,7 +20,7 @@ class DummyAnalyzeArgs(AnalyzeArgs, total=False):
     :meth:`~qurry.qurries.wavesqurry.experiment.WEExperiment.analyze`
     """
 
-    ultimate_question: Optional[str]
+    ultimate_question: str | None
     """ULtImAte QueStIoN."""
 
 
@@ -37,7 +37,7 @@ class DummyProcessEntries(ProcessEntriesPrototype):
 
     __name__ = "DummyProcessEntries"
 
-    ultimate_question: Optional[str]
+    ultimate_question: str | None
     """ULtImAte QueStIoN."""
 
 
@@ -57,7 +57,11 @@ class DummyAnalysis(
         DummyAnalyzeArgs,
         DummyMiddleware,
         DummyProcessEntries,
-        DummyDefaultResults,
+        dict[Literal["default"] | str, type[DummyDefaultResults]],
+        dict[
+            str | Literal["default"],
+            DummyDefaultResults,
+        ],
     ]
 ):
     """A dummy analysis that always returns the ultimate answer."""
@@ -80,9 +84,7 @@ class DummyAnalysis(
         return DummyProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[Union[str, Literal["default"]], type[DummyDefaultResults]]:
+    def available_results_types(cls) -> dict[str | Literal["default"], type[DummyDefaultResults]]:
         """The results type for this analysis."""
         return {"default": DummyDefaultResults}
 
@@ -133,8 +135,8 @@ class DummyAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: DummyAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -144,9 +146,9 @@ class DummyAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (EMHAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Analysis (:mod:`qurry.qurries.entropy_hadamard.analysis`)"""
 
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal
 from dataclasses import dataclass
 
 from .arguments import EMHArguments
@@ -56,7 +56,8 @@ class EMHAnalysis(
         EMHAnalyzeArgs,
         EMHMiddleware,
         EMHProcessEntries,
-        EMHDefaultResults,
+        dict[str | Literal["default"], type[EMHDefaultResults]],
+        dict[str | Literal["default"], EMHDefaultResults],
     ]
 ):
     """The instance for the analysis of
@@ -81,9 +82,7 @@ class EMHAnalysis(
         return EMHProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[Union[str, Literal["default"]], type[EMHDefaultResults]]:
+    def available_results_types(cls) -> dict[str | Literal["default"], type[EMHDefaultResults]]:
         """The results type for this analysis."""
         return {"default": EMHDefaultResults}
 
@@ -137,8 +136,8 @@ class EMHAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: EMHAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -148,9 +147,9 @@ class EMHAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (EMHAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

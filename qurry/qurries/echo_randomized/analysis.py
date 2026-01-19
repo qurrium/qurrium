@@ -1,6 +1,7 @@
 """EchoListenRandomized - Analysis (:mod:`qurry.qurries.echo_randomized.analysis`)"""
 
-from typing import Union, Optional, Iterable, Any
+from typing import Literal, Any
+from collections.abc import Iterable
 from dataclasses import dataclass
 import numpy as np
 
@@ -28,13 +29,13 @@ class ELRAnalyzeArgs(AnalyzeArgs, total=False):
     :meth:`~qurry.qurries.echo_randomized.experiment.ELRExperiment.analyze`.
     """
 
-    selected_classical_registers: Optional[Iterable[int]]
+    selected_classical_registers: Iterable[int] | None
     """The list of **the index of the selected_classical_registers**.
     It's not the qubit index of first or second quantum circuit,
     but their corresponding classical registers."""
     backend: PostProcessingBackendLabel
     """The backend for the process."""
-    counts_used: Optional[Iterable[int]]
+    counts_used: Iterable[int] | None
     """The index of the counts used."""
 
 
@@ -252,7 +253,7 @@ class ELRMiddleware(AnalysisMiddlewarePrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the unitary operator with the numerical order.
     """
-    counts_used: Optional[Iterable[int]] = None
+    counts_used: Iterable[int] | None = None
     """The index of the counts used. If not specified, then use all counts."""
 
     def export(self) -> dict[str, Any]:
@@ -328,15 +329,15 @@ class ELROverlapResult(AnalysisResultsPrototype):
 
     __name__ = "ELROverlapResult"
 
-    echo: Union[np.float64, float]
+    echo: np.float64 | float
     """The overlap value."""
-    echo_sd: Union[np.float64, float]
+    echo_sd: np.float64 | float
     """The overlap standard deviation."""
-    echo_cells: Union[dict[int, np.float64], dict[int, float]]
+    echo_cells: dict[int, np.float64] | dict[int, float]
     """The overlap of each single count."""
     num_classical_registers: int
     """The number of classical registers."""
-    classical_registers: Optional[list[int]]
+    classical_registers: list[int] | None
     """The list of the index of the selected classical registers."""
     classical_registers_actually: list[int]
     """The list of the index of the selected classical registers which is actually used."""
@@ -408,7 +409,8 @@ class ELRAnalysis(
         ELRAnalyzeArgs,
         ELRMiddleware,
         ELRProcessEntries,
-        ELROverlapResult,
+        dict[Literal["target_system"] | str, type[ELROverlapResult]],
+        dict[Literal["target_system"] | str, ELROverlapResult],
     ]
 ):
     """The container for the analysis of
@@ -442,7 +444,7 @@ class ELRAnalysis(
         shots: int,
         first_counts: list[dict[str, int]],
         second_counts: list[dict[str, int]],
-        selected_classical_registers: Optional[Iterable[int]] = None,
+        selected_classical_registers: Iterable[int] | None = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
     ) -> WaveFunctionOverlapResult:
         """Calculate the wavefunction overlap from counts.
@@ -454,7 +456,7 @@ class ELRAnalysis(
                 Counts of the experiment on quantum machine.
             second_counts (list[dict[str, int]]):
                 Counts of the experiment on quantum machine.
-            selected_classical_registers (Optional[Iterable[int]], optional):
+            selected_classical_registers (Iterable[int] | None, optional):
                 The list of **the index of the selected_classical_registers**.
             backend (PostProcessingBackendLabel, optional):
                 Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
@@ -480,7 +482,10 @@ class ELRAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: ELRAnalyzeArgs,
     ) -> tuple[
-        ELRAnalyzeArgs, ELRMiddleware, ELRProcessEntries, list[dict[str, int]], list[dict[str, int]]
+        ELRAnalyzeArgs,
+        ELRMiddleware,
+        ELRProcessEntries,
+        tuple[list[dict[str, int]], list[dict[str, int]]],
     ]:
         """Generate the entries for analysis.
 
@@ -591,8 +596,7 @@ class ELRAnalysis(
                 shots=commonparams.shots,
                 selected_classical_registers=selected_classical_registers,
             ),
-            first_counts_of_last_clreg,
-            second_counts_of_last_clreg,
+            (first_counts_of_last_clreg, second_counts_of_last_clreg),
         )
 
     @classmethod
@@ -603,8 +607,8 @@ class ELRAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: ELRAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -614,9 +618,9 @@ class ELRAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (EMRAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:
@@ -626,8 +630,7 @@ class ELRAnalysis(
             analyze_arguments,
             middleware_entries,
             postprocess_entries,
-            first_counts_of_last_clreg,
-            second_counts_of_last_clreg,
+            (first_counts_of_last_clreg, second_counts_of_last_clreg),
         ) = cls.generate_entries(
             arguments,
             commonparams,

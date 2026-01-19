@@ -1,6 +1,6 @@
 """StringOperator - Analysis (:mod:`qurry.qurries.string_operator.analysis`)"""
 
-from typing import Union, Optional, Literal, Any
+from typing import Literal, Any
 from dataclasses import dataclass
 import numpy as np
 
@@ -61,7 +61,7 @@ class SODefaultResult(AnalysisResultsPrototype):
 
     __name__ = "SODefaultResult"
 
-    order: Union[float, np.float64]
+    order: float | np.float64
     """The order of the string operator."""
 
     def export(self) -> dict[str, Any]:
@@ -74,7 +74,14 @@ class SODefaultResult(AnalysisResultsPrototype):
 
 
 class SOAnalysis(
-    AnalysisPrototype[SOArguments, SOAnalyzeArgs, SOMiddleware, SOProcessEntries, SODefaultResult]
+    AnalysisPrototype[
+        SOArguments,
+        SOAnalyzeArgs,
+        SOMiddleware,
+        SOProcessEntries,
+        dict[Literal["default"] | str, type[SODefaultResult]],
+        dict[Literal["default"] | str, SODefaultResult],
+    ]
 ):
     """The container for the analysis of
     :class:`~qurry.qurries.string_operator.experiment.SOExperiment`."""
@@ -97,9 +104,7 @@ class SOAnalysis(
         return SOProcessEntries
 
     @classmethod
-    def available_results_types(
-        cls,
-    ) -> dict[Union[str, Literal["default"]], type[SODefaultResult]]:
+    def available_results_types(cls) -> dict[str | Literal["default"], type[SODefaultResult]]:
         """The results type for this analysis."""
         return {"default": SODefaultResult}
 
@@ -172,8 +177,8 @@ class SOAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: SOAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -183,9 +188,9 @@ class SOAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (SOAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

@@ -1,6 +1,6 @@
 """MagnetSquare - Analysis (:mod:`qurry.qurries.magnet_square.analysis`)"""
 
-from typing import Union, Optional, Literal, Any
+from typing import Literal, Any
 from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
@@ -37,7 +37,7 @@ class MSMiddleware(ZMSMiddleware):
 
     __name__ = "MSMiddleware"
 
-    unitary_operator: Union[Literal["x", "y", "z"], str, npt.NDArray[np.complex128]]
+    unitary_operator: Literal["x", "y", "z"] | str | npt.NDArray[np.complex128]
     """The numpy array of the unitary operator or a string representing the axis of rotation."""
 
     def export(self) -> dict[str, Any]:
@@ -98,7 +98,8 @@ class MSAnalysis(
         MSAnalyzeArgs,
         MSMiddleware,
         MSProcessEntries,
-        MSDefaultResult,
+        dict[Literal["default"] | str, type[MSDefaultResult]],
+        dict[str | Literal["default"], MSDefaultResult],
     ]
 ):
     """The container for the analysis of
@@ -122,7 +123,7 @@ class MSAnalysis(
         return MSProcessEntries
 
     @classmethod
-    def available_results_types(cls) -> dict[Union[str, Literal["default"]], type[MSDefaultResult]]:
+    def available_results_types(cls) -> dict[str | Literal["default"], type[MSDefaultResult]]:
         """The results type for this analysis."""
         return {"default": MSDefaultResult}
 
@@ -150,7 +151,9 @@ class MSAnalysis(
             MagnetSquareResult: The result of the magnet square.
         """
 
-        return magnetization_square(shots=shots, counts=counts, num_qubits=num_qubits, backend=backend)
+        return magnetization_square(
+            shots=shots, counts=counts, num_qubits=num_qubits, backend=backend
+        )
 
     @classmethod
     def generate_entries(
@@ -195,8 +198,8 @@ class MSAnalysis(
         counts: list[dict[str, int]],
         analyze_arguments: MSAnalyzeArgs,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ):
         """Perform the analysis for the experiment.
 
@@ -206,9 +209,9 @@ class MSAnalysis(
             counts (list[dict[str, int]]): The counts from the experiment.
             analyze_arguments (MSAnalyzeArgs): The analyze arguments.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

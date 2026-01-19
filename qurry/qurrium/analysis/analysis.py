@@ -1,6 +1,6 @@
 """Analysis Instance (:mod:`qurry.qurrium.analysis.analysis`)"""
 
-from typing import Optional, Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 from abc import abstractmethod
 
 from .declare import _RA
@@ -12,7 +12,20 @@ from ...capsule.mori import DataExportableIngestible
 from ...tools.datetime import current_time
 
 
-class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestible):
+ResultTypeDictBase = dict[str, type[_RR]]
+"""The type alias for result type dictionary base."""
+
+_RTD = TypeVar("_RTD", bound=ResultTypeDictBase)
+"""The type variable for result type dictionary."""
+
+ResultInstanceDictBase = dict[str, _RR]
+"""The type alias for result dictionary base."""
+
+_RID = TypeVar("_RID", bound=ResultInstanceDictBase)
+"""The type alias for result dictionary type."""
+
+
+class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RTD, _RID], DataExportableIngestible):
     """The base instance for the analysis of
     :class:`~qurry.qurrium.experiment.experiment.ExperimentPrototype`."""
 
@@ -35,7 +48,7 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
     outfields: dict[str, Any]
     """The unused arguments of the analysis."""
 
-    results: dict[str, _RR]
+    results: _RID
     """The results of the analysis."""
 
     def __eq__(self, other) -> bool:
@@ -67,7 +80,7 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
 
     @classmethod
     @abstractmethod
-    def available_results_types(cls) -> dict[str, type[_RR]]:
+    def available_results_types(cls) -> _RTD:
         """The available results types of the analysis."""
         raise NotImplementedError("available_results_types must be implemented in subclass.")
 
@@ -89,11 +102,11 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
         analyze_arguments: _RA,
         middleware_entries: _RM,
         postprocess_entries: _PE,
-        results: dict[str, _RR],
-        outfields: Optional[dict[str, Any]] = None,
+        results: _RID,
+        outfields: dict[str, Any] | None = None,
         *,
         serial: int,
-        datetime: Optional[str] = None,
+        datetime: str | None = None,
     ):
         if not hasattr(self, "quantities") and not callable(getattr(self, "quantities", None)):
             raise InvalidInherition(
@@ -120,7 +133,7 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
         commonparams: Commonparams,
         counts: list[dict[str, int]],
         analyze_arguments: _RA,
-    ) -> tuple[_RA, _RM, _PE]:
+    ) -> tuple[_RA, _RM, _PE] | tuple[_RA, _RM, _PE, Any]:
         """Generate the middleware and input values for the analysis.
 
         Args:
@@ -143,8 +156,8 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
         counts: list[dict[str, int]],
         analyze_arguments: _RA,
         serial: int,
-        outfields: Optional[dict[str, Any]] = None,
-        datetime: Optional[str] = None,
+        outfields: dict[str, Any] | None = None,
+        datetime: str | None = None,
     ) -> "AnalysisPrototype":
         """Perform the analysis with the given arguments and common parameters.
 
@@ -265,9 +278,10 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RR], DataExportableIngestibl
 
         postprocess_entries = cls.postprocess_entries_type().ingest(raw_dict["postprocess_entries"])
         middleware_entries = cls.middleware_entries_type().ingest(raw_dict["middleware_entries"])
-        results = {
-            k: cls.available_results_types()[k].ingest(v) for k, v in raw_dict["results"].items()
-        }
+        results = cast(
+            _RID,
+            {k: cls.available_results_types()[k].ingest(v) for k, v in raw_dict["results"].items()},
+        )
         outfields = raw_dict.get("outfields", {})
 
         return cls(
