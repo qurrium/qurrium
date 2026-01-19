@@ -3,7 +3,7 @@
 It's from :class:`~qurry.qurry.qurries.echo_hadamard.qurry.EchoListenHadamard`.
 """
 
-from typing import TypedDict, Optional
+from typing import TypedDict
 import logging
 import pytest
 
@@ -52,12 +52,12 @@ circuits_lib = preparing_circuits_lib(
 )
 
 
-def making_pair(name1: str, name2: Optional[str] = None) -> tuple[QuantumCircuit, QuantumCircuit]:
+def making_pair(name1: str, name2: str | None = None) -> tuple[QuantumCircuit, QuantumCircuit]:
     """Make a pair of circuits from names.
 
     Args:
         name1 (str): The name of the first circuit.
-        name2 (str): The name of the second circuit. If None, use name1.
+        name2 (str | None): The name of the second circuit. If None, use name1.
 
     Returns:
         tuple[QuantumCircuit, QuantumCircuit]: The pair of circuits.

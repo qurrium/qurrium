@@ -3,7 +3,7 @@
 It's from :class:`~qurry.qurry.qurries.classical_shadow.qurry.ShadowUnveil`.
 """
 
-from typing import TypedDict, Literal, Union
+from typing import TypedDict, Literal
 import logging
 import pytest
 import functools as ft
@@ -102,12 +102,13 @@ def z_dir_operator_preparing(num_qubits: int) -> list[npt.NDArray[np.complex128]
 
 
 def unveil_magnetization_square(
-    estimate_of_given_operators: Union[list[np.complex128], list[complex]], num_qubits: int
+    estimate_of_given_operators: list[np.complex128] | list[complex], num_qubits: int
 ) -> np.float64:
     """Processing Classical Shadows post-processing for MagnetSquare.
 
     Args:
-        estimate_of_given_operators (list[np.complex128]): The estimates of the given operators.
+        estimate_of_given_operators (list[np.complex128] | list[complex]):
+            The estimates of the given operators.
         num_qubits (int): The number of qubits in the circuit.
 
     Returns:

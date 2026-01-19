@@ -4,7 +4,7 @@ This module contains the circuit cases for testing the qurry package.
 
 """
 
-from typing import Optional, Literal, Union
+from typing import Literal
 
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.classical import expr
@@ -19,7 +19,8 @@ def add_cnot_dyn(
     target_qubit: int,
     c1: ClassicalRegister,
     c2: ClassicalRegister,
-    add_barriers: Optional[bool] = True,
+    add_barriers: bool = True,
+    reset_between_bell_pairs: bool = True,
 ) -> QuantumCircuit:
     """Generate a CNOT gate bewteen data qubit control_qubit and
     data qubit target_qubit using Bell Pairs.
@@ -31,12 +32,12 @@ def add_cnot_dyn(
     to nearest-neighbor connections only with the chain starting
     at the control qubit and finishing at the target qubit.
 
-    Assumes that control_qubit < target_qubit (as integers) and
+    Assumes that `control_qubit < target_qubit (as integers)` and
     that the provided circuit qc has |0> set
-    qubits control_qubit+1, ..., target_qubit-1
+    qubits `control_qubit+1`, ..., `target_qubit-1`
 
-    n = target_qubit - control_qubit - 1 : Number of qubits between the target and control qubits
-    k = int(n/2) : Number of Bell pairs created
+    `n = target_qubit - control_qubit - 1` : Number of qubits between the target and control qubits
+    `k = int(n/2)` : Number of Bell pairs created
 
     .. code-block:: bibtex
 
@@ -70,11 +71,8 @@ def add_cnot_dyn(
             Required if n > 0. Register requires n - k bits
         add_barriers (bool, optional):
             Default = True. Include barriers before and after long range CNOT
-
-    Note: This approached uses two if_test statements. A better (more performant) approach is
-    to have the parity values combined into a single classicial register and then use a switch
-    statement. This was done in the associated paper my modifying the qasm file directly.
-    The ability to use a switch statement via Qiakit in this way is a future release capability.
+        reset_between_bell_pairs (bool, optional):
+            Default = False. Reset the qubits between Bell pairs
 
     Returns:
         QuantumCircuit: The circuit with the long range CNOT added.
@@ -103,23 +101,21 @@ def add_cnot_dyn(
     for i in range(t + 1):
         qc.cx(x0 - 1 + 2 * i, x0 + 2 * i)
 
+    parity_control = None
+    parity_target = None
+
     for i in range(1, t + x0):
-        if i == 1:
-            qc.h(2 * i + 1 - x0)
-            qc.measure(2 * i + 1 - x0, c2[i - 1])
-            parity_control = expr.lift(c2[i - 1])
-        else:
-            qc.h(2 * i + 1 - x0)
-            qc.measure(2 * i + 1 - x0, c2[i - 1])
-            parity_control = expr.bit_xor(c2[i - 1], parity_control)
+        qc.h(2 * i + 1 - x0)
+        qc.measure(2 * i + 1 - x0, c2[i - 1])
+        parity_control = (
+            expr.lift(c2[i - 1]) if i == 1 else expr.bit_xor(c2[i - 1], parity_control)
+        )
 
     for i in range(t):
-        if i == 0:
-            qc.measure(2 * i + x0, c1[i])
-            parity_target = expr.lift(c1[i])
-        else:
-            qc.measure(2 * i + x0, c1[i])
-            parity_target = expr.bit_xor(c1[i], parity_target)
+        qc.measure(2 * i + x0, c1[i])
+        parity_target = (
+            expr.lift(c1[i]) if i == 0 else expr.bit_xor(c1[i], parity_target)
+        )
 
     if n > 0:
         with qc.if_test(parity_control):  # type: ignore
@@ -129,8 +125,16 @@ def add_cnot_dyn(
         with qc.if_test(parity_target):  # type: ignore
             qc.x(-1)
 
+    if reset_between_bell_pairs is True:
+        for i in range(t):
+            qc.reset(x0 + 2 * i)
+            qc.reset(x0 + 2 * i + 1)
+        if n % 2 != 0:
+            qc.reset(1)
+
     if add_barriers is True:
         qc.barrier()
+
     return qc
 
 
@@ -145,48 +149,73 @@ class CXDynamic(OneBody):
     ### The dynamic CNOT gate is used to entangle the first and last qubits
 
     .. code-block:: text
-        # At 6 qubits with 2 classical registers:
-             ┌───┐ ░                                                            »
-        q_0: ┤ H ├─░─────────────■──────────────────────────────────────────────»
-             └───┘ ░ ┌───┐     ┌─┴─┐     ┌─┐                                    »
-        q_1: ──────░─┤ H ├──■──┤ X ├─────┤M├────────────────────────────────────»
-                   ░ └───┘┌─┴─┐└───┘┌───┐└╥┘   ┌─┐                              »
-        q_2: ──────░──────┤ X ├──■──┤ H ├─╫────┤M├──────────────────────────────»
-                   ░ ┌───┐└───┘┌─┴─┐└───┘ ║ ┌─┐└╥┘                              »
-        q_3: ──────░─┤ H ├──■──┤ X ├──────╫─┤M├─╫───────────────────────────────»
-                   ░ └───┘┌─┴─┐└───┘┌───┐ ║ └╥┘ ║ ┌─┐                           »
-        q_4: ──────░──────┤ X ├──■──┤ H ├─╫──╫──╫─┤M├───────────────────────────»
-                   ░      └───┘┌─┴─┐└───┘ ║  ║  ║ └╥┘┌──────────────────── ┌───┐»
-        q_5: ──────░───────────┤ X ├──────╫──╫──╫──╫─┤ If-0 c4[1] ^ c4[0]  ┤ X ├»
-                   ░           └───┘      ║  ║  ║  ║ └─────────╥────────── └───┘»
-                                          ║  ║  ║  ║       ┌───╨────┐           »
-        c4: 2/════════════════════════════╩══╩══╬══╬═══════╡ [expr] ╞═══════════»
-                                          0  1  ║  ║       └────────┘           »
-        c5: 2/══════════════════════════════════╩══╩════════════════════════════»
-                                                0  1                            »
+        # At 7 qubits with 2 classical registers:
 
-        «                ┌──────────────────── ┌───┐ ───────┐  ░
-        « q_0: ──────────┤ If-0 c5[1] ^ c5[0]  ┤ Z ├  End-0 ├──░─
-        «                └─────────╥────────── └───┘ ───────┘  ░
-        « q_1: ────────────────────╫───────────────────────────░─
-        «                          ║                           ░
-        « q_2: ────────────────────╫───────────────────────────░─
-        «                          ║                           ░
-        « q_3: ────────────────────╫───────────────────────────░─
-        «                          ║                           ░
-        « q_4: ────────────────────╫───────────────────────────░─
-        «       ───────┐           ║                           ░
-        « q_5:   End-0 ├───────────╫───────────────────────────░─
-        «       ───────┘           ║                           ░
-        «c4: 2/════════════════════╬═════════════════════════════
-        «                      ┌───╨────┐
-        «c5: 2/════════════════╡ [expr] ╞════════════════════════
-        «                      └────────┘
+              ┌───┐ ░                                          »
+         q_0: ┤ H ├─░───■──────────────────────────────────────»
+              └───┘ ░ ┌─┴─┐          ┌───┐        ┌─┐          »
+         q_1: ──────░─┤ X ├───────■──┤ H ├────────┤M├─|0>──────»
+                    ░ ├───┤     ┌─┴─┐└───┘┌─┐     └╥┘          »
+         q_2: ──────░─┤ H ├──■──┤ X ├─────┤M├─|0>──╫───────────»
+                    ░ └───┘┌─┴─┐└───┘┌───┐└╥┘      ║  ┌─┐      »
+         q_3: ──────░──────┤ X ├──■──┤ H ├─╫───────╫──┤M├──|0>─»
+                    ░ ┌───┐└───┘┌─┴─┐└───┘ ║  ┌─┐  ║  └╥┘      »
+         q_4: ──────░─┤ H ├──■──┤ X ├──────╫──┤M├──╫───╫───|0>─»
+                    ░ └───┘┌─┴─┐└───┘┌───┐ ║  └╥┘  ║   ║   ┌─┐ »
+         q_5: ──────░──────┤ X ├──■──┤ H ├─╫───╫───╫───╫───┤M├─»
+                    ░      └───┘┌─┴─┐└───┘ ║   ║   ║   ║   └╥┘ »
+         q_6: ──────░───────────┤ X ├──────╫───╫───╫───╫────╫──»
+                    ░           └───┘      ║   ║   ║   ║    ║  »
+        c1: 2/═════════════════════════════╩═══╩═══╬═══╬════╬══»
+                                           0   1   ║   ║    ║  »
+        c2: 3/═════════════════════════════════════╩═══╩════╩══»
+                                                0   1    2  »
+
+        «                                           »
+        « q_0: ─────────────────────────────────────»
+        «                                           »
+        « q_1: ─────────────────────────────────────»
+        «                                           »
+        « q_2: ─────────────────────────────────────»
+        «                                           »
+        « q_3: ─────────────────────────────────────»
+        «                                           »
+        « q_4: ─────────────────────────────────────»
+        «                                           »
+        « q_5: ─────────────────────────────────────»
+        «      ┌──────────────────── ┌───┐ ───────┐ »
+        « q_6: ┤ If-0 c1[1] ^ c1[0]  ┤ X ├  End-0 ├─»
+        «      └─────────╥────────── └───┘ ───────┘ »
+        «            ┌───╨────┐                     »
+        «c1: 2/══════╡ [expr] ╞═════════════════════»
+        «            └────────┘                     »
+        «c2: 3/═════════════════════════════════════»
+        «                                           »
+
+        «      ┌────────────────────────────── ┌───┐ ───────┐       ░
+        « q_0: ┤ If-0 c2[2] ^ (c2[1] ^ c2[0])  ┤ Z ├  End-0 ├───────░─
+        «      └──────────────╥─────────────── └───┘ ───────┘       ░
+        « q_1: ───────────────╫─────────────────────────────────────░─
+        «                     ║                                     ░
+        « q_2: ───────────────╫─────────────────────────────────────░─
+        «                     ║                                     ░
+        « q_3: ───────────────╫─────────────────────────────────────░─
+        «                     ║                                     ░
+        « q_4: ───────────────╫─────────────────────────────────────░─
+        «                     ║                                     ░
+        « q_5: ───────────────╫────────────────────────────────|0>──░─
+        «                     ║                                     ░
+        « q_6: ───────────────╫─────────────────────────────────────░─
+        «                     ║                                     ░
+        «c1: 2/═══════════════╬═══════════════════════════════════════
+        «                 ┌───╨────┐
+        «c2: 3/═══════════╡ [expr] ╞══════════════════════════════════
+        «                 └────────┘
 
     ### The comparison CNOT gate is used to entangle the first and last qubits
 
     .. code-block:: text
-        # At 6 qubits:
+        # At 7 qubits:
              ┌───┐
         q_0: ┤ H ├──■──
              └───┘  │
@@ -197,44 +226,82 @@ class CXDynamic(OneBody):
         q_3: ───────┼──
                     │
         q_4: ───────┼──
+                    │
+        q_5: ───────┼──
                   ┌─┴─┐
-        q_5: ─────┤ X ├
+        q_6: ─────┤ X ├
                   └───┘
     """
 
     @property
-    def export(self) -> Literal["dynamic", "comparison"]:
+    def mode(self) -> Literal["dynamic", "comparison"]:
         """The state of the circuit.
 
         Returns:
             The state of the circuit.
         """
-        return self._export
+        return self._mode
 
-    @export.setter
-    def export(self, export: Literal["dynamic", "comparison"]) -> None:
+    @mode.setter
+    def mode(self, mode: Literal["dynamic", "comparison"]) -> None:
         """Set the state of the circuit.
 
         Args:
-            state: The new state of the circuit.
+            mode: The new state of the circuit.
         """
-        if export not in ["dynamic", "comparison"]:
-            raise ValueError("Export must be either 'dynamic' or 'comparison'")
-        if hasattr(self, "_export"):
-            raise AttributeError("Attribute 'export' is read-only.")
-        self._export: Literal["dynamic", "comparison"] = export
+        if mode not in ["dynamic", "comparison"]:
+            raise ValueError("Mode must be either 'dynamic' or 'comparison'")
+        if hasattr(self, "_mode"):
+            raise AttributeError("Attribute 'mode' is read-only.")
+        self._mode: Literal["dynamic", "comparison"] = mode
+
+    @property
+    def reset_between_bell_pairs(self) -> bool:
+        """Whether to reset qubits between Bell pairs.
+
+        Returns:
+            Whether to reset qubits between Bell pairs.
+        """
+        return self._reset_between_bell_pairs
+
+    @reset_between_bell_pairs.setter
+    def reset_between_bell_pairs(self, reset_between_bell_pairs: bool) -> None:
+        """Set whether to reset qubits between Bell pairs.
+
+        Args:
+            reset_between_bell_pairs (bool): Whether to reset qubits between Bell pairs.
+        """
+        if hasattr(self, "_reset_between_bell_pairs"):
+            raise AttributeError("Attribute 'reset_between_bell_pairs' is read-only.")
+        self._reset_between_bell_pairs = reset_between_bell_pairs
 
     def __init__(
         self,
-        num_qubits,
-        export: Literal["dynamic", "comparison"] = "dynamic",
-        name: Optional[str] = None,
+        num_qubits: int,
+        mode: Literal["dynamic", "comparison"] = "dynamic",
+        reset_between_bell_pairs: bool = True,
+        name: str | None = None,
     ) -> None:
+        """Create a circuit with a dynamic CNOT gate or comparison CNOT gate.
+
+        Args:
+            num_qubits (int): The number of qubits in the circuit.
+            mode (Literal["dynamic", "comparison"], optional):
+                The mode of the circuit. Defaults to "dynamic".
+            reset_between_bell_pairs (bool, optional):
+                Whether to reset qubits between Bell pairs. Defaults to True.
+            name (str | None, optional): The name of the circuit. Defaults to None.
+
+        Raises:
+            ValueError: If num_qubits is not between 4 and 8.
+        """
+
         if num_qubits < 4 or num_qubits > 8:
             raise ValueError("Number of qubits must be between 4 and 8")
         super().__init__(name=name)
         self.num_qubits = num_qubits
-        self.export = export
+        self.reset_between_bell_pairs = reset_between_bell_pairs
+        self.mode = mode
 
     def _build(self) -> None:
         if self._is_built:
@@ -243,7 +310,7 @@ class CXDynamic(OneBody):
 
         self.h(0)
 
-        if self.export == "dynamic":
+        if self.mode == "dynamic":
             control_qubit = 0
             target_qubit = self.num_qubits - 1
             n = target_qubit - control_qubit - 1
@@ -255,7 +322,15 @@ class CXDynamic(OneBody):
             c2 = ClassicalRegister(n - k, "c2")
             self.add_register(c1, c2)
 
-            add_cnot_dyn(self, control_qubit, target_qubit, c1, c2, add_barriers=True)
+            add_cnot_dyn(
+                self,
+                control_qubit,
+                target_qubit,
+                c1,
+                c2,
+                add_barriers=True,
+                reset_between_bell_pairs=self.reset_between_bell_pairs,
+            )
 
         else:
             self.cx(0, self.num_qubits - 1)
@@ -318,10 +393,11 @@ class TwoBodyWithMeasurement(TwoBody):
 
     def __init__(
         self,
-        num_qubits,
+        num_qubits: int,
         clbit_num_cluster: int = 4,
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> None:
+
         if num_qubits % 2 != 0:
             raise ValueError("Number of qubits must be even number")
         if num_qubits < 4:
@@ -360,15 +436,20 @@ class TwoBodyWithMeasurement(TwoBody):
 
 def make_ghz_overlap_case(
     num_qubits: int,
-    case_name: Union[
-        str, Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]
-    ],
+    use_case: (
+        str | Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]
+    ),
 ) -> QuantumCircuit:
     """Generate a GHZ overlap test case.
 
     Args:
         num_qubits (int): The number of qubits.
-        circ_name (str): The name of the circuit.
+        use_case (str | Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]):
+            The use case to generate. Options are:
+            - "00", "01", "10", "11": GHZ states with different initializations.
+            - "x-init-ghz": GHZ state with X gate on the first qubit before Hadamard and CNOTs.
+            - "intracell-plus": Intracell recipe with plus state.
+            - "singlet": Intracell recipe with singlet state.
 
     Returns:
         QuantumCircuit: The generated GHZ overlap test case.
@@ -379,11 +460,11 @@ def make_ghz_overlap_case(
     if num_qubits < 0:
         raise ValueError("Number of qubits must be greater than 0")
 
-    if case_name == "intracell-plus":
+    if use_case == "intracell-plus":
         return Intracell(num_qubits, "plus", name="ghz_intracell_plus")
-    if case_name == "singlet":
+    if use_case == "singlet":
         return Intracell(num_qubits, "singlet", name="ghz_singlet")
-    if case_name == "x-init-ghz":
+    if use_case == "x-init-ghz":
         qc = QuantumCircuit(num_qubits, name="ghz_x_init")
         qc.x(0)
         qc.h(0)
@@ -392,15 +473,15 @@ def make_ghz_overlap_case(
 
         return qc
 
-    if case_name not in ["00", "01", "10", "11"]:
-        raise ValueError(f"Invalid case name: {case_name}.")
+    if use_case not in ["00", "01", "10", "11"]:
+        raise ValueError(f"Invalid case name: {use_case}.")
 
-    qc = QuantumCircuit(num_qubits, name=f"ghz_{case_name}")
+    qc = QuantumCircuit(num_qubits, name=f"ghz_{use_case}")
 
     for i in range(0, num_qubits, 2):
-        if case_name[i % 2] == "1":
+        if use_case[i % 2] == "1":
             qc.x(i)
-        if case_name[(i + 1) % 2] == "1":
+        if use_case[(i + 1) % 2] == "1":
             qc.x(i + 1)
 
     return qc
@@ -416,7 +497,7 @@ def preparing_circuits_lib(
             A dictionary of circuit names and their corresponding QuantumCircuit objects.
 
     Returns:
-        dict[str, QuantumCircuit]: A dictionary of circuit names and their corresponding QuantumCircuit objects.
+        A dictionary of circuit names and their corresponding QuantumCircuit objects.
     """
     circuits_lib: dict[str, QuantumCircuit] = {}
 

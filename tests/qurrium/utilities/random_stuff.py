@@ -1,6 +1,6 @@
 """The random utilities for testing (:mod:`utilities.random_stuff`)."""
 
-from typing import Literal, Union, Any
+from typing import Literal, Any
 import os
 import json
 
@@ -25,7 +25,7 @@ def quick_json_read(file_path: str) -> Any:
 
 def prepare_random_unitary_seeds(
     filename: str = SEED_FILE_LOCATION,
-) -> dict[int, dict[int, dict[int, Union[Literal[0, 1, 2], int]]]]:
+) -> dict[int, dict[int, dict[int, Literal[0, 1, 2] | int]]]:
     """Prepare random unitary seeds from a file.
 
     Args:

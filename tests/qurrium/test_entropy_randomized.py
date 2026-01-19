@@ -3,7 +3,7 @@
 It's from :class:`~qurry.qurry.qurries.entropy_randomized.qurry.EntropyMeasureRandomized`.
 """
 
-from typing import TypedDict, Optional
+from typing import TypedDict
 import logging
 import pytest
 
@@ -47,13 +47,13 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
     target_purity: float
     """The expected target system purity for the test case."""
-    allsys_purity: Optional[float]
+    allsys_purity: float | None
     """The expected all system purity for the test case."""
-    mitigated_purity: Optional[float]
+    mitigated_purity: float | None
     """The expected mitigated purity for the test case."""
-    measure_range: Optional[list[int]]
+    measure_range: list[int] | None
     """The measurement range for the test case."""
-    selected_qubits: Optional[list[int]]
+    selected_qubits: list[int] | None
     """The selected qubits for analysis."""
 
 

@@ -3,7 +3,7 @@
 It's from :class:`~qurry.qurry.qurries.echo_randomized.qurry.EchoListenRandomized`.
 """
 
-from typing import TypedDict, Optional
+from typing import TypedDict
 import logging
 import pytest
 
@@ -52,9 +52,9 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
     target_echo: float
     """The overlap value for the test case."""
-    measure_range: tuple[Optional[list[int]], Optional[list[int]]]
+    measure_range: tuple[list[int] | None, list[int] | None]
     """The measurement range for the test case."""
-    selected_clregs: Optional[list[int]]
+    selected_clregs: list[int] | None
     """The selected qubits for analysis."""
     times: int
     """The number of random unitaries."""
@@ -82,18 +82,18 @@ circuits_lib = preparing_circuits_lib(
         # CXDynamic cases
         "4_cx-dyn": CXDynamic(4, name="4-cx-dyn"),
         "6_cx-dyn": CXDynamic(6, name="6-cx-dyn"),
-        "4_cx-dyn-comparison": CXDynamic(4, name="4-cx-dyn-comparison", export="comparison"),
-        "6_cx-dyn-comparison": CXDynamic(6, name="6-cx-dyn-comparison", export="comparison"),
+        "4_cx-dyn-comparison": CXDynamic(4, name="4-cx-dyn-comparison", mode="comparison"),
+        "6_cx-dyn-comparison": CXDynamic(6, name="6-cx-dyn-comparison", mode="comparison"),
     }
 )
 
 
-def making_pair(name1: str, name2: Optional[str] = None) -> tuple[QuantumCircuit, QuantumCircuit]:
+def making_pair(name1: str, name2: str | None = None) -> tuple[QuantumCircuit, QuantumCircuit]:
     """Make a pair of circuits from names.
 
     Args:
         name1 (str): The name of the first circuit.
-        name2 (str): The name of the second circuit. If None, use name1.
+        name2 (str | None): The name of the second circuit. If None, use name1.
 
     Returns:
         tuple[QuantumCircuit, QuantumCircuit]: The pair of circuits.

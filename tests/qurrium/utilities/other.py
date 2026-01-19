@@ -1,6 +1,7 @@
 """Miscellaneous utilities for testing. (:mod:`utilities.other`)"""
 
-from typing import Optional, Iterable, NamedTuple, Generic, Union, cast, TypeVar
+from typing import NamedTuple, Generic, cast, TypeVar
+from collections.abc import Iterable
 import os
 from pathlib import Path
 import logging
@@ -11,7 +12,7 @@ from qurry.qurrium.container import _MA
 from qurry.qurrium.analysis import _RA, AnalysisResultsPrototype
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 
-FloatType = Union[float, np.float64]
+FloatType = float | np.float64
 """The type alias for :class:`float` and :class:`~numpy.float64`."""
 
 
@@ -94,12 +95,12 @@ class AnalysisResultChecker(NamedTuple):
         """
         return self.diff < self.threshold
 
-    def make_logger(self, logger: logging.Logger, extra_msg: Optional[str] = None) -> str:
+    def make_logger(self, logger: logging.Logger, extra_msg: str | None = None) -> str:
         """Make logger string for the report.
 
         Args:
             logger (logging.Logger): The logger to use.
-            extra_msg (Optional[str], optional):
+            extra_msg (str | None, optional):
                 Extra message to include. Defaults to None.
 
         Returns:
@@ -139,7 +140,7 @@ def check_analysis_result(
     expect_answer: float,
     name: str,
     threshold: float = NUMERICAL_ERROR_TOLERANCE,
-    other_fields: Optional[list[str]] = None,
+    other_fields: list[str] | None = None,
 ) -> AnalysisResultChecker:
     """Check the analysis result for a specific field.
 
@@ -151,7 +152,7 @@ def check_analysis_result(
         name (str): The name of the test item.
         threshold (float, optional): The threshold for the check.
             Defaults to NUMERICAL_ERROR_TOLERANCE.
-        other_fields (Optional[list[str]], optional):
+        other_fields (list[str] | None, optional):
             Other fields to check for existence. Defaults to None.
 
     Returns:
