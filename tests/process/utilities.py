@@ -1,6 +1,6 @@
 """Utility functions for tests in the qurry.process module."""
 
-from typing import Any, Union, Literal, Optional
+from typing import Any, Literal
 import os
 import json
 import numpy as np
@@ -8,7 +8,7 @@ import numpy as np
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.process.availability import PostProcessingBackendLabel
 
-FloatType = Union[float, np.float64]
+FloatType = float | np.float64
 """The type alias for :class:`float` and :class:`~numpy.float64`."""
 
 
@@ -64,7 +64,7 @@ def numerical_tolerance_check(
 AvailStatusType = tuple[
     str,
     dict[PostProcessingBackendLabel, Literal["Yes", "Error", "Depr.", "No"]],
-    dict[PostProcessingBackendLabel, Optional[ImportError]],
+    dict[PostProcessingBackendLabel, ImportError | None],
 ]
 """The type alias for availability status list."""
 

@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 SIMULATOR = get_seeded_simulator()
 
-random_bases = prepare_random_basis()
+RANDOM_BASIS = prepare_random_basis()
 
 THRESHOLD = 0.09
 
@@ -158,7 +158,7 @@ CASES: list[CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]] = [
             "shots": DEFAULT_SHOTS,
             "backend": SIMULATOR,
             "random_basis": {
-                i: random_bases[case_data["circuit"].num_qubits][i]
+                i: RANDOM_BASIS[case_data["circuit"].num_qubits][i]
                 for i in range(DEFAULT_SNAPSHOTS)
             },
         },

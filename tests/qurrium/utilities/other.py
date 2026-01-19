@@ -1,8 +1,9 @@
 """Miscellaneous utilities for testing. (:mod:`utilities.other`)"""
 
 from typing import NamedTuple, Generic, cast, TypeVar
-from collections.abc import Iterable
 import os
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 import logging
 import numpy as np
@@ -68,7 +69,8 @@ class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
         return tags_to_name(self.tags)
 
 
-class AnalysisResultChecker(NamedTuple):
+@dataclass(frozen=True)
+class AnalysisResultChecker:
     """The analysis result check report."""
 
     name: str
@@ -199,7 +201,16 @@ def tags_to_name(iterable: Iterable[str]) -> str:
 
 def make_config_list_and_tagged_case(
     case_entries_list: list[CaseEntriesTuple[_MA, _RA]],
-):
+) -> tuple[list[_MA], dict[tuple[str, ...], CaseEntriesTuple[_MA, _RA]]]:
+    """Create configuration list and tagged case entries from a list of case entries.
+
+    Args:
+        case_entries_list (list[CaseEntriesTuple[_MA, _RA]]):
+            The list of case entries.
+
+    Returns:
+        A tuple containing the configuration list and the tagged case entries.
+    """
     config_list = []
     cases_with_tags: dict[tuple[str, ...], CaseEntriesTuple[_MA, _RA]] = {}
 
