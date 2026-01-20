@@ -1,6 +1,6 @@
 """ShadowUnveil - Experiment (:mod:`qurry.qurries.classical_shadow.experiment`)"""
 
-from typing import Optional, Any, Union
+from typing import Any
 from pathlib import Path
 from collections.abc import Iterable
 import tqdm
@@ -15,7 +15,7 @@ from .utils import make_samplied_circuit, get_basis_spin
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
 from ...tools import ParallelManager, set_pbar_description
-from ...process.utils import qubit_mapper, QubitSelectionType
+from ...process.utils import qubit_mapper, QubitSelectionType, FloatType
 from ...process.classical_shadow import (
     generate_random_basis,
     check_random_basis,
@@ -55,8 +55,8 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         measure: QubitSelectionType = None,
         unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        shadow_basis_method: Optional[ShadowBasisType] = None,
-        random_basis: Optional[dict[int, dict[int, int]]] = None,
+        shadow_basis_method: ShadowBasisType | None = None,
+        random_basis: dict[int, dict[int, int]] | None = None,
         **custom_kwargs: Any,
     ) -> tuple[SUArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -81,14 +81,14 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            shadow_basis_method (Optional[ShadowBasisType], optional):
+            shadow_basis_method (ShadowBasisType | None, optional):
                 The classical shadow basis for sampling. It can be set to
                 :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
                 or
                 :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
                 Defaults to None, which use the default Pauli basis from
                 :meth:`ShadowBasisMethod.`.
-            random_basis (Optional[dict[int, dict[int, int]]], optional):
+            random_basis (dict[int, dict[int, int]] | None, optional):
                 The random basis for classical shadow.
 
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -182,7 +182,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SUArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -192,7 +192,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 The circuits of the experiment.
             arguments (EntropyMeasureRandomizedArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -242,28 +242,28 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
     def prepare_entries_analysis(
         self,
-        selected_qubits: Optional[Iterable[int]] = None,
+        selected_qubits: Iterable[int] | None = None,
         # estimation of given operators
-        given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
-        accuracy_prob_comp_delta: float = 0.01,
-        max_shadow_norm: Optional[float] = None,
+        given_operators: list[npt.NDArray[np.complex128]] | None = None,
+        accuracy_prob_comp_delta: FloatType = 0.01,
+        max_shadow_norm: FloatType | None = None,
         # other config
         rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
         trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
         estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-        counts_used: Optional[Iterable[int]] = None,
+        counts_used: Iterable[int] | None = None,
     ) -> dict[str, Any]:
         r"""Prepare the entries for analysis.
 
         Args:
-            selected_qubits (Optional[Iterable[int]], optional):
+            selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (Optional[list[npt.NDArray[np.complex128]]]):
+            given_operators (list[npt.NDArray[np.complex128]] | None, optional):
                 The list of the operators to estimate. Defaults to None.
-            accuracy_prob_comp_delta (float, optional):
+            accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.
-            max_shadow_norm (Optional[float], optional):
+            max_shadow_norm (FloatType | None, optional):
                 The maximum shadow norm. Defaults to None.
                 If it is None, it will be calculated by the largest shadow norm upper bound.
                 If it is not None, it must be a positive float number.
@@ -367,28 +367,28 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
     def analyze(
         self,
-        selected_qubits: Optional[Iterable[int]] = None,
+        selected_qubits: Iterable[int] | None = None,
         # estimation of given operators
-        given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
-        accuracy_prob_comp_delta: float = 0.01,
-        max_shadow_norm: Optional[float] = None,
+        given_operators: list[npt.NDArray[np.complex128]] | None = None,
+        accuracy_prob_comp_delta: FloatType = 0.01,
+        max_shadow_norm: FloatType | None = None,
         # other config
         rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
         trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
         estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-        counts_used: Optional[Iterable[int]] = None,
+        counts_used: Iterable[int] | None = None,
     ) -> SUAnalysis:
         r"""Calculate entangled entropy with more information combined.
 
         Args:
-            selected_qubits (Optional[Iterable[int]], optional):
+            selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (Optional[list[npt.NDArray[np.complex128]]]):
+            given_operators (list[npt.NDArray[np.complex128]] | None):
                 The list of the operators to estimate. Defaults to None.
-            accuracy_prob_comp_delta (float, optional):
+            accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.
-            max_shadow_norm (Optional[float], optional):
+            max_shadow_norm (FloatType | None, optional):
                 The maximum shadow norm. Defaults to None.
                 If it is None, it will be calculated by the largest shadow norm upper bound.
                 If it is not None, it must be a positive float number.
@@ -465,7 +465,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
                 Defaults to DEFAULT_LIST_TRACE_METHOD.
 
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
 
         Returns:
@@ -489,17 +489,17 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
     def get_basis_spin_format(
         self,
-        counts_used: Optional[Iterable[int]] = None,
-        filename: Union[str, Path, None] = None,
+        counts_used: Iterable[int] | None = None,
+        filename: str | Path | None = None,
     ) -> tuple[list[list[int]], list[list[int]]]:
         """Get the basis-spin format from the counts and random basis of experiment,
         which uses in `Predicting Properties of Quantum Many-Body Systems
         <https://github.com/hsinyuan-huang/predicting-quantum-properties>`_ .
 
         Args:
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
-            filename (Union[str, Path, None], optional):
+            filename (str | Path | None, optional):
                 The filename to export the basis-spin format.
                 If it is None, it will not export to a file. Defaults to None.
 

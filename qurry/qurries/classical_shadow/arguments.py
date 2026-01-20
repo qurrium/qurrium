@@ -1,6 +1,6 @@
 """ShadowUnveil - Arguments (:mod:`qurry.qurries.classical_shadow.arguments`)"""
 
-from typing import Any, Union
+from typing import Any
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -123,7 +123,7 @@ class SUMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.classical_shadow.qurry.ShadowUnveil.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Union[QuantumCircuit, WCKeyable]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
     snapshots: int
     """The number of random unitary operator, previously called `times`
@@ -134,14 +134,14 @@ class SUMeasureArgs(BasicArgs, total=False):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    shadow_basis_method: Union[ShadowBasisType, None]
+    shadow_basis_method: ShadowBasisType | None
     """The classical shadow basis for sampling.
     It can be set to 
     :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
     or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
     Defaults to None, which use the default Pauli basis
     from :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
-    random_basis: Union[dict[int, dict[int, int]], None]
+    random_basis: dict[int, dict[int, int]] | None
     """The random basis for classical shadow.
 
     This argument only takes input as type of `dict[int, dict[int, int]]`.
@@ -180,14 +180,14 @@ class SUOutputArgs(OutputArgs):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    shadow_basis_method: Union[ShadowBasisType, None]
+    shadow_basis_method: ShadowBasisType | None
     """The classical shadow basis for sampling.
     It can be set to 
     :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
     or :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
     Defaults to None, which use the default Pauli basis
     from :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`."""
-    random_basis: Union[dict[int, dict[int, int]], None]
+    random_basis: dict[int, dict[int, int]] | None
     """The random basis for classical shadow.
 
     This argument only takes input as type of `dict[int, dict[int, int]]`.

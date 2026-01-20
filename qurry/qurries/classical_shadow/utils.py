@@ -1,6 +1,7 @@
 """ShadowUnveil - Utils (:mod:`qurry.qurries.classical_shadow.utils`)"""
 
-from typing import Optional, Iterable, Union, Literal
+from typing import Literal
+from collections.abc import Iterable
 from qiskit import QuantumCircuit, ClassicalRegister
 
 from ...qurrium import WCKeyable
@@ -78,8 +79,8 @@ def make_samplied_circuit(
 def get_random_basis_array(
     registers_mapping: dict[int, int],
     random_basis: dict[int, dict[int, int]],
-    counts_used: Optional[Iterable[int]] = None,
-) -> list[list[Union[Literal[0, 1, 2], int]]]:
+    counts_used: Iterable[int] | None = None,
+) -> list[list[Literal[0, 1, 2] | int]]:
     """Get the random basis array from the random basis,
     register mapping, and counts used.
 
@@ -92,15 +93,15 @@ def get_random_basis_array(
             The mapping of the classical registers of measurement with quantum registers.
         random_basis (dict[int, dict[int, int]]):
             The random basis mapping.
-        counts_used (Optional[Iterable[int]], optional):
+        counts_used (Iterable[int] | None, optional):
             The counts used. Defaults to None.
 
     Returns:
-        list[list[Union[Literal[0, 1, 2], int]]]: The random basis array.
+        The random basis array.
     """
     all_clregs = sorted(registers_mapping.values())
 
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]] = []
+    random_basis_array: list[list[Literal[0, 1, 2] | int]] = []
     for i in range(len(random_basis) if counts_used is None else max(counts_used) + 1):
         tmp = {ci: random_basis[i][n_u_qi] for n_u_qi, ci in registers_mapping.items()}
         random_basis_array.append([tmp[j] for j in all_clregs])
@@ -113,7 +114,7 @@ def get_basis_spin(
     counts: list[dict[str, int]],
     registers_mapping: dict[int, int],
     random_basis: dict[int, dict[int, int]],
-    counts_used: Optional[Iterable[int]] = None,
+    counts_used: Iterable[int] | None = None,
 ) -> tuple[list[list[int]], list[list[int]]]:
     """Convert the random basis to basis-spin format,
     which uses in `Predicting Properties of Quantum Many-Body Systems
@@ -128,7 +129,7 @@ def get_basis_spin(
             The mapping of the classical registers of measurement with quantum registers.
         random_basis (dict[int, dict[int, int]]):
             The random basis mapping.
-        counts_used (Optional[Iterable[int]], optional):
+        counts_used (Iterable[int] | None, optional):
             The counts used. Defaults to None.
 
     Returns:

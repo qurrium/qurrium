@@ -18,7 +18,7 @@ from ...qurrium import (
     AnalysisResultsPrototype,
 )
 from ...qurrium.utils import bitstring_mapping_getter
-from ...process.utils import counts_list_recount_pyrust
+from ...process.utils import counts_list_recount_pyrust, FloatType
 from ...process.classical_shadow import (
     set_cpu_only,
     JAX_AVAILABLE,
@@ -52,9 +52,9 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     # estimation of given operators
     given_operators: list[npt.NDArray[np.complex128]] | None
     """The list of the operators to estimate."""
-    accuracy_prob_comp_delta: float
+    accuracy_prob_comp_delta: FloatType
     """The accuracy probability for computing delta."""
-    max_shadow_norm: float | None
+    max_shadow_norm: FloatType | None
     """The maximum shadow norm of the given operators."""
     # other config
     rho_method: RhoMethodType
@@ -228,7 +228,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
     # esitimation of given operators
     given_operators: list[npt.NDArray] | None
     """The list of the operators to estimate."""
-    accuracy_predict_epsilon: float
+    accuracy_predict_epsilon: FloatType
     r"""The prediction of accuracy, which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -246,7 +246,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: float | None
+    maximum_shadow_norm: FloatType | None
     r"""The maximum shadow norm, which is defined in the supplementary material 
     with value between 0 and 1.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
@@ -474,9 +474,9 @@ class SUPurityResult(AnalysisResultsPrototype):
 
     __name__ = "SUPurityResult"
 
-    purity: np.float64 | float
+    purity: FloatType
     """The purity of the density matrix."""
-    entropy: np.float64 | float
+    entropy: FloatType
     """The second Renyi entropy of the density matrix."""
     purity_value_kind: PurityValueKind | str
     """The kind of purity value."""
@@ -533,7 +533,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
     """The estimation of the given operators."""
     corresponding_rhos: list[npt.NDArray[np.complex128]]
     """The corresponding Rho for each given operator."""
-    accuracy_prob_comp_delta: float
+    accuracy_prob_comp_delta: FloatType
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -573,7 +573,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
     And recalculate the probabiltiy complement of accuracy from this new value of :math:`K`.
     """
 
-    accuracy_predict_epsilon: float
+    accuracy_predict_epsilon: FloatType
     r"""The prediction of accuracy, which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -591,7 +591,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: float
+    maximum_shadow_norm: FloatType
     r"""The maximum shadow norm, which is defined in the supplementary material.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
     from the equation (S13) in the supplementary material.
@@ -611,7 +611,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
     Due to its calculation is complex, we curently use the value of np.nan
     to represent the maximum shadow norm.
     """
-    epsilon_upperbound: float
+    epsilon_upperbound: FloatType
     r"""The upper bound of the prediction of accuracy, 
     which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
@@ -640,7 +640,7 @@ class SUEstimationResult(AnalysisResultsPrototype):
         \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
 
     """
-    shadow_norm_upperbound: float
+    shadow_norm_upperbound: FloatType
     r"""The largest shadow norm upper bound is defined as follows,
 
     .. math::
@@ -835,8 +835,8 @@ class SUAnalysis(
         selected_classical_registers: Iterable[int] | None,
         # estimation of given operators
         given_operators: list[npt.NDArray[np.complex128]] | None,
-        accuracy_prob_comp_delta: float,
-        max_shadow_norm: float | None,
+        accuracy_prob_comp_delta: FloatType,
+        max_shadow_norm: FloatType | None,
         # other config
         rho_method: RhoMethodType,
         shadow_basis: ShadowBasisType,
@@ -855,11 +855,11 @@ class SUAnalysis(
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
 
-            given_operators (Optional[list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]):
+            given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
                 The list of the operators to estimate. Defaults to None.
-            accuracy_prob_comp_delta (float, optional):
+            accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.
-            max_shadow_norm (Optional[float], optional):
+            max_shadow_norm (FloatType | None, optional):
                 The maximum shadow norm. Defaults to None.
                 If it is None, it will be calculated by the largest shadow norm upper bound.
                 If it is not None, it must be a positive float number.
