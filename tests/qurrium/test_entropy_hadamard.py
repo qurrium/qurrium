@@ -13,8 +13,8 @@ from qurry.qurries.entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArg
 from qurry.qurries.entropy_hadamard.analysis import EMHAnalyzeArgs, EMHAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
-from utilities.simulator import get_seeded_simulator
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     EXPORT_DIR,

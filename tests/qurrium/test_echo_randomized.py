@@ -13,8 +13,8 @@ from qurry.qurries.echo_randomized import EchoListenRandomized, ELRMeasureArgs
 from qurry.qurries.echo_randomized.analysis import ELRAnalyzeArgs, ELRAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
-from utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     EXPORT_DIR,
@@ -22,8 +22,8 @@ from utilities.other import (
     make_specific_analysis_args,
     multi_read_tests_exported_files,
 )
-from utilities.random_stuff import prepare_random_unitary_seeds
-from utilities.circuits import (
+from .utilities.random_stuff import prepare_random_unitary_seeds
+from .utilities.circuits import (
     CXDynamic,
     TwoBodyWithMeasurement,
     make_ghz_overlap_case,

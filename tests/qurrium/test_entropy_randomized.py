@@ -13,8 +13,8 @@ from qurry.qurries.entropy_randomized import EntropyMeasureRandomized, EMRMeasur
 from qurry.qurries.entropy_randomized.analysis import EMRAnalyzeArgs, EMRAnalysis
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
-from utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     EXPORT_DIR,
@@ -22,8 +22,8 @@ from utilities.other import (
     make_specific_analysis_args,
     multi_read_tests_exported_files,
 )
-from utilities.random_stuff import prepare_random_unitary_seeds
-from utilities.circuits import CXDynamic, TwoBodyWithMeasurement
+from .utilities.random_stuff import prepare_random_unitary_seeds
+from .utilities.circuits import CXDynamic, TwoBodyWithMeasurement
 
 
 logger = logging.getLogger(__name__)

@@ -13,8 +13,8 @@ from qurry.qurries.string_operator import StringOperator, SOMeasureArgs
 from qurry.qurries.string_operator.analysis import SOAnalyzeArgs, SOAnalysis
 from qurry.recipe import TrivialParamagnet, Cluster
 
-from utilities.simulator import get_seeded_simulator
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     EXPORT_DIR,
@@ -22,7 +22,7 @@ from utilities.other import (
     make_specific_analysis_args,
     multi_read_tests_exported_files,
 )
-from utilities.circuits import preparing_circuits_lib
+from .utilities.circuits import preparing_circuits_lib
 
 
 logger = logging.getLogger(__name__)

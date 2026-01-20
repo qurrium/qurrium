@@ -24,8 +24,8 @@ from qurry.process.classical_shadow import (
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
 from qurry.recipe import TrivialParamagnet, GHZ, Cluster
 
-from utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     AnalysisResultChecker,
@@ -35,8 +35,8 @@ from utilities.other import (
     multi_read_tests_exported_files,
     FloatType,
 )
-from utilities.random_stuff import prepare_random_basis
-from utilities.circuits import preparing_circuits_lib, CXDynamic, TwoBodyWithMeasurement
+from .utilities.random_stuff import prepare_random_basis
+from .utilities.circuits import preparing_circuits_lib, CXDynamic, TwoBodyWithMeasurement
 
 
 logger = logging.getLogger(__name__)

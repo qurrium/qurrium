@@ -19,9 +19,9 @@ from qurry.qurries.classical_shadow.analysis import SUAnalyzeArgs, SUAnalysis
 from qurry.qurries.magnet_square.analysis import MSDefaultResult
 from qurry.recipe import Cat, TrivialParamagnet
 
-from utilities.simulator import get_seeded_simulator
-from utilities.random_stuff import prepare_random_basis
-from utilities.other import (
+from .utilities.simulator import get_seeded_simulator
+from .utilities.random_stuff import prepare_random_basis
+from .utilities.other import (
     CaseEntriesTuple,
     check_analysis_result,
     EXPORT_DIR,
@@ -29,7 +29,7 @@ from utilities.other import (
     make_specific_analysis_args,
     multi_read_tests_exported_files,
 )
-from utilities.circuits import preparing_circuits_lib
+from .utilities.circuits import preparing_circuits_lib
 
 logger = logging.getLogger(__name__)
 
