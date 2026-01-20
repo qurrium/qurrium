@@ -12,7 +12,7 @@ from .counts_process import (
     rho_m_flatten_counts_list_vectorize_pyrust,
     check_invalid_counts,
 )
-from .other import NUMERICAL_ERROR_TOLERANCE
+from .other import NUMERICAL_ERROR_TOLERANCE, FloatType
 from .bit_slice import (
     qubit_selector,
     cycling_slice,
