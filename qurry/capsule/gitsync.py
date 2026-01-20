@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Union, Optional
 
 from .utils import OpenArgs, PrintArgs, create_open_args, create_print_args
 
@@ -69,19 +68,19 @@ class GitSyncControl(list[str]):
 
     def export(
         self,
-        save_location: Union[Path, str] = Path("./"),
-        open_args: Optional[OpenArgs] = None,
-        print_args: Optional[PrintArgs] = None,
+        save_location: Path | str = Path("./"),
+        open_args: OpenArgs | None = None,
+        print_args: PrintArgs | None = None,
     ) -> None:
         """Export .gitignore
 
         Args:
             save_location (Path): The location of .gitignore.
-            open_args (Optional[OpenArgs], optional):
+            open_args (OpenArgs | None, optional):
                 The other arguments for :func:`open` function.
                 Defaults to None,
                 it will be set to :const:`~qurry.capsule.utils.DEFAULT_OPEN_ARGS`.
-            print_args (Optional[PrintArgs], optional):
+            print_args (PrintArgs | None, optional):
                 The other arguments for :func:`print` function.
                 Defaults to None,
                 it will be set to :const:`~qurry.capsule.utils.DEFAULT_PRINT_ARGS`.
@@ -121,9 +120,9 @@ class GitSyncControl(list[str]):
 
     def load(
         self,
-        save_location: Union[Path, str],
+        save_location: Path | str,
         take_duplicate: bool = False,
-        open_args: Optional[OpenArgs] = None,
+        open_args: OpenArgs | None = None,
     ):
         """Read existed .gitignore
 
@@ -131,7 +130,7 @@ class GitSyncControl(list[str]):
             save_location (Path): The location of .gitignore.
             take_duplicate (bool, optional):
                 Take duplicate item in .gitignore. Defaults to False.
-            open_args (Optional[OpenArgs], optional):
+            open_args (OpenArgs | None, optional):
                 The other arguments for :func:`open` function.
                 Defaults to None,
                 it will be set to the returned valuse of

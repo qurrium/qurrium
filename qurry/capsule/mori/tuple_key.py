@@ -1,14 +1,11 @@
 """Tuple Key Parser (:mod:`qurry.capsule.mori.tuple_key`)"""
 
-from typing import Union, TypeVar, overload
-from collections.abc import Hashable
+from typing import TypeVar
 
-
-_K = TypeVar("_K", bound=Hashable)
 _T = TypeVar("_T")
 
 
-def tuple_str_parse(kstring: str) -> Union[tuple[str, ...], str]:
+def tuple_str_parse(kstring: str) -> tuple[str, ...] | str:
     r"""Convert tuple strings to real tuple.
 
     >>> tuple_str_parse("hello_world")
@@ -32,7 +29,7 @@ def tuple_str_parse(kstring: str) -> Union[tuple[str, ...], str]:
         kstring (str): Tuplizing available string.
 
     Returns:
-        Union[tuple[str, ...], str]: Result of tuplizing.
+        tuple[str, ...] | str: Result of tuplizing.
     """
     if not isinstance(kstring, str):
         raise ValueError("Input must be a string")
@@ -58,15 +55,7 @@ def tuple_str_parse(kstring: str) -> Union[tuple[str, ...], str]:
     return tuple(kt2)
 
 
-@overload
-def key_tuple_loads(o: _T) -> _T: ...
-@overload
-def key_tuple_loads(o: dict[_K, _T]) -> dict[_K, _T]: ...
-@overload
-def key_tuple_loads(o: dict[Hashable, _T]) -> dict[Hashable, _T]: ...
-
-
-def key_tuple_loads(o):
+def key_tuple_loads(o: _T) -> _T:
     """If a dictionary with string keys
     which read from json may originally be a python tuple,
     then transplies as a tuple.

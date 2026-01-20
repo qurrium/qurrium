@@ -1,6 +1,7 @@
 """The writers of JSON I/O (:mod:`qurry.capsule.mori.writers`)"""
 
-from typing import Any, Union, TypedDict, Callable, TypeVar
+from typing import Any, TypedDict, TypeVar
+from collections.abc import Callable
 from abc import abstractmethod, ABC
 from pathlib import Path
 from dataclasses import dataclass
@@ -66,9 +67,7 @@ _UW = TypeVar("_UW", bound="UniversalWriterABC")
 """Type variable for :class:`UniversalWriterABC`."""
 
 
-def check_export(
-    func: Callable[[type[_UW], str, Union[Path, str], list[WritableQueueUnit]], _UW],
-):
+def check_export(func: Callable[[type[_UW], str, Path | str, list[WritableQueueUnit]], _UW]):
     """The decorator for :meth:`UniversalWriterABC.make` to check inputs.
 
     Args:
@@ -78,7 +77,7 @@ def check_export(
     def wrapper(
         cls: type[_UW],
         identifier: str,
-        save_location: Union[Path, str],
+        save_location: Path | str,
         writable_objects_params: list[WritableQueueUnit],
         *args: Any,
         **kwargs: Any,
@@ -91,7 +90,7 @@ def check_export(
         return result
 
     # pylint: disable=protected-access
-    wrapper._check_export_decorated = True
+    wrapper._check_export_decorated = True  # type: ignore[attr-defined]
     # pylint: enable=protected-access
 
     return wrapper
@@ -105,7 +104,7 @@ class UniversalWriterABC(ABC):
 
     identifier: str
     """The identifier among multiple :class:`FileWritableObj` objects used in filenames."""
-    save_location: Union[Path, str]
+    save_location: Path | str
     """The save location of multiple :class:`FileWritableObj` objects."""
 
     folder_filenames_writtens: list[WrittenQueueUnit]
@@ -161,7 +160,7 @@ class UniversalWriterABC(ABC):
     def make(
         cls,
         identifier: str,
-        save_location: Union[Path, str],
+        save_location: Path | str,
         writable_objects_params: list[WritableQueueUnit],
     ) -> "UniversalWriterABC":
         """Make a universal writer object.
@@ -169,7 +168,7 @@ class UniversalWriterABC(ABC):
         Args:
             identifier (str): The identifier among multiple
                 :class:`FileWritableObj` objects used in filenames.
-            save_location (Union[Path, str]): The save location of multiple
+            save_location (Path | str): The save location of multiple
                 :class:`FileWritableObj` objects.
             writable_objects_params (list[WritableQueueUnit]):
                 The list of writable quene units, which contains

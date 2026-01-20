@@ -1,9 +1,9 @@
 """The JSON Writer (:mod:`qurry.capsule.mori.jsonablize`)"""
 
+from typing import Any
 import os
-from typing import Union, Any, Optional
-import json
 from pathlib import Path
+import json
 import numpy as np
 
 from ..utils import DEFAULT_ENCODING, DEFAULT_INDENT
@@ -13,7 +13,7 @@ SCALAR_VALUES = (str, int, float, bool, type(None))
 """The scalar value types."""
 
 
-def value_parse(v: Any) -> Union[str, int, float, bool, None]:
+def value_parse(v: Any) -> str | int | float | bool | None:
     """Make value JSON-allowable.
     If a value is not allowed by :func:`~json.dumps`, then return its `str` representation.
 
@@ -33,7 +33,7 @@ def value_parse(v: Any) -> Union[str, int, float, bool, None]:
     return str(v)
 
 
-def key_parse(k: Any) -> Union[str, int, float, bool, None]:
+def key_parse(k: Any) -> str | int | float | bool | None:
     """Make key JSON-allowable.
     If a key is not allowed by :func:`~json.dumps`, then return its `str` representation.
 
@@ -87,20 +87,20 @@ def is_scalar_list(o: Any) -> bool:
 
 def quick_json_write(
     content: Any,
-    filename: Union[str, Path],
+    filename: str | Path,
     mode: str,
     indent: int = DEFAULT_INDENT,
     encoding: str = DEFAULT_ENCODING,
     jsonable: bool = False,
-    cls: Optional[type[json.JSONEncoder]] = None,
-    save_location: Union[Path, str] = Path("./"),
+    cls: type[json.JSONEncoder] | None = None,
+    save_location: Path | str = Path("./"),
     mute: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """Configurable quick JSON export.
 
     Args:
         content (any): Content wants to be written.
-        filename (str): Filename of the file.
+        filename (str | Path): Filename of the file.
         mode (str): Mode for :func:`open` function.
         indent (int, optional): Indent length for json. Defaults to 2.
         encoding (str, optional): Encoding method. Defaults to 'utf-8'.
@@ -108,9 +108,9 @@ def quick_json_write(
             Whether to transpile all object to JSON-allowable object.
             If True, it will use :func:`parse` to transpile the content.
             Defaults to False.
-        cls (Optional[type[json.JSONEncoder]], optional):
+        cls (type[json.JSONEncoder] | None, optional):
             The JSON encoder class. Defaults to :class:`MoriJSONEncoder`.
-        save_location (Union[Path, str], optional): Location of files. Defaults to Path('./').
+        save_location (Path | str, optional): Location of files. Defaults to Path('./').
         mute (bool, optional): Mute the exportation. Defaults to True.
 
     Returns:

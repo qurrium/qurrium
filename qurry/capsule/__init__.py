@@ -12,6 +12,7 @@
 
 import webbrowser
 from random import random
+import logging
 
 from .mori import key_tuple_loads, tuple_str_parse, jsonablize, quickJSON, quick_json_write
 from .hoshi import repr_modifier, EasyReprModify, Hoshi
@@ -20,7 +21,10 @@ from .custom_dict import CustomDict
 from .utils import DEFAULT_ENCODING, DEFAULT_INDENT, DEFAULT_MODE
 
 
-@repr_modifier("<SEEING_STARS>")
+logger = logging.getLogger(__file__)
+
+
+@repr_modifier("<MoriCalliope.SEEING_STARS>")
 def feeling_sad_then_call_this_function():
     """Don't look back, look forward
 
@@ -31,13 +35,13 @@ def feeling_sad_then_call_this_function():
     """
     webbrowser.open("https://www.youtube.com/watch?v=X_4pIzwShRw")
 
-    print("| Don't look back, look forward")
-    print("| Find something you can move toward")
-    print("| Don't look back, look forward")
-    print("| Don't look back")
+    logger.info("| Don't look back, look forward.")
+    logger.info("| Find something you can move toward.")
+    logger.info("| Don't look back, look forward.")
+    logger.info("| Don't look back.")
 
 
-@repr_modifier("<CapSule>")
+@repr_modifier("<MoriCalliope.CapSule>")
 def capsule():
     """Why there is a link to the song "CapSule" by Mori Calliope and Hoshimachi Suisei?
     This package is definitely not related to any Vtuber, right?
@@ -46,16 +50,18 @@ def capsule():
     webbrowser.open("https://www.youtube.com/watch?v=M85xU-tbQ6c")
 
 
+@repr_modifier("<MoriCalliope.Guh>")
 def guh():
     """Guh~"""
     webbrowser.open("https://www.youtube.com/watch?v=n8Q-smqaUgA")
-    print("Guh~")
+    logger.info("Guh~")
 
 
+@repr_modifier("<HoshimachiSuisei.Talalalala>")
 def talalalala():
     """Talalalala~"""
     webbrowser.open("https://www.youtube.com/watch?v=_RPkBzv2jYc")
-    print("Talalalala~")
+    logger.info("Talalalala~")
 
 
 def dead_beats_lurking_now():
@@ -66,10 +72,10 @@ def dead_beats_lurking_now():
     This function makes no sense.
     """
     webbrowser.open("https://www.youtube.com/watch?v=6ydgEipkUEU")
-    print("| Dead Beats Lurking Now~")
-    print("| Dead Beats Lurking Now~")
-    print("| Dead Beats Lurking Now~")
-    print("| This function makes no sense.")
+    logger.info("| Dead Beats Lurking Now~")
+    logger.info("| Dead Beats Lurking Now~")
+    logger.info("| Dead Beats Lurking Now~")
+    logger.info("| This function makes no sense.")
 
 
 @repr_modifier("<INTERNET_YAMERO>")
@@ -83,26 +89,18 @@ def internet_is_fxxking_awesome():
     """
     if random() <= 0.2:
         webbrowser.open("https://www.youtube.com/watch?v=51GIxXFKbzk")
-        print("| Intaanetto saikou!!!")
-        print("| ")
-        print("| hotobashiru ekusutashii")
-        print("| amai yume o misete maisurii")
-        print("| yubisaki de kanjiru oyogu")
-        print("| denshi no umi intanetto booi")
+        logger.info("| Intaanetto saikou!!!")
+        logger.info("| ")
+        logger.info("| hotobashiru ekusutashii")
+        logger.info("| amai yume o misete maisurii")
+        logger.info("| yubisaki de kanjiru oyogu")
+        logger.info("| denshi no umi intanetto booi")
 
     else:
         webbrowser.open("https://www.youtube.com/watch?v=Lp5n-YS22tY")
-        print("| Internet is Fxxking Awesome!!!")
-        print("| ")
-        print("| Rushing through me is Ecstasy")
-        print("| Lovely dreams brought through heavenly Myslee")
-        print("| Yearn for your material touch")
-        print("| Swim in cyber euphoria internet boy")
-
-
-def your_need_earbuds_then_call_this_function():
-    """I have warned you. You need earbuds to call this function."""
-    if random() <= 0.2:
-        webbrowser.open("https://www.nicovideo.jp/watch/sm19233263")
-    else:
-        webbrowser.open("https://www.youtube.com/watch?v=4w3zoAbxkbo")
+        logger.info("| Internet is Fxxking Awesome!!!")
+        logger.info("| ")
+        logger.info("| Rushing through me is Ecstasy")
+        logger.info("| Lovely dreams brought through heavenly Myslee")
+        logger.info("| Yearn for your material touch")
+        logger.info("| Swim in cyber euphoria internet boy")
