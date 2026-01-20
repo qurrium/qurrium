@@ -1,6 +1,6 @@
 """Test the qurry.boorust module."""
 
-from typing import Union
+import logging
 import pytest
 
 from qurry.process.utils import (
@@ -15,22 +15,25 @@ from qurry.process.utils.bit_slice import (
     cycling_slice_rust,
 )
 
-from utilities import assert_rust_available
+from .utilities import assert_and_logging_rust_available
+
+logger = logging.getLogger(__name__)
 
 
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    assert_rust_available(
+    assert_and_logging_rust_available(
         [
             counts_process_availability,
             bit_slice_availability,
             dummy_availability,
-        ]
+        ],
+        logger,
     )
 
 
-cases_entries: list[tuple[str, Union[int, tuple[int, int], None]]] = [
+cases_entries: list[tuple[str, int | tuple[int, int] | None]] = [
     ("01234567", 6),
     ("01234567", (2, 8)),
     ("01234567", 7),
@@ -43,7 +46,7 @@ cases_entries: list[tuple[str, Union[int, tuple[int, int], None]]] = [
 
 
 @pytest.mark.parametrize(["dummy_string", "degree"], cases_entries)
-def test_qubit_selector(dummy_string: str, degree: Union[int, tuple[int, int], None]):
+def test_qubit_selector(dummy_string: str, degree: int | tuple[int, int] | None):
     """Test the qubit_selector function."""
 
     if isinstance(degree, tuple):

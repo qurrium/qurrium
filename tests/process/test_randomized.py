@@ -1,8 +1,9 @@
 """Test qurry.process.randomized_measure module."""
 
-from typing import TypedDict, Any, Union
+from typing import TypedDict, Any
 from itertools import combinations
 import pytest
+import logging
 import numpy as np
 
 from qurry.process.utils import cycling_slice, randomized_availability
@@ -25,12 +26,14 @@ from qurry.process.randomized_measure import (
     overlap_v1_availability,
 )
 
-from utilities import (
+from .utilities import (
     quick_json_read,
     get_dummy_file_path,
     numerical_tolerance_check,
-    assert_rust_available,
+    assert_and_logging_rust_available,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class RandomizedMeasureTarget(TypedDict):
@@ -38,7 +41,7 @@ class RandomizedMeasureTarget(TypedDict):
 
     shots: int
     """Number of shots."""
-    selected_range: Union[int, tuple[int, int], None]
+    selected_range: int | tuple[int, int] | None
     """The selected classical registers range or a single integer."""
     absolute_range: tuple[int, int]
     """The absolute range of classical registers."""
@@ -89,7 +92,7 @@ randomized_cases_entries = [
 
 def selected_and_cycling_selected_making(
     absolute_range: tuple[int, int],
-    selected_range: Union[int, tuple[int, int], None],
+    selected_range: int | tuple[int, int] | None,
 ) -> tuple[list[int], list[int]]:
     """Make selected classical registers based on the range
     and selected classical registers by cycling.
@@ -98,7 +101,7 @@ def selected_and_cycling_selected_making(
         absolute_range (tuple[int, int]):
             The absolute range of classical registers, where the first element is the start
             and the second element is the end (exclusive).
-        selected_range (Union[int, tuple[int, int], None]):
+        selected_range (int | tuple[int, int] | None):
             The selected classical registers range or a single integer.
             If None, all registers in the absolute range are selected.
             If an integer, it selects that many registers from the end of the absolute range.
@@ -168,12 +171,11 @@ def v2_ranging_info(selected_classical_registers: list[int]) -> str:
     return f"selected classical registers: {selected_classical_registers}"
 
 
-def averaging_cells(cells: Union[dict[int, float], dict[int, np.float64]]) -> np.float64:
+def averaging_cells(cells: dict[int, float] | dict[int, np.float64]) -> np.float64:
     """Get the average value of the cells.
 
     Args:
-        cells (Union[dict[int, float], dict[int, np.float64]]): The cells dictionary.
-
+        cells (dict[int, float] | dict[int, np.float64]): The cells dictionary.
     Returns:
         np.float64: The average value of the cells.
     """
@@ -183,14 +185,15 @@ def averaging_cells(cells: Union[dict[int, float], dict[int, np.float64]]) -> np
 def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
-    assert_rust_available(
+    assert_and_logging_rust_available(
         [
             randomized_availability,
             entangled_availability,
             entangled_v1_availability,
             overlap_availability,
             overlap_v1_availability,
-        ]
+        ],
+        logger,
     )
 
 

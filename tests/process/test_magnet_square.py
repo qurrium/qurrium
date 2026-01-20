@@ -1,7 +1,8 @@
 """Test qurry.process.magnet_square module."""
 
-from typing import TypedDict, Literal, Union
+from typing import TypedDict, Literal
 from itertools import combinations
+import logging
 import pytest
 
 from qurry.process.magnet_square import (
@@ -11,13 +12,15 @@ from qurry.process.magnet_square import (
     MagnetSquareResult,
 )
 
-from utilities import (
+from .utilities import (
     quick_json_read,
     get_dummy_file_path,
     numerical_tolerance_check,
     FloatType,
-    assert_rust_available,
+    assert_and_logging_rust_available,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class MagnetSquareZdirTarget(TypedDict):
@@ -34,7 +37,7 @@ class MagnetSquareZdirTarget(TypedDict):
 class MagnetSquareTarget(MagnetSquareZdirTarget):
     """TypedDict for magnet square answer from JSON."""
 
-    unitary_operator: Union[Literal["x", "y", "z"], str]
+    unitary_operator: Literal["x", "y", "z"] | str
     """The unitary operator used."""
 
 
@@ -91,7 +94,7 @@ ms_cases_entries = [
 def test_availability():
     """Test the availability of the Rust backend for the magnet_square function."""
 
-    assert_rust_available([magnet_square_availability])
+    assert_and_logging_rust_available([magnet_square_availability], logger)
 
 
 @pytest.mark.parametrize(["target", "answer", "case_name"], mszdir_cases_entries)

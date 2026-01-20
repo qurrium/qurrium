@@ -3,6 +3,7 @@
 from typing import Any, Literal
 import os
 import json
+import logging
 import numpy as np
 
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
@@ -69,7 +70,39 @@ AvailStatusType = tuple[
 """The type alias for availability status list."""
 
 
-def assert_rust_available(avail_status_list: list[AvailStatusType]):
+HINT_OF_STATUS = {
+    "Yes": "The Rust backend is available.",
+    "Error": "There was an error during the Rust backend installation or import.",
+    "Depr.": "The Rust backend is deprecated.",
+    "No": "The Rust backend is not supported.",
+}
+
+
+def no_error_and_msg_of_availability(
+    availability_item: AvailStatusType, backend_label: PostProcessingBackendLabel = "Rust"
+) -> tuple[bool, str]:
+    """Check if there is no error in the Rust backend availability item.
+
+    Args:
+        availability_item (AvailStatusType): The availability item to check.
+        backend_label (PostProcessingBackendLabel): The backend label to check. Defaults to "Rust".
+
+    Returns:
+        A tuple containing a boolean indicating no error and a message.
+    """
+    is_no_error = availability_item[1][backend_label] != "Error"
+    msg_info = f" - {availability_item[0]} - Status: {availability_item[1][backend_label]}"
+
+    return is_no_error, (
+        ("PASS" + msg_info + f" - Hint: {HINT_OF_STATUS[availability_item[1][backend_label]]}")
+        if is_no_error
+        else ("FAIL" + msg_info + f" - Error message: {availability_item[2][backend_label]}")
+    )
+
+
+def assert_and_logging_rust_available(
+    avail_status_list: list[AvailStatusType], logger: logging.Logger | None = None
+) -> None:
     """Check if the Rust backend is available.
 
     Args:
@@ -77,6 +110,10 @@ def assert_rust_available(avail_status_list: list[AvailStatusType]):
     """
 
     for availability_item in avail_status_list:
-        assert availability_item[1]["Rust"] != "Error", (
-            f"Rust is not available. Check the error: {availability_item[2]}"
-        )
+        is_no_error, msg = no_error_and_msg_of_availability(availability_item)
+        if logger is not None:
+            if is_no_error:
+                logger.info(msg)
+            else:
+                logger.error(msg)
+        assert is_no_error, msg

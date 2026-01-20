@@ -13,7 +13,7 @@ from qurry.process.utils.counts_process import (
     rho_m_flatten_counts_list_vectorize_rust,
 )
 
-from utilities import quick_json_read, get_dummy_file_path, assert_rust_available
+from .utilities import quick_json_read, get_dummy_file_path, assert_and_logging_rust_available
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ case_entries: list[list[int]] = (
 def test_availability():
     """Test the availability of the Rust backend for the counts_recount function."""
 
-    assert_rust_available([counts_process_availability])
+    assert_and_logging_rust_available([counts_process_availability], logger)
 
 
 @pytest.mark.parametrize("test_items", case_entries)

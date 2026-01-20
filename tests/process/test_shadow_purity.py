@@ -2,6 +2,7 @@
 
 from typing import TypedDict
 from itertools import combinations
+import logging
 import pytest
 
 from qurry.qurrium.utils import bitstring_mapping_getter
@@ -20,12 +21,15 @@ from qurry.process.classical_shadow import (
     verify_purity_value_kind,
 )
 
-from utilities import (
+from .utilities import (
     quick_json_read,
     get_dummy_file_path,
     numerical_tolerance_check,
     FloatType,
+    no_error_and_msg_of_availability,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ClassicalShadowTarget(TypedDict):
@@ -187,11 +191,15 @@ def test_availability():
         classical_shadow_rho_process_availability,
         classical_shadow_matrix_availability,
     ]:
-        for backend, status in avails_backends.items():
-            assert status != "Error", (
-                f"{backend} is not available in {module_location}. "
-                + f"Check the error: {errors.get(backend)}."
+        for backend_label in avails_backends.keys():
+            is_no_error, msg = no_error_and_msg_of_availability(
+                (module_location, avails_backends, errors), backend_label
             )
+            if is_no_error:
+                logger.info(msg)
+            else:
+                logger.error(msg)
+            assert is_no_error, msg
 
 
 @pytest.mark.parametrize(["target", "answer", "kind_name"], shadow_cases_entries)
