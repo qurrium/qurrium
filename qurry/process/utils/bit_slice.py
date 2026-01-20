@@ -159,26 +159,36 @@ def qubit_mapper_2_int(
     return {qi: ci for ci, qi in enumerate(qi_list)}
 
 
-QubitSelectionType = list[int] | tuple[int, int] | int | None
+QubitSelectionType = list[int] | int | None
 """Type for qubit selection.
 
 The selected qubits.
 - `None`, for the mapping of all qubits.
 - `int`, for the mapping of the last n qubits.
-- `tuple[int, int]`, for the mapping of the qubits in the range.
 - `list[int]`, for the mapping of the selected qubits.
 """
 
+QubitSelectionDeprecatedType = QubitSelectionType | tuple[int, int]
+"""Type for qubit selection with deprecated tuple option.
+
+The selected qubits.
+- `None`, for the mapping of all qubits.
+- `int`, for the mapping of the last n qubits.
+- `list[int]`, for the mapping of the selected qubits.
+- `tuple[int, int]`, for the mapping of the qubits in the range.
+
+Due to potential confusion with tuple usage, this option is deprecated.
+"""
 
 def qubit_mapper(
-    actual_num_qubits: int, selected_qubits: QubitSelectionType = None
+    actual_num_qubits: int, selected_qubits: QubitSelectionDeprecatedType = None
 ) -> dict[int, int]:
     """Map the index of selected qubits to the index of the classical register.
 
     Args:
         actual_num_qubits (int):
             The actual number of qubits.
-        selected_qubits (QubitSelectionType, optional):
+        selected_qubits (QubitSelectionDeprecatedType, optional):
             The selected qubits.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
