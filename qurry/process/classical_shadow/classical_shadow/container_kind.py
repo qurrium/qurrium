@@ -2,12 +2,13 @@
 (:mod:`qurry.process.classical_shadow.classical_shadow.container_kind`)
 """
 
-from typing import Union, TypedDict, Literal
+from typing import TypedDict, Literal
 import numpy as np
 import numpy.typing as npt
 
 from ..rho_process import RhoMethod, RhoMethodType, ShadowRandomBasisData
 from ..trace_process import TraceMethod, TraceMethodType
+from ...utils import FloatType
 
 
 PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]
@@ -218,11 +219,11 @@ def isvalid_classical_shadow_basic(cs_basic: ClassicalShadowBasic) -> None:
 class ClassicalShadowPurity(TypedDict):
     """The expectation value of Rho."""
 
-    purity: Union[float, np.float64]
+    purity: FloatType
     """The purity calculated by classical shadow."""
-    entropy: Union[float, np.float64]
+    entropy: FloatType
     """The entropy calculated by classical shadow."""
-    purity_value_kind: Union[PurityValueKind, str]
+    purity_value_kind: PurityValueKind | str
     """The kind of purity value calculation.
     This will depend on the rho_method and trace_method.
 

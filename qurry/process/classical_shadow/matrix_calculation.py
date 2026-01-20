@@ -5,9 +5,10 @@ The matrix calculation for predicting quantum properties.
 
 """
 
-from typing import Callable, Union
+from collections.abc import Callable
 import warnings
 import numpy as np
+import numpy.typing as npt
 
 from ..utils import BaseMethodEnum
 from ..availability import availablility
@@ -28,19 +29,25 @@ try:
 
     # trace summation calculation
     def all_trace_rho_by_einsum_aij_bji_to_ab_jax(
-        rho_m_array: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+        rho_m_array: npt.NDArray[np.complex128],
     ) -> np.complex128:
         """The trace of Rho by einsum_aij_bji_to_ab by JAX.
 
         This is the fastest implementation to calculate the trace of Rho.
 
         Args:
-            rho_m_array (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            rho_m_array (npt.NDArray[np.complex128]):
                 The Rho M array.
+                It should be a 3-dimensional array for a list of operators.
 
         Returns:
             np.complex128: The trace of Rho.
         """
+        if rho_m_array.ndim != 3:
+            raise ValueError(
+                f"rho_m_array must be a 3-dimensional array.Got {rho_m_array.ndim} dimensions."
+            )
+
         len_rho_m_array = len(rho_m_array)
         trace_matrix = jnp.einsum("aij,bji -> ab", rho_m_array, rho_m_array)
 
@@ -51,24 +58,29 @@ try:
         return np.complex128(sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1)))
 
     def prediction_einsum_aij_bji_to_ab_jax(
-        given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-        estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    ) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+        given_operators: npt.NDArray[np.complex128], estimators: npt.NDArray[np.complex128]
+    ) -> tuple[list[np.complex128], list[npt.NDArray[np.complex128]]]:
         """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
 
         Args:
-            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            given_operators (npt.NDArray[np.complex128]):
                 The given operators.
-            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                It should be a 3-dimensional array for a list of operators.
+            estimators (npt.NDArray[np.complex128]):
                 The estimators.
+                It should be a 3-dimensional array for a list of estimators.
 
         Returns:
-            tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
-                A tuple containing:
-
+            A tuple containing:
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
+        if given_operators.ndim != 3 or estimators.ndim != 3:
+            raise ValueError(
+                "given_operators and estimators must be 3-dimensional arrays."
+                f"Got {given_operators.ndim} and {estimators.ndim} dimensions respectively."
+            )
+
         candidate_esitmators_foreach_given_operator = jnp.einsum(
             "aij,bji->ab", given_operators, estimators
         )
@@ -100,15 +112,16 @@ except ImportError as err:
 
     # trace summation calculation
     def all_trace_rho_by_einsum_aij_bji_to_ab_jax(
-        rho_m_array: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+        rho_m_array: npt.NDArray[np.complex128],
     ) -> np.complex128:
         """The trace of Rho by einsum_aij_bji_to_ab by JAX.
 
         This is the fastest implementation to calculate the trace of Rho.
 
         Args:
-            rho_m_array (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            rho_m_array (npt.NDArray[np.complex128]):
                 The Rho M array.
+                It should be a 3-dimensional array for a list of operators.
 
         Returns:
             np.complex128: The trace of Rho.
@@ -120,21 +133,20 @@ except ImportError as err:
         ) from FAILED_JAX_IMPORT
 
     def prediction_einsum_aij_bji_to_ab_jax(
-        given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-        estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    ) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+        given_operators: npt.NDArray[np.complex128], estimators: npt.NDArray[np.complex128]
+    ) -> tuple[list[np.complex128], list[npt.NDArray[np.complex128]]]:
         """Calculate the prediction of given operators by einsum_aij_bji_to_ab_jax.
 
         Args:
-            given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            given_operators (npt.NDArray[np.complex128]):
                 The given operators.
-            estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+                It should be a 3-dimensional array for a list of operators.
+            estimators (npt.NDArray[np.complex128]):
                 The estimators.
+                It should be a 3-dimensional array for a list of estimators.
 
         Returns:
-            tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
-                A tuple containing:
-
+            A tuple containing:
                 - A list of median values for each given operator.
                 - A list of the corresponding median estimators for each given operator.
         """
@@ -161,19 +173,14 @@ BACKEND_AVAILABLE = availablility(
 
 # single trace calculation
 def single_trace_rho_by_trace_of_matmul(
-    rho_m1_and_rho_m2: tuple[
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-    ],
+    rho_m1_and_rho_m2: tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]],
 ) -> np.complex128:
     """The single trace of Rho by trace of matmul.
 
     Args:
-        rho_m1_and_rho_m2 (tuple[
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        ]):
+        rho_m1_and_rho_m2 (tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]):
             The tuple of rho_m1 and rho_m2.
+            It should be two 2-dimensional arrays for matrix multiplication.
 
     Returns:
         np.complex128: The trace of Rho.
@@ -183,19 +190,14 @@ def single_trace_rho_by_trace_of_matmul(
 
 
 def single_trace_rho_by_einsum_ij_ji(
-    rho_m1_and_rho_m2: tuple[
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-    ],
+    rho_m1_and_rho_m2: tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]],
 ) -> np.complex128:
     """The single trace of Rho by einsum_ij_ji by Numpy.
 
     Args:
-        rho_m1_and_rho_m2 (tupletuple[
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        ]):
+        rho_m1_and_rho_m2 (tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]):
             The tuple of rho_m1 and rho_m2.
+            It should be two 2-dimensional arrays for matrix multiplication.
 
     Returns:
         np.complex128: The trace of Rho.
@@ -227,7 +229,7 @@ class SingleTraceMethod(BaseMethodEnum):
         return cls.EINSUM_IJ_JI
 
 
-SingleTraceMethodType = Union[SingleTraceMethod, str]
+SingleTraceMethodType = SingleTraceMethod | str
 """The method to use for the trace calculation with matrix multiplication.
 - "trace_of_matmul":
     Use `np.trace(np.matmul(rho_m1, rho_m2))` to calculate the trace.
@@ -241,15 +243,7 @@ DEFAULT_SINGLE_TRACE_METHOD: SingleTraceMethod = SingleTraceMethod.get_default()
 
 def select_single_trace_rho_method(
     method: SingleTraceMethodType = DEFAULT_SINGLE_TRACE_METHOD,
-) -> Callable[
-    [
-        tuple[
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-            np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-        ],
-    ],
-    np.complex128,
-]:
+) -> Callable[[tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]], np.complex128]:
     """Select the method to calculate the trace of Rho square.
 
     Args:
@@ -311,7 +305,7 @@ class ListTraceMethod(BaseMethodEnum):
         return self
 
 
-ListTraceMethodType = Union[ListTraceMethod, str]
+ListTraceMethodType = ListTraceMethod | str
 """The method to calculate the all trace of Rho square.
 
 - "einsum_aij_bji_to_ab_numpy":
@@ -329,18 +323,25 @@ DEFAULT_LIST_TRACE_METHOD: ListTraceMethod = ListTraceMethod.get_default()
 
 # trace summation calculation
 def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
-    rho_m_array: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
+    rho_m_array: npt.NDArray[np.complex128],
 ) -> np.complex128:
     """The trace of Rho by einsum_aij_bji_to_ab.
 
     This is the fastest implementation to calculate the trace of Rho.
 
     Args:
-        rho_m_array (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+        rho_m_array (npt.NDArray[np.complex128]):
             The Rho M array.
+            It should be a 3-dimensional array for a list of operators.
+
     Returns:
         np.complex128: The trace of Rho.
     """
+    if rho_m_array.ndim != 3:
+        raise ValueError(
+            f"rho_m_array must be a 3-dimensional array.Got {rho_m_array.ndim} dimensions."
+        )
+
     len_rho_m_array = len(rho_m_array)
     trace_matrix = np.einsum("aij,bji -> ab", rho_m_array, rho_m_array)
 
@@ -353,10 +354,7 @@ def all_trace_rho_by_einsum_aij_bji_to_ab_numpy(
 
 def select_all_trace_rho_by_einsum_aij_bji_to_ab(
     method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-) -> Callable[
-    [np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]],
-    np.complex128,
-]:
+) -> Callable[[npt.NDArray[np.complex128]], np.complex128]:
     """Select the method to calculate the trace of Rho square.
 
     Args:
@@ -374,7 +372,7 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
-        Callable[[np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]], np.complex128]:
+        Callable[[npt.NDArray[np.complex128]], np.complex128]:
             The function to calculate the trace of Rho.
     """
     if isinstance(method, str):
@@ -389,27 +387,33 @@ def select_all_trace_rho_by_einsum_aij_bji_to_ab(
 
 
 def prediction_einsum_aij_bji_to_ab_numpy(
-    given_operators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    estimators: np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-) -> tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
+    given_operators: npt.NDArray[np.complex128], estimators: npt.NDArray[np.complex128]
+) -> tuple[list[np.complex128], list[npt.NDArray[np.complex128]]]:
     """Calculate the prediction of given operators by einsum_aij_bji_to_ab_numpy.
 
     Args:
-        given_operators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+        given_operators (npt.NDArray[np.complex128]):
             The given operators.
-        estimators (np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]):
+            It should be a 3-dimensional array for a list of operators.
+        estimators (npt.NDArray[np.complex128]):
             The estimators.
+            It should be a 3-dimensional array for a list of operators.
 
     Returns:
-        tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]:
-            A tuple containing:
-
+        A tuple containing:
             - A list of median values for each given operator.
             - A list of the corresponding median estimators for each given operator.
     """
+    if given_operators.ndim != 3 or estimators.ndim != 3:
+        raise ValueError(
+            "given_operators and estimators must be 3-dimensional arrays."
+            f"Got {given_operators.ndim} and {estimators.ndim} dimensions respectively."
+        )
+
     candidate_esitmators_foreach_given_operator = np.einsum(
         "aij,bji->ab", given_operators, estimators
     )
+
     median_foreach_given_operator = np.median(candidate_esitmators_foreach_given_operator, axis=1)
     median_location_given_operator = np.argmin(
         np.abs(
@@ -427,11 +431,8 @@ def prediction_einsum_aij_bji_to_ab_numpy(
 def select_prediction_einsum_aij_bji_to_ab(
     method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> Callable[
-    [
-        np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-        np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-    ],
-    tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]],
+    [npt.NDArray[np.complex128], npt.NDArray[np.complex128]],
+    tuple[list[np.complex128], list[npt.NDArray[np.complex128]]],
 ]:
     """Select the method to calculate the prediction of given operators.
 
@@ -450,11 +451,7 @@ def select_prediction_einsum_aij_bji_to_ab(
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
-        Callable[[
-            np.ndarray[tuple[int, int, int], np.dtype[np.complex128]],
-            np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]
-        ], tuple[list[np.complex128], list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]]]:
-            The function to calculate the prediction of given operators.
+        The function to calculate the prediction of given operators.
     """
     if isinstance(method, str):
         method = ListTraceMethod.from_string(method)

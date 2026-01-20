@@ -3,7 +3,8 @@
 
 """
 
-from typing import Iterable, Literal, Union, Optional
+from typing import  Literal
+from collections.abc import Iterable
 
 from .nomatmul_trace import nomatmul_trace_core, NonMatMulTraceMethod
 from .bitwise import bitwise_core, BitWiseTraceMethod
@@ -85,7 +86,7 @@ class NonMatOpTraceMethod(BaseMethodEnum):
         return BitWiseTraceMethod.from_string(self.value)
 
 
-NonMatOpTraceMethodType = Union[NonMatOpTraceMethod, str]
+NonMatOpTraceMethodType = NonMatOpTraceMethod | str
 """The method to use for the trace calculation without matrix multiplication.
 
 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
@@ -102,8 +103,8 @@ DEFAULT_NONMATOP_TRACE_METHOD: NonMatOpTraceMethod = NonMatOpTraceMethod.get_def
 def trace_nomatop_core(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    random_unitary_array: list[list[Literal[0, 1, 2] | int]],
+    selected_classical_registers: Iterable[int] | None = None,
     trace_method: NonMatOpTraceMethodType = DEFAULT_NONMATOP_TRACE_METHOD,
 ) -> float:
     """Calculate the trace using non-matrix operation methods.
@@ -113,9 +114,9 @@ def trace_nomatop_core(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]],):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]],):
             The shadow direction of the unitary operators.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
         trace_method (NonMatOpTraceMethodType, optional):

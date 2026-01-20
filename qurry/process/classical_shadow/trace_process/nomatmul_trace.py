@@ -3,7 +3,7 @@
 
 """
 
-from typing import Sequence, Iterable, Union
+from collections.abc import Sequence, Iterable
 from functools import reduce
 from itertools import combinations
 import multiprocessing as mp
@@ -202,7 +202,7 @@ class NonMatMulTraceMethod(BaseMethodEnum):
         return cls.NOMATMUL_TRACE_RUST
 
 
-NonMatMulTraceMethodType = Union[NonMatMulTraceMethod, str]
+NonMatMulTraceMethodType = NonMatMulTraceMethod | str
 """The method to use for the trace calculation without matrix multiplication.
 
 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.

@@ -3,14 +3,16 @@
 
 """
 
-from typing import Literal, Union, Sequence
+from typing import Literal
+from collections.abc import Sequence
 import functools as ft
 import numpy as np
+import numpy.typing as npt
 
 from .unitary_set import ShadowRandomBasis
 
 # pylint: disable=invalid-name
-RhoMCellMethod = Union[Literal["numpy", "numpy_vectorized"], str]
+RhoMCellMethod = Literal["numpy", "numpy_vectorized"] | str
 """Type for rho_m_cell method.
 It can be either "numpy" or "numpy_vectorized".
 
@@ -27,7 +29,7 @@ def rho_m_cell_precomputed(
     single_random_basis: list[int],
     selected_clregs_sorted: list[int],
     random_basis_obj: ShadowRandomBasis,
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+) -> npt.NDArray[np.complex128]:
     r""":math:`\rho_{m}` calculation from single counts with pre-computed.
 
     The matrix :math:`\rho_{mk}^{i}` is calculated by the following equation,
@@ -89,7 +91,7 @@ def rho_m_cell_vectorized(
     seq_rho_mki_kinds: Sequence[Sequence[int]],
     count_num: Sequence[int],
     random_basis_obj: ShadowRandomBasis,
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+) -> npt.NDArray[np.complex128]:
     r""":math:`\rho_{m}` calculation from single counts with a vectorized workflow.
 
     The matrix :math:`\rho_{mk}^{i}` is calculated by the following equation,

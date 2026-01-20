@@ -3,7 +3,8 @@
 
 """
 
-from typing import Literal, Union, Optional, Iterable
+from typing import Literal
+from collections.abc import Iterable
 import tqdm
 
 from .container_kind import ClassicalShadowBasic
@@ -21,11 +22,11 @@ from ..utils import check_random_basis_array
 def mean_rho(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
+    selected_classical_registers: Iterable[int] | None = None,
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> ClassicalShadowBasic:
     r"""Calculate the mean of Rho.
 
@@ -78,9 +79,9 @@ def mean_rho(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]]):
             The random basis for classical shadow.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
@@ -121,7 +122,7 @@ def mean_rho(
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
 
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:

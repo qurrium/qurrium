@@ -4,7 +4,8 @@
 The followings are unitary operators for our classical shadow implementation.
 """
 
-from typing import Optional, Sequence, Union, TypedDict
+from typing import TypedDict
+from collections.abc import Sequence
 import functools as ft
 import numpy as np
 import numpy.typing as npt
@@ -262,13 +263,20 @@ class ShadowRandomBasis:
         basis_0_gates: tuple[Gate, ...],
         basis_1_gates: tuple[Gate, ...],
         basis_2_gates: tuple[Gate, ...],
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> None:
         """Initialize the ShadowRandomBasis with specified basis gates.
 
         Args:
             basis_0_gates (tuple[Gate, ...]):
-                Tuple of Gate objects representing the measurement bases.
+                Tuple of Gate objects representing the 1st measurement basis.
+            basis_1_gates (tuple[Gate, ...]):
+                Tuple of Gate objects representing the 2nd measurement basis.
+            basis_2_gates (tuple[Gate, ...]):
+                Tuple of Gate objects representing the 3rd measurement basis.
+            name (str | None, optional):
+                The name of the ShadowRandomBasis. If None, a name will be generated
+                based on the gates used. Defaults to None.
         """
         tmp_gates = (basis_0_gates, basis_1_gates, basis_2_gates)
 
@@ -600,12 +608,12 @@ class ShadowBasisMethod(BaseMethodEnum):
 
     @classmethod
     def get_shadow_basis(
-        cls, shadow_basis: Union["ShadowBasisMethod", str, ShadowRandomBasis, None]
+        cls, shadow_basis: "ShadowBasisMethod | ShadowRandomBasis | str | None"
     ) -> ShadowRandomBasis:
         """Get the ShadowRandomBasis instance for the given method.
 
         Args:
-            shadow_basis (Union[ShadowBasisMethod, str, ShadowRandomBasis, None]):
+            shadow_basis ("ShadowBasisMethod | ShadowRandomBasis | str | None"):
                 The shadow basis method or instance.
 
         Returns:
@@ -624,12 +632,12 @@ class ShadowBasisMethod(BaseMethodEnum):
         return BUILTIN_BASIS[shadow_basis.value]
 
 
-ShadowBasisType = Union[ShadowBasisMethod, str, ShadowRandomBasis]
+ShadowBasisType = ShadowBasisMethod | ShadowRandomBasis | str
 """Type for shadow basis.
 It can be either a :class:`ShadowBasisMethod` enum member, a string representing the enum member,
 or a custom :class:`ShadowRandomBasis` instance.
 """
 
 
-DEFAULT_SHADOW_BASIS: Union[ShadowBasisMethod, ShadowRandomBasis] = ShadowBasisMethod.get_default()
+DEFAULT_SHADOW_BASIS: ShadowBasisMethod | ShadowRandomBasis = ShadowBasisMethod.get_default()
 """The default shadow basis method."""

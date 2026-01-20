@@ -3,8 +3,9 @@
 
 """
 
+from typing import Literal
+from collections.abc import Iterable
 import time
-from typing import Literal, Union, Iterable, Optional
 import numpy as np
 import numpy.typing as npt
 
@@ -37,7 +38,7 @@ def rho_m_core_py(
     shots: int,
     counts: list[dict[str, int]],
     random_unitary_array: list[list[int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int] | None = None,
     convert_to_single_shot: bool = False,
     rho_method: RhoMCellMethod = "numpy",
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
@@ -51,7 +52,7 @@ def rho_m_core_py(
             The list of the counts.
         random_basis_array (list[list[int]]):
             The shadow direction of the unitary operators.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
         convert_to_single_shot (bool, optional):
@@ -224,7 +225,7 @@ class RhoMethod(BaseMethodEnum):
         return convert_to_single_shot, rho_m_cell_method
 
 
-RhoMethodType = Union[RhoMethod, str]
+RhoMethodType = RhoMethod | str
 """Type for rho_m_core method.
 
 It can be either "multi_shots", "multi_shots_vectorized",
@@ -261,8 +262,8 @@ Currently, "multi_shots" is the best option for performance.
 def rho_core(
     shots: int,
     counts: list[dict[str, int]],
-    random_unitary_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    random_unitary_array: list[list[Literal[0, 1, 2] | int]],
+    selected_classical_registers: Iterable[int] | None = None,
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
 ) -> tuple[list[npt.NDArray[np.complex128]], list[int], ShadowRandomBasis, float]:
@@ -273,9 +274,9 @@ def rho_core(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]],):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]],):
             The shadow direction of the unitary operators.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
         rho_method (RhoMethodType, optional):
@@ -336,8 +337,7 @@ def rho_core(
 
 
 def mean_rho_core(
-    rho_m_list: list[npt.NDArray[np.complex128]],
-    selected_classical_registers_sorted: list[int],
+    rho_m_list: list[npt.NDArray[np.complex128]], selected_classical_registers_sorted: list[int]
 ) -> npt.NDArray[np.complex128]:
     """Calculate the expectation value of Rho.
 

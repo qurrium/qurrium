@@ -3,7 +3,8 @@
 
 """
 
-from typing import Literal, Union, Optional, Iterable
+from typing import Literal
+from collections.abc import Iterable
 import tqdm
 
 from .container_kind import (
@@ -20,7 +21,7 @@ from ..trace_process import all_trace_core, TraceMethodType, DEFAULT_TRACE_METHO
 def inner_trace_rho_square(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
     cs_basic: ClassicalShadowBasic,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
 ) -> ClassicalShadowPurity:
@@ -31,7 +32,7 @@ def inner_trace_rho_square(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array: list[list[Literal[0, 1, 2] | int]],
             The random basis for classical shadow.
 
         cs_basic (ClassicalShadowBasic):
@@ -71,12 +72,12 @@ def inner_trace_rho_square(
 def trace_rho_square(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
+    selected_classical_registers: Iterable[int] | None = None,
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity]:
     r"""Trace of Rho square.
 
@@ -85,9 +86,9 @@ def trace_rho_square(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]]):
             The random basis for classical shadow.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
@@ -157,7 +158,7 @@ def trace_rho_square(
 
             The default method is "bitwise_py", which is the fastest option.
 
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:

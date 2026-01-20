@@ -4,13 +4,14 @@
 """
 
 import time
-from typing import Literal, Union
+from typing import Literal
 import warnings
 import numpy as np
+import numpy.typing as npt
 
 from .nomatop_core import NonMatOpTraceMethod, trace_nomatop_core
 from .rho_trace_core import RhoTraceMethod, trace_rho_square_core, JAX_AVAILABLE
-from ...utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum
+from ...utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum, FloatType
 
 
 class TraceMethod(BaseMethodEnum):
@@ -190,7 +191,7 @@ class TraceMethod(BaseMethodEnum):
         return RhoTraceMethod.from_string(self.value)
 
 
-TraceMethodType = Union[TraceMethod, str]
+TraceMethodType = TraceMethod | str
 """The method to calculate the trace of rho.
 
 - Matrix operation methods:
@@ -228,11 +229,11 @@ DEFAULT_TRACE_METHOD: TraceMethod = TraceMethod.get_default()
 def all_trace_core(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
+    rho_m_list: list[npt.NDArray[np.complex128]],
     selected_classical_registers_sorted: list[int],
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
-) -> tuple[Union[float, np.float64], Union[float, np.float64], float]:
+) -> tuple[FloatType, FloatType, float]:
     """Calculate the trace by all given methods.
 
     Args:
@@ -240,10 +241,11 @@ def all_trace_core(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]]):
             The random basis for classical shadow.
-        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        rho_m_list (list[npt.NDArray[np.complex128]]):
             The list of Rho M.
+            It should be a list of 2-dimensional arrays.
         selected_classical_registers_sorted (list[int]):
             The **sorted** list of the index of the selected classical registers.
 

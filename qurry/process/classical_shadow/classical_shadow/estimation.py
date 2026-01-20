@@ -3,7 +3,8 @@
 
 """
 
-from typing import Literal, Union, Optional, Iterable
+from typing import Literal
+from collections.abc import Iterable
 import tqdm
 import numpy as np
 import numpy.typing as npt
@@ -13,14 +14,15 @@ from .mean import mean_rho
 from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
 from ..prediction_process import prediction_algorithm, EstimationOfObservable
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
+from ...utils import FloatType
 
 
 def inner_estimation_of_given_operators(
     cs_basic: ClassicalShadowBasic,
     # estimation of given operators
-    given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
-    accuracy_prob_comp_delta: float = 0.01,
-    max_shadow_norm: Optional[float] = None,
+    given_operators: list[npt.NDArray[np.complex128]] | None = None,
+    accuracy_prob_comp_delta: FloatType = 0.01,
+    max_shadow_norm: FloatType | None = None,
     # other config
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> EstimationOfObservable:
@@ -32,9 +34,9 @@ def inner_estimation_of_given_operators(
 
         given_operators (list[npt.NDArray[np.complex128]]):
             The list of the operators to estimate.
-        accuracy_prob_comp_delta (float, optional):
+        accuracy_prob_comp_delta (FloatType, optional):
             The accuracy probability component delta. Defaults to 0.01.
-        max_shadow_norm (Optional[float], optional):
+        max_shadow_norm (FloatType | None, optional):
             The maximum shadow norm. Defaults to None.
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
@@ -63,17 +65,17 @@ def inner_estimation_of_given_operators(
 def estimation_of_given_operators(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
+    selected_classical_registers: Iterable[int] | None = None,
     # estimation of given operators
-    given_operators: Optional[list[npt.NDArray[np.complex128]]] = None,
-    accuracy_prob_comp_delta: float = 0.01,
-    max_shadow_norm: Optional[float] = None,
+    given_operators: list[npt.NDArray[np.complex128]] | None = None,
+    accuracy_prob_comp_delta: FloatType = 0.01,
+    max_shadow_norm: FloatType | None = None,
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> tuple[ClassicalShadowBasic, EstimationOfObservable]:
     r"""Calculate the expectation value of given operators.
 
@@ -126,17 +128,17 @@ def estimation_of_given_operators(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]]):
             The random basis for classical shadow.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
-        given_operators (list[npt.NDArray[np.complex128]]):
+        given_operators (list[npt.NDArray[np.complex128]] | None):
             The list of the operators to estimate.
-        accuracy_prob_comp_delta (float, optional):
+        accuracy_prob_comp_delta (FloatType, optional):
             The accuracy probability component delta. Defaults to 0.01.
-        max_shadow_norm (Optional[float], optional):
+        max_shadow_norm (FloatType | None, optional):
             The maximum shadow norm. Defaults to None.
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
@@ -191,7 +193,7 @@ def estimation_of_given_operators(
 
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:

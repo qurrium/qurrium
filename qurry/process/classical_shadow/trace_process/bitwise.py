@@ -14,7 +14,7 @@ All following functions can be found in the Python conversion.
 
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 from enum import Enum
 import numpy as np
 
@@ -352,7 +352,7 @@ class BitWiseTraceMethod(BaseMethodEnum, Enum):
         return cls.BITWISE_PY
 
 
-BitWiseTraceMethodType = Union[BitWiseTraceMethod, str]
+BitWiseTraceMethodType = BitWiseTraceMethod | str
 """The method to use for the trace calculation with bitwise operations."""
 
 DEFAULT_BITWISE_TRACE_METHOD: BitWiseTraceMethod = BitWiseTraceMethod.get_default()

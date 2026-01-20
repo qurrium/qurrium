@@ -4,9 +4,9 @@
 This module is used to process the rho dictionary for classical shadow.
 """
 
-from typing import Union
 from itertools import combinations
 import numpy as np
+import numpy.typing as npt
 
 from ..matrix_calculation import (
     select_single_trace_rho_method,
@@ -100,7 +100,7 @@ class RhoTraceMethod(BaseMethodEnum):
         return ListTraceMethod.from_string(self.value)
 
 
-RhoTraceMethodType = Union[RhoTraceMethod, str]
+RhoTraceMethodType = RhoTraceMethod | str
 """The method to calculate the trace of Rho square.
 
 - "trace_of_matmul":
@@ -123,14 +123,15 @@ DEFAULT_RHO_TRACE_METHOD: RhoTraceMethod = RhoTraceMethod.get_default()
 
 
 def trace_rho_square_core(
-    rho_m_list: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
+    rho_m_list: list[npt.NDArray[np.complex128]],
     trace_method: RhoTraceMethod = DEFAULT_RHO_TRACE_METHOD,
 ) -> np.complex128:
     r"""Calculate the trace of Rho square.
 
     Args:
-        rho_m_list (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
-            The dictionary of Rho M.
+        rho_m_list (list[npt.NDArray[np.complex128]]):
+            The list of rho_m matrices.
+            It should be a list of 2-dimensional arrays.
         trace_method (TraceMethod , optional):
             The method to calculate the trace of Rho square.
 

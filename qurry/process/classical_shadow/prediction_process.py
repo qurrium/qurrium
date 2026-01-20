@@ -3,10 +3,11 @@
 
 """
 
-from typing import Optional, TypedDict
+from typing import TypedDict
 import time
 import warnings
 import numpy as np
+import numpy.typing as npt
 
 from .matrix_calculation import (
     select_prediction_einsum_aij_bji_to_ab,
@@ -14,6 +15,7 @@ from .matrix_calculation import (
     DEFAULT_LIST_TRACE_METHOD,
 )
 from ..exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilityWarning
+from ..utils import FloatType
 
 
 class EstimationOfObservable(TypedDict):
@@ -27,10 +29,11 @@ class EstimationOfObservable(TypedDict):
 
     estimate_of_given_operators: list[np.complex128]
     r"""The esitmation values of measurement primitive :math:`\mathcal{U}`."""
-    corresponding_rhos: list[np.ndarray[tuple[int, ...], np.dtype[np.complex128]]]
-    r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`."""
+    corresponding_rhos: list[npt.NDArray[np.complex128]]
+    r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`.
+    It should be a 3-dimensional array for a list of operators. """
     # The accuracy of estimation
-    accuracy_prob_comp_delta: float
+    accuracy_prob_comp_delta: FloatType
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -70,7 +73,7 @@ class EstimationOfObservable(TypedDict):
     And recalculate the probabiltiy complement of accuracy from this new value of :math:`K`.
     """
 
-    accuracy_predict_epsilon: float
+    accuracy_predict_epsilon: FloatType
     r"""The prediction of accuracy, which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -88,7 +91,7 @@ class EstimationOfObservable(TypedDict):
     The :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` is maximum shadow norm,
     which is defined in the supplementary material with value between 0 and 1.
     """
-    maximum_shadow_norm: float
+    maximum_shadow_norm: FloatType
     r"""The maximum shadow norm, which is defined in the supplementary material.
     The maximum shadow norm is used to calculate the prediction of accuracy :math:`\epsilon`
     from the equation (S13) in the supplementary material.
@@ -108,7 +111,7 @@ class EstimationOfObservable(TypedDict):
     Due to its calculation is complex, we curently use the value of np.nan
     to represent the maximum shadow norm.
     """
-    epsilon_upperbound: float
+    epsilon_upperbound: FloatType
     r"""The upper bound of the prediction of accuracy, 
     which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
@@ -137,7 +140,7 @@ class EstimationOfObservable(TypedDict):
         \epsilon \leq \sqrt{\frac{34}{N}} \max_{1 \leq i \leq M} \chi_\infty
 
     """
-    shadow_norm_upperbound: float
+    shadow_norm_upperbound: FloatType
     r"""The largest shadow norm upper bound is defined as follows,
 
     .. math::
@@ -157,9 +160,7 @@ class EstimationOfObservable(TypedDict):
     """The method to calculate the trace for searching estimators."""
 
 
-def dim_check(
-    op: np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-) -> tuple[int, int]:
+def dim_check(op: npt.NDArray[np.complex128]) -> tuple[int, int]:
     r"""Check the dimension of the operator.
 
     The dimension of the operator is defined as follows,
@@ -170,7 +171,7 @@ def dim_check(
     where :math:`X` is the operator, and :math:`n` is the number of qubits.
 
     Args:
-        op (np.ndarray[tuple[int, int], np.dtype[np.complex128]]):
+        op (npt.NDArray[np.complex128]):
             The operator to be checked.
 
     Returns:
@@ -190,9 +191,7 @@ def dim_check(
     return dim, n
 
 
-def inverted_quantum_channel(
-    op: np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+def inverted_quantum_channel(op: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex128]:
     r"""Inverted quantum channel.
 
     The inverted quantum channel is defined as follows,
@@ -205,11 +204,11 @@ def inverted_quantum_channel(
     :math:`X` is the operator, and :math:`n` is the number of qubits.
 
     Args:
-        op (np.ndarray[tuple[int, int], np.dtype[np.complex128]]):
+        op (npt.NDArray[np.complex128]):
             The operator to be inverted.
 
     Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+        npt.NDArray[np.complex128]:
             The inverted operator.
 
     Raises:
@@ -220,9 +219,7 @@ def inverted_quantum_channel(
     return (dim + 1) * op - np.eye(dim, dtype=np.complex128)  # type: ignore
 
 
-def traceless(
-    op: np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-) -> np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+def traceless(op: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex128]:
     r"""Make the operator traceless.
 
     The traceless operator is defined as follows,
@@ -234,20 +231,18 @@ def traceless(
     which mentioned in the supplementary material Lemma S1.
 
     Args:
-        op (np.ndarray[tuple[int, int], np.dtype[np.complex128]]):
+        op (npt.NDArray[np.complex128]):
             The operator to be made traceless.
 
     Returns:
-        np.ndarray[tuple[int, int], np.dtype[np.complex128]]:
+        npt.NDArray[np.complex128]:
             The traceless operator.
     """
     dim, _ = dim_check(op)
     return op - (np.trace(op) / dim) * np.eye(dim, dtype=np.complex128)
 
 
-def largest_shadow_norm_squared_upperbound(
-    op: np.ndarray[tuple[int, int], np.dtype[np.complex128]],
-) -> float:
+def largest_shadow_norm_squared_upperbound(op: npt.NDArray[np.complex128]) -> FloatType:
     r"""Calculate the largest shadow norm upper bound.
 
     The largest shadow norm upper bound is defined as follows,
@@ -263,20 +258,19 @@ def largest_shadow_norm_squared_upperbound(
     which is the significantly lower bound than the worst case scenario.
 
     Args:
-        op (np.ndarray[tuple[int, int], np.dtype[np.complex128]]):
+        op (npt.NDArray[np.complex128]):
             The operator to be calculated.
 
     Returns:
-        float: The largest shadow norm upper bound.
+        FloatType: The largest shadow norm upper bound.
     """
     _dim, n = dim_check(op)
     return (4**n) * (np.linalg.norm(op, ord=np.inf) ** 2)
 
 
 def accuracy_predict_epsilon_calc(
-    num_classical_snapshot: int,
-    max_shadow_norm: float = 1,
-) -> float:
+    num_classical_snapshot: int, max_shadow_norm: FloatType = 1.0
+) -> FloatType:
     r"""Calculate the prediction of accuracy, which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
     the equation (S13) in the supplementary material.
@@ -303,21 +297,20 @@ def accuracy_predict_epsilon_calc(
         num_classical_snapshot (int):
             The number of classical snapshots.
             It is :math:`N` in the equation.
-        max_shadow_norm (float, optional):
+        max_shadow_norm (FloatType, optional):
             The maximum shadow norm. Defaults to 1.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
     Returns:
-        float: The accuracy prediction epsilon.
+        FloatType: The accuracy prediction epsilon.
     """
 
     return np.sqrt(34 / num_classical_snapshot) * max_shadow_norm
 
 
 def worst_accuracy_predict_epsilon_calc(
-    num_classical_snapshot: int,
-    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-) -> tuple[float, float]:
+    num_classical_snapshot: int, given_operators: list[npt.NDArray[np.complex128]]
+) -> tuple[FloatType, FloatType]:
     r"""Calculate the prediction of accuracy in worst scenario, 
     which used the notation :math:`\epsilon`
     and mentioned in Theorem S1 in the supplementary material,
@@ -364,11 +357,12 @@ def worst_accuracy_predict_epsilon_calc(
         num_classical_snapshot (int):
             The number of classical snapshots.
             It is :math:`N` in the equation.
-        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        given_operators (list[npt.NDArray[np.complex128]]):
             The list of the operators to estimate.
+            It should be a list of operators a.k.a a list of 2-dimensional arrays.
 
     Returns:
-        tuple[float, float]: 
+        tuple[FloatType, FloatType]: 
             The worst accuracy prediction epsilon and the worst maximum shadow norm.
     """
     if num_classical_snapshot <= 0:
@@ -383,10 +377,7 @@ def worst_accuracy_predict_epsilon_calc(
     return np.sqrt(34 / num_classical_snapshot) * max_inf_norms, max_inf_norms
 
 
-def accuracy_prob_comp_delta_calc(
-    num_of_given_operators: int,
-    num_of_esitmators: int,
-) -> float:
+def accuracy_prob_comp_delta_calc(num_of_given_operators: int, num_of_esitmators: int) -> FloatType:
     r"""Calculate the accuracy probability component delta.
 
     The accuracy probability component delta is calculated by the following equation,
@@ -406,7 +397,7 @@ def accuracy_prob_comp_delta_calc(
             It is :math:`K` in the equation.
 
     Returns:
-        float: The accuracy probability component delta.
+        FloatType: The accuracy probability component delta.
     """
     if num_of_given_operators <= 0 or num_of_esitmators <= 0:
         raise ValueError(
@@ -430,8 +421,8 @@ def accuracy_prob_comp_delta_calc(
 def decide_num_of_estimators(
     num_classical_snapshot: int,
     num_of_given_operators: int,
-    accuracy_prob_comp_delta: float = 0.01,
-) -> tuple[int, float]:
+    accuracy_prob_comp_delta: FloatType = 0.01,
+) -> tuple[int, FloatType]:
     r"""Decide the number of estimators K from the equation (S13) in the supplementary material.
 
     The number of estimators is calculated by the following equation,
@@ -457,13 +448,13 @@ def decide_num_of_estimators(
         num_of_given_operators (int):
             The number of given operators.
             It is :math:`M` in the equation.
-        accuracy_prob_comp_delta (float, optional):
+        accuracy_prob_comp_delta (FloatType, optional):
             The accuracy probability component delta. Defaults to None.
             It is :math:`\delta` in the equation. The probabiltiy of accuracy is :math:`1 - \delta`.
             If it is 0, it will raise an error.
 
     Returns:
-        tuple[int, float]: The number of estimators and the accuracy probability component delta.
+        tuple[int, FloatType]: The number of estimators and the accuracy probability component delta.
             The first element is the number of estimators,
             and the second element is the accuracy probability component delta.
     """
@@ -510,24 +501,24 @@ def decide_num_of_estimators(
 
 
 def prediction_algorithm(
-    classical_snapshots_rho: dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    given_operators: list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]],
-    accuracy_prob_comp_delta: float = 0.01,
-    max_shadow_norm: Optional[float] = None,
+    classical_snapshots_rho: dict[int, npt.NDArray[np.complex128]],
+    given_operators: list[npt.NDArray[np.complex128]],
+    accuracy_prob_comp_delta: FloatType = 0.01,
+    max_shadow_norm: FloatType | None = None,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
 ) -> EstimationOfObservable:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
     Args:
-        classical_snapshots_rho (dict[int, np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        classical_snapshots_rho (dict[int, npt.NDArray[np.complex128]]):
             The classical snapshots.
             The key is the index of the classical snapshot,
             and the value is the classical snapshot.
-        given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+        given_operators (list[npt.NDArray[np.complex128]]):
             The list of the operators to estimate.
-        accuracy_prob_comp_delta (float, optional):
+        accuracy_prob_comp_delta (FloatType, optional):
             The accuracy probability component delta. Defaults to 0.01.
-        max_shadow_norm (Optional[float], optional):
+        max_shadow_norm (FloatType | None, optional):
             The maximum shadow norm. Defaults to None.
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
@@ -582,7 +573,7 @@ def prediction_algorithm(
         num_classical_snapshot, num_of_given_operators, accuracy_prob_comp_delta
     )
     n_div_k_floor = int(np.floor(num_classical_snapshot / num_of_estimators))
-    estimators: list[np.ndarray[tuple[int, int, int], np.dtype[np.complex128]]] = np.array(
+    estimators = np.array(
         [
             np.sum(
                 [classical_snapshots_rho[i * n_div_k_floor + j] for j in range(n_div_k_floor)],
@@ -592,12 +583,11 @@ def prediction_algorithm(
             / n_div_k_floor
             for i in range(num_of_estimators)
         ]
-    )  # type: ignore
+    )
 
     begin = time.time()
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
-        np.array(given_operators),
-        estimators,  # type: ignore
+        np.array(given_operators), estimators
     )
 
     return EstimationOfObservable(
