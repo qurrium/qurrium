@@ -1,6 +1,5 @@
 """Boorust - Magnetization Square (:mod:`qurry.boorust.magnet_square`)"""
 
-# pylint:disable=unused-argument
 def magnet_square_core_rust(
     shots: int, counts: list[dict[str, int]], num_qubits: int
 ) -> tuple[float, dict[int, float], float]:
