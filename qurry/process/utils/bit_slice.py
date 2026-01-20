@@ -180,22 +180,23 @@ The selected qubits.
 Due to potential confusion with tuple usage, this option is deprecated.
 """
 
+
 def qubit_mapper(
-    actual_num_qubits: int, selected_qubits: QubitSelectionDeprecatedType = None
+    actual_num_qubits: int, selected_qubits: QubitSelectionType = None
 ) -> dict[int, int]:
     """Map the index of selected qubits to the index of the classical register.
 
     Args:
         actual_num_qubits (int):
             The actual number of qubits.
-        selected_qubits (QubitSelectionDeprecatedType, optional):
+        selected_qubits (QubitSelectionType, optional):
             The selected qubits.
             If it is None, then it will return the mapping of all qubits.
             If it is int, then it will return the mapping of the last n qubits.
-            If it is tuple, then it will return the mapping of the qubits in the range.
             If it is list, then it will return the mapping of the selected qubits.
 
     Raises:
+        TypeError: The tuple input for selected qubits is deprecated.
         ValueError: The range of qubits should be defined by two integers.
         ValueError: The selected qubits are beyond the number of qubits.
         ValueError: The selected qubits are not natural number.
@@ -209,6 +210,11 @@ def qubit_mapper(
     Returns:
         The mapping of the index of selected qubits to the index of the classical register.
     """
+    if isinstance(selected_qubits, tuple):
+        raise TypeError(
+            "The tuple input for selected qubits is deprecated. Please use list[int] instead."
+        )
+
     if selected_qubits is None:
         return {i: i for i in range(actual_num_qubits)}
 
@@ -217,14 +223,6 @@ def qubit_mapper(
             qi: ci
             for ci, qi in enumerate(range(actual_num_qubits - selected_qubits, actual_num_qubits))
         }
-
-    if isinstance(selected_qubits, tuple):
-        if len(selected_qubits) != 2:
-            raise ValueError(
-                "Subsystem range is defined by only two integers when inputs as tuple, "
-                + f"but there is {len(selected_qubits)} integers in '{selected_qubits}'."
-            )
-        return qubit_mapper_2_int(actual_num_qubits, selected_qubits)
 
     if isinstance(selected_qubits, Sequence):
         if len(dict.fromkeys(selected_qubits).keys()) != len(selected_qubits):
