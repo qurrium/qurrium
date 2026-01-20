@@ -3,27 +3,29 @@
 
 """
 
-from typing import Union, Optional, Literal, TypedDict
+from typing import Literal, TypedDict
 import numpy as np
+
+from ...utils import FloatType
 
 
 class TargetSystemResultV1(TypedDict):
     """The result of the analysis."""
 
-    purity: Union[np.float64, float]
+    purity: FloatType
     """The purity of the system."""
-    entropy: Union[np.float64, float]
+    entropy: FloatType
     """The entropy of the system."""
-    puritySD: Union[np.float64, float]
+    puritySD: FloatType
     """The standard deviation of the purity."""
-    entropySD: Union[np.float64, float]
+    entropySD: FloatType
     """The standard deviation of the entropy."""
-    purityCells: Union[dict[int, np.float64], dict[int, float]]
+    purityCells: dict[int, np.float64] | dict[int, float]
     """The purity of each cell."""
-    bitStringRange: Union[tuple[int, int], list[int]]
+    bitStringRange: tuple[int, int] | list[int]
     """The range of partition on the bitstring."""
 
-    degree: Optional[Union[list[int], tuple[int, int], int]]
+    degree: tuple[int, int] | int | None
     """The range of partition."""
     measureActually: tuple[int, int]
     """The range of partition refer to all qubits."""
@@ -32,14 +34,14 @@ class TargetSystemResultV1(TypedDict):
     """The number of counts."""
     num_qubits: int
     """The number of qubits of this system."""
-    takingTime: Union[np.float64, float]
+    takingTime: FloatType
     """The time of taking during specific partition."""
 
 
 class AllSystemResultV1(TargetSystemResultV1):
     """The result of the analysis."""
 
-    allSystemSource: Union[str, Literal["independent"]]
+    allSystemSource: Literal["independent"] | str
     """The source of all system."""
 
 

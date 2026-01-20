@@ -5,9 +5,9 @@ This version introduces another way to process subsystems.
 
 """
 
+from collections.abc import Iterable
 import time
 import warnings
-from typing import Optional, Iterable, Union
 import numpy as np
 
 from .purity_cell_2 import purity_cell_2_py
@@ -19,8 +19,6 @@ from ...availability import (
 )
 from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager
-
-# pylint:disable=no-name-in-module,import-error
 from ....boorust.randomized import entangled_entropy_core_2_rust  # type: ignore
 
 
@@ -33,7 +31,7 @@ DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 def entangled_entropy_core_2_py(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int] | None = None,
 ) -> tuple[dict[int, np.float64], list[int], str, float]:
     """The core function of entangled entropy by Python.
 
@@ -42,7 +40,7 @@ def entangled_entropy_core_2_py(
             Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
 
     Returns:
@@ -93,9 +91,9 @@ def entangled_entropy_core_2_py(
 def entangled_entropy_core_2(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> tuple[Union[dict[int, np.float64], dict[int, float]], list[int], str, float]:
+) -> tuple[dict[int, np.float64] | dict[int, float], list[int], str, float]:
     """The core function of entangled entropy.
 
     Args:
@@ -103,7 +101,7 @@ def entangled_entropy_core_2(
             Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.

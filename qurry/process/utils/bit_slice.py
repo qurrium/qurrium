@@ -1,9 +1,9 @@
 """Post Processing - Utils - Bit Slice (:mod:`qurry.process.utils.bit_slice`)"""
 
-from typing import Union, Optional, Sequence, TypeVar, overload
+from typing import TypeVar, overload
+from collections.abc import Sequence
 
 from ..availability import availablility
-
 from ...boorust.bit_slice import (  # type: ignore
     qubit_selector_rust,
     cycling_slice_rust,
@@ -14,14 +14,12 @@ from ...boorust.bit_slice import (  # type: ignore
 BACKEND_AVAILABLE = availablility("utils.bit_slice", [("Rust", True, None)])
 
 
-def qubit_selector(
-    num_qubits: int, degree: Union[int, tuple[int, int], None] = None
-) -> tuple[int, int]:
+def qubit_selector(num_qubits: int, degree: tuple[int, int] | int | None = None) -> tuple[int, int]:
     """Determint the qubits to be used.
 
     Args:
         num_qubits (int): Number of qubits.
-        degree (Union[int, tuple[int, int], None], optional):
+        degree (int | tuple[int, int] | None, optional):
             Degree of freedom or specific subsystem range.
             Defaults to None then will use number of qubits as degree.
 
@@ -161,14 +159,14 @@ def qubit_mapper_2_int(
     return {qi: ci for ci, qi in enumerate(qi_list)}
 
 
-QubitSelectionType = Union[list[int], int, tuple[int, int], None]
+QubitSelectionType = list[int] | tuple[int, int] | int | None
 """Type for qubit selection.
 
 The selected qubits.
 - `None`, for the mapping of all qubits.
 - `int`, for the mapping of the last n qubits.
 - `tuple[int, int]`, for the mapping of the qubits in the range.
-- `~typing.Sequence[int]`, for the mapping of the selected qubits.
+- `list[int]`, for the mapping of the selected qubits.
 """
 
 
@@ -234,17 +232,17 @@ def qubit_mapper(
 
 def degree_handler(
     allsystem_size: int,
-    degree: Optional[Union[int, tuple[int, int]]],
-    measure: Optional[tuple[int, int]],
+    degree: tuple[int, int] | int | None,
+    measure: tuple[int, int] | None,
 ) -> tuple[tuple[int, int], tuple[int, int], int]:
     """Handle the degree of freedom for the subsystem.
 
     Args:
         allsystem_size (int):
             The size of the whole system.
-        degree (Optional[Union[int, tuple[int, int]]]):
+        degree (tuple[int, int] | int | None):
             The degree of freedom.
-        measure (Optional[tuple[int, int]]):
+        measure (tuple[int, int] | None):
             The measure range.
 
     Returns:

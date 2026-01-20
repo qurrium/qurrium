@@ -2,8 +2,6 @@
 
 import numpy as np
 from ..availability import availablility
-
-# pylint:disable=no-name-in-module,import-error,unused-import
 from ...boorust.randomized import hamming_distance_rust, ensemble_cell_rust  # type: ignore
 
 
@@ -48,3 +46,6 @@ def ensemble_cell(
     """
     diff = sum(s1 != s2 for s1, s2 in zip(s_i, s_j))
     return (2**a_num) * ((-2) ** (-diff)) * (s_i_meas / shots) * (s_j_meas / shots)
+
+
+__all__ = ["hamming_distance", "ensemble_cell", "hamming_distance_rust", "ensemble_cell_rust"]

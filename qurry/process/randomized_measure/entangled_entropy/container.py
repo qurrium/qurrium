@@ -3,27 +3,29 @@
 
 """
 
-from typing import Union, Optional, Literal, TypedDict
+from typing import Literal, TypedDict
 import numpy as np
+
+from ...utils import FloatType
 
 
 class TargetSystemResult(TypedDict):
     """The return type of the post-processing for entangled entropy."""
 
-    purity: Union[np.float64, float]
+    purity: FloatType
     """The purity of the system."""
-    entropy: Union[np.float64, float]
+    entropy: FloatType
     """The entropy of the system."""
-    purity_sd: Union[np.float64, float]
+    purity_sd: FloatType
     """The standard deviation of the purity."""
-    entropy_sd: Union[np.float64, float]
+    entropy_sd: FloatType
     """The standard deviation of the entropy."""
-    purity_cells: Union[dict[int, np.float64], dict[int, float]]
+    purity_cells: dict[int, np.float64] | dict[int, float]
     """The purity of each single count."""
 
     num_classical_registers: int
     """The number of classical registers."""
-    classical_registers: Optional[list[int]]
+    classical_registers: list[int] | None
     """The list of the index of the selected classical registers."""
     classical_registers_actually: list[int]
     """The list of the index of the selected classical registers which is actually used."""
@@ -41,10 +43,10 @@ class AllSystemResult(TargetSystemResult):
     """The datetime string when preparing the all system result."""
     result_hash_id: str
     """The hash id of the result for verification."""
-    all_system_source: Union[str, Literal["independent"]]
+    all_system_source: Literal["independent"] | str
     """The name of source of all system.
 
-    - independent: The all system is calculated independently.
+    - `independent`: The all system is calculated independently.
     """
 
 

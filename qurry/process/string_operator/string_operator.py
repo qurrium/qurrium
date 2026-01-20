@@ -3,18 +3,18 @@
 
 """
 
-from typing import Union, Optional, TypedDict
-import numpy as np
+from typing import TypedDict
 import tqdm
 
-from ..availability import PostProcessingBackendLabel
 from .strop_core import string_operator_core, DEFAULT_PROCESS_BACKEND
+from ..availability import PostProcessingBackendLabel
+from ..utils import FloatType
 
 
 class StringOperatorResult(TypedDict):
     """String Operator type."""
 
-    order: Union[float, np.float64]
+    order: FloatType
     """The order of the string operator."""
 
 
@@ -22,7 +22,7 @@ def string_operator_order(
     shots: int,
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> StringOperatorResult:
     """Calculate the order of the string operator.
 
@@ -54,8 +54,8 @@ def string_operator_order(
     Args:
         shots (int): Number of shots.
         counts (list[dict[str, int]]): List of counts.
-        backend (Optional[PostProcessingBackendLabel], optional): Backend to use. Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
+        backend (PostProcessingBackendLabel, optional): Backend to use. Defaults to DEFAULT_PROCESS_BACKEND.
+        pbar (tqdm.tqdm | None, optional): Progress bar. Defaults to None.
 
     Returns:
         StringOperator: String Operator.

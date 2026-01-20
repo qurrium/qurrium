@@ -1,6 +1,6 @@
 """Check the availability of the post-processing modules. (:mod:`qurry.process.status.backend`)"""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from ..randomized_measure import (
     entangled_availability,
@@ -30,18 +30,14 @@ from ...capsule.hoshi import Hoshi
 def availability_status_print() -> tuple[
     Hoshi,
     dict[str, dict[str, dict[str, Literal["Yes", "Error", "Depr.", "No"]]]],
-    dict[str, dict[str, dict[str, Optional[ImportError]]]],
+    dict[str, dict[str, dict[str, ImportError | None]]],
 ]:
     """Print the availability status of the post-processing modules.
 
     Returns:
-        tuple[
-            Hoshi,
-            dict[str, dict[str, dict[str, Literal["Yes", "Error", "Depr.", "No"]]]],
-            dict[str, dict[str, dict[str, Optional[ImportError]]]],
-        ]:
-            The Hoshi object for the availability status of the post-processing modules,
-            the availability status of the post-processing modules and the errors.
+        The Hoshi object for the availability status of the post-processing modules,
+        the availability status of the post-processing modules,
+        and the dictionary of errors occurred during the availability check.
     """
     availability_dict = [
         # randomized_measure

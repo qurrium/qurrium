@@ -3,12 +3,10 @@
 
 """
 
-from typing import Union, Literal
-import numpy as np
+from typing import Literal
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
-
-# pylint:disable=no-name-in-module,import-error
+from ..utils import FloatType
 from ...boorust.string_operator import string_operator_core_rust  # type: ignore
 
 BACKEND_AVAILABLE = availablility("string_operator.strop_core", [("Rust", True, None)])
@@ -32,7 +30,7 @@ def string_operator_core(
     shots: int,
     counts: list[dict[str, int]],
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> Union[float, np.float64]:
+) -> FloatType:
     """The core function of magnet square.
 
     Args:
@@ -44,7 +42,7 @@ def string_operator_core(
             Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
-        Union[float, np.float64]: String operator value.
+        FloatType: String operator value.
     """
     if backend == "Rust":
         return string_operator_core_rust(shots, counts)

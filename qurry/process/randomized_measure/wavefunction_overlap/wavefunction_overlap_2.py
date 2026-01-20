@@ -3,26 +3,28 @@
 
 """
 
-from typing import Union, Optional, TypedDict, Iterable
+from typing import TypedDict
+from collections.abc import Iterable
 import numpy as np
 import tqdm
 
 from .echo_core_2 import overlap_echo_core_2, DEFAULT_PROCESS_BACKEND
 from ...availability import PostProcessingBackendLabel
+from ...utils import FloatType
 
 
 class WaveFunctionOverlapResult(TypedDict):
     """The return type of the post-processing for wavefunction overlap."""
 
-    echo: Union[np.float64, float]
+    echo: FloatType
     """The overlap value."""
-    echo_sd: Union[np.float64, float]
+    echo_sd: FloatType
     """The overlap standard deviation."""
-    echo_cells: Union[dict[int, np.float64], dict[int, float]]
+    echo_cells: dict[int, np.float64] | dict[int, float]
     """The overlap of each single count."""
     num_classical_registers: int
     """The number of classical registers."""
-    classical_registers: Optional[list[int]]
+    classical_registers: list[int] | None
     """The list of the index of the selected classical registers."""
     classical_registers_actually: list[int]
     """The list of the index of the selected classical registers which is actually used."""
@@ -37,9 +39,9 @@ def randomized_overlap_echo(
     shots: int,
     first_counts: list[dict[str, int]],
     second_counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: Iterable[tqdm.tqdm] | None = None,
 ) -> WaveFunctionOverlapResult:
     """Calculate wavefunction overlap
     a.k.a. loschmidt echo when processes time evolution system.
@@ -75,11 +77,11 @@ def randomized_overlap_echo(
             Counts of the experiment on quantum machine.
         second_counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**.
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (Iterable[tqdm.tqdm] | None, optional):
             The progress bar API,
             you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
@@ -106,7 +108,7 @@ def randomized_overlap_echo(
         selected_classical_registers=selected_classical_registers,
         backend=backend,
     )
-    echo_cell_list: list[Union[float, np.float64]] = list(echo_cell_dict.values())  # type: ignore
+    echo_cell_list: list[FloatType] = list(echo_cell_dict.values())  # type: ignore
 
     echo: np.float64 = np.mean(echo_cell_list, dtype=np.float64)  # type: ignore
     purity_sd: np.float64 = np.std(echo_cell_list, dtype=np.float64)  # type: ignore

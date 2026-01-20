@@ -3,7 +3,7 @@
 
 """
 
-from typing import Optional, Iterable
+from collections.abc import Iterable
 import numpy as np
 import tqdm
 
@@ -22,9 +22,9 @@ from ....tools import current_time
 def randomized_entangled_entropy(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
+    selected_classical_registers: Iterable[int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> TargetSystemResult:
     """Calculate entangled entropy.
     The entropy we compute is the Second Order Rényi Entropy.
@@ -105,11 +105,11 @@ def randomized_entangled_entropy(
             Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]):
             Counts of the experiment on quantum machine.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**. Defaults to None.
         backend (ExistingProcessBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar API,
             you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
@@ -177,9 +177,9 @@ def randomized_entangled_entropy(
 def preparing_all_system(
     shots: int,
     counts: list[dict[str, int]],
-    existed_all_system: Optional[AllSystemResult] = None,
+    existed_all_system: AllSystemResult | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> AllSystemResult:
     """Prepare all system for the entangled entropy calculation.
 
@@ -188,7 +188,7 @@ def preparing_all_system(
             Shots of the counts.
         counts (list[dict[str, int]]):
             Counts from randomized measurement results.
-        existed_all_system (Optional[AllSystemResult], optional):
+        existed_all_system (AllSystemResult | None, optional):
             Existing all system source.
             If there is known all system result, then you can put it here
             to save a lot of time on calculating all system for no matter
@@ -197,7 +197,7 @@ def preparing_all_system(
             Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar API,
             you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
@@ -273,10 +273,10 @@ def preparing_all_system(
 def randomized_entangled_entropy_mitigated(
     shots: int,
     counts: list[dict[str, int]],
-    selected_classical_registers: Optional[Iterable[int]] = None,
-    existed_all_system: Optional[AllSystemResult] = None,
+    selected_classical_registers: Iterable[int] | None = None,
+    existed_all_system: AllSystemResult | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> tuple[TargetSystemResult, AllSystemResult, MitigatedResult]:
     """Calculate entangled entropy with depolarizing error mitigation.
     The entropy we compute is the Second Order Rényi Entropy.

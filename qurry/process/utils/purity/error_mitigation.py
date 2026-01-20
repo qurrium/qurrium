@@ -27,11 +27,11 @@ Reference:
 
 """
 
-from typing import TypeVar, Union, TypedDict
+from typing import TypeVar, TypedDict
 import numpy as np
 import numpy.typing as npt
 
-AllowedMitigatedInput = Union[npt.NDArray[np.float64], float, np.float64]
+AllowedMitigatedInput = npt.NDArray[np.float64] | np.float64 | float
 """Allowed input type for the mitigation functions."""
 
 MitigatedInputT = TypeVar("MitigatedInputT", bound=AllowedMitigatedInput)
@@ -96,8 +96,8 @@ def depolarizing_error_mitgation(
     """Depolarizing error mitigation.
 
     Args:
-        meas_system (Union[float, np.ndarray]): Value of the measured subsystem.
-        all_system (Union[float, np.ndarray]): Value of the whole system.
+        meas_system (AllowedMitigatedInput): Value of the measured subsystem.
+        all_system (AllowedMitigatedInput): Value of the whole system.
         subsystem_size (int): The size of the subsystem.
         system_size (int): The size of the system.
 

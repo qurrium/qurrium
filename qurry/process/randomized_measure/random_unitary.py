@@ -7,7 +7,6 @@ due to Qiskit usually relocate its module.
 
 """
 
-from typing import Optional
 import numpy as np
 
 from qiskit.quantum_info import random_unitary, Operator
@@ -18,14 +17,14 @@ from ..utils import density_matrix_to_bloch_vector
 def generate_random_unitary(
     times: int,
     unitary_located: list[int],
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]],
+    random_unitary_seeds: dict[int, dict[int, int]] | None,
 ) -> dict[int, dict[int, Operator]]:
     """Generate a dictionary of local random unitary operators.
 
     Args:
         times (int): The number of random unitary operators to generate.
         unitary_located (list[int]): The location of unitary operator.
-        random_unitary_seeds (Optional[dict[int, dict[int, int]]]):
+        random_unitary_seeds (dict[int, dict[int, int]] | None):
             The seeds for random unitary operator generation.
 
     Returns:

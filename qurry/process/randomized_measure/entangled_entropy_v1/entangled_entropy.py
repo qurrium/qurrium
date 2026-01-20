@@ -3,7 +3,6 @@
 
 """
 
-from typing import Union, Optional
 import numpy as np
 import tqdm
 
@@ -16,11 +15,11 @@ from ...availability import PostProcessingBackendLabel
 def randomized_entangled_entropy_v1(
     shots: int,
     counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Optional[tuple[int, int]] = None,
+    degree: tuple[int, int] | int | None,
+    measure: tuple[int, int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    workers_num: Optional[int] = None,
-    pbar: Optional[tqdm.tqdm] = None,
+    workers_num: int | None = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> TargetSystemResultV1:
     """Calculate entangled entropy.
     The entropy we compute is the Second Order Rényi Entropy.
@@ -101,9 +100,9 @@ def randomized_entangled_entropy_v1(
             Shots of the counts.
         counts (list[dict[str, int]]):
             Counts from randomized measurement results.
-        degree (Optional[Union[tuple[int, int], int]]):
+        degree (tuple[int, int] | int | None):
             The range of partition.
-        measure (Optional[tuple[int, int]], optional):
+        measure (tuple[int, int] | None, optional):
             The range that implemented the measuring gate.
             If not specified, then use all qubits.
             This will affect the range of partition
@@ -112,13 +111,13 @@ def randomized_entangled_entropy_v1(
         backend (PostProcessingBackendLabel, optional):
             Backend for the post-processing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        workers_num (Optional[int], optional):
+        workers_num (int | None, optional):
             Number of multi-processing workers, it will be ignored if backend is Rust.
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.
             This only works for Python and Cython backend.
             Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar API,
             you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.
@@ -153,7 +152,7 @@ def randomized_entangled_entropy_v1(
         backend=backend,
         multiprocess_pool_size=workers_num,
     )
-    purity_cell_list: list[Union[float, np.float64]] = list(purity_cell_dict.values())
+    purity_cell_list = list(purity_cell_dict.values())
 
     # pylance cannot recognize the type
     purity: np.float64 = np.mean(purity_cell_list, dtype=np.float64)  # type: ignore
@@ -183,10 +182,10 @@ def randomized_entangled_entropy_v1(
 def preparing_all_system(
     shots: int,
     counts: list[dict[str, int]],
-    measure: Optional[tuple[int, int]] = None,
+    measure: tuple[int, int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    workers_num: Optional[int] = None,
-    existed_all_system: Optional[AllSystemResultV1] = None,
+    workers_num: int | None = None,
+    existed_all_system: AllSystemResultV1 | None = None,
 ) -> AllSystemResultV1:
     """Prepare the all system source for entangled entropy calculation.
 
@@ -195,7 +194,7 @@ def preparing_all_system(
             Shots of the counts.
         counts (list[dict[str, int]]):
             Counts from randomized measurement results.
-        measure (Optional[tuple[int, int]], optional):
+        measure (tuple[int, int] | None, optional):
             The range that implemented the measuring gate.
             If not specified, then use all qubits.
             This will affect the range of partition
@@ -204,13 +203,13 @@ def preparing_all_system(
         backend (PostProcessingBackendLabel, optional):
             Backend for the post-processing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        workers_num (Optional[int], optional):
+        workers_num (int | None, optional):
             Number of multi-processing workers, it will be ignored if backend is Rust.
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.
             This only works for Python and Cython backend.
             Defaults to None.
-        existed_all_system (Optional[AllSystemResultV1], optional):
+        existed_all_system (AllSystemResultV1 | None, optional):
             Existing all system source.
             If there is known all system result,
             then you can put it here to save a lot of time on calculating all system
@@ -243,11 +242,11 @@ def preparing_all_system(
 def randomized_entangled_entropy_mitigated_v1(
     shots: int,
     counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Optional[tuple[int, int]] = None,
+    degree: tuple[int, int] | int | None,
+    measure: tuple[int, int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    workers_num: Optional[int] = None,
-    existed_all_system: Optional[AllSystemResultV1] = None,
+    workers_num: int | None = None,
+    existed_all_system: AllSystemResultV1 | None = None,
 ) -> tuple[TargetSystemResultV1, AllSystemResultV1, MitigatedResult]:
     """Calculate entangled entropy with depolarizing error mitigation.
     The entropy we compute is the Second Order Rényi Entropy.
@@ -353,9 +352,9 @@ def randomized_entangled_entropy_mitigated_v1(
             Shots of the counts.
         counts (list[dict[str, int]]):
             Counts from randomized measurement results.
-        degree (Optional[Union[tuple[int, int], int]]):
+        degree (tuple[int, int] | int | None):
             The range of partition.
-        measure (Optional[tuple[int, int]], optional):
+        measure (tuple[int, int] | None, optional):
             The range that implemented the measuring gate.
             If not specified, then use all qubits.
             This will affect the range of partition
@@ -364,13 +363,13 @@ def randomized_entangled_entropy_mitigated_v1(
         backend (PostProcessingBackendLabel, optional):
             Backend for the post-processing.
             Defaults to DEFAULT_PROCESS_BACKEND.
-        workers_num (Optional[int], optional):
+        workers_num (int | None, optional):
             Number of multi-processing workers, it will be ignored if backend is Rust.
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.
             This only works for Python and Cython backend.
             Defaults to None.
-        existed_all_system (Optional[AllSystemResultV1], optional):
+        existed_all_system (AllSystemResultV1 | None, optional):
             Existing all system source.
             If there is known all system result,
             then you can put it here to save a lot of time on calculating all system

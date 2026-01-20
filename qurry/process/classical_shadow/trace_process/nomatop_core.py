@@ -3,7 +3,7 @@
 
 """
 
-from typing import  Literal
+from typing import Literal
 from collections.abc import Iterable
 
 from .nomatmul_trace import nomatmul_trace_core, NonMatMulTraceMethod

@@ -5,7 +5,6 @@
 
 import time
 import warnings
-from typing import Union, Optional
 import numpy as np
 
 from .purity_cell import purity_cell_py
@@ -17,8 +16,6 @@ from ...availability import (
 )
 from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager, workers_distribution
-
-# pylint:disable=no-name-in-module,import-error
 from ....boorust.randomized import entangled_entropy_core_rust  # type: ignore
 
 
@@ -32,21 +29,19 @@ DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 def entangled_entropy_core_py(
     shots: int,
     counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Optional[tuple[int, int]] = None,
-    multiprocess_pool_size: Optional[int] = None,
-) -> tuple[
-    Union[dict[int, float], dict[int, np.float64]], tuple[int, int], tuple[int, int], str, float
-]:
+    degree: tuple[int, int] | int | None,
+    measure: tuple[int, int] | None = None,
+    multiprocess_pool_size: int | None = None,
+) -> tuple[dict[int, float] | dict[int, np.float64], tuple[int, int], tuple[int, int], str, float]:
     """The core function of entangled entropy by Python for just purity cell part.
 
     Args:
         shots (int): Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-        degree (Optional[Union[tuple[int, int], int]]): Degree of the subsystem.
-        measure (Optional[tuple[int, int]], optional):
+        degree (tuple[int, int] | int | None): Degree of the subsystem.
+        measure (tuple[int, int] | None, optional):
             Measuring range on quantum circuits. Defaults to None.
-        multiprocess_pool_size(Optional[int], optional):
+        multiprocess_pool_size(int | None, optional):
             Number of multi-processing workers,
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.
@@ -57,14 +52,7 @@ def entangled_entropy_core_py(
         ValueError: Measure range does not contain subsystem.
 
     Returns:
-        tuple[
-            Union[dict[int, float], dict[int, np.float64]],
-            tuple[int, int],
-            tuple[int, int],
-            str,
-            float,
-        ]:
-            Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
+        Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
     """
 
     # check shots
@@ -110,24 +98,18 @@ def entangled_entropy_core_py(
         )
 
     taken = round(time.time() - begin, 3)
-    purity_cell_dict: Union[dict[int, float], dict[int, np.float64]] = dict(purity_cell_items)
+    purity_cell_dict: dict[int, float] | dict[int, np.float64] = dict(purity_cell_items)
     return purity_cell_dict, bitstring_range, measure, msg, taken
 
 
 def entangled_entropy_core(
     shots: int,
     counts: list[dict[str, int]],
-    degree: Optional[Union[tuple[int, int], int]],
-    measure: Union[tuple[int, int], list[int], None] = None,
+    degree: tuple[int, int] | int | None,
+    measure: tuple[int, int] | None = None,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    multiprocess_pool_size: Optional[int] = None,
-) -> tuple[
-    Union[dict[int, float], dict[int, np.float64]],
-    tuple[int, int],
-    tuple[int, int],
-    str,
-    float,
-]:
+    multiprocess_pool_size: int | None = None,
+) -> tuple[dict[int, float] | dict[int, np.float64], tuple[int, int], tuple[int, int], str, float]:
     """The core function of entangled entropy.
 
     Args:
@@ -149,8 +131,7 @@ def entangled_entropy_core(
         ValueError: Measure range does not contain subsystem.
 
     Returns:
-        tuple[dict[int, float], tuple[int, int], tuple[int, int], str, float]:
-            Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
+        Purity of each cell, Partition range, Measuring range, Message, Time to calculate.
     """
 
     if isinstance(measure, list):

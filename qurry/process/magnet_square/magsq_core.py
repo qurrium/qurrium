@@ -1,15 +1,13 @@
 """Post Processing - Magnetization Square - Core (:mod:`qurry.process.magnet_square.magsq_core`)"""
 
 import time
-from typing import Union
 from itertools import permutations
 from multiprocessing import get_context
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
-from ..utils import single_counts_recount_proto
+from ..utils import single_counts_recount_proto, FloatType
 from ...tools import DEFAULT_POOL_SIZE
-
 from ...boorust.magnet_square import (  # type: ignore
     magnet_square_core_rust,
     z_dir_magnet_square_core_rust,
@@ -52,19 +50,17 @@ def magsq_cell_py(idx: int, single_counts: dict[str, int], shots: int) -> tuple[
         tuple[int,  np.float64]: Index, one of magnitudes square.
     """
 
-    magnetsq_cell = sum(
+    return idx, sum(
         np.float64(c) * (1 if bits[0] == bits[1] else -1) / shots
         for bits, c in single_counts.items()
     ) + np.float64(0)
-
-    return idx, magnetsq_cell
 
 
 def magsq_cell_wrapper(arguments: tuple[int, dict[str, int], int]) -> tuple[int, np.float64]:
     """Wrapper for the magnetic square cell.
 
     Args:
-        arguments (tuple[int, dict[str, int], int, PostProcessingBackendLabel]):
+        arguments (tuple[int, dict[str, int], int]):
             The arguments for the magnetic square cell.
 
             - idx (int): Index of the cell (counts).
@@ -82,7 +78,7 @@ def magnet_square_core(
     counts: list[dict[str, int]],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
+) -> tuple[FloatType, dict[int, float] | dict[int, np.float64], float]:
     """The core function of Magnetization square.
 
     Args:
@@ -93,8 +89,7 @@ def magnet_square_core(
             Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
-        tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
-            Magnetization square, magnetization square cell, time taken.
+        Magnetization square, magnetization square cell, time taken.
     """
 
     if len(counts) != num_qubits * (num_qubits - 1):
@@ -129,7 +124,7 @@ def z_dir_magnet_square_core(
     single_counts: dict[str, int],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-) -> tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
+) -> tuple[FloatType, dict[int, float] | dict[int, np.float64], float]:
     """The core function of Z direction Magnetization square.
 
     Args:
@@ -140,8 +135,7 @@ def z_dir_magnet_square_core(
             Post Processing backend. Defaults to DEFAULT_PROCESS_BACKEND.
 
     Returns:
-        tuple[Union[float, np.float64], Union[dict[int, float], dict[int, np.float64]], float]:
-            Magnetization square, magnetization square cell, time taken.
+        Magnetization square, magnetization square cell, time taken.
     """
 
     if backend == "Rust":

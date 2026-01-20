@@ -3,20 +3,21 @@
 
 """
 
-from typing import Union, Optional, TypedDict
+from typing import TypedDict
 import numpy as np
 import tqdm
 
-from ..availability import PostProcessingBackendLabel
 from .magsq_core import magnet_square_core, z_dir_magnet_square_core, DEFAULT_PROCESS_BACKEND
+from ..availability import PostProcessingBackendLabel
+from ..utils import FloatType
 
 
 class MagnetSquareResult(TypedDict):
     """Magnetization Square type."""
 
-    magnet_square: Union[float, np.float64]
+    magnet_square: FloatType
     """Magnetization Square."""
-    magnet_square_cells: Union[dict[int, float], dict[int, np.float64]]
+    magnet_square_cells: dict[int, float] | dict[int, np.float64]
     """Magnetization Square cells."""
     taking_time: float
     """Taking time."""
@@ -27,7 +28,7 @@ def magnetization_square(
     counts: list[dict[str, int]],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> MagnetSquareResult:
     """Calculate the magnetization square.
 
@@ -35,8 +36,8 @@ def magnetization_square(
         shots (int): Number of shots.
         counts (list[dict[str, int]]): List of counts.
         num_qubits (int): Number of qubits.
-        backend (Optional[PostProcessingBackendLabel], optional): Backend to use. Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
+        backend (PostProcessingBackendLabel, optional): Backend to use. Defaults to DEFAULT_PROCESS_BACKEND.
+        pbar (tqdm.tqdm | None, optional): Progress bar. Defaults to None.
 
     Returns:
         MagnetSquare: Magnetization Square.
@@ -62,7 +63,7 @@ def z_dir_magnetization_square(
     single_counts: dict[str, int],
     num_qubits: int,
     backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> MagnetSquareResult:
     """Calculate the magnetization square for Z direction.
 
@@ -70,9 +71,8 @@ def z_dir_magnetization_square(
         shots (int): Number of shots.
         single_counts (dict[str, int]): Single count.
         num_qubits (int): Number of qubits.
-        backend (Optional[PostProcessingBackendLabel], optional): Backend to use. Defaults to None.
-        pbar (Optional[tqdm.tqdm], optional): Progress bar. Defaults to None.
-
+        backend (PostProcessingBackendLabel, optional): Backend to use. Defaults to DEFAULT_PROCESS_BACKEND.
+        pbar (tqdm.tqdm | None, optional): Progress bar. Defaults to None.
     Returns:
         MagnetSquare: Magnetization Square.
     """
