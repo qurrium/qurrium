@@ -69,7 +69,7 @@ class FileReadableObj(DataIngestible, ABC):
 
     @classmethod
     @abstractmethod
-    def content_loading(cls, raw_read: dict[str, Any]):
+    def content_loading(cls, raw_read: dict[str, Any]) -> Any:
         """Process the serialized content from the method :meth:`content_writing`
         Handle the raw read dictionary with specific structure,
         which is same with the one used in :meth:`FileWritableObj.content_dumping`.
@@ -80,13 +80,14 @@ class FileReadableObj(DataIngestible, ABC):
 
     @classmethod
     @abstractmethod
-    def read(cls, file_index: dict[str, str], save_location: Path):
+    def read(cls, file_index: dict[str, str], save_location: Path) -> Any:
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
         """
+        # TODO: replace return type with typing.Self when Python 3.11 is lowerest version
 
 
 class DataExportableIngestible(DataExportable, DataIngestible, ABC):
