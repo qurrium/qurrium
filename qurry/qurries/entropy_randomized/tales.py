@@ -1,28 +1,31 @@
 """EntropyMeasureRandomized - Tales (:mod:`qurry.qurries.entropy_randomized.tales`)"""
 
-from typing import TypedDict, Any
+from typing import Any, overload, Literal
 import numpy as np
 
 from ...qurrium import Tales
 from ...capsule import jsonablize
 
 
-class EntropyMeasureTalesTypes(TypedDict):
-    """The typed dictionary for :class:`EntropyMeasureTales`."""
-
-    unitary_operator: dict[int, dict[int, list[list[complex]]]]
-    """The dictionary of unitary operators."""
-    bloch_vector: dict[int, dict[int, tuple[float, float, float]]]
-    """The dictionary of bloch vectors."""
-
-
-class EntropyMeasureTales(Tales[EntropyMeasureTalesTypes]):
+class RandomizedMeasureTales(Tales):
     """The tales for :class:`~qurry.qurries.entropy_randomized.experiment.EMRExperiment` and
-    :class:`~qurry.qurries.echo_randomized.experiment.ELRExperiment`."""
+    :class:`~qurry.qurries.echo_randomized.experiment.ELRExperiment`.
+    """
 
     @classmethod
     def remain_keys(cls) -> tuple[str, ...]:
         return ("unitary_operator", "bloch_vector")
+
+    @overload
+    def __getitem__(
+        self, key: Literal["unitary_operator"]
+    ) -> dict[int, dict[int, list[list[complex]]]]: ...
+    @overload
+    def __getitem__(
+        self, key: Literal["bloch_vector"]
+    ) -> dict[int, dict[int, tuple[float, float, float]]]: ...
+    def __getitem__(self, key: Any) -> Any:
+        return super().__getitem__(key)
 
     def export(self) -> dict[str, Any]:
         """Export the serializable data.

@@ -1,9 +1,9 @@
 """The Side Product Container (:mod:`qurry.qurrium.experiment.tales`)"""
 
-import json
-from typing import Any, TypeVar, Generic, cast
-from pathlib import Path
+from typing import Any
 import warnings
+from pathlib import Path
+import json
 
 from ..utils.file_structure import (
     FOLDER_NAME_SIDE_PRODUCTS as FOLDER_NAME,
@@ -17,50 +17,28 @@ from ...capsule.mori import FileReadableWritableObj, WrittenContentType
 FILENAME_TEMPLATE = "{}.tales.json"
 """Filename template for side products export."""
 
-_SPT = TypeVar("_SPT")
-"""Type variable for side product types. This made for :class:`~typing.TypedDict`.
-For example:
 
-.. code-block:: python
-
-    from typing import TypedDict
-
-    class MySchema(TypedDict):
-        count: int
-        name: str
-
-    tales: Tales[MySchema] = Tales({"count": 42, "name": "test"})
-    typed_data = tales.as_typed()
-    print(typed_data["count"])
-
->>> 42
-
-"""
-
-
-class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
+class Tales(CustomDict, FileReadableWritableObj):
     """A customized dictionary for storing side products.
 
-    This supports type checking with :class:`~typing.TypedDict`.
+    If you want to have some typed access,
+    you can do something in the inherited class like this:
 
     .. code-block:: python
 
-        from typing import TypedDict
+        class EntropyMeasureTales(Tales):
+            @overload
+            def __getitem__(
+                self, key: Literal["unitary_operator"]
+            ) -> dict[int, dict[int, list[list[complex]]]]: ...
+            @overload
+            def __getitem__(
+                self, key: Literal["bloch_vector"]
+            ) -> dict[int, dict[int, tuple[float, float, float]]]: ...
+            def __getitem__(self, key: Any) -> Any:
+                return super().__getitem__(key)
 
-        class MySchema(TypedDict):
-            count: int
-            name: str
-
-        tales: Tales[MySchema] = Tales({"count": 42, "name": "test"})
-        typed_data = tales.as_typed()
-        print(typed_data["count"])
-
-    >>> 42
     """
-
-    def as_typed(self) -> _SPT:
-        """Return self as the typed version for type checking."""
-        return cast(_SPT, self)
 
     @classmethod
     def remain_keys(cls) -> tuple[str, ...]:
@@ -146,7 +124,3 @@ class Tales(CustomDict, FileReadableWritableObj, Generic[_SPT]):
             side_products = cls.content_loading(json.load(f))
 
         return cls(side_products)
-
-
-_SP = TypeVar("_SP", bound="Tales")
-"""Type variable for Tales class, the side product container."""

@@ -3,7 +3,7 @@
 import os
 import warnings
 from abc import abstractmethod, ABC
-from typing import Union, Optional, Any, Generic
+from typing import Any, Generic
 from multiprocessing import get_context
 from pathlib import Path
 import tqdm
@@ -13,7 +13,7 @@ from qiskit.providers import Backend, JobV1 as Job
 from qiskit.transpiler.passmanager import PassManager
 
 from .beforewards import Before
-from .tales import Tales, _SP
+from .tales import Tales
 from .afterwards import After
 from .export import Export, QurryInfo
 from .utils import (
@@ -144,28 +144,30 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
     def __init__(
         self,
-        arguments: Union[_A, dict[str, Any]],
-        commonparams: Union[Commonparams, dict[str, Any]],
+        arguments: _A | dict[str, Any],
+        commonparams: Commonparams | dict[str, Any],
         outfields: dict[str, Any],
-        beforewards: Optional[Before] = None,
-        side_products: Optional[_SP] = None,
-        afterwards: Optional[After] = None,
-        reports: Optional[AnalysesContainer[_R]] = None,
+        beforewards: Before | None = None,
+        side_products: Tales | None = None,
+        afterwards: After | None = None,
+        reports: AnalysesContainer[_R] | None = None,
     ) -> None:
         """Initialize the experiment.
 
         Args:
-            arguments (Optional[Union[NamedTuple, dict[str, Any]]]):
+            arguments (_A | dict[str, Any]):
                 The arguments of the experiment.
-            commonparams (Optional[Union[Commonparams, dict[str, Any]]]):
+            commonparams (Commonparams | dict[str, Any]):
                 The common parameters of the experiment.
-            outfields (Optional[dict[str, Any]]):
+            outfields (dict[str, Any]):
                 The outfields of the experiment.
-            beforewards (Optional[Before], optional):
+            beforewards (Before | None, optional):
                 The beforewards of the experiment. Defaults to None.
-            afterwards (Optional[After], optional):
+            side_products (Tales | None, optional):
+                The side products of the experiment. Defaults to None.
+            afterwards (After | None, optional):
                 The afterwards of the experiment. Defaults to None.
-            reports (Optional[AnalysesContainer], optional):
+            reports (AnalysesContainer[_R] | None, optional):
                 The reports of the experiment. Defaults to None.
         """
         self.args, self.commons, self.outfields = create_all_arguments(
@@ -210,33 +212,33 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     def _params_control_core(
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
-        exp_id: Optional[str] = None,
+        exp_id: str | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         # multimanager
-        tags: Optional[tuple[str, ...]] = None,
-        serial: Optional[int] = None,
-        summoner_id: Optional[str] = None,
-        summoner_name: Optional[str] = None,
+        tags: tuple[str, ...] | None = None,
+        serial: int | None = None,
+        summoner_id: str | None = None,
+        summoner_name: str | None = None,
         # process tool
         mute_outfields_warning: bool = False,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         **custom_kwargs: Any,
     ):
         """Control the experiment's general parameters.
 
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
-            exp_id (Optional[str], optional):
+            exp_id (str | None, optional):
                 If input is `None`, then create an new experiment.
                 If input is a existed experiment ID, then use it.
                 Otherwise, use the experiment with given specific ID.
                 Defaults to None.
             shots (int, optional): Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional): The quantum backend. Defaults to None.
+            backend (Backend | None, optional): The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
@@ -244,25 +246,25 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Given tags for the experiment to describe it.
                 Defaults to None.
-            serial (Optional[int], optional):
+            serial (int | None, optional):
                 Index of experiment in
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[str], optional):
+            summoner_id (str | None, optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -271,7 +273,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             mute_outfields_warning (bool, optional):
                 Mute the warning when there are unused arguments detected and stored in outfields.
                 Defaults to False.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             custom_kwargs (Any):
@@ -331,7 +333,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: _A,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -340,7 +342,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             arguments (_Arg): The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
             multiprocess (bool, optional): Whether to use multiprocessing. Defaults to `True`.
 
@@ -355,21 +357,21 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager_pair: Optional[tuple[str, PassManager]] = None,
-        tags: Optional[tuple[str, ...]] = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager_pair: tuple[str, PassManager] | None = None,
+        tags: tuple[str, ...] | None = None,
         # multimanager
-        serial: Optional[int] = None,
-        summoner_id: Optional[str] = None,
-        summoner_name: Optional[str] = None,
+        serial: int | None = None,
+        summoner_id: str | None = None,
+        summoner_name: str | None = None,
         # process tool
         qasm_version: AvailableQASMVersions = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = True,
         **custom_and_main_kwargs: Any,
     ):
@@ -378,7 +380,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             shots (int, optional): Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional): The quantum backend. Defaults to None.
+            backend (Backend | None, optional): The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
@@ -386,28 +388,28 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            passmanager_pair (Optional[tuple[str, PassManager]], optional):
+            passmanager_pair (tuple[str, PassManager] | None, optional):
                 The passmanager pair for transpile. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Given tags for the experiment to describe it.
                 Defaults to None.
 
-            serial (Optional[int], optional):
+            serial (int | None, optional):
                 Index of experiment in
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[str], optional):
+            summoner_id (str | None, optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -418,9 +420,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 The export version of OpenQASM. Defaults to 'qasm3'.
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -522,11 +524,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return cls.build(**config), config
 
     # local execution
-    def run(self, pbar: Optional[tqdm.tqdm] = None) -> str:
+    def run(self, pbar: tqdm.tqdm | None = None) -> str:
         """Export the result after running the job.
 
         Args:
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
@@ -556,16 +558,16 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     def result(
         self,
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> str:
         """Export the result of the experiment.
 
         Args:
             export (bool, optional): Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
@@ -753,13 +755,13 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
     def export(
         self,
-        save_location: Optional[Union[Path, str]] = None,
+        save_location: Path | str | None = None,
         export_transpiled_circuit: bool = False,
     ) -> Export:
         """Export the data of experiment into specific namedtuples for exporting.
 
         Args:
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
             export_transpiled_circuit (bool, optional):
                 Whether to export the transpiled circuit as txt. Defaults to False.
@@ -804,15 +806,15 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
     def write(
         self,
-        save_location: Optional[Union[Path, str]] = None,
+        save_location: Path | str | None = None,
         export_transpiled_circuit: bool = False,
-        qurryinfo_lock: Optional[str] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        qurryinfo_lock: str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> tuple[str, dict[str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
         Args:
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then use the value in `self.commons` to be exported,
                 if it's None too, then raise error. Defaults to None.
@@ -820,11 +822,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
                 Whether to export the transpiled circuit as txt. Defaults to False.
                 When set to True, the transpiled circuit will be exported as txt.
                 Otherwise, the circuit will be not exported but circuit qasm remains.
-            qurryinfo_lock (str, optional):
+            qurryinfo_lock (str | None, optional):
                 If set to the same as `self.commons.summoner_id`,
                 then export by :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
@@ -854,14 +856,14 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         cls,
         exp_id: str,
         file_index: dict[str, str],
-        save_location: Union[Path, str] = Path("./"),
+        save_location: Path | str | None = Path("./"),
     ):
         """Core of read function.
 
         Args:
             exp_id (str): The id of the experiment to be read.
             file_index (dict[str, str]): The index of the experiment to be read.
-            save_location (Union[Path, str]): The location of the experiment to be read.
+            save_location (Path | str | None): The location of the experiment to be read.
 
         Raises:
             ValueError: 'save_location' needs to be the type of 'str' or 'Path'.
@@ -905,17 +907,16 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         return exp_instance
 
     @classmethod
-    def _read_core_multiprocess(cls, all_arugments: tuple[str, dict[str, str], Union[Path, str]]):
+    def _read_core_multiprocess(cls, all_arugments: tuple[str, dict[str, str], Path | str]):
         """Core of read function for multiprocess.
 
         Args:
-            all_arugments (tuple[str, dict[str, str], Union[Path, str], str]):
+            all_arugments (tuple[str, dict[str, str], Path | str]):
                 The arguments of the experiment to be read.
 
                 - exp_id (str): The id of the experiment to be read.
                 - file_index (dict[str, str]): The index of the experiment to be read.
-                - save_location (Union[Path, str]): The location of the experiment to be read.
-
+                - save_location (Path | str): The location of the experiment to be read.
         Returns:
             QurryExperiment: The experiment to be read.
         """
@@ -924,16 +925,16 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     def read(
         cls,
-        exp_or_summoner_name: Union[Path, str],
-        save_location: Union[Path, str] = Path("./"),
+        exp_or_summoner_name: Path | str,
+        save_location: Path | str | None = Path("./"),
         multiprocess: bool = True,
     ):
         """Read the experiment from file.
 
         Args:
-            exp_or_summoner_name (Union[Path, str]):
+            exp_or_summoner_name (Path | str):
                 The experiment name or multimanager name to be read.
-            save_location (Union[Path, str], optional):
+            save_location (Path | str | None, optional):
                 The location of the experiment to be read. Defaults to Path('./').
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
