@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Experiment (:mod:`qurry.qurries.entropy_hadamard.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
@@ -31,7 +31,7 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
-        degree: Optional[tuple[int, int]] = None,
+        degree: tuple[int, int] | None = None,
         **custom_kwargs: Any,
     ) -> tuple[EMHArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -44,7 +44,7 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            degree (Optional[tuple[int, int]], optional):
+            degree (tuple[int, int] | None, optional):
                 The degree range.
                 Defaults to None.
             custom_kwargs (Any):
@@ -75,7 +75,7 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMHArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -83,9 +83,9 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (EntropyMeasureHadamardArguments):
+            arguments (EMHArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
@@ -96,34 +96,24 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         """
 
         target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
+        naming_component = [arguments.exp_name]
+        if not isinstance(target_key, int):
+            naming_component.append(str(target_key))
+        elif isinstance(target_circuit.name, str):
+            naming_component.append(target_circuit.name)
         num_qubits = target_circuit.num_qubits
-        old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
 
         q_ancilla = QuantumRegister(1, "ancilla_1")
         q_func1 = QuantumRegister(num_qubits, "q1")
         q_func2 = QuantumRegister(num_qubits, "q2")
         c_meas1 = ClassicalRegister(1, "c1")
-        qc_exp1 = QuantumCircuit(q_ancilla, q_func1, q_func2, c_meas1)
-        qc_exp1.name = (
-            f"{arguments.exp_name}" + ""
-            if len(target_key) < 1
-            else f".{target_key}" + ""
-            if len(old_name) < 1
-            else f".{old_name}"
+        qc_exp1 = QuantumCircuit(
+            q_ancilla, q_func1, q_func2, c_meas1, name=".".join(naming_component)
         )
 
-        qc_exp1.compose(
-            target_circuit,
-            [q_func1[i] for i in range(num_qubits)],
-            inplace=True,
-        )
+        qc_exp1.compose(target_circuit, [q_func1[i] for i in range(num_qubits)], inplace=True)
 
-        qc_exp1.compose(
-            target_circuit,
-            [q_func2[i] for i in range(num_qubits)],
-            inplace=True,
-        )
+        qc_exp1.compose(target_circuit, [q_func2[i] for i in range(num_qubits)], inplace=True)
 
         qc_exp1.barrier()
         qc_exp1.h(q_ancilla)

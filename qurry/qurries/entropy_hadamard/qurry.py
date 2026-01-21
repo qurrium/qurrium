@@ -1,7 +1,7 @@
 """EntropyMeasureHadamard - Qurrium (:mod:`qurry.qurries.entropy_hadamard.qurry`)"""
 
+from typing import Literal
 from pathlib import Path
-from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -37,32 +37,31 @@ class EntropyMeasureHadamard(
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        degree: Optional[Union[int, tuple[int, int]]] = None,
+        wave: QuantumCircuit | WCKeyable | None = None,
+        degree: int | tuple[int, int] | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> EMHOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, WCKeyable]):
+            wave (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            degree (Optional[Union[int, tuple[int, int]]], optional):
-                The degree of the experiment.
-                Defaults to None.
+            degree (int | tuple[int, int] | None, optional):
+                The degree of the experiment. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -71,23 +70,21 @@ class EntropyMeasureHadamard(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`~qiskit.compiler.transpile`.
-                Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             EntropyMeasureHadamardOutputArgs: The output arguments.
@@ -114,32 +111,31 @@ class EntropyMeasureHadamard(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        degree: Optional[Union[int, tuple[int, int]]] = None,
+        wave: QuantumCircuit | WCKeyable | None = None,
+        degree: int | tuple[int, int] | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
-        run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        run_args: RunArgsType | None = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType | None = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ):
         """Execute the experiment.
 
         Args:
-            wave (Union[QuantumCircuit, WCKeyable]):
+            wave (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            degree (Optional[Union[int, tuple[int, int]]], optional):
-                The degree of the experiment.
-                Defaults to None.
+            degree (int | tuple[int, int] | None, optional):
+                The degree of the experiment. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -148,23 +144,21 @@ class EntropyMeasureHadamard(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`~qiskit.compiler.transpile`.
-                Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             str: The ID of the experiment

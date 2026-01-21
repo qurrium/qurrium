@@ -1,7 +1,7 @@
 """EchoListenHadamard - Qurrium (:mod:`qurry.qurries.echo_hadamard.qurry`)"""
 
+from typing import Literal
 from pathlib import Path
-from typing import Union, Optional, Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -31,21 +31,21 @@ class EchoListenHadamard(
 
     def measure_to_output(
         self,
-        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        degree: Union[int, tuple[int, int], None] = None,
+        wave1: QuantumCircuit | WCKeyable | None = None,
+        wave2: QuantumCircuit | WCKeyable | None = None,
+        degree: int | tuple[int, int] | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> ELHOutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
@@ -54,12 +54,11 @@ class EchoListenHadamard(
                 The key or the circuit to execute.
             wave2 (Union[QuantumCircuit, WCKeyable]):
                 The key or the circuit to execute.
-            degree (Optional[Union[int, tuple[int, int]]], optional):
-                The degree of the experiment.
-                Defaults to None.
+            degree (int | tuple[int, int] | None, optional):
+                The degree of the experiment. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -68,23 +67,21 @@ class EchoListenHadamard(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`~qiskit.compiler.transpile`.
-                Defaults to None.
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
             passmanager (PassManagerType, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             EchoListenHadamardOutputArgs: The output arguments.
@@ -113,35 +110,34 @@ class EchoListenHadamard(
 
     def measure(
         self,
-        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        degree: Union[int, tuple[int, int], None] = None,
+        wave1: QuantumCircuit | WCKeyable | None = None,
+        wave2: QuantumCircuit | WCKeyable | None = None,
+        degree: int | tuple[int, int] | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> str:
         """Execute the experiment.
 
         Args:
-            wave1 (Union[QuantumCircuit, WCKeyable]):
+            wave1 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, WCKeyable]):
+            wave2 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            degree (Optional[Union[int, tuple[int, int]]], optional):
-                The degree of the experiment.
-                Defaults to None.
+            degree (int | tuple[int, int] | None, optional):
+                The degree of the experiment. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -150,23 +146,21 @@ class EchoListenHadamard(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`~qiskit.compiler.transpile`.
-                Defaults to None.
-            passmanager (PassManagerType, optional):
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
             str: The ID of the experiment.

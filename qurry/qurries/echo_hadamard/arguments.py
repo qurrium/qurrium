@@ -1,6 +1,6 @@
 """EchoListenHadamard - Arguments (:mod:`qurry.qurries.echo_hadamard.arguments`)"""
 
-from typing import Any, Union
+from typing import Any
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -28,10 +28,7 @@ class ELHArguments(ArgumentsPrototype):
             raw_dict (dict[str, Any]): The raw read dictionary.
         """
 
-        return cls(
-            exp_name=raw_dict["exp_name"],
-            degree=tuple(raw_dict["degree"]),
-        )
+        return cls(exp_name=raw_dict["exp_name"], degree=tuple(raw_dict["degree"]))
 
 
 class ELHMeasureArgs(BasicArgs, total=False):
@@ -39,11 +36,11 @@ class ELHMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.echo_hadamard.qurry.EchoListenHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave1: Union[QuantumCircuit, WCKeyable]
+    wave1: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
-    wave2: Union[QuantumCircuit, WCKeyable]
+    wave2: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
-    degree: Union[int, tuple[int, int], None]
+    degree: int | tuple[int, int] | None
     """The degree range."""
 
 
@@ -51,7 +48,7 @@ class ELHOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.echo_hadamard.qurry.EchoListenHadamard.output`."""
 
-    degree: Union[int, tuple[int, int], None]
+    degree: int | tuple[int, int] | None
     """The degree range."""
 
 

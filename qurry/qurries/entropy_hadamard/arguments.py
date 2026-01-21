@@ -1,6 +1,6 @@
 """EntropyMeasureHadamard - Arguments (:mod:`qurry.qurries.entropy_hadamard.arguments`)"""
 
-from typing import Any, Union
+from typing import Any
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -28,10 +28,7 @@ class EMHArguments(ArgumentsPrototype):
             raw_dict (dict[str, Any]): The raw read dictionary.
         """
 
-        return cls(
-            exp_name=raw_dict["exp_name"],
-            degree=tuple(raw_dict["degree"]),
-        )
+        return cls(exp_name=raw_dict["exp_name"], degree=tuple(raw_dict["degree"]))
 
 
 class EMHMeasureArgs(BasicArgs, total=False):
@@ -39,9 +36,9 @@ class EMHMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.entropy_hadamard.qurry.EntropyMeasureHadamard.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Union[QuantumCircuit, WCKeyable]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
-    degree: Union[int, tuple[int, int], None]
+    degree: int | tuple[int, int] | None
     """The degree range."""
 
 
@@ -49,7 +46,7 @@ class EMHOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.entropy_hadamard.qurry.EntropyMeasureHadamard.output`."""
 
-    degree: Union[int, tuple[int, int], None]
+    degree: int | tuple[int, int] | None
     """The degree range."""
 
 

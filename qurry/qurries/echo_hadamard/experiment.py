@@ -1,6 +1,6 @@
 """EchoListenHadamard - Experiment (:mod:`qurry.qurries.echo_hadamard.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
@@ -31,7 +31,7 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
-        degree: Optional[tuple[int, int]] = None,
+        degree: tuple[int, int] | None = None,
         **custom_kwargs: Any,
     ) -> tuple[ELHArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -44,9 +44,8 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'experiment'`.
-            degree (Optional[tuple[int, int]], optional):
-                The degree range.
-                Defaults to None.
+            degree (tuple[int, int] | None, optional):
+                The degree range. Defaults to None.
             custom_kwargs (Any):
                 The custom parameters.
 
@@ -86,7 +85,7 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELHArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -96,7 +95,7 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
                 The circuits of the experiment.
             arguments (EchoListenHadamardArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -108,46 +107,46 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
         """
 
         target_key_01, target_circuit_01 = targets[0]
-        target_key_01 = "" if isinstance(target_key_01, int) else str(target_key_01)
-        num_qubits_01 = target_circuit_01.num_qubits
-        old_name_01 = "" if isinstance(target_circuit_01.name, str) else target_circuit_01.name
         target_key_02, target_circuit_02 = targets[1]
-        target_key_02 = "" if isinstance(target_key_02, int) else str(target_key_02)
-        num_qubits_02 = target_circuit_02.num_qubits
-        old_name_02 = "" if isinstance(target_circuit_02.name, str) else target_circuit_02.name
 
+        num_qubits_01 = target_circuit_01.num_qubits
+        num_qubits_02 = target_circuit_02.num_qubits
         assert num_qubits_01 == num_qubits_02, (
             "The number of qubits in two circuits should be the same, "
             + f"but got {target_key_01}: {num_qubits_01} and {target_key_02}: {num_qubits_02}. "
             + "This should be checked in 'params_control' already."
         )
 
+        naming_component = []
+        if not isinstance(target_key_01, int):
+            naming_component.append(str(target_key_01))
+        elif isinstance(target_circuit_01.name, str):
+            naming_component.append(target_circuit_01.name)
+        else:
+            naming_component.append("")
+
+        if not isinstance(target_key_02, int):
+            naming_component.append(str(target_key_02))
+        elif isinstance(target_circuit_02.name, str):
+            naming_component.append(target_circuit_02.name)
+        else:
+            naming_component.append("")
+
         q_ancilla = QuantumRegister(1, "ancilla_1")
         q_func1 = QuantumRegister(num_qubits_01, "q1")
         q_func2 = QuantumRegister(num_qubits_01, "q2")
         c_meas1 = ClassicalRegister(1, "c1")
-        qc_exp1 = QuantumCircuit(q_ancilla, q_func1, q_func2, c_meas1)
-        qc_exp1.name = (
-            f"{arguments.exp_name}" + ""
-            if len(target_key_01) < 1 and len(target_key_02) < 1
-            else (
-                f".{target_key_01}_{target_key_02}" + ""
-                if len(old_name_01) < 1 and len(old_name_02) < 1
-                else f".{old_name_01}_{old_name_02}"
-            )
+        qc_exp1 = QuantumCircuit(
+            q_ancilla,
+            q_func1,
+            q_func2,
+            c_meas1,
+            name=f"{arguments.exp_name}." + "_".join(naming_component),
         )
 
-        qc_exp1.compose(
-            target_circuit_01,
-            [q_func1[i] for i in range(num_qubits_01)],
-            inplace=True,
-        )
+        qc_exp1.compose(target_circuit_01, [q_func1[i] for i in range(num_qubits_01)], inplace=True)
 
-        qc_exp1.compose(
-            target_circuit_02,
-            [q_func2[i] for i in range(num_qubits_01)],
-            inplace=True,
-        )
+        qc_exp1.compose(target_circuit_02, [q_func2[i] for i in range(num_qubits_01)], inplace=True)
 
         qc_exp1.barrier()
         qc_exp1.h(q_ancilla)
