@@ -79,11 +79,11 @@ class QurryInfo(CustomDict[str, dict[str, str]]):
             encoding=DEFAULT_ENCODING,
         )
 
-    def update_qurryinfo(self, other: "QurryInfo" | dict[str, dict[str, str]]) -> None:
+    def update_qurryinfo(self, other: "QurryInfo | dict[str, dict[str, str]]") -> None:
         """Update the qurryinfo with another dictionary.
 
         Args:
-            other ("QurryInfo" | dict[str, dict[str, str]]):
+            other (QurryInfo | dict[str, dict[str, str]]):
                 The other dictionary to update the qurryinfo.
         """
 
