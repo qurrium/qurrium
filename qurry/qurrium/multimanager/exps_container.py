@@ -244,7 +244,7 @@ def experiment_writer(
 
     # for id_exec, files in all_qurryinfo_items:
     qurryinfo = QurryInfo.read(save_location=multicommons.export_location)
-    qurryinfo.update(qurryinfo_dict)
+    qurryinfo.update_qurryinfo(qurryinfo_dict)
     qurryinfo.write(save_location=multicommons.export_location)
 
     return qurryinfo

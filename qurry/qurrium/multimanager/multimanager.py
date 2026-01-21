@@ -449,7 +449,7 @@ class MultiManager(Generic[_E]):
             multiprocess=multiprocess,
         )
         current_multimanager.exps.update({exp.commons.exp_id: exp for exp in reading_results})
-        current_multimanager.qurryinfo.update(
+        current_multimanager.qurryinfo.update_qurryinfo(
             QurryInfo.read(
                 save_location=current_multimanager.multicommons.export_location,
             )
@@ -560,7 +560,7 @@ class MultiManager(Generic[_E]):
 
         # experiments
         if not skip_exps:
-            self.qurryinfo.update(
+            self.qurryinfo.update_qurryinfo(
                 experiment_writer(
                     experiment_container=self.exps,
                     beforewards=self.beforewards,

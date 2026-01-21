@@ -846,7 +846,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         real_export_location = Path(self.commons.save_location) / export_material.folder
         qurry_info = QurryInfo.read(real_export_location)
-        qurry_info.update({exp_id: files})
+        qurry_info.update_qurryinfo({exp_id: files})
         qurry_info.write(real_export_location)
 
         return exp_id, qurry_info[exp_id]

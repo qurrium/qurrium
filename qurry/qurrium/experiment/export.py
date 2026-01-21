@@ -1,7 +1,7 @@
 """The instance for exporting data. (:mod:`qurry.qurrium.experiment.export`)"""
 
 import os
-from typing import Union, Literal
+from typing import Literal
 from dataclasses import dataclass
 from pathlib import Path
 import json
@@ -21,7 +21,7 @@ from ...capsule.mori import WrittenQueueUnit, WritableQueueUnit, UniversalWriter
 class QurryInfo(CustomDict[str, dict[str, str]]):
     """The type for qurryinfo dictionary."""
 
-    def __init__(self, *, qurryinfo_dict: Union[dict[str, dict[str, str]], None] = None):
+    def __init__(self, *, qurryinfo_dict: dict[str, dict[str, str]] | None = None):
         if qurryinfo_dict is None:
             super().__init__()
             return
@@ -62,11 +62,11 @@ class QurryInfo(CustomDict[str, dict[str, str]]):
         """
         return jsonablize(self)
 
-    def write(self, save_location: Union[Path, str]) -> None:
+    def write(self, save_location: Path | str) -> None:
         """Write the qurryinfo to the specified location.
 
         Args:
-            save_location (Union[Path, str]):
+            save_location (Path | str):
                 The location to save the qurryinfo.
         """
         qurryinfo_location = Path(save_location) / "qurryinfo.json"
@@ -79,13 +79,14 @@ class QurryInfo(CustomDict[str, dict[str, str]]):
             encoding=DEFAULT_ENCODING,
         )
 
-    def update(self, other: Union[dict[str, dict[str, str]], "QurryInfo"]) -> None:
+    def update_qurryinfo(self, other: "QurryInfo" | dict[str, dict[str, str]]) -> None:
         """Update the qurryinfo with another dictionary.
 
         Args:
-            other (Union[dict[str, dict[str, str]], "QurryInfo"]):
+            other ("QurryInfo" | dict[str, dict[str, str]]):
                 The other dictionary to update the qurryinfo.
         """
+
         if not isinstance(other, self.__class__):
             other = self.__class__(qurryinfo_dict=other)
 
@@ -107,11 +108,11 @@ class QurryInfo(CustomDict[str, dict[str, str]]):
         return cls(qurryinfo_dict=raw_dict)
 
     @classmethod
-    def read(cls, save_location: Union[Path, str]) -> "QurryInfo":
+    def read(cls, save_location: Path | str) -> "QurryInfo":
         """Read the qurryinfo from the specified location.
 
         Args:
-            save_location (Union[Path, str]):
+            save_location (Path | str):
                 The location to read the qurryinfo.
 
         Returns:
@@ -205,11 +206,11 @@ class Export(UniversalWriterABC):
                 + f"Invalid written_contents: {invalid_written_contents.keys()}"
             )
 
-    def write(self) -> tuple[str, dict[Union[str, Literal["folder", "qurryinfo"]], str]]:
+    def write(self) -> tuple[str, dict[Literal["folder", "qurryinfo"] | str, str]]:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
         Returns:
-            tuple[str, dict[str, str]]:
+            tuple[str, dict[Literal["folder", "qurryinfo"] | str, str]]:
                 The first element is the id of experiment,
                 the second element is the dictionary of files of experiment.
         """
@@ -257,22 +258,26 @@ class Export(UniversalWriterABC):
     def make(
         cls,
         identifier: str,
-        save_location: Union[Path, str],
+        save_location: Path | str,
         writable_objects_params: list[WritableQueueUnit],
-        exp_id: Union[str, None] = None,
-        folder: Union[str, None] = None,
+        exp_id: str | None = None,
+        folder: str | None = None,
     ) -> "Export":
         """Make a export object.
 
         Args:
             identifier (str): The identifier among multiple
                 :class:`FileWritableObj` objects used in filenames.
-            save_location (Union[Path, str]): The save location of multiple
+            save_location (Path | str): The save location of multiple
                 :class:`FileWritableObj` objects.
             writable_objects_params (list[WritableQueueUnit]):
                 The list of writable quene units, which contains
                 the :class:`FileWritableObj` objects and their extra arguments,
                 stored as :class:`WritableQueneUnit`.
+            exp_id (str | None, optional):
+                The experiment id used in filenames. Defaults to None.
+            folder (str | None, optional):
+                The folder used in filenames. Defaults to None.
 
         Returns:
             Export: The export object.

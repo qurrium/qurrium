@@ -148,11 +148,11 @@ class UniversalWriterABC(ABC):
             )
 
     @abstractmethod
-    def write(self) -> dict[str, str]:
+    def write(self) -> Any:
         """Export the experiment data, if there is a previous export, then will overwrite.
 
         Returns:
-            dict[str, str]: The dictionary of files of experiment.
+            Any: The result of writing process.
         """
 
     @classmethod
