@@ -1,7 +1,6 @@
 """Counts Tools (:mod:`qurry.qurrium.utils.counts`)"""
 
 import warnings
-from typing import Union, Optional
 
 from qiskit.result import Result
 from qiskit.exceptions import QiskitError
@@ -10,18 +9,19 @@ from ..exceptions import CountsLost
 
 
 def get_counts_and_exceptions(
-    result: Optional[Result],
-    num: Optional[int] = None,
-    result_idx_list: Optional[list[int]] = None,
+    result: Result | None,
+    num: int | None = None,
+    result_idx_list: list[int] | None = None,
 ) -> tuple[list[dict[str, int]], dict[str, Exception]]:
     """Get counts and exceptions from result.
 
     Args:
-        result (Optional[Result]): The result of job.
-        num (Optional[int], optional): The number of counts wanted to be extracted.
-            Defaults to None.
-        result_idx_list (Optional[list[int]], optional): The index of counts wanted to be extracted.
-            Defaults to None.
+        result (Result | None): 
+            The result of job.
+        num (int | None, optional): 
+            The number of counts wanted to be extracted. Defaults to None.
+        result_idx_list (list[int] | None, optional): 
+            The index of counts wanted to be extracted. Defaults to None.
 
     Returns:
         tuple[list[dict[str, int]], dict[str, Exception]]:
@@ -57,7 +57,7 @@ def get_counts_and_exceptions(
 
     if len(idx_list) == 0:
         try:
-            get: Union[list[dict[str, int]], dict[str, int]] = result.get_counts()
+            get: list[dict[str, int]] | dict[str, int] = result.get_counts()
             if isinstance(get, list):
                 counts: list[dict[str, int]] = get
             else:

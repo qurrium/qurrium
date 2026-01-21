@@ -1,8 +1,8 @@
 """The module of IO control. (:mod:`qurry.qurrium.utils.iocontrol`)"""
 
 import os
+from typing import NamedTuple
 from pathlib import Path
-from typing import Union, NamedTuple
 
 STAND_COMPRESS_FORMAT = "tar.xz"
 FULL_SUFFIX_OF_COMPRESS_FORMAT = f"qurry.{STAND_COMPRESS_FORMAT}"
@@ -43,7 +43,7 @@ class ExportFolderNaming(NamedTuple):
 def folder_naming(
     is_read: bool = False,
     exp_or_summoner_name: str = "exps",
-    save_location: Union[Path, str] = Path("./"),
+    save_location: Path | str = Path("./"),
     without_serial: bool = False,
     rjust_len: int = RJUST_LEN,
     index_rename: int = 0,

@@ -1,9 +1,9 @@
 """Experiment - Beforewards (:mod:`qurry.qurrium.experiment.beforewards`)"""
 
-import json
-from typing import Optional, Any, Union
+from typing import Any
 from pathlib import Path
 import warnings
+import json
 from dataclasses import dataclass, fields
 
 from qiskit import QuantumCircuit
@@ -69,7 +69,7 @@ class Before(FileReadableWritableObj):
         return self.__dict__
 
     # Experiment Preparation
-    target: list[tuple[WCKeyable, Union[QuantumCircuit, str]]]
+    target: list[tuple[WCKeyable, QuantumCircuit | str]]
     """The target circuits of experiment."""
     target_qasm: list[tuple[str, str]]
     """The OpenQASM of target circuits."""
@@ -259,11 +259,11 @@ class Before(FileReadableWritableObj):
         return revived_target
 
     @classmethod
-    def create(cls, beforewards: Optional["Before"]) -> "Before":
+    def create(cls, beforewards: "Before | None") -> "Before":
         """Create a :class:`Before` object.
 
         Args:
-            beforewards (Optional[Before]):
+            beforewards (Before | None):
                 The Beforewards object to create. Defaults to None.
 
         Raises:

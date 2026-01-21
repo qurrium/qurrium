@@ -1,7 +1,7 @@
 """Qurrium Runtime Instance (:mod:`qurry.qurrium.qurrium.qurrium`)"""
 
 from abc import abstractmethod, ABC
-from typing import Literal, Union, Optional, Any, Generic
+from typing import Literal, Any, Generic
 from pathlib import Path
 import tqdm
 
@@ -10,7 +10,6 @@ from qiskit.providers import Backend
 
 from .mm_container import MultiManagerContainer
 from .exps_wrapper import ExperimentContainerWrapper
-from ..utils import passmanager_processor
 from ..container import (
     RunArgsType,
     ConfigListType,
@@ -21,6 +20,7 @@ from ..container import (
     PassManagerType,
     WaveContainer,
     WCKeyable,
+    passmanager_processor,
 )
 from ..analysis import SpecificAnalyzeArgs, _RA
 from ..multimanager import (
@@ -52,25 +52,25 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def add(
         self,
         wave: QuantumCircuit,
-        key: Optional[WCKeyable] = None,
+        key: WCKeyable | None = None,
         replace: Literal[True, False, "duplicate"] = True,
     ) -> WCKeyable:
         """Add new wave function to measure.
 
         Args:
             wave (QuantumCircuit): The wave functions or circuits want to measure.
-            key (Optional[WCKeyable], optional):
+            key (WCKeyable | None, optional):
                 Given a specific key to add to the wave function or circuit,
                 if `key == None`, then generate a number as key.
                 Defaults to None.
-            replace (Literal[True, False, &#39;duplicate&#39;], optional):
+            replace (Literal[True, False, 'duplicate'], optional):
                 If the key is already in the wave function or circuit,
                 then replace the old wave function or circuit when `True`,
                 or duplicate the wave function or circuit when `'duplicate'`.
                 Defaults to `True`.
 
         Returns:
-            Optional[WCKeyable]: Key of given wave function in `.waves`.
+            WCKeyable | None: Key of given wave function in `.waves`.
         """
         return self.waves.add(wave=wave, key=key, replace=replace)
 
@@ -128,25 +128,25 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
     def build(
         self,
-        circuits: list[Union[QuantumCircuit, WCKeyable]],
+        circuits: list[QuantumCircuit | WCKeyable],
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType | None = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
         **custom_and_main_kwargs: Any,
     ) -> str:
         """Build the experiment.
 
         Args:
-            circuits (list[Union[QuantumCircuit, WCKeyable]]):
+            circuits (list[QuantumCircuit | WCKeyable]):
                 The circuits or keys of circuits in `.waves`.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -160,23 +160,22 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            passmanager (PassManagerType, optional):
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Given tags for the experiment to describe it.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
             custom_and_main_kwargs (Any):
                 Other custom arguments.
 
@@ -211,32 +210,31 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def output(
         self,
         # create new exp
-        circuits: Optional[list[Union[QuantumCircuit, WCKeyable]]] = None,
+        circuits: list[QuantumCircuit | WCKeyable] | None = None,
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType | None = None,
+        tags: tuple[str, ...] | None = None,
         # already built exp
-        exp_id: Optional[str] = None,
+        exp_id: str | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
         **custom_and_main_kwargs: Any,
     ) -> str:
         """Output the experiment.
 
         Args:
-            circuits (Optional[list[Union[QuantumCircuit, WCKeyable]]], optional):
-                The circuits or keys of circuits in `.waves`.
-                Defaults to None.
+            circuits (list[QuantumCircuit | WCKeyable] | None, optional):
+                The circuits or keys of circuits in `.waves`. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 Naming this experiment to recognize it
@@ -245,27 +243,24 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
-                Arguments of :func:`~qiskit.compiler.transpile`.
-                Defaults to None.
-            passmanager (PassManagerType, optional):
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
-                Given tags for the experiment to describe it.
-                Defaults to None.
+            tags (tuple[str, ...] | None, optional):
+                Given tags for the experiment to describe it. Defaults to None.
 
-            exp_id (Optional[str], optional):
+            exp_id (str | None, optional):
                 The ID of experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The export version of OpenQASM. Defaults to 'qasm3'.
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
             custom_and_main_kwargs (Any):
                 Other custom arguments.
 
@@ -317,14 +312,14 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiBuild(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: Optional[str] = None,
-        summoner_id: Optional[str] = None,
+        summoner_name: str | None = None,
+        summoner_id: str | None = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         manager_run_args: RunArgsType = None,
-        save_location: Union[Path, str] = Path("./"),
-        jobstype: Union[Literal["local"], PendingTargetProviderLiteral] = "local",
+        save_location: Path | str = Path("./"),
+        jobstype: Literal["local"] | PendingTargetProviderLiteral = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
         skip_build_write: bool = True,
         multiprocess_build: bool = False,
@@ -335,30 +330,28 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 When `None`, it will be set to their coresponding :attr:`short_name`.
-            summoner_id (Optional[str], optional):
+            summoner_id (str | None, optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
                 The backend to run. Defaults to GeneralSimulator().
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Tags of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 Defaults to None.
-            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            manager_run_args (BaseRunArgs | dict[str, Any] | None, optional):
                 The extra arguments for running the job, but for all experiments
                 in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
                 for :meth:`~qiskit.providers.backend.BackendV2.run`.
                 Defaults to None.
-            save_location (Union[Path, str], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then cancelled the file to be exported.
-                Defaults to Path('./').
-            jobstype (Union[Literal['local'], PendingTargetProviderLiteral], optional):
+            save_location (Path | str, optional):
+                Where to save the export content as `json` file. Defaults to Path('./').
+            jobstype (Literal['local'] | PendingTargetProviderLiteral, optional):
                 Type of jobs to run multiple experiments.
                 jobstype: "local", "IBMQ", "IBM", "AWS_Bracket", "Azure_Q"
                 Defaults to "local".
@@ -426,13 +419,13 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiOutput(
         self,
         config_list: ConfigListType[_MA],
-        summoner_name: Optional[str] = None,
-        summoner_id: Optional[str] = None,
+        summoner_name: str | None = None,
+        summoner_id: str | None = None,
         shots: int = 1024,
         backend: Backend = GeneralSimulator(),
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         manager_run_args: RunArgsType = None,
-        save_location: Union[Path, str] = Path("./"),
+        save_location: Path | str = Path("./"),
         skip_build_write: bool = True,
         skip_output_write: bool = False,
         multiprocess_build: bool = False,
@@ -443,28 +436,26 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Args:
             config_list (ConfigListType[_BA]):
                 The list of default configurations of multiple experiment.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name for multimanager. Defaults to None.
                 When `None`, it will be set to their coresponding :attr:`short_name`.
-            summoner_id (Optional[str], optional):
+            summoner_id (str | None, optional):
                 Id for multimanager. Defaults to None.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend, optional):
                 The backend to run. Defaults to GeneralSimulator().
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Tags of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 Defaults to None.
-            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            manager_run_args (BaseRunArgs | dict[str, Any] | None, optional):
                 The extra arguments for running the job, but for all experiments
                 in the :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`
                 for :meth:`~qiskit.providers.backend.BackendV2.run`.
                 Defaults to None.
-            save_location (Union[Path, str], optional):
-                Where to save the export content as `json` file.
-                If `save_location == None`, then cancelled the file to be exported.
-                Defaults to Path('./').
+            save_location (Path | str, optional):
+                Where to save the export content as `json` file. Defaults to Path('./').
             skip_build_write (bool, optional):
                 Whether to skip the file writing during the building. Defaults to True.
             skip_output_write (bool, optional):
@@ -591,7 +582,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiWrite(
         self,
         summoner_id: str,
-        save_location: Optional[Union[Path, str]] = None,
+        save_location: Path | str | None = None,
         export_transpiled_circuit: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
@@ -601,13 +592,12 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
         Args:
             summoner_id (str): The summoner_id of multimanager.
-            save_location (Union[Path, str], optional):
+            save_location (Path | str | None, optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').
             export_transpiled_circuit (bool, optional):
-                Whether to export the transpiled circuit.
-                Defaults to False.
+                Whether to export the transpiled circuit. Defaults to False.
             skip_exps (bool, optional):
                 Skip the experiments. Defaults to False.
             skip_quantities (bool, optional):
@@ -641,7 +631,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     def multiRead(
         self,
         summoner_name: str,
-        save_location: Union[Path, str] = Path("./"),
+        save_location: Path | str = Path("./"),
         reload: bool = False,
         multiprocess: bool = True,
     ) -> str:
@@ -649,7 +639,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
 
         Args:
             summoner_name (str): Name for multimanager.
-            save_location (Union[Path, str], optional):
+            save_location (Path | str, optional):
                 Where to save the export content as `json` file.
                 If `save_location == None`, then cancelled the file to be exported.
                 Defaults to Path('./').

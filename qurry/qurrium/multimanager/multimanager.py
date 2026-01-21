@@ -4,7 +4,7 @@
 import os
 import warnings
 from pathlib import Path
-from typing import Union, Optional, Any, Generic
+from typing import Any, Generic
 from uuid import uuid4
 from multiprocessing import get_context
 
@@ -121,7 +121,7 @@ class MultiManager(Generic[_E]):
         beforewards: Before,
         quantity_info: MutltiQuantityInfo,
         outfields: dict[str, Any],
-        gitignore: Optional[Union[GitSyncControl, list[str]]] = None,
+        gitignore: GitSyncControl | list[str] | None = None,
     ):
         """Initialize the multi-experiment."""
 
@@ -226,15 +226,15 @@ class MultiManager(Generic[_E]):
         cls,
         config_list: list[dict[str, Any]],
         experiment_instance: type[_E],
-        summoner_name: Optional[str] = None,
-        shots: Optional[int] = None,
+        summoner_name: str | None = None,
+        shots: int | None = None,
         backend: Backend = GeneralSimulator(),
-        tags: Optional[tuple[str, ...]] = None,
-        manager_run_args: Optional[Union[BaseRunArgs, dict[str, Any]]] = None,
+        tags: tuple[str, ...] | None = None,
+        manager_run_args: BaseRunArgs | dict[str, Any] | None = None,
         jobstype: PendingTargetProviderLiteral = "local",
         pending_strategy: PendingStrategyLiteral = "tags",
         # save parameters
-        save_location: Union[Path, str] = Path("./"),
+        save_location: Path | str = Path("./"),
         skip_writing: bool = False,
         multiprocess_build: bool = False,
         multiprocess_write: bool = False,
@@ -245,19 +245,23 @@ class MultiManager(Generic[_E]):
             config_list (list[dict[str, Any]]):
                 The list of config of experiments.
                 This config is used to build the experiments.
-            experiment_instance (ExperimentPrototype): The instance of experiment.
-            summoner_name (Optional[str], optional):
+            experiment_instance (ExperimentPrototype):
+                The instance of experiment.
+            summoner_name (str | None, optional):
                 Name of experiment of the :class:`MultiManager`. Defaults to None.
-            shots (Optional[int], optional): The shots of experiments. Defaults to None.
-            backend (Backend, optional): The backend of experiments. Defaults to GeneralSimulator().
-            tags (Optional[tuple[str, ...]], optional): The tags of experiments. Defaults to None.
-            manager_run_args (Optional[Union[BaseRunArgs, dict[str, Any]]], optional):
+            shots (int | None, optional):
+                The shots of experiments. Defaults to None.
+            backend (Backend, optional):
+                The backend of experiments. Defaults to GeneralSimulator().
+            tags (tuple[str, ...] | None, optional):
+                The tags of experiments. Defaults to None.
+            manager_run_args (BaseRunArgs | dict[str, Any] | None, optional):
                 The arguments of manager run. Defaults to None.
             jobstype (PendingTargetProviderLiteral, optional):
                 The jobstype of experiments. Defaults to "local".
             pending_strategy (PendingStrategyLiteral, optional):
                 The pending strategy of experiments. Defaults to "tags".
-            save_location (Union[Path, str], optional):
+            save_location (Path | str, optional):
                 Location of saving experiment. Defaults to Path("./").
             skip_writing (bool, optional):
                 Whether skip writing. Defaults to False.
@@ -393,7 +397,7 @@ class MultiManager(Generic[_E]):
         cls,
         summoner_name: str,
         experiment_instance: type[_E],
-        save_location: Union[Path, str] = Path("./"),
+        save_location: Path | str = Path("./"),
         is_read_or_retrieve: bool = False,
         multiprocess: bool = True,
     ) -> "MultiManager[_E]":
@@ -402,9 +406,9 @@ class MultiManager(Generic[_E]):
         Args:
             experiment_instance (type[ExperimentPrototype]):
                 The instance of experiment.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name of experiment of the :class:`MultiManager`. Defaults to None.
-            save_location (Union[Path, str], optional):
+            save_location (Path | str, optional):
                 Location of saving experiment. Defaults to Path("./").
             is_read_or_retrieve (bool, optional):
                 Whether read or retrieve. Defaults to False.
@@ -457,11 +461,11 @@ class MultiManager(Generic[_E]):
 
         return current_multimanager
 
-    def update_save_location(self, save_location: Union[Path, str], without_serial: bool = True):
+    def update_save_location(self, save_location: Path | str, without_serial: bool = True):
         """Update the save location of the multi-experiment.
 
         Args:
-            save_location (Union[Path, str]): Location of saving experiment.
+            save_location (Path | str): Location of saving experiment.
             without_serial (bool, optional): Whether without serial number. Defaults to True.
         """
         save_location = Path(save_location)
@@ -497,7 +501,7 @@ class MultiManager(Generic[_E]):
 
     def write(
         self,
-        save_location: Optional[Union[Path, str]] = None,
+        save_location: Path | str | None = None,
         export_transpiled_circuit: bool = False,
         skip_exps: bool = False,
         skip_quantities: bool = False,
@@ -506,7 +510,7 @@ class MultiManager(Generic[_E]):
         """Export the multi-experiment.
 
         Args:
-            save_location (Union[Path, str], optional): Location of saving experiment.
+            save_location (Path | str | None, optional): Location of saving experiment.
                 Defaults to None.
             skip_manager_info (bool, optional):
                 Skip the multimanager info. Defaults to False.
@@ -577,17 +581,21 @@ class MultiManager(Generic[_E]):
         analysis_name: str = "report",
         no_serialize: bool = False,
         specific_analysis_args: SpecificAnalyzeArgs[_RA] = None,
-        **analysis_args: Union[dict[str, Any], AnalyzeArgs],
+        **analysis_args: dict[str, Any] | AnalyzeArgs,
     ) -> str:
         """Analyze the experiments.
 
         Args:
-            exps_container (ExperimentContainer[_ExpInst]): The container of experiments.
-            analysis_name (str, optional): The name of analysis. Defaults to "report".
-            no_serialize (bool, optional): Whether serialize the analysis. Defaults to False.
-            specific_analysis_args (SpecificAnalsisArgs, optional):
+            exps_container (ExperimentContainer[_ExpInst]):
+                The container of experiments.
+            analysis_name (str, optional):
+                The name of analysis. Defaults to "report".
+            no_serialize (bool, optional):
+                Whether serialize the analysis. Defaults to False.
+            specific_analysis_args (SpecificAnalyzeArgs, optional):
                 The specific analysis arguments. Defaults to None.
-            **analysis_args (Union[dict[str, Any], AnalyzeArgs]): The arguments of analysis.
+            **analysis_args (dict[str, Any] | AnalyzeArgs):
+            The arguments of analysis.
 
         Returns:
             str: The name of analysis.

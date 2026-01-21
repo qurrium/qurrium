@@ -2,9 +2,8 @@
 
 import os
 import warnings
-from uuid import uuid4, UUID
-from typing import Optional, Union
 from pathlib import Path
+from uuid import uuid4, UUID
 import tqdm
 import numpy as np
 
@@ -33,11 +32,11 @@ from ...capsule.hoshi import Hoshi
 from ...tools import ParallelManager, set_pbar_description
 
 
-def exp_id_process(exp_id: Optional[str]) -> str:
+def exp_id_process(exp_id: str | None) -> str:
     """Check the exp_id is valid or not, if not, then generate a new one.
 
     Args:
-        exp_id (Optional[str]): The id of the experiment to be checked.
+        exp_id (str | None): The id of the experiment to be checked.
 
     Raises:
         TypeError: If the exp_id is not a string.
@@ -65,7 +64,7 @@ def exp_id_process(exp_id: Optional[str]) -> str:
 
 
 def memory_usage_factor_expect(
-    target: list[tuple[WCKeyable, Union[QuantumCircuit, str]]],
+    target: list[tuple[WCKeyable, QuantumCircuit | str]],
     circuits: list[QuantumCircuit],
     commonparams: Commonparams,
 ) -> int:
@@ -88,7 +87,7 @@ def memory_usage_factor_expect(
     The factor is used to estimate the memory usage of the experiment.
 
     Args:
-        target (list[tuple[WCKeyable, Union[QuantumCircuit, str]]]):
+        target (list[tuple[WCKeyable, QuantumCircuit | str]]):
             The target circuits of the experiment.
         circuits (list[QuantumCircuit]): The transpiled circuits of the experiment.
         commonparams (Commonparams): The common parameters of the experiment.
@@ -134,15 +133,13 @@ def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Comm
         )
 
 
-def summonner_check(
-    serial: Optional[int], summoner_id: Optional[str], summoner_name: Optional[str]
-):
+def summonner_check(serial: int | None, summoner_id: str | None, summoner_name: str | None):
     """Check the summoner information taken from the experiment.
 
     Args:
-        serial (Optional[int]): The serial number of the experiment.
-        summoner_id (Optional[str]): The ID of the summoner.
-        summoner_name (Optional[str]): The name of the summoner.
+        serial (int | None): The serial number of the experiment.
+        summoner_id (str | None): The ID of the summoner.
+        summoner_name (str | None): The name of the summoner.
 
     Raises:
         QurrySummonerInvalid: If the summoner information is not completed.
@@ -233,7 +230,7 @@ def inner_process_transpile_func(
     transpile_args: TranspileArgs,
     backend: Backend,
     multiprocess: bool = False,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> list[QuantumCircuit]:
     """The inner process for transpiling the circuits without passmanager.
 
@@ -248,7 +245,7 @@ def inner_process_transpile_func(
             The experiment ID, used for warning messages.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:
@@ -271,7 +268,7 @@ def inner_process_passmanager(
     passmanager_pair: tuple[str, PassManager],
     exp_id: str,
     multiprocess: bool = False,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> list[QuantumCircuit]:
     """The inner process for transpiling the circuits with passmanager.
 
@@ -286,7 +283,7 @@ def inner_process_passmanager(
             The experiment ID, used for warning messages.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:
@@ -317,10 +314,10 @@ def process_transpilation(
     circuits: list[QuantumCircuit],
     transpile_args: TranspileArgs,
     backend: Backend,
-    passmanager_pair: Optional[tuple[str, PassManager]],
+    passmanager_pair: tuple[str, PassManager] | None,
     exp_id: str,
     multiprocess: bool = False,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> list[QuantumCircuit]:
     """Process the transpilation of the circuits.
 
@@ -331,13 +328,13 @@ def process_transpilation(
             The transpile arguments.
         backend (Backend):
             The backend to be used for transpilation.
-        passmanager_pair (Optional[tuple[str, PassManager]]):
+        passmanager_pair (tuple[str, PassManager] | None):
             The passmanager name and the passmanager to be used.
         exp_id (str):
             The experiment ID, used for warning messages.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:
@@ -355,15 +352,15 @@ def process_duo_transpilation(
     circuits: list[QuantumCircuit],
     backend: Backend,
     transpile_args: TranspileArgs,
-    passmanager_pair: Optional[tuple[str, PassManager]],
-    second_backend: Optional[Backend],
-    second_transpile_args: Optional[TranspileArgs],
-    second_passmanager_pair: Optional[tuple[str, PassManager]],
+    passmanager_pair: tuple[str, PassManager] | None,
+    second_backend: Backend | None,
+    second_transpile_args: TranspileArgs | None,
+    second_passmanager_pair: tuple[str, PassManager] | None,
     times: int,
     # other args
     exp_id: str,
     multiprocess: bool = False,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
 ) -> list[QuantumCircuit]:
     """Process the transpilation of the circuits between 2 list of quantum circuits
     with respecting to the given backend and transpile arguments.
@@ -375,13 +372,13 @@ def process_duo_transpilation(
             The backend to be used for transpilation.
         transpile_args (TranspileArgs):
             The transpile arguments.
-        passmanager_pair (Optional[tuple[str, PassManager]]):
+        passmanager_pair (tuple[str, PassManager] | None):
             The passmanager name and the passmanager to be used.
-        second_backend (Optional[Backend]):
+        second_backend (Backend | None):
             The backend to be used for transpilation of the second list of circuits.
-        second_transpile_args (TranspileArgs):
+        second_transpile_args (TranspileArgs | None):
             The transpile arguments of the second circuit.
-        second_passmanager_pair (Optional[tuple[str, PassManager]]):
+        second_passmanager_pair (tuple[str, PassManager] | None):
             The passmanager name and the passmanager to be used for the second list of circuits.
         times (int):
             The number of circuits for each quantum circuit.
@@ -390,7 +387,7 @@ def process_duo_transpilation(
             The experiment ID, used for warning messages.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:
@@ -556,14 +553,13 @@ def make_statesheet(
 
 
 def create_save_location(
-    save_location: Optional[Union[str, Path]],
-    commons: Optional[Commonparams] = None,
+    save_location: str | Path | None, commons: Commonparams | None = None
 ) -> Path:
     """Create a save location for the experiment.
 
     Args:
-        save_location (Optional[str]): The save location of the experiment.
-        commons (Optional[Commonparams]):
+        save_location (str | Path | None): The save location of the experiment.
+        commons (Commonparams | None, optional):
             The common parameters of the experiment.
             It is used to get the default save location if `save_location` is None.
 
@@ -632,11 +628,11 @@ def decide_folder_and_filename(commons: Commonparams, args: ArgumentsPrototype) 
     return folder, f"id={commons.exp_id}"
 
 
-def ensure_runnable_backend(backend: Union[Backend, str]) -> None:
+def ensure_runnable_backend(backend: Backend | str) -> None:
     """Ensure the backend is runnable.
 
     Args:
-        backend (Union[Backend, str]): The backend to be checked.
+        backend (Backend | str): The backend to be checked.
 
     Raises:
         ValueError: If the backend is given as a string.

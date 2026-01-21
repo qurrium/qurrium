@@ -1,7 +1,7 @@
 """MultiManager - Arguments (:mod:`qurry.qurrium.multimanager.arguments`)"""
 
 from pathlib import Path
-from typing import Literal, Union, NamedTuple, Any, TypedDict
+from typing import Literal, NamedTuple, Any, TypedDict
 import json
 
 from qiskit.providers import Backend
@@ -63,14 +63,14 @@ class MultiCommonparamsRawdDict(TypedDict):
     summoner_name: str
     tags: list[str]
     shots: int
-    backend: Union[Backend, str]
-    save_location: Union[Path, str]
-    export_location: Union[Path, str]
-    files: dict[str, Union[str, dict[str, str]]]
+    backend: Backend | str
+    save_location: Path | str
+    export_location: Path | str
+    files: dict[str, str | dict[str, str]]
     jobstype: PendingTargetProviderLiteral
     pending_strategy: PendingStrategyLiteral
-    manager_run_args: Union[BaseRunArgs, dict[str, Any]]
-    datetimes: Union[DatetimeDict, dict[str, str]]
+    manager_run_args: BaseRunArgs | dict[str, Any]
+    datetimes: DatetimeDict | dict[str, str]
     outfields: dict[str, Any]
 
 
@@ -81,13 +81,13 @@ class MultiCommonparamsDict(TypedDict):
     summoner_name: str
     tags: list[str]
     shots: int
-    backend: Union[Backend, str]
-    save_location: Union[Path, str]
-    export_location: Union[Path, str]
-    files: dict[str, Union[str, dict[str, str]]]
+    backend: Backend | str
+    save_location: Path | str
+    export_location: Path | str
+    files: dict[str, str | dict[str, str]]
     jobstype: PendingTargetProviderLiteral
     pending_strategy: PendingStrategyLiteral
-    manager_run_args: Union[BaseRunArgs, dict[str, Any]]
+    manager_run_args: BaseRunArgs | dict[str, Any]
     datetimes: DatetimeDict
 
 
@@ -103,7 +103,7 @@ class MultiCommonparams(NamedTuple):
 
     shots: int
     """Number of shots to run the program (default: 1024), which multiple experiments shared."""
-    backend: Union[Backend, str]
+    backend: Backend | str
     """Backend to execute the circuits on, which multiple experiments shared."""
 
     save_location: Path
@@ -111,7 +111,7 @@ class MultiCommonparams(NamedTuple):
     export_location: Path
     """Location of exporting experiment, 
     export_location is the final result decided by experiment."""
-    files: dict[str, Union[str, dict[str, str]]]
+    files: dict[str, str | dict[str, str]]
 
     jobstype: PendingTargetProviderLiteral
     """Type of jobs to run multiple experiments.
@@ -122,8 +122,8 @@ class MultiCommonparams(NamedTuple):
     - pendingStrategy: "default", "onetime", "each", "tags"
     """
 
-    manager_run_args: Union[BaseRunArgs, dict[str, Any]]
-    """Other arguments will be passed to `IBMQJobManager()`"""
+    manager_run_args: BaseRunArgs | dict[str, Any]
+    """Run arguments for all experiments, which multiple experiments shared."""
 
     # header
     datetimes: DatetimeDict
@@ -149,22 +149,19 @@ class MultiCommonparams(NamedTuple):
     @classmethod
     def rawread(
         cls,
-        mutlticonfig_name: Union[Path, str],
-        save_location: Union[Path, str],
-        export_location: Union[Path, str],
-    ) -> Union[MultiCommonparamsRawdDict, dict[str, Any]]:
+        mutlticonfig_name: Path | str,
+        save_location: Path | str,
+        export_location: Path | str,
+    ) -> MultiCommonparamsRawdDict | dict[str, Any]:
         """Build :class:`MultiCommonparams` from rawread file.
 
         Args:
-            mutlticonfig_name (Union[Path, str]):
-                The path of the rawread file.
-            save_location (Union[Path, str]):
-                The location of saving experiment.
-            export_location (Union[Path, str]):
-                The location of exporting experiment.
+            mutlticonfig_name (Path | str): The path of the rawread file.
+            save_location (Path | str): The location of saving experiment.
+            export_location (Path | str): The location of exporting experiment.
 
         Returns:
-            Union[MultiCommonparamsRawreadDict, dict[str, Any]]:
+            MultiCommonparamsRawdDict | dict[str, Any]:
                 The :class:`MultiCommonparams` in dictionary format.
         """
 
@@ -194,13 +191,12 @@ class MultiCommonparams(NamedTuple):
 
     @classmethod
     def build(
-        cls,
-        raw_multiconfig: Union[MultiCommonparamsRawdDict, dict[str, Any]],
+        cls, raw_multiconfig: MultiCommonparamsRawdDict | dict[str, Any]
     ) -> tuple["MultiCommonparams", dict[str, Any]]:
         """Build `MultiCommonparams` from rawread file.
 
         Args:
-            rawread_multiconfig (Union[MultiCommonparamsRawreadDict, dict[str, Any]]):
+            rawread_multiconfig (MultiCommonparamsRawdDict | dict[str, Any]):
                 The `MultiCommonparams` in dictionary format.
 
         Returns:

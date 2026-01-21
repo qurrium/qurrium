@@ -1,11 +1,11 @@
 """Experiment - Afterwards (:mod:`qurry.qurrium.experiment.afterwards`)"""
 
-import gc
-import json
-from typing import Any, Optional
+from typing import Any
 from pathlib import Path
 import warnings
 from dataclasses import dataclass, fields
+import gc
+import json
 
 from qiskit.result import Result
 
@@ -144,11 +144,11 @@ class After(FileReadableWritableObj):
             )
 
     @classmethod
-    def create(cls, afterwards: Optional["After"]) -> "After":
+    def create(cls, afterwards: "After | None") -> "After":
         """Create an :class:`After` object.
 
         Args:
-            afterwards (Union[After, None], optional):
+            afterwards (After | None, optional):
                 The After object to create. Defaults to None.
 
         Raises:

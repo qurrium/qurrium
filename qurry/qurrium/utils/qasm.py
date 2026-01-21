@@ -1,6 +1,6 @@
 """OpenQASM Processor (:mod:`qurry.qurrium.utils.qasm`)"""
 
-from typing import Literal, Optional
+from typing import Literal
 import warnings
 
 from qiskit import QuantumCircuit, __version__ as qiskit_version
@@ -116,14 +116,14 @@ def qasm_version_detect(qasm_str: str) -> AvailableQASMVersions:
 
 
 def qasm_loads(
-    qasm_str: str, qasm_version: Optional[AvailableQASMVersions] = None
-) -> Optional[QuantumCircuit]:
+    qasm_str: str, qasm_version: AvailableQASMVersions | None = None
+) -> QuantumCircuit | None:
     """Load the circuits from OpenQASM string.
 
     Args:
         qasm_str (str):
             The OpenQASM string wanted to be loaded.
-        qasm_version (Optional[AvailableQASMVersions], optional):
+        qasm_version (AvailableQASMVersions | None, optional):
             The export version of OpenQASM. Defaults to 'qasm3'.
 
     Raises:

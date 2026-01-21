@@ -1,6 +1,6 @@
 """WaveContainer (:mod:`qurry.qurrium.utils.wave_container`)"""
 
-from typing import Literal, Union, Optional, overload
+from typing import Literal, overload
 import warnings
 
 from qiskit import QuantumCircuit
@@ -9,7 +9,7 @@ from qiskit.circuit import Gate, Instruction
 
 from ...capsule import CustomDict, DEFAULT_INDENT
 
-WCKeyable = Union[tuple[str, ...], tuple[int, ...], tuple[Union[str, int], ...], str, int]
+WCKeyable = str | int | tuple[str | int, ...]
 """Type alias for keys used in WaveContainer.
 
 It can be a string, an integer, or a tuple of strings and/or integers.
@@ -52,14 +52,14 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
     def add(
         self,
         wave: QuantumCircuit,
-        key: Optional[WCKeyable] = None,
+        key: WCKeyable | None = None,
         replace: Literal[True, False, "duplicate"] = True,
     ) -> WCKeyable:
         """Add new wave function to measure.
 
         Args:
             wave (QuantumCircuit): The wave function or circuit to add.
-            key (Optional[WCKeyable], optional):
+            key (WCKeyable | None, optional):
                 Given a specific key to add to the wave function or circuit,
                 if `key == None`, then generate a number as key.
                 Defaults to None.
@@ -131,12 +131,12 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         return new_key
 
     def _add_or_get(
-        self, circ_or_key: Union[QuantumCircuit, WCKeyable]
+        self, circ_or_key: QuantumCircuit | WCKeyable
     ) -> tuple[WCKeyable, QuantumCircuit]:
         """Add new wave function to measure or get the wave function from container.
 
         Args:
-            circ_or_key (Union[QuantumCircuit, WCKeyable]):
+            circ_or_key (QuantumCircuit | WCKeyable):
                 The wave function or circuit to add,
                 or the key of wave function in container.
         Returns:
@@ -156,12 +156,12 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         )
 
     def process(
-        self, circuits: list[Union[QuantumCircuit, WCKeyable]]
+        self, circuits: list[QuantumCircuit | WCKeyable]
     ) -> list[tuple[WCKeyable, QuantumCircuit]]:
         """Process the circuits in container.
 
         Args:
-            circuits (list[Union[QuantumCircuit, WCKeyable]]):
+            circuits (list[QuantumCircuit | WCKeyable]):
                 The circuits or keys of circuits in container.
 
         Returns:
@@ -185,7 +185,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
     def get_wave(self, key_or_keys: WCKeyable, run_by: Literal["instruction"]) -> Instruction: ...
     @overload
     def get_wave(
-        self, key_or_keys: WCKeyable, run_by: Optional[Literal["copy", "call"]]
+        self, key_or_keys: WCKeyable, run_by: Literal["copy", "call"] | None = None
     ) -> QuantumCircuit: ...
 
     @overload
@@ -200,7 +200,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
     ) -> list[Instruction]: ...
     @overload
     def get_wave(
-        self, key_or_keys: list[WCKeyable], run_by: Optional[Literal["copy", "call"]]
+        self, key_or_keys: list[WCKeyable], run_by: Literal["copy", "call"] | None = None
     ) -> list[QuantumCircuit]: ...
 
     def get_wave(self, key_or_keys, run_by=None):
@@ -209,7 +209,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         Args:
             key_or_keys (Union[list[WCKeyable], WCKeyable]):
                 The key of wave in the container.
-            run_by (Optional[str], optional):
+            run_by (str | None, optional):
                 The method to export wave function.
                 - "operator": Export as :class:`~qiskit.quantum_info.Operator`.
                 - "gate": Export as :class:`~qiskit.circuit.Gate`.

@@ -1,6 +1,6 @@
 """MultiManager - Beforewards (:mod:`qurry.qurrium.multimanager.beforewards`)"""
 
-from typing import Literal, Union, Any
+from typing import Literal, Any
 from pathlib import Path
 from dataclasses import dataclass, fields
 import json
@@ -14,7 +14,7 @@ from ...capsule import (
     quick_json_write,
 )
 
-PendingTagsType = Union[str, tuple[str, ...], Literal["_onetime"]]
+PendingTagsType = str | tuple[str, ...] | Literal["_onetime"]
 """Type for tags in :class:`Before`."""
 
 STANDARD_FILE_INDEX = {

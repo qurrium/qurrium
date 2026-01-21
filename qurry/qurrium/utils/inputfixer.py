@@ -22,7 +22,9 @@ http://mwh.geek.nz:80/2009/04/26/python-damerau-levenshtein-distance
 """
 
 import warnings
-from typing import Any, Sequence
+from typing import Any
+from collections.abc import Sequence
+
 from ..exceptions import UnknownArgumentsKept
 
 try:
@@ -30,10 +32,7 @@ try:
 except ImportError:
     # Just in case for the package encouter some issues
 
-    def damerau_levenshtein_distance(
-        seq1: Sequence[str],
-        seq2: Sequence[str],
-    ) -> int:
+    def damerau_levenshtein_distance(seq1: Sequence[str], seq2: Sequence[str]) -> int:
         """Calculate the Damerau-Levenshtein distance between sequences.
 
         This distance is the number of additions, deletions, substitutions,
