@@ -1,6 +1,6 @@
 """Utility Modules for Qurrium (:mod:`qurry.qurrium.utils`)"""
 
-from .build import decomposer, passmanager_processor
+from .build import decomposer
 from .counts import get_counts_and_exceptions, bitstring_mapping_getter
 from .qasm import qasm_dumps, qasm_version_detect, qasm_loads, AvailableQASMVersions
 from .inputfixer import damerau_levenshtein_distance, outfields_check, outfields_hint
