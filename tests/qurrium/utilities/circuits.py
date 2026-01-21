@@ -107,15 +107,11 @@ def add_cnot_dyn(
     for i in range(1, t + x0):
         qc.h(2 * i + 1 - x0)
         qc.measure(2 * i + 1 - x0, c2[i - 1])
-        parity_control = (
-            expr.lift(c2[i - 1]) if i == 1 else expr.bit_xor(c2[i - 1], parity_control)
-        )
+        parity_control = expr.lift(c2[i - 1]) if i == 1 else expr.bit_xor(c2[i - 1], parity_control)
 
     for i in range(t):
         qc.measure(2 * i + x0, c1[i])
-        parity_target = (
-            expr.lift(c1[i]) if i == 0 else expr.bit_xor(c1[i], parity_target)
-        )
+        parity_target = expr.lift(c1[i]) if i == 0 else expr.bit_xor(c1[i], parity_target)
 
     if n > 0:
         with qc.if_test(parity_control):  # type: ignore
@@ -397,7 +393,6 @@ class TwoBodyWithMeasurement(TwoBody):
         clbit_num_cluster: int = 4,
         name: str | None = None,
     ) -> None:
-
         if num_qubits % 2 != 0:
             raise ValueError("Number of qubits must be even number")
         if num_qubits < 4:
@@ -436,9 +431,7 @@ class TwoBodyWithMeasurement(TwoBody):
 
 def make_ghz_overlap_case(
     num_qubits: int,
-    use_case: (
-        str | Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]
-    ),
+    use_case: (str | Literal["00", "01", "10", "11", "x-init-ghz", "intracell-plus", "singlet"]),
 ) -> QuantumCircuit:
     """Generate a GHZ overlap test case.
 

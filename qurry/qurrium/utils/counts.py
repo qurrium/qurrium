@@ -16,11 +16,11 @@ def get_counts_and_exceptions(
     """Get counts and exceptions from result.
 
     Args:
-        result (Result | None): 
+        result (Result | None):
             The result of job.
-        num (int | None, optional): 
+        num (int | None, optional):
             The number of counts wanted to be extracted. Defaults to None.
-        result_idx_list (list[int] | None, optional): 
+        result_idx_list (list[int] | None, optional):
             The index of counts wanted to be extracted. Defaults to None.
 
     Returns:
