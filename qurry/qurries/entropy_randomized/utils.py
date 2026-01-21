@@ -7,7 +7,7 @@ from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.quantum_info import Operator
 
 from .arguments import EMRArguments
-from .tales import EntropyMeasureTalesTypes
+from .tales import RandomizedMeasureTales
 from ...qurrium import WCKeyable
 from ...process.randomized_measure import (
     generate_random_unitary,
@@ -149,7 +149,7 @@ def method_process(
     arguments: EMRArguments,
     pbar: Optional[tqdm.tqdm] = None,
     multiprocess: bool = False,
-) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
+) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
     """The process method for building the circuits of the experiment.
 
     Args:
@@ -211,7 +211,9 @@ def method_process(
         + f" Get {[x[0] for x in result_list]}, expect {list(range(arguments.times))}."
     )
 
-    return [x[1] for x in result_list], {
-        "unitary_operator": {i: u_op for i, _q, u_op, _p_c in result_list},
-        "bloch_vector": {i: p_c for i, _q, _u_op, p_c in result_list},
-    }
+    return [x[1] for x in result_list], RandomizedMeasureTales(
+        {
+            "unitary_operator": {i: u_op for i, _q, u_op, _p_c in result_list},
+            "bloch_vector": {i: p_c for i, _q, _u_op, p_c in result_list},
+        }
+    )

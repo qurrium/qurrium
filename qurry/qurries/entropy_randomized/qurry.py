@@ -1,6 +1,7 @@
 """EntropyMeasureRandomized - Qurrium (:mod:`qurry.qurries.entropy_randomized.qurry`)"""
 
-from typing import Union, Optional, Literal, Iterable
+from typing import Literal
+from collections.abc import Iterable
 from pathlib import Path
 import tqdm
 
@@ -113,30 +114,30 @@ class EntropyMeasureRandomized(
 
     def measure_to_output(
         self,
-        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave: QuantumCircuit | WCKeyable | None = None,
         times: int = 100,
         measure: QubitSelectionType = None,
         unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         # basic inputs
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> EMROutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, WCKeyable]):
+            wave (QuantumCircuit | WCKeyable | None):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -154,7 +155,7 @@ class EntropyMeasureRandomized(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -180,7 +181,7 @@ class EntropyMeasureRandomized(
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -189,21 +190,21 @@ class EntropyMeasureRandomized(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`
                 Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            passmanager (str | PassManager | tuple[str, PassManager] | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
@@ -236,25 +237,25 @@ class EntropyMeasureRandomized(
 
     def measure(
         self,
-        wave: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave: QuantumCircuit | WCKeyable | None = None,
         times: int = 100,
-        measure: Optional[Union[list[int], tuple[int, int], int]] = None,
-        unitary_loc: Optional[Union[list[int], tuple[int, int], int]] = None,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         # basic inputs
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> str:
         """Execute the experiment.
 
@@ -265,19 +266,19 @@ class EntropyMeasureRandomized(
                 The number of random unitary operator.
                 It will denote as :math:`N_U` in the experiment name.
                 Defaults to `100`.
-            measure (Optional[Union[list[int], tuple[int, int], int]], optional):
+            measure (QubitSelectionType, optional):
                 The selected qubits for the measurement.
                 If it is None, then it will return the mapping of all qubits.
                 If it is int, then it will return the mapping of the last n qubits.
                 If it is tuple, then it will return the mapping of the qubits in the range.
                 If it is list, then it will return the mapping of the selected qubits.
                 Defaults to None.
-            unitary_loc (Optional[Union[list[int], tuple[int, int], int]], optional):
+            unitary_loc (QubitSelectionType, optional):
                 The range of the unitary operator. Defaults to None.
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to `False`.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -303,7 +304,7 @@ class EntropyMeasureRandomized(
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -312,21 +313,21 @@ class EntropyMeasureRandomized(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            passmanager (str | PassManager | tuple[str, PassManager] | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
@@ -367,10 +368,10 @@ class EntropyMeasureRandomized(
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments
-        selected_qubits: Optional[list[int]] = None,
+        selected_qubits: list[int] | None = None,
         independent_all_system: bool = False,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        counts_used: Optional[Iterable[int]] = None,
+        counts_used: Iterable[int] | None = None,
         **analysis_args,
     ) -> tuple[str, str]:
         """Run the analysis for multiple experiments.
@@ -381,20 +382,20 @@ class EntropyMeasureRandomized(
                 The name of analysis. Defaults to 'report'.
             no_serialize (bool, optional):
                 Whether to serialize the analysis. Defaults to False.
-            specific_analysis_args (SpecificAnalsisArgs[EMRAnalyzeArgs], optional):
+            specific_analysis_args (SpecificAnalyzeArgs[EMRAnalyzeArgs] | None, optional):
                 The specific arguments for analysis. Defaults to None.
             skip_write (bool, optional):
                 Whether to skip the file writing during the analysis. Defaults to False.
             multiprocess_write (bool, optional):
                 Whether use multiprocess for writing. Defaults to False.
 
-            selected_qubits (Optional[list[int]], optional):
+            selected_qubits (list[int] | None, optional):
                 The selected qubits. Defaults to None.
             independent_all_system (bool, optional):
                 Whether to treat all system as independent. Defaults to False.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the postprocessing. Defaults to DEFAULT_PROCESS_BACKEND.
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The counts used for the analysis. Defaults to None.
 
         Returns:

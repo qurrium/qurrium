@@ -1,6 +1,6 @@
 """EchoListenRandomized - Experiment (:mod:`qurry.qurries.echo_randomized.experiment`)"""
 
-from typing import Union, Optional, Any, Literal
+from typing import Any, Literal
 from collections.abc import Iterable
 from pathlib import Path
 import warnings
@@ -20,7 +20,7 @@ from .utils import (
     method_process,
 )
 from .exceptions import SeperatedExecutingOverlapResult
-from ..entropy_randomized import EntropyMeasureTales, EntropyMeasureTalesTypes
+from ..entropy_randomized import RandomizedMeasureTales
 from ...qurrium import ExperimentPrototype, Commonparams, RunArgsType, TranspileArgs, WCKeyable
 from ...qurrium.utils import get_counts_and_exceptions
 from ...qurrium.experiment import (
@@ -52,10 +52,10 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         return ELRAnalysis
 
     @classmethod
-    def side_product_type(cls) -> type[EntropyMeasureTales]:
-        return EntropyMeasureTales
+    def side_product_type(cls) -> type[RandomizedMeasureTales]:
+        return RandomizedMeasureTales
 
-    side_products: EntropyMeasureTales
+    side_products: RandomizedMeasureTales
 
     @classmethod
     def params_control(
@@ -68,9 +68,9 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         unitary_loc_1: QubitSelectionType = None,
         unitary_loc_2: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        second_backend: Optional[Backend] = None,
-        second_transpile_args: Optional[TranspileArgs] = None,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        second_backend: Backend | None = None,
+        second_transpile_args: TranspileArgs | None = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         **custom_kwargs: Any,
     ) -> tuple[ELRArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -110,14 +110,14 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            second_backend (Optional[Backend], optional):
+            second_backend (Backend | None, optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to None.
-            second_transpile_args (Optional[TranspileArgs], optional):
+            second_transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
                 for the second quantum circuit. Defaults to None.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -229,9 +229,9 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELRArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
-    ) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
+    ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
         """The method to construct circuit.
 
         Args:
@@ -239,7 +239,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 The circuits of the experiment.
             arguments (EchoListenRandomizedArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -251,12 +251,11 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
 
         return method_process(targets, arguments, pbar, multiprocess)
 
-    def replace_second_backend(self, backend: Optional[Backend]) -> None:
+    def replace_second_backend(self, backend: Backend | None) -> None:
         """Replace the second backend of the experiment.
 
         Args:
-            backend (Backend): The new backend.
-
+            backend (Backend | None): The new backend.
         Raises:
             ValueError: If the new backend is not a valid backend.
             ValueError: If the new backend is not a runnable backend.
@@ -288,24 +287,24 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager_pair: Optional[tuple[str, PassManager]] = None,
-        tags: Optional[tuple[str, ...]] = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager_pair: tuple[str, PassManager] | None = None,
+        tags: tuple[str, ...] | None = None,
         # multimanager
-        serial: Optional[int] = None,
-        summoner_id: Optional[str] = None,
-        summoner_name: Optional[str] = None,
+        serial: int | None = None,
+        summoner_id: str | None = None,
+        summoner_name: str | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = True,
         # special
-        second_passmanager_pair: Optional[tuple[str, PassManager]] = None,
+        second_passmanager_pair: tuple[str, PassManager] | None = None,
         **custom_and_main_kwargs: Any,
     ):
         """Construct the experiment.
@@ -315,7 +314,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 The circuits of the experiment.
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -324,28 +323,28 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 Defaults to `'experiment'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`
                 Defaults to None.
-            passmanager_pair (Optional[tuple[str, PassManager]], optional):
+            passmanager_pair (tuple[str, PassManager] | None, optional):
                 The passmanager pair for transpile. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 Given tags for the experiment to describe it.
                 Defaults to None.
 
-            serial (Optional[int], optional):
+            serial (int | None, optional):
                 Index of experiment in
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_id (Optional[str], optional):
+            summoner_id (str | None, optional):
                 ID of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`!!**
                 Defaults to None.
-            summoner_name (Optional[str], optional):
+            summoner_name (str | None, optional):
                 Name of experiment of
                 :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`.
                 **!!ATTENTION, this should only be used by
@@ -356,15 +355,15 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 The export version of OpenQASM. Defaults to 'qasm3'.
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.
 
-            second_passmanager_pair (Optional[tuple[str, PassManager]], optional):
+            second_passmanager_pair (tuple[str, PassManager] | None, optional):
                 The passmanager pair for transpile of the second circuit.
                 Defaults to None.
             custom_and_main_kwargs (Any):
@@ -453,11 +452,11 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         return current_exp
 
     # local execution
-    def run(self, pbar: Optional[tqdm.tqdm] = None) -> str:
+    def run(self, pbar: tqdm.tqdm | None = None) -> str:
         """Export the result after running the job.
 
         Args:
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Raises:
@@ -533,17 +532,17 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
     def result(
         self,
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> str:
         """Export the result of the experiment.
 
         Args:
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
@@ -600,21 +599,21 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
 
     def analyze(
         self,
-        selected_classical_registers: Optional[Iterable[int]] = None,
+        selected_classical_registers: Iterable[int] | None = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        counts_used: Optional[Iterable[int]] = None,
+        counts_used: Iterable[int] | None = None,
     ) -> ELRAnalysis:
         """Calculate wave function overlap with more information combined.
 
         Args:
-            selected_classical_registers (Optional[Iterable[int]], optional):
+            selected_classical_registers (Iterable[int] | None, optional):
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
                 Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
 
         Returns:

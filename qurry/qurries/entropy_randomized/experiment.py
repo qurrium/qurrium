@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Experiment (:mod:`qurry.qurries.entropy_randomized.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 from collections.abc import Iterable
 import tqdm
 
@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit
 
 from .analysis import EMRAnalysis
 from .arguments import EMRArguments, SHORT_NAME
-from .tales import EntropyMeasureTales, EntropyMeasureTalesTypes
+from .tales import RandomizedMeasureTales
 from .utils import method_process
 from .exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
@@ -36,10 +36,10 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         return EMRAnalysis
 
     @classmethod
-    def side_product_type(cls) -> type[EntropyMeasureTales]:
-        return EntropyMeasureTales
+    def side_product_type(cls) -> type[RandomizedMeasureTales]:
+        return RandomizedMeasureTales
 
-    side_products: EntropyMeasureTales
+    side_products: RandomizedMeasureTales
 
     @classmethod
     def params_control(
@@ -50,7 +50,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         measure: QubitSelectionType = None,
         unitary_loc: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         **custom_kwargs: Any,
     ) -> tuple[EMRArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -79,7 +79,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
                 Confirm that not all unitary operator are covered by the measure.
                 If True, then close the warning.
                 Defaults to False.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -160,9 +160,9 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMRArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
-    ) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
+    ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
         """The method to construct circuit.
 
         Args:
@@ -170,7 +170,7 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
                 The circuits of the experiment.
             arguments (EntropyMeasureRandomizedArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -184,21 +184,21 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
 
     def analyze(
         self,
-        selected_qubits: Optional[Iterable[int]] = None,
+        selected_qubits: Iterable[int] | None = None,
         independent_all_system: bool = False,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        counts_used: Optional[Iterable[int]] = None,
+        counts_used: Iterable[int] | None = None,
     ) -> EMRAnalysis:
         """Calculate entangled entropy with more information combined.
 
         Args:
-            selected_qubits (Optional[Iterable[int]], optional):
+            selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
             independent_all_system (bool, optional):
                 If True, then calculate the all system independently. Defaults to False.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
 
         Returns:

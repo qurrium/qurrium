@@ -1,6 +1,6 @@
 """EntropyMeasureRandomized - Arguments (:mod:`qurry.qurries.entropy_randomized.arguments`)"""
 
-from typing import Any, Union
+from typing import Any
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -43,7 +43,7 @@ class EMRArguments(ArgumentsPrototype):
     """The actual number of qubits."""
     unitary_located: list[int]
     """The range of the unitary operator."""
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None] = None
+    random_unitary_seeds: dict[int, dict[int, int]] | None = None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -101,7 +101,7 @@ class EMRMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.entropy_randomized.qurry.EntropyMeasureRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Union[QuantumCircuit, WCKeyable]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
@@ -112,7 +112,7 @@ class EMRMeasureArgs(BasicArgs, total=False):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
+    random_unitary_seeds: dict[int, dict[int, int]] | None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -152,7 +152,7 @@ class EMROutputArgs(OutputArgs):
     """The range of the unitary operator."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
+    random_unitary_seeds: dict[int, dict[int, int]] | None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.

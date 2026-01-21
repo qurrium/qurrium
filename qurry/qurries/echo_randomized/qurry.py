@@ -1,7 +1,8 @@
 """EchoListenRandomized - Qurrium (:mod:`qurry.qurries.echo_randomized.qurry`)"""
 
+from typing import Any, Literal
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, Optional, Any, Literal, Iterable
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -18,7 +19,7 @@ from ...qurrium import (
     PassManagerType,
     SpecificAnalyzeArgs,
 )
-from ...qurrium.utils import passmanager_processor
+from ...qurrium.container import passmanager_processor
 from ...process.utils import QubitSelectionType
 
 
@@ -66,38 +67,38 @@ class EchoListenRandomized(
 
     def measure_to_output(
         self,
-        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave1: QuantumCircuit | WCKeyable | None = None,
+        wave2: QuantumCircuit | WCKeyable | None = None,
         times: int = 100,
         measure_1: QubitSelectionType = None,
         measure_2: QubitSelectionType = None,
         unitary_loc_1: QubitSelectionType = None,
         unitary_loc_2: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        second_backend: Optional[Backend] = None,
-        second_transpile_args: Optional[TranspileArgs] = None,
+        second_backend: Backend | None = None,
+        second_transpile_args: TranspileArgs | None = None,
         second_passmanager: PassManagerType = None,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         # basic inputs
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
+        transpile_args: TranspileArgs | None = None,
         passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> ELROutputArgs:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave1 (Union[QuantumCircuit, WCKeyable]):
+            wave1 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, WCKeyable]):
+            wave2 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -126,18 +127,16 @@ class EchoListenRandomized(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to False.
-            second_backend (Optional[Backend], optional):
+            second_backend (Backend | None, optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to None.
-            second_transpile_args (Optional[TranspileArgs], optional):
+            second_transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
                 for the second quantum circuit. Defaults to None.
-            second_passmanager (
-                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
-            ):
+            second_passmanager (PassManagerType | None, optional):
                 The passmanager for the second quantum circuit. Defaults to None.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -163,7 +162,7 @@ class EchoListenRandomized(
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -172,21 +171,21 @@ class EchoListenRandomized(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
 
@@ -233,38 +232,38 @@ class EchoListenRandomized(
 
     def measure(
         self,
-        wave1: Optional[Union[QuantumCircuit, WCKeyable]] = None,
-        wave2: Optional[Union[QuantumCircuit, WCKeyable]] = None,
+        wave1: QuantumCircuit | WCKeyable | None = None,
+        wave2: QuantumCircuit | WCKeyable | None = None,
         times: int = 100,
         measure_1: QubitSelectionType = None,
         measure_2: QubitSelectionType = None,
         unitary_loc_1: QubitSelectionType = None,
         unitary_loc_2: QubitSelectionType = None,
         unitary_loc_not_cover_measure: bool = False,
-        second_backend: Optional[Backend] = None,
-        second_transpile_args: Optional[TranspileArgs] = None,
-        second_passmanager: PassManagerType = None,
-        random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+        second_backend: Backend | None = None,
+        second_transpile_args: TranspileArgs | None = None,
+        second_passmanager: PassManagerType | None = None,
+        random_unitary_seeds: dict[int, dict[int, int]] | None = None,
         # basic inputs
         shots: int = 1024,
-        backend: Optional[Backend] = None,
+        backend: Backend | None = None,
         exp_name: str = "experiment",
         run_args: RunArgsType = None,
-        transpile_args: Optional[TranspileArgs] = None,
-        passmanager: PassManagerType = None,
-        tags: Optional[tuple[str, ...]] = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType | None = None,
+        tags: tuple[str, ...] | None = None,
         # process tool
         qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
         export: bool = False,
-        save_location: Optional[Union[Path, str]] = None,
-        pbar: Optional[tqdm.tqdm] = None,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
     ) -> str:
         """Execute the experiment.
 
         Args:
-            wave1 (Union[QuantumCircuit, WCKeyable]):
+            wave1 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
-            wave2 (Union[QuantumCircuit, WCKeyable]):
+            wave2 (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
             times (int, optional):
                 The number of random unitary operator.
@@ -293,18 +292,16 @@ class EchoListenRandomized(
             unitary_loc_not_cover_measure (bool, optional):
                 Whether the range of the unitary operator is not cover the measure range.
                 Defaults to False.
-            second_backend (Optional[Backend], optional):
+            second_backend (Backend | None, optional):
                 The extra backend for the second quantum circuit.
                 If None, then use the same backend as the first quantum circuit.
                 Defaults to None.
-            second_transpile_args (Optional[TranspileArgs], optional):
+            second_transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`transpile` from :mod:`qiskit.compiler.transpiler`
                 for the second quantum circuit. Defaults to None.
-            second_passmanager (
-                Optional[Union[str, PassManager, tuple[str, PassManager]], optional
-            ):
+            second_passmanager (PassManagerType | None, optional):
                 The passmanager for the second quantum circuit. Defaults to None.
-            random_unitary_seeds (Optional[dict[int, dict[int, int]]], optional):
+            random_unitary_seeds (dict[int, dict[int, int]] | None, optional):
                 The seeds for all random unitary operator.
                 This argument only takes input as type of `dict[int, dict[int, int]]`.
                 The first key is the index for the random unitary operator.
@@ -330,7 +327,7 @@ class EchoListenRandomized(
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
-            backend (Optional[Backend], optional):
+            backend (Backend | None, optional):
                 The quantum backend. Defaults to None.
             exp_name (str, optional):
                 The name of the experiment.
@@ -340,19 +337,19 @@ class EchoListenRandomized(
                 Defaults to `'exps'`.
             run_args (RunArgsType, optional):
                 Arguments for :meth:`Backend.run`. Defaults to None.
-            transpile_args (Optional[TranspileArgs], optional):
+            transpile_args (TranspileArgs | None, optional):
                 Arguments of :func:`~qiskit.compiler.transpile`.
                 Defaults to None.
-            passmanager (Optional[Union[str, PassManager, tuple[str, PassManager]], optional):
+            passmanager (PassManagerType | None, optional):
                 The passmanager. Defaults to None.
-            tags (Optional[tuple[str, ...]], optional):
+            tags (tuple[str, ...] | None, optional):
                 The tags of the experiment. Defaults to None.
 
             qasm_version (Literal["qasm2", "qasm3"], optional):
                 The version of OpenQASM. Defaults to "qasm3".
             export (bool, optional):
                 Whether to export the experiment. Defaults to False.
-            save_location (Optional[Union[Path, str]], optional):
+            save_location (Path | str | None, optional):
                 The location to save the experiment. Defaults to None.
             pbar (Optional[tqdm.tqdm], optional):
                 The progress bar for showing the progress of the experiment.
@@ -401,10 +398,10 @@ class EchoListenRandomized(
         skip_write: bool = False,
         multiprocess_write: bool = False,
         # analysis arguments
-        selected_classical_registers: Optional[Iterable[int]] = None,
+        selected_classical_registers: Iterable[int] | None = None,
         backend: PostProcessingBackendLabel = DEFAULT_PROCESS_BACKEND,
-        counts_used: Optional[Iterable[int]] = None,
-        **analysis_args: Optional[dict[str, Any]],
+        counts_used: Iterable[int] | None = None,
+        **analysis_args: dict[str, Any],
     ) -> tuple[str, str]:
         """Run the analysis for multiple experiments.
 
@@ -421,14 +418,14 @@ class EchoListenRandomized(
             multiprocess_write (bool, optional):
                 Whether use multiprocess for writing. Defaults to False.
 
-            selected_classical_registers (Optional[Iterable[int]], optional):
+            selected_classical_registers (Iterable[int] | None, optional):
                 The list of **the index of the selected_classical_registers**.
                 It's not the qubit index of first or second quantum circuit,
                 but their corresponding classical registers.
                 Defaults to None.
             backend (PostProcessingBackendLabel, optional):
                 The backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
 
         Returns:

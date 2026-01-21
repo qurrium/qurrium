@@ -1,6 +1,6 @@
 """EchoListenRandomized - Utility (:mod:`qurry.qurries.echo_randomized.utils`)"""
 
-from typing import Optional, Literal
+from typing import Literal
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -13,7 +13,7 @@ from .exceptions import (
     NSG_OVERLAPPING_SIZE,
 )
 from ...qurrium import WCKeyable
-from ..entropy_randomized import EntropyMeasureTalesTypes
+from ..entropy_randomized import RandomizedMeasureTales
 from ..entropy_randomized.utils import make_samplied_circuit, make_unitary_op_pauli_coeff
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering, MSG_FULL_COVER
 from ...process.utils import qubit_mapper, QubitSelectionType
@@ -227,9 +227,9 @@ def unitary_full_cover_check(
 def method_process(
     targets: list[tuple[WCKeyable, QuantumCircuit]],
     arguments: ELRArguments,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
     multiprocess: bool = False,
-) -> tuple[list[QuantumCircuit], EntropyMeasureTalesTypes]:
+) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
     """The process method for building the circuits of the experiment.
 
     Args:
@@ -351,7 +351,9 @@ def method_process(
         + f" Get {[x[0] for x in other_results]}, expect {list(range(arguments.times))}."
     )
 
-    return circ_list, {
-        "unitary_operator": {i: u_op for i, u_op, _p_c in other_results},
-        "bloch_vector": {i: p_c for i, _u_op, p_c in other_results},
-    }
+    return circ_list, RandomizedMeasureTales(
+        {
+            "unitary_operator": {i: u_op for i, u_op, _p_c in other_results},
+            "bloch_vector": {i: p_c for i, _u_op, p_c in other_results},
+        }
+    )

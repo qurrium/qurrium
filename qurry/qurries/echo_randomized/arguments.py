@@ -1,6 +1,6 @@
 """EchoListenRandomized - Arguments (:mod:`qurry.qurries.echo_randomized.arguments`)"""
 
-from typing import Any, Union
+from typing import Any
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -95,16 +95,16 @@ class ELRArguments(ArgumentsPrototype):
     The key is the index of the quantum register with the numerical order.
     The value is the index of the unitary operator with the numerical order.
     """
-    second_backend: Union[Backend, str, None]
+    second_backend: Backend | str | None
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Union[TranspileArgs, None]
+    second_transpile_args: TranspileArgs | None
     """Arguments of :func:`~qiskit.compiler.transpile` 
     or :class:`~qiskit.transpiler.passmanager.PassManager` for the second quantum circuit.
     And it only works when the second backend is given.
     """
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None] = None
+    random_unitary_seeds: dict[int, dict[int, int]] | None = None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -183,11 +183,11 @@ class ELRArguments(ArgumentsPrototype):
             ),
         )
 
-    def replace_second_backend(self, backend: Union[Backend, str, None]) -> "ELRArguments":
+    def replace_second_backend(self, backend: Backend | str | None) -> "ELRArguments":
         """Return a new instance with replaced second_backend.
 
         Args:
-            backend (Union[Backend, str, None]): The backend to replace.
+            backend (Backend | str | None): The backend to replace.
 
         Returns:
             ELRArguments: The new instance with replaced second_backend.
@@ -214,9 +214,9 @@ class ELRMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.echo_randomized.qurry.EchoListenRandomized.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave1: Union[QuantumCircuit, WCKeyable]
+    wave1: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
-    wave2: Union[QuantumCircuit, WCKeyable]
+    wave2: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
     times: int
     """The number of random unitary operator. 
@@ -231,15 +231,15 @@ class ELRMeasureArgs(BasicArgs, total=False):
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Whether the range of the unitary operator is not cover the measure range."""
-    second_backend: Union[Backend, None]
+    second_backend: Backend | None
     """The extra backend for the second group of quantum circuits.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Union[TranspileArgs, None]
+    second_transpile_args: TranspileArgs | None
     """The transpile arguments for the second group of quantum circuits."""
-    second_passmanager: Union[None, str, PassManager, tuple[str, PassManager]]
+    second_passmanager: str | PassManager | tuple[str, PassManager] | None
     """The passmanager for the second quantum circuit."""
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
+    random_unitary_seeds: dict[int, dict[int, int]] | None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -283,13 +283,13 @@ class ELROutputArgs(OutputArgs):
     """The range of the unitary operator for the second quantum circuit."""
     unitary_loc_not_cover_measure: bool
     """Confirm that not all unitary operator are covered by the measure."""
-    second_backend: Union[Backend, None]
+    second_backend: Backend | None
     """The extra backend for the second quantum circuit.
     If None, then use the same backend as the first quantum circuit.
     """
-    second_transpile_args: Union[TranspileArgs, None]
+    second_transpile_args: TranspileArgs | None
     """The transpile arguments for the second group of quantum circuits."""
-    random_unitary_seeds: Union[dict[int, dict[int, int]], None]
+    random_unitary_seeds: dict[int, dict[int, int]] | None
     """The seeds for all random unitary operator.
     This argument only takes input as type of `dict[int, dict[int, int]]`.
     The first key is the index for the random unitary operator.
@@ -314,7 +314,7 @@ class ELROutputArgs(OutputArgs):
 
         random_unitary_seeds = generate_random_unitary_seeds(100, 2)
     """
-    second_passmanager_pair: Union[tuple[str, PassManager], None]
+    second_passmanager_pair: tuple[str, PassManager] | None
     """The passmanager for the second quantum circuit."""
 
 
