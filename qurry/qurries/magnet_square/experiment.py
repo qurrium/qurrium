@@ -1,6 +1,6 @@
 """MagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square.experiment`)"""
 
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal
 from itertools import permutations
 import tqdm
 
@@ -35,7 +35,7 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
-        unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z",
+        unitary_operator: Operator | Gate | Literal["x", "y", "z"] = "z",
         **custom_kwargs: Any,
     ) -> tuple[MSArguments, Commonparams, dict[str, Any]]:
         """Handling all arguments and initializing a single experiment.
@@ -43,7 +43,7 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
+            unitary_operator (Operator | Gate | Literal["x", "y", "z"], optional):
                 The unitary operator to apply.
                 It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
                 representing the axis of rotation ('x', 'y', or 'z').
@@ -56,7 +56,7 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
                 The custom parameters.
 
         Returns:
-            tuple[MagnetSquareArguments, Commonparams, dict[str, Any]]:
+            tuple[MSArguments, Commonparams, dict[str, Any]]:
                 The arguments of the experiment, the common parameters, and the custom parameters.
         """
         if len(targets) > 1:
@@ -78,7 +78,7 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: MSArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -86,9 +86,9 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (MagnetSquareArguments):
+            arguments (MSArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):

@@ -1,6 +1,6 @@
 """ZDirMagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square_z.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -47,7 +47,7 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
                 The custom parameters.
 
         Returns:
-            tuple[ZDirMagnetSquareArguments, Commonparams, dict[str, Any]]:
+            tuple[ZMSArguments, Commonparams, dict[str, Any]]:
                 The arguments of the experiment, the common parameters, and the custom parameters.
         """
         if len(targets) > 1:
@@ -68,7 +68,7 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ZMSArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -76,9 +76,9 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (ZDirMagnetSquareArguments):
+            arguments (ZMSArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.

@@ -1,12 +1,12 @@
 """String Operator - Utilities (:mod:`qurry.qurries.string_operator.utils`)"""
 
-from typing import Union, Literal, TypedDict, Optional
+from typing import Literal, TypedDict
 import numpy as np
 
 from qiskit import QuantumCircuit, ClassicalRegister
 
 
-StringOperatorUnits = Optional[tuple[Literal["rx", "ry", "rz"], float]]
+StringOperatorUnits = tuple[Literal["rx", "ry", "rz"], float] | None
 """Available string operator units.
 
 - tuple[Literal["rx", "ry", "rz"], float]: A tuple containing:
@@ -40,14 +40,14 @@ class StringOperatorLib(TypedDict):
         denoted as :math:`S^{\sigma^{zy}}(g)` for ZY operator.
     """
 
-    i: dict[Union[int, Literal["filling"]], StringOperatorUnits]
+    i: dict[int | Literal["filling"], StringOperatorUnits]
     r"""Identity string operator.
 
     .. math::
 
         \hat{O_i} = \hat{O'_k} = \mathbb{1}
     """
-    zy: dict[Union[int, Literal["filling"]], StringOperatorUnits]
+    zy: dict[int | Literal["filling"], StringOperatorUnits]
     r"""ZY string operator.
 
     .. math::

@@ -1,6 +1,6 @@
 """SamplingExecuter - Experiment (:mod:`qurry.qurries.samplingqurry.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import warnings
 import tqdm
 
@@ -69,7 +69,7 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SEArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -77,9 +77,9 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arugments (ArgumentsPrototype):
+            arguments (SEArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -111,11 +111,11 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
 
         return [q_copy.copy() for _ in range(arguments.sampling)], {}
 
-    def analyze(self, ultimate_question: Optional[str] = None) -> DummyAnalysis[SEArguments]:
+    def analyze(self, ultimate_question: str | None = None) -> DummyAnalysis[SEArguments]:
         """Analysis of the experiment.
 
         Args:
-            ultimate_question (Optional[str], optional):
+            ultimate_question (str | None, optional):
                 The ultimate question of the universe.
 
         Returns:

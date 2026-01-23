@@ -1,6 +1,6 @@
 """WavesExecuter - Experiment (:mod:`qurry.qurries.wavesqurry.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import warnings
 import tqdm
 
@@ -63,7 +63,7 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: WEArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -71,9 +71,9 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arugments (ArgumentsPrototype):
+            arguments (WEArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
                 Defaults to None.
             multiprocess (bool, optional):
@@ -114,11 +114,11 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
 
         return cirqs, {}
 
-    def analyze(self, ultimate_question: Optional[str] = None) -> DummyAnalysis[WEArguments]:
+    def analyze(self, ultimate_question: str | None = None) -> DummyAnalysis[WEArguments]:
         """Analysis of the experiment.
 
         Args:
-            ultimate_question (Optional[str], optional):
+            ultimate_question (str | None, optional):
                 The ultimate question of the universe.
 
         Returns:

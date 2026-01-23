@@ -1,6 +1,5 @@
 """WavesExecuter - Arguments (:mod:`qurry.qurries.wavesqurry.arguments`)"""
 
-from typing import Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -18,7 +17,7 @@ class WEMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.wavesqurry.qurry.WavesExecuter.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    waves: list[Union[QuantumCircuit, WCKeyable]]
+    waves: list[QuantumCircuit | WCKeyable]
     """The keys or the circuits to execute."""
 
 

@@ -1,6 +1,6 @@
 """MagnetSquare - Arguments (:mod:`qurry.qurries.magnet_square.arguments`)"""
 
-from typing import Union, Literal, Any
+from typing import Literal, Any
 from dataclasses import dataclass
 import numpy as np
 
@@ -14,7 +14,7 @@ from ..magnet_square_z.arguments import ZMSArguments, ZMSMeasureArgs, ZMSOutputA
 class MSArguments(ZMSArguments):
     """Arguments for :class:`~qurry.qurries.magnet_square.experiment.MSExperiment`."""
 
-    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]] = "z"
+    unitary_operator: Operator | Gate | Literal["x", "y", "z"] = "z"
     """The unitary operator to apply.
     It can be a :class:`~qiskit.quantum_info.Operator`,
     a :class:`~qiskit.circuit.Gate`, or a string
@@ -62,7 +62,7 @@ class MSArguments(ZMSArguments):
                 "unitary_operator must be of type 'list' or the string 'x', 'y', 'z'. "
                 + f"Got {type(unitary_operator)} instead."
             )
-        unitary_operator: Union[Operator, Literal["x", "y", "z"]]
+        unitary_operator: Operator | Literal["x", "y", "z"]
 
         return cls(
             exp_name=raw_dict["exp_name"],
@@ -76,7 +76,7 @@ class MSMeasureArgs(ZMSMeasureArgs, total=False):
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
+    unitary_operator: Operator | Gate | Literal["x", "y", "z"]
     """The unitary operator to apply.
     It can be a :class:`~qiskit.quantum_info.Operator`,
     a :class:`~qiskit.circuit.Gate`, or a string
@@ -88,7 +88,7 @@ class MSOutputArgs(ZMSOutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.magnet_square.qurry.MagnetSquare.output`."""
 
-    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]]
+    unitary_operator: Operator | Gate | Literal["x", "y", "z"]
     """The unitary operator to apply.
     It can be a :class:`~qiskit.quantum_info.Operator`,
     a :class:`~qiskit.circuit.Gate`, or a string

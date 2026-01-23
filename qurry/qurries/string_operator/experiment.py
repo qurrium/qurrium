@@ -1,6 +1,6 @@
 """StringOperator - Experiment (:mod:`qurry.qurries.string_operator.experiment`)"""
 
-from typing import Optional, Any
+from typing import Any
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -32,8 +32,8 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         exp_name: str = "exps",
-        i: Optional[int] = None,
-        k: Optional[int] = None,
+        i: int | None = None,
+        k: int | None = None,
         str_op: StringOperatorLibType = "i",
         on_dir: StringOperatorDirection = "x",
         **custom_kwargs: Any,
@@ -48,9 +48,9 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
                 Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
                 This name is also used for creating a folder to store the exports.
                 Defaults to `'exps'`.
-            i (Optional[int], optional):
+            i (int | None, optional):
                 The index of beginning qubits in the quantum circuit.
-            k (Optional[int], optional):
+            k (int | None, optional):
                 The index of ending qubits in the quantum circuit.
             str_op (StringOperatorLibType, optional):
                 The string operator. Defaults to "i".
@@ -101,7 +101,7 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SOArguments,
-        pbar: Optional[tqdm.tqdm] = None,
+        pbar: tqdm.tqdm | None = None,
         multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
@@ -111,7 +111,7 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
                 The circuits of the experiment.
             arguments (StringOperatorArguments):
                 The arguments of the experiment.
-            pbar (Optional[tqdm.tqdm], optional):
+            pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment. Defaults to None.
             multiprocess (bool, optional):
                 Whether to use multiprocessing. Defaults to `True`.

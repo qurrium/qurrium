@@ -1,6 +1,5 @@
 """StringOperator - Arguments (:mod:`qurry.qurries.string_operator.arguments`)"""
 
-from typing import Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -36,11 +35,11 @@ class SOMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.string_operator.qurry.StringOperator.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Union[QuantumCircuit, WCKeyable, None]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
-    i: Union[int, None]
+    i: int | None
     """The index of beginning qubits in the quantum circuit."""
-    k: Union[int, None]
+    k: int | None
     """The index of ending qubits in the quantum circuit."""
     str_op: StringOperatorLibType
     """The string operator."""
@@ -52,9 +51,9 @@ class SOOutputArgs(OutputArgs):
     """Output arguments for
     :meth:`~qurry.qurries.string_operator.qurry.StringOperator.output`."""
 
-    i: Union[int, None]
+    i: int | None
     """The index of beginning qubits in the quantum circuit."""
-    k: Union[int, None]
+    k: int | None
     """The index of ending qubits in the quantum circuit."""
     str_op: StringOperatorLibType
     """The string operator."""

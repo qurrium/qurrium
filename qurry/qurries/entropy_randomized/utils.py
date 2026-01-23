@@ -1,6 +1,5 @@
 """EntropyMeasureRandomized - Utility (:mod:`qurry.qurries.entropy_randomized.utils`)"""
 
-from typing import Optional
 import tqdm
 
 from qiskit import QuantumCircuit, ClassicalRegister
@@ -147,7 +146,7 @@ def make_samplied_circuit_unitary_op_pauli_coeff(
 def method_process(
     targets: list[tuple[WCKeyable, QuantumCircuit]],
     arguments: EMRArguments,
-    pbar: Optional[tqdm.tqdm] = None,
+    pbar: tqdm.tqdm | None = None,
     multiprocess: bool = False,
 ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
     """The process method for building the circuits of the experiment.
@@ -157,7 +156,7 @@ def method_process(
             The circuits of the experiment.
         arguments (EMRArguments):
             The arguments of the experiment.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar for showing the progress of the experiment.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.

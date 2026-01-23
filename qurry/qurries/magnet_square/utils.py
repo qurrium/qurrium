@@ -1,6 +1,6 @@
 """Magnetic Square - Utility (:mod:`qurry.qurries.magnet_square.utils`)"""
 
-from typing import Union, Literal
+from typing import Literal
 
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Gate
@@ -12,7 +12,7 @@ def circuit_method(
     target_circuit: QuantumCircuit,
     target_key: str,
     exp_name: str,
-    unitary_operator: Union[Operator, Gate, Literal["x", "y", "z"]],
+    unitary_operator: Operator | Gate | Literal["x", "y", "z"],
     i: int,
     j: int,
 ) -> QuantumCircuit:
@@ -23,7 +23,7 @@ def circuit_method(
         target_circuit (QuantumCircuit): Target circuit.
         target_key (Hashable): Target key.
         exp_name (str): Experiment name.
-        unitary_operator (Union[Operator, Gate, Literal["x", "y", "z"]]):
+        unitary_operator (Operator | Gate | Literal["x", "y", "z"]):
             The unitary operator to apply.
             It can be a `qiskit.quantum_info.Operator`, a `qiskit.circuit.Gate`, or a string
             representing the axis of rotation ('x', 'y', or 'z').

@@ -57,7 +57,7 @@
 
 """
 
-from typing import Literal, Union, overload
+from typing import Literal, overload
 
 from .entropy_randomized import EntropyMeasureRandomized, EMRMeasureArgs
 from .entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArgs
@@ -78,9 +78,7 @@ from .classical_shadow import ShadowUnveil, SUMeasureArgs
 @overload
 def EntropyMeasure(*args, method: Literal["hadamard"], **kwargs) -> EntropyMeasureHadamard: ...
 @overload
-def EntropyMeasure(
-    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
-) -> EntropyMeasureRandomized: ...
+def EntropyMeasure(*args, method: Literal["randomized"], **kwargs) -> EntropyMeasureRandomized: ...
 
 
 def EntropyMeasure(*args, method="randomized", **kwargs):
@@ -104,9 +102,7 @@ def EntropyMeasure(*args, method="randomized", **kwargs):
 @overload
 def EchoListen(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
 @overload
-def EchoListen(
-    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
-) -> EchoListenRandomized: ...
+def EchoListen(*args, method: Literal["randomized"], **kwargs) -> EchoListenRandomized: ...
 
 
 def EchoListen(*args, method="randomized", **kwargs):
@@ -132,9 +128,7 @@ def EchoListen(*args, method="randomized", **kwargs):
 @overload
 def WaveFunctionOverlap(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
 @overload
-def WaveFunctionOverlap(
-    *args, method: Union[Literal["randomized"], str] = "randomized", **kwargs
-) -> EchoListenRandomized: ...
+def WaveFunctionOverlap(*args, method: Literal["randomized"], **kwargs) -> EchoListenRandomized: ...
 
 
 def WaveFunctionOverlap(*args, method="randomized", **kwargs):

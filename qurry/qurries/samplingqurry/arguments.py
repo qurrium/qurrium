@@ -1,6 +1,5 @@
 """SamplingExecuter - Arguments (:mod:`qurry.qurries.samplingqurry.arguments`)"""
 
-from typing import Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -21,7 +20,7 @@ class SEMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.samplingqurry.qurry.QurryV14.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Union[QuantumCircuit, WCKeyable]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
     sampling: int
     """The number of sampling."""

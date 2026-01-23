@@ -1,6 +1,5 @@
 """ZDirMagnetSquare - Arguments (:mod:`qurry.qurries.magnet_square_z.arguments`)"""
 
-from typing import Optional, Union
 from dataclasses import dataclass
 
 from qiskit import QuantumCircuit
@@ -26,7 +25,7 @@ class ZMSMeasureArgs(BasicArgs, total=False):
     :meth:`~qurry.qurries.magnet_square_z.qurry.ZDirMagnetSquare.measure`
     and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiOutput`."""
 
-    wave: Optional[Union[QuantumCircuit, WCKeyable]]
+    wave: QuantumCircuit | WCKeyable
     """The key or the circuit to execute."""
 
 
