@@ -78,7 +78,7 @@ def hnprint(title, heading=3, raw_input=False) -> str | dict[str, Any]:
         raw_input (bool, optional): If True, return a dict. Defaults to False.
 
     Returns:
-        Union[str, dict[str, Any]]: Content to print.
+        str | dict[str, Any]: Content to print.
     """
 
     if raw_input:
@@ -94,7 +94,7 @@ def divider(length: int = 60, raw_input=False) -> str | dict[str, Any]:
         raw_input (bool, optional): If True, return a dict. Defaults to False.
 
     Returns:
-        Union[str, dict[str, Any]]: Content to print.
+        str | dict[str, Any]: Content to print.
     """
 
     if raw_input:
@@ -111,7 +111,7 @@ def txt(text: str, listing_level: int = 1, raw_input=False) -> str | dict[str, A
         raw_input (bool, optional): If True, return a dict. Defaults to False.
 
     Returns:
-        Union[str, dict[str, Any]]: Content to print.
+        str | dict[str, Any]: Content to print.
     """
 
     if raw_input:

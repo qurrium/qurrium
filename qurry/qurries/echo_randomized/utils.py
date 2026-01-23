@@ -237,7 +237,7 @@ def method_process(
             The circuits of the experiment.
         arguments (ELRArguments):
             The arguments of the experiment.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar for showing the progress of the experiment.
         multiprocess (bool, optional):
             Whether to use multiprocessing. Defaults to False.

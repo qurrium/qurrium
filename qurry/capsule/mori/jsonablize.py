@@ -114,7 +114,7 @@ def quick_json_write(
         mute (bool, optional): Mute the exportation. Defaults to True.
 
     Returns:
-        Optional[str]: The filename of the file when not mute.
+        The filename of the file when not mute.
     """
 
     if not isinstance(save_location, Path):

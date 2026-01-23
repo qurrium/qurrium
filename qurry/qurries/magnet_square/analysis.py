@@ -141,9 +141,6 @@ class MSAnalysis(
             shots (int): The number of shots.
             counts (list[dict[str, int]]): The counts of the experiment.
             num_qubits (int): The number of qubits.
-            unitary_operator (Union[str, npt.NDArray[np.float64], npt.NDArray[np.complex128]]):
-                The numpy array of the unitary operator
-                or a string representing the axis of rotation.
             backend (PostProcessingBackendLabel, optional):
                 The backend label. Defaults to DEFAULT_PROCESS_BACKEND.
 

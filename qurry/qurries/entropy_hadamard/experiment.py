@@ -127,9 +127,6 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
     def analyze(self) -> EMHAnalysis:
         """Calculate entangled entropy with more information combined.
 
-        Args:
-            degree (Union[tuple[int, int], int]): Degree of the subsystem.
-
         Returns:
             EntropyMeasureHadamardAnalysis: The result of the analysis.
         """

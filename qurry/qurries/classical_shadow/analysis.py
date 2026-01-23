@@ -850,7 +850,7 @@ class SUAnalysis(
                 The number of shots.
             counts (list[dict[str, int]]):
                 The list of the counts.
-            random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+            random_basis_array (list[list[Literal[0, 1, 2] | int]]):
                 The random basis for classical shadow.
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
@@ -944,9 +944,6 @@ class SUAnalysis(
                     This is the fastest implementation to calculate the trace of Rho.
 
                 Defaults to DEFAULT_LIST_TRACE_METHOD.
-
-            pbar (Optional[tqdm.tqdm], optional):
-                The progress bar. Defaults to None.
 
         Returns:
             ClassicalShadowComplex: The result of the classical shadow.

@@ -58,7 +58,7 @@ def folder_naming(
             Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
             This name is also used for creating a folder to store the exports.
             Defaults to `'exps'`.
-        save_location (Union[Path, str], optional):
+        save_location (Path | str, optional):
             Where to save the export data. Defaults to Path('./')
         without_serial (bool, optional):
             Whether to use the serial number. Defaults to False.

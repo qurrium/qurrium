@@ -115,12 +115,12 @@ def entangled_entropy_core(
     Args:
         shots (int): Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
-        degree (Optional[Union[tuple[int, int], int]]): Degree of the subsystem.
-        measure (Optional[tuple[int, int]], optional):
+        degree (tuple[int, int] | int | None): Degree of the subsystem.
+        measure (tuple[int, int] | None, optional):
             Measuring range on quantum circuits. Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        multiprocess_pool_size(Optional[int], optional):
+        multiprocess_pool_size(int | None, optional):
             Number of multi-processing workers, it will be ignored if backend is Rust.
             if sets to 1, then disable to using multi-processing;
             if not specified, then use the number of all cpu counts by `os.cpu_count()`.

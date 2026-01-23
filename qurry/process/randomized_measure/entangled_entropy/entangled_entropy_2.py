@@ -381,9 +381,9 @@ def randomized_entangled_entropy_mitigated(
             Shots of the counts.
         counts (list[dict[str, int]]):
             Counts from randomized measurement results.
-        selected_classical_registers (Optional[Iterable[int]], optional):
+        selected_classical_registers (Iterable[int] | None, optional):
             The list of **the index of the selected_classical_registers**. Defaults to None.
-        existed_all_system (Optional[AllSystemResult], optional):
+        existed_all_system (AllSystemResult | None, optional):
             Existing all system source.
             If there is known all system result, then you can put it here
             to save a lot of time on calculating all system for no matter
@@ -392,7 +392,7 @@ def randomized_entangled_entropy_mitigated(
             Defaults to None.
         backend (PostProcessingBackendLabel, optional):
             Backend for the process. Defaults to DEFAULT_PROCESS_BACKEND.
-        pbar (Optional[tqdm.tqdm], optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar API,
             you can use put a `tqdm.tqdm <https://tqdm.github.io/>` object here.
             This function will update the progress bar description.

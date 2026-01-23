@@ -207,7 +207,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """Transform wave function to different forms.
 
         Args:
-            key_or_keys (Union[list[WCKeyable], WCKeyable]):
+            key_or_keys (list[WCKeyable] | WCKeyable):
                 The key of wave in the container.
             run_by (str | None, optional):
                 The method to export wave function.
@@ -249,7 +249,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """Export wave function as `Operator`.
 
         Args:
-            wave (Union[WCKeyable, list[WCKeyable]]):
+            wave (list[WCKeyable] | WCKeyable):
                 The key of wave in 'dict' `.waves`.
 
         Returns:
@@ -266,7 +266,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """Export wave function as :class:`~qiskit.circuit.Gate`.
 
         Args:
-            key_or_keys (Union[list[WCKeyable], WCKeyable]):
+            key_or_keys (list[WCKeyable] | WCKeyable):
                 The key of wave in the container.
 
         Returns:
@@ -283,7 +283,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """Export a copy of wave function as :class:`~qiskit.circuit.QuantumCircuit`.
 
         Args:
-            key_or_keys (Union[list[WCKeyable], WCKeyable]):
+            key_or_keys (list[WCKeyable] | WCKeyable):
                 The key of wave in the container.
 
         Returns:
@@ -300,7 +300,7 @@ class WaveContainer(CustomDict[WCKeyable, QuantumCircuit]):
         """Export wave function as :class:`~qiskit.circuit.Instruction`.
 
         Args:
-            key_or_keys (Union[list[WCKeyable], WCKeyable]):
+            key_or_keys (list[WCKeyable] | WCKeyable):
                 The key of wave in the container.
 
         Returns:

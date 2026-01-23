@@ -280,7 +280,7 @@ def all_trace_core(
             The default method is "bitwise_py", which is the fastest option.
 
     Returns:
-        tuple[Union[float, np.float64], Union[float, np.float64], float]:
+        tuple[FloatType, FloatType, float]:
             The purity, the second Renyi entropy, and the time taken (in seconds).
     """
 

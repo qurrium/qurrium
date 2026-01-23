@@ -17,7 +17,6 @@ def make_two_bit_str_unlimit(bitlen: int) -> list[str]:
 
     Args:
         bitlen (int): bit string length.
-        num (Optional[int]): The number of bit strings.
 
     Returns:
         list[str]: The list of bit strings.

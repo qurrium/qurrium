@@ -167,9 +167,9 @@ class AnalysisPrototype(Generic[_A, _RA, _RM, _PE, _RTD, _RID], DataExportableIn
             counts (list[dict[str, int]]): The counts data from the experiment.
             analyze_arguments (_RA): The analyze arguments of the analysis.
             serial (int): The serial number of the analysis.
-            outfields (Optional[dict[str, Any]], optional):
+            outfields (dict[str, Any] | None, optional):
                 The unused arguments of the analysis. Defaults to None.
-            datetime (Optional[str], optional):
+            datetime (str | None, optional):
                 The datetime of the analysis. Defaults to None.
 
         Returns:

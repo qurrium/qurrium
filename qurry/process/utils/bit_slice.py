@@ -87,7 +87,7 @@ def cycling_slice(target, start, end, step=1):
     """Slice a iterable object with cycling.
 
     Args:
-        target (Union[list[_ItemT], tuple[_ItemT], str]): The target object.
+        target (list[_ItemT] | tuple[_ItemT] | str): The target object.
         start (int): Index of start.
         end (int): Index of end.
         step (int, optional): Step of slice. Defaults to 1.

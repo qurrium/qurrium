@@ -160,12 +160,8 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
     def analyze(self) -> ELHAnalysis:
         """Calculate the analysis of wave function overlap.
 
-        Args:
-            degree (Union[tuple[int, int], int]): Degree of the subsystem.
-
         Returns:
-            dict[str, float]: A dictionary contains
-                purity, entropy.
+            ELHAnalysis: The result of the analysis.
         """
 
         analysis = self.analysis_type().perform_analysis(

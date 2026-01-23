@@ -340,7 +340,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
                 Defaults to DEFAULT_LIST_TRACE_METHOD.
 
-            counts_used (Optional[Iterable[int]], optional):
+            counts_used (Iterable[int] | None, optional):
                 The index of the counts used. Defaults to None.
 
         Returns:
