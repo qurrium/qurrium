@@ -3,21 +3,20 @@
 
 """
 
-from typing import Optional
 import numpy as np
 
 
 def generate_random_basis(
     snapshots: int,
     unitary_located: list[int],
-    random_unitary_seeds: Optional[dict[int, dict[int, int]]] = None,
+    random_unitary_seeds: dict[int, dict[int, int]] | None = None,
 ) -> dict[int, dict[int, int]]:
     """Generate the random basis for the classical shadow.
 
     Args:
         snapshots (int): The number of snapshots.
         unitary_located (list[int]): The list of selected qubits.
-        random_unitary_seeds (Optional[dict[int, dict[int, int]]]):
+        random_unitary_seeds (dict[int, dict[int, int]] | None):
             The random unitary seeds.
             This argument only takes input as type of `dict[int, dict[int, int]]`.
             The first key is the index for the random unitary operator.
@@ -65,7 +64,7 @@ def generate_random_basis(
 
 def validate_random_basis(
     index: int, basis: dict[int, int], unitary_located: list[int]
-) -> Optional[str]:
+) -> str | None:
     """Validate the iteration of the random basis.
 
     Args:
@@ -74,7 +73,7 @@ def validate_random_basis(
         unitary_located (list[int]): The list of selected qubits.
 
     Returns:
-        Optional[str]: The validation result.
+        str | None: The validation result.
     """
     if not isinstance(index, int):
         return f"Index '{index}' is not an integer, but '{type(index)}'."

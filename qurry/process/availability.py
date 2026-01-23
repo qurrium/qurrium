@@ -1,8 +1,8 @@
 """Availability for the post-processing module. (:mod:`qurry.process.availability`)"""
 
-from typing import Union, Literal, Optional
+from typing import Literal
 
-PostProcessingBackendLabel = Union[Literal["Cython", "Rust", "Python"], str]
+PostProcessingBackendLabel = Literal["Cython", "Rust", "Python", "JAX"]
 """The backend label for post-processing."""
 
 BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "JAX"]
@@ -18,35 +18,31 @@ BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "
 def availablility(
     module_location: str,
     import_statement: list[
-        tuple[PostProcessingBackendLabel, Union[bool, Literal["Depr."]], Optional[ImportError]]
+        tuple[PostProcessingBackendLabel, bool | Literal["Depr."], ImportError | None]
     ],
 ) -> tuple[
     str,
     dict[PostProcessingBackendLabel, Literal["Yes", "Error", "Depr.", "No"]],
-    dict[PostProcessingBackendLabel, Optional[ImportError]],
+    dict[PostProcessingBackendLabel, ImportError | None],
 ]:
     """Returns the availablility of the post-processing backend.
 
     Args:
         module_location (str): The location of the module.
         import_statement (list[tuple[
-            PostProcessingBackendLabel, bool, Optional[QurryPostProcessingError]
+            PostProcessingBackendLabel, bool | Literal["Depr."], ImportError | None
         ]]):
             The import statement for the post-processing backend.
 
     Returns:
-        tuple[
-            str,
-            dict[PostProcessingBackendLabel, Literal["Yes", "Error", "Depr.", "No"]],
-            dict[PostProcessingBackendLabel, Optional[QurryPostProcessingError]
-        ]:
-            The location of the module,
-            the availablility of the post-processing backend and the errors.
+        The tuple of location of the module,
+        the availablility of the post-processing backend,
+        and the errors.
     """
     avails: dict[PostProcessingBackendLabel, Literal["Yes", "Error", "Depr.", "No"]] = {
         "Python": "Yes"
     }
-    errors: dict[PostProcessingBackendLabel, Optional[ImportError]] = {}
+    errors: dict[PostProcessingBackendLabel, ImportError | None] = {}
     for backend, available, error in import_statement:
         if available is True:
             avails[backend] = "Yes"

@@ -12,14 +12,15 @@ And export the format to a text file that can be read by
 
 """
 
-from typing import Literal, Union, Sequence
+from typing import Literal
+from collections.abc import Sequence
 from pathlib import Path
 
 
 def convert_to_basis_spin(
     shots: int,
     counts: list[dict[str, int]],
-    random_basis_array: list[list[Union[Literal[0, 1, 2], int]]],
+    random_basis_array: list[list[Literal[0, 1, 2] | int]],
 ) -> tuple[list[list[int]], list[list[int]]]:
     """Convert counts to single shots basis-spin format.
 
@@ -28,7 +29,7 @@ def convert_to_basis_spin(
             The number of shots.
         counts (list[dict[str, int]]):
             The list of the counts.
-        random_basis_array (list[list[Union[Literal[0, 1, 2], int]]]):
+        random_basis_array (list[list[Literal[0, 1, 2] | int]]):
             The random basis for classical shadow.
 
     Returns:
@@ -64,8 +65,8 @@ def measurements_export(
     pauli_basis: Sequence[Sequence[int]],
     spin_outcome: Sequence[Sequence[int]],
     system_size: int,
-    filename: Union[str, Path],
-) -> Union[str, Path]:
+    filename: str | Path,
+) -> str | Path:
     """Export the measurement data of Single shots basis-spin Output format (for PQP).
 
     Args:
@@ -75,7 +76,7 @@ def measurements_export(
             The list of spin outcomes. (1, -1)
         system_size (int):
             The size of the quantum system, which is the number of qubits.
-        filename (Union[str, Path]):
+        filename (str | Path):
             The path to the output file.
 
     Returns:
@@ -140,11 +141,11 @@ def validate_pqp_result_per_row(
     )
 
 
-def measurements_read(filename: Union[str, Path]) -> tuple[list[list[int]], list[list[int]], int]:
+def measurements_read(filename: str | Path) -> tuple[list[list[int]], list[list[int]], int]:
     """Read the measurement data file of Single shots basis-spin Output format (for PQP).
 
     Args:
-        filename (Union[str, Path]): The path to the input file.
+        filename (str | Path): The path to the input file.
 
     Returns:
         A tuple containing a list of pauli basis, a list of spin outcomes, and the system size.
