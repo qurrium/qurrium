@@ -1,6 +1,7 @@
 """Backend Wrapper (:mod:`qurry.tools.backend.backend_manager`)"""
 
-from typing import Union, Literal, Callable, Optional
+from typing import Literal
+from collections.abc import Callable
 from random import random
 import warnings
 
@@ -12,17 +13,11 @@ from ..exceptions import QurryDeprecatedWarning
 from ...capsule.hoshi import Hoshi
 
 
-BackendDict = dict[
-    Union[Literal["real", "sim", "fake", "extra"], str],
-    dict[str, Backend],
-]
+BackendDict = dict[Literal["real", "sim", "fake", "extra"] | str, dict[str, Backend]]
 """The dictionary of backends."""
 
 
-BackendCallSignDict = dict[
-    Union[Literal["real", "sim", "fake", "extra"], str],
-    dict[str, str],
-]
+BackendCallSignDict = dict[Literal["real", "sim", "fake", "extra"] | str, dict[str, str]]
 """The dictionary of backend callsign."""
 
 
@@ -272,18 +267,13 @@ class BackendWrapper:
 
         return check_msg
 
-    def add_backend(
-        self,
-        name: str,
-        backend: Backend,
-        callsign: Optional[str] = None,
-    ) -> None:
+    def add_backend(self, name: str, backend: Backend, callsign: str | None = None) -> None:
         """Add a backend to backend wrapper.
 
         Args:
             name (str): The name of backend.
             backend (Backend): The backend.
-            callsign (Optional[str], optional): The callsign of backend. Defaults to None.
+            callsign (str | None, optional): The callsign of backend. Defaults to None.
         """
 
         if not isinstance(backend, Backend):

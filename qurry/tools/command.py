@@ -4,7 +4,6 @@ import os
 import warnings
 import platform
 import subprocess
-from typing import Optional
 
 from .exceptions import OptionalDependenciesNotWorking
 
@@ -27,7 +26,7 @@ def cmd_wrapper(cmd: str = "") -> None:
         os.system(cmd)
 
 
-def pytorch_cuda_check() -> Optional[bool]:
+def pytorch_cuda_check() -> bool | None:
     """Via pytorch to check the availability of Nvidia CUDA.
 
     Returns:

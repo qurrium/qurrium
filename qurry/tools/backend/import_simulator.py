@@ -12,7 +12,7 @@ which are used in different qiskit, qiskit-aer version,
 and ordered by priority.
 """
 
-from typing import Literal, Type, Optional, Any
+from typing import Literal, Any
 from qiskit.providers import BackendV2, Backend
 
 from ..qiskit_version import QISKIT_VERSION
@@ -32,10 +32,10 @@ ImportPointOrder = [
     "qiskit.providers.basicaer",
     "qiskit.providers.aer",
 ]
-SIMULATOR_SOURCES: dict[ImportPointType, Type[Backend]] = {}
-SIM_BACKEND_SOURCES: dict[ImportPointType, Type[Backend]] = {}
-SIM_PROVIDER_SOURCES: dict[ImportPointType, Type[Any]] = {}
-SIM_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
+SIMULATOR_SOURCES: dict[ImportPointType, type[Backend]] = {}
+SIM_BACKEND_SOURCES: dict[ImportPointType, type[Backend]] = {}
+SIM_PROVIDER_SOURCES: dict[ImportPointType, type[Any]] = {}
+SIM_VERSION_INFOS: dict[ImportPointType, str | None] = {}
 SIM_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 
 try:

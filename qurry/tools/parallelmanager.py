@@ -4,8 +4,9 @@ This module provides the ParallelManager class for multiprocessing
 and functions for chunk size calculation and distribution.
 """
 
+from typing import TypeVar, Any, Literal
+from collections.abc import Iterable, Callable
 import warnings
-from typing import Optional, Iterable, Callable, TypeVar, Any, Literal
 from multiprocessing import cpu_count, get_context
 from tqdm.contrib.concurrent import process_map
 
@@ -32,14 +33,11 @@ DEFAULT_START_METHOD = "spawn"
 """The default start method for multiprocessing. """
 
 
-def workers_distribution(
-    workers_num: Optional[int] = None,
-    default: int = DEFAULT_POOL_SIZE,
-) -> int:
+def workers_distribution(workers_num: int | None = None, default: int = DEFAULT_POOL_SIZE) -> int:
     """Distribute the workers number.
 
     Args:
-        workers_num (Optional[int], optional): Desired workers number. Defaults to None.
+        workers_num (int | None, optional): Desired workers number. Defaults to None.
         default (int, optional): Default workers number. Defaults to DEFAULT_POOL_SIZE.
 
     Returns:
@@ -87,7 +85,7 @@ class ParallelManager:
 
     def __init__(
         self,
-        workers_num: Optional[int] = DEFAULT_POOL_SIZE,
+        workers_num: int | None = DEFAULT_POOL_SIZE,
         bar_format: str = "qurry-full",
         bar_ascii: str = "4squares",
         **pool_kwargs,
@@ -95,7 +93,7 @@ class ParallelManager:
         """Initialize the process manager.
 
         Args:
-            workers_num (Optional[int], optional):
+            workers_num (int | None, optional):
                 Desired workers number. Defaults to DEFAULT_POOL_SIZE.
             **pool_kwargs: Other arguments for Pool.
         """
@@ -122,7 +120,7 @@ class ParallelManager:
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
-            start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
+            start_method (Literal["spawn", "fork", "forkserver"], optional):
                 Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:
@@ -153,8 +151,8 @@ class ParallelManager:
 
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
-            arg_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
-            start_method (Optional[Literal["spawn", "fork", "forkserver"]], optional):
+            arg_list (Iterable[T_tgt]): Arguments to be mapped.
+            start_method (Literal["spawn", "fork", "forkserver"], optional):
                 Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:

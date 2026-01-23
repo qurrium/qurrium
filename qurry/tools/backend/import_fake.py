@@ -6,7 +6,7 @@ Avoiding the import error occurs on different parts of Qurrium.
 
 """
 
-from typing import Literal, Type, Union, Optional, overload
+from typing import Literal, overload
 import warnings
 
 from qiskit.providers import BackendV2, Backend
@@ -23,12 +23,12 @@ ImportPointOrder: list[ImportPointType] = [
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
-FAKE_BACKENDV2_SOURCES: dict[ImportPointType, Optional[Type[BackendV2]]] = {}
+FAKE_BACKENDV2_SOURCES: dict[ImportPointType, type[BackendV2] | None] = {}
 FAKE_PROVIDERFORV2_SOURCES: dict[
     ImportPointType,
-    Optional[Union[Type["FakeProviderForBackendV2Dep"], Type["FakeProviderForBackendV2Indep"]]],
+    type["FakeProviderForBackendV2Dep"] | type["FakeProviderForBackendV2Indep"] | None,
 ] = {}
-FAKE_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
+FAKE_VERSION_INFOS: dict[ImportPointType, str | None] = {}
 FAKE_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 
 QISKIT_IBM_RUNTIME_ISSUE_1318 = (
@@ -85,7 +85,7 @@ if len(FAKE_BACKENDV2_SOURCES) == 0:
         FAKE_IMPORT_ERROR_INFOS["qiskit.providers.fake_provider"] = err
 
 
-def get_default_fake_provider() -> Optional[ImportPointType]:
+def get_default_fake_provider() -> ImportPointType | None:
     """Get the default fake provider.
 
     Returns:
@@ -97,7 +97,7 @@ def get_default_fake_provider() -> Optional[ImportPointType]:
     return None
 
 
-FAKE_DEFAULT_SOURCE: Optional[ImportPointType] = get_default_fake_provider()
+FAKE_DEFAULT_SOURCE: ImportPointType | None = get_default_fake_provider()
 
 
 LUCKY_MSG = """
@@ -120,15 +120,7 @@ Many of the fake backends are not available in qiskit-ibm-runtime.
 """A warning message for the fake backend not available. """
 
 
-@overload
-def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
-
-
-@overload
-def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
-
-
-def fack_backend_loader():
+def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]:
     """Load the fake backend.
 
     Args:
