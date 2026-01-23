@@ -1,6 +1,6 @@
 """The Arguments of Experiment (:mod:`qurry.qurrium.experiment.arguments`)"""
 
-from typing import Union, Any, TypeVar
+from typing import Any, TypeVar
 from pathlib import Path
 from dataclasses import dataclass, fields
 import json
@@ -99,8 +99,8 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
     def content_dumping(
         self,
-        commonparams: Union[Commonparams, None] = None,
-        outfields: Union[dict[str, Any], None] = None,
+        commonparams: Commonparams | None = None,
+        outfields: dict[str, Any] | None = None,
     ) -> WrittenContentType[dict[str, Any]]:
         """Get the content to be written to files.
 
@@ -119,12 +119,12 @@ class ArgumentsPrototype(FileReadableWritableObj):
         }
 
     @classmethod
-    def content_loading(cls, raw_read: dict[str, Any], folder_name: Union[str, None] = None):
+    def content_loading(cls, raw_read: dict[str, Any], folder_name: str | None = None):
         """Process the serialized content from the method :meth:`content_writing`
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
-            folder_name (Union[str, None]): The folder name of this experiment. Defaults to None.
+            folder_name (str | None): The folder name of this experiment. Defaults to None.
 
         Returns:
             tuple["ArgumentsPrototype", "Commonparams", dict[str, Any]]:
@@ -155,13 +155,13 @@ class ArgumentsPrototype(FileReadableWritableObj):
         )
 
     @classmethod
-    def read(cls, file_index: dict[str, str], save_location: Path, exp_id: Union[str, None] = None):
+    def read(cls, file_index: dict[str, str], save_location: Path, exp_id: str | None = None):
         """Read the exported experiment file.
 
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            exp_id (Union[str, None], optional): The experiment ID. Defaults to None.
+            exp_id (str | None, optional): The experiment ID. Defaults to None.
         """
         if "args" not in file_index and "folder" not in file_index:
             raise KeyError("The file index does not contain 'args' or 'folder' key.")
@@ -192,11 +192,11 @@ class ArgumentsPrototype(FileReadableWritableObj):
         return arguments, commonparams, outfields
 
     @classmethod
-    def create(cls, arguments: Union["_A", dict[str, Any]]):
+    def create(cls, arguments: "_A | dict[str, Any]"):
         """Create experiment arguments from the given arguments.
 
         Args:
-            arguments (Union[_A, dict[str, Any]]): The arguments to be parsed.
+            arguments (_A | dict[str, Any]): The arguments to be parsed.
             arguments_instance (type[_A]): The instance of the arguments class.
 
         Raises:
@@ -227,19 +227,19 @@ _A = TypeVar("_A", bound=ArgumentsPrototype)
 
 
 def create_all_arguments(
-    arguments: Union[_A, dict[str, Any]],
-    commonparams: Union[Commonparams, dict[str, Any]],
-    outfields: dict[str, Any],
+    arguments: _A | dict[str, Any],
+    commonparams: Commonparams | dict[str, Any],
+    outfields: dict[str, Any] | None,
     arguments_instance: type[_A],
 ) -> tuple[_A, Commonparams, dict[str, Any]]:
     """Create experiment arguments from the given arguments.
 
     Args:
-        arguments (Optional[Union[NamedTuple, dict[str, Any]]]):
+        arguments (_A | dict[str, Any]):
             The arguments of the experiment.
-        commonparams (Optional[Union[Commonparams, dict[str, Any]]]):
+        commonparams (Commonparams | dict[str, Any]):
             The common parameters of the experiment.
-        outfields (Optional[dict[str, Any]]):
+        outfields (dict[str, Any] | None):
             The outfields of the experiment.
         arguments_instance (type[_A]):
             The instance of the arguments class.

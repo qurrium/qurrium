@@ -1,6 +1,6 @@
 """The Common Parameters (:mod:`qurry.qurrium.arguments.commonparams`)"""
 
-from typing import Union, Optional, NamedTuple, TypedDict, Any
+from typing import NamedTuple, TypedDict, Any
 from pathlib import Path
 
 from qiskit.providers import Backend
@@ -22,9 +22,9 @@ class CommonparamsDict(TypedDict):
 
     shots: int
     """Number of shots to run the program."""
-    backend: Union[Backend, str]
+    backend: Backend | str
     """Backend to execute the circuits on, or the backend used."""
-    run_args: Union[BaseRunArgs, dict[str, Any]]
+    run_args: BaseRunArgs | dict[str, Any]
     """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`"""
     transpile_args: TranspileArgs
     """Arguments of :func:`~qiskit.compiler.transpile`."""
@@ -32,14 +32,14 @@ class CommonparamsDict(TypedDict):
     tags: tuple[str, ...]
     """Tags of experiment."""
 
-    save_location: Union[Path, str]
+    save_location: Path | str
     """Location of saving experiment."""
 
-    serial: Optional[int]
+    serial: int | None
     """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
-    summoner_id: Optional[str]
+    summoner_id: str | None
     """ID of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
-    summoner_name: Optional[str]
+    summoner_name: str | None
     """Name of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     datetimes: DatetimeDict
@@ -73,9 +73,9 @@ class Commonparams(NamedTuple):
     # Multiple jobs shared
     shots: int
     """Number of shots to run the program."""
-    backend: Union[Backend, str]
+    backend: Backend | str
     """Backend to execute the circuits on, or the backend used."""
-    run_args: Union[BaseRunArgs, dict[str, Any]]
+    run_args: BaseRunArgs | dict[str, Any]
     """Arguments for :meth:`~qiskit.providers.backend.BackendV2.run`"""
 
     # Single job dedicated
@@ -86,7 +86,7 @@ class Commonparams(NamedTuple):
     """Tags of experiment."""
 
     # Arguments for exportation
-    save_location: Union[Path, str]
+    save_location: Path | str
     """Location of saving experiment. 
     If this experiment is called by
     :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`,
@@ -98,18 +98,18 @@ class Commonparams(NamedTuple):
     if does, then will be overwriten and update."""
 
     # Arguments for multi-experiment
-    serial: Optional[int]
+    serial: int | None
     """Index of experiment in :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
-    summoner_id: Optional[str]
+    summoner_id: str | None
     """ID of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
-    summoner_name: Optional[str]
+    summoner_name: str | None
     """Name of experiment of :class:`~qurry.qurrium.multimanager.multimanager.MultiManager`."""
 
     # header
     datetimes: DatetimeDict
     """The datetime of experiment."""
 
-    folder: Optional[str] = None
+    folder: str | None = None
     """The folder of experiment, which is set when reading the experiment from file.
     If this is None, then the experiment is newly created. Only used for internal processing.
     """
@@ -147,12 +147,12 @@ class Commonparams(NamedTuple):
 
     @classmethod
     def create(
-        cls, commons: Union["Commonparams", dict[str, Any]]
+        cls, commons: "Commonparams | dict[str, Any]"
     ) -> tuple["Commonparams", dict[str, Any]]:
         """Create experiment commons from the given commons.
 
         Args:
-            commons (Union[Commonparams, dict[str, Any]]): The commons to be parsed.
+            commons (Commonparams | dict[str, Any]): The commons to be parsed.
 
         Raises:
             TypeError: If the commons is not an instance of the commons class or a dictionary.

@@ -1,6 +1,6 @@
 """The Utils of Qurrium Arguments (:mod:`qurry.qurrium.arguments.utils`)"""
 
-from typing import Union, Any, Optional
+from typing import Any
 
 from ...tools.datetime import DatetimeDict, current_time
 
@@ -36,16 +36,18 @@ def v7_to_v9_field_transpose(data_args: dict[str, dict[str, Any]]) -> dict[str, 
 
 def filter_deprecated_args(
     arguments_or_commons_input: dict[str, Any],
-    container_fields: Union[tuple[str, ...], set[str]],
+    container_fields: tuple[str, ...] | set[str],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Filter deprecated arguments from the given arguments or commons.
 
     Args:
         arguments_or_commons_input (dict[str, Any]): The arguments or commons to be filtered.
-        container_fields (Union[tuple[str, ...], set[str]]): The fields to be kept.
+        container_fields (tuple[str, ...] | set[str]): The fields to be kept.
+
     Returns:
         tuple[dict[str, Any], dict[str, Any]]: A tuple containing the filtered arguments or commons
             and a dictionary of deprecated fields.
+
     Raises:
         TypeError: If the arguments_or_commons_input is not a dictionary.
     """
@@ -62,14 +64,14 @@ def filter_deprecated_args(
     return arguments_parsed, arguments_deprecated
 
 
-def check_tags(tags: Union[tuple[str, ...], list[str], None] = None) -> tuple[Union[str, int], ...]:
+def check_tags(tags: tuple[str, ...] | list[str] | None = None) -> tuple[str | int, ...]:
     """Check tags and return formatted tags.
 
     Args:
-        tags (Union[tuple[str, ...], list[str], None]): Tags for the experiment.
+        tags (tuple[str, ...] | list[str] | None): Tags for the experiment.
 
     Returns:
-        Optional[tuple[Union[str, int], ...]]: Formatted tags for the experiment.
+        tuple[str | int, ...]: Formatted tags for the experiment.
     """
     if tags is None:
         tags = ()
@@ -86,12 +88,11 @@ def check_tags(tags: Union[tuple[str, ...], list[str], None] = None) -> tuple[Un
     return tags
 
 
-def check_datetimes(datetimes: Union[DatetimeDict, dict[str, str], None]) -> DatetimeDict:
+def check_datetimes(datetimes: DatetimeDict | dict[str, str] | None) -> DatetimeDict:
     """Check and format the datetimes dictionary.
 
     Args:
-        datetimes (Union[DatetimeDict, dict[str, str], None]): The datetimes dictionary.
-
+        datetimes (DatetimeDict | dict[str, str] | None): The datetimes dictionary.
     Returns:
         DatetimeDict: The formatted datetimes dictionary.
     """
@@ -125,11 +126,11 @@ def raw_commons_process(commons_dict: dict[str, Any]) -> dict[str, Any]:
     return commons_dict
 
 
-def create_exp_outfields(outfields: Optional[dict[str, Any]]) -> dict[str, Any]:
+def create_exp_outfields(outfields: dict[str, Any] | None) -> dict[str, Any]:
     """Create experiment outfields from the given outfields.
 
     Args:
-        outfields (Union[dict[str, Any], None]): The outfields to be parsed.
+        outfields (dict[str, Any] | None): The outfields to be parsed.
 
     Raises:
         TypeError: If the outfields is not a dictionary or None.
