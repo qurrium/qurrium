@@ -109,7 +109,7 @@ class EntropyMeasureHadamard(
             "pbar": pbar,
         }
 
-    def measure(
+    def prepare(
         self,
         wave: QuantumCircuit | WCKeyable | None = None,
         degree: int | tuple[int, int] | None = None,
@@ -126,7 +126,7 @@ class EntropyMeasureHadamard(
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
     ):
-        """Execute the experiment.
+        """Prepare the experiment without executing it.
 
         Args:
             wave (QuantumCircuit | WCKeyable):
@@ -164,21 +164,95 @@ class EntropyMeasureHadamard(
             str: The ID of the experiment
         """
 
-        output_args = self.measure_to_output(
-            wave=wave,
-            degree=degree,
-            shots=shots,
-            backend=backend,
-            exp_name=exp_name,
-            run_args=run_args,
-            transpile_args=transpile_args,
-            passmanager=passmanager,
-            tags=tags,
-            # process tool
-            qasm_version=qasm_version,
-            export=export,
-            save_location=save_location,
-            pbar=pbar,
+        return self.build(
+            **self.measure_to_output(
+                wave=wave,
+                degree=degree,
+                shots=shots,
+                backend=backend,
+                exp_name=exp_name,
+                run_args=run_args,
+                transpile_args=transpile_args,
+                passmanager=passmanager,
+                tags=tags,
+                # process tool
+                qasm_version=qasm_version,
+                export=export,
+                save_location=save_location,
+                pbar=pbar,
+            )
         )
 
-        return self.output(**output_args)
+    def measure(
+        self,
+        wave: QuantumCircuit | WCKeyable | None = None,
+        degree: int | tuple[int, int] | None = None,
+        shots: int = 1024,
+        backend: Backend | None = None,
+        exp_name: str = "experiment",
+        run_args: RunArgsType | None = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType | None = None,
+        tags: tuple[str, ...] | None = None,
+        # process tool
+        qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
+        export: bool = False,
+        save_location: Path | str | None = None,
+        pbar: tqdm.tqdm | None = None,
+    ):
+        """Execute the experiment immediately.
+
+        Args:
+            wave (QuantumCircuit | WCKeyable):
+                The key or the circuit to execute.
+            degree (int | tuple[int, int] | None, optional):
+                The degree of the experiment. Defaults to None.
+            shots (int, optional):
+                Shots of the job. Defaults to `1024`.
+            backend (Backend | None, optional):
+                The quantum backend. Defaults to None.
+            exp_name (str, optional):
+                The name of the experiment.
+                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                This name is also used for creating a folder to store the exports.
+                Defaults to `'exps'`.
+            run_args (RunArgsType, optional):
+                Arguments for :meth:`Backend.run`. Defaults to None.
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`. Defaults to None.
+            passmanager (PassManagerType | None, optional):
+                The passmanager. Defaults to None.
+            tags (tuple[str, ...] | None, optional):
+                The tags of the experiment. Defaults to None.
+
+            qasm_version (Literal["qasm2", "qasm3"], optional):
+                The version of OpenQASM. Defaults to "qasm3".
+            export (bool, optional):
+                Whether to export the experiment. Defaults to False.
+            save_location (Path | str | None, optional):
+                The location to save the experiment. Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment. Defaults to None.
+
+        Returns:
+            str: The ID of the experiment
+        """
+
+        return self.output(
+            **self.measure_to_output(
+                wave=wave,
+                degree=degree,
+                shots=shots,
+                backend=backend,
+                exp_name=exp_name,
+                run_args=run_args,
+                transpile_args=transpile_args,
+                passmanager=passmanager,
+                tags=tags,
+                # process tool
+                qasm_version=qasm_version,
+                export=export,
+                save_location=save_location,
+                pbar=pbar,
+            )
+        )

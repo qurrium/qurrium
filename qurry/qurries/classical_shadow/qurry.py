@@ -188,7 +188,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         """Trasnform :meth:`measure` arguments form into :meth:`output` form.
 
         Args:
-            wave (Union[QuantumCircuit, WCKeyable]):
+            wave (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
             snapshots (int, optional):
                 The number of random unitary operator, previously called `times`
@@ -291,7 +291,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
             "pbar": pbar,
         }
 
-    def measure(
+    def prepare(
         self,
         wave: QuantumCircuit | WCKeyable | None = None,
         snapshots: int = 100,
@@ -314,10 +314,10 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         save_location: str | Path | None = None,
         pbar: tqdm.tqdm | None = None,
     ) -> str:
-        """Execute the experiment.
+        """Prepare the experiment without executing it.
 
         Args:
-            wave (Union[QuantumCircuit, WCKeyable]):
+            wave (QuantumCircuit | WCKeyable):
                 The key or the circuit to execute.
             snapshots (int, optional):
                 The number of random unitary operator, previously called `times`
@@ -362,6 +362,133 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
                     random_basis = generate_random_basis(100, [0, 1])
 
+            shots (int, optional):
+                Shots of the job. Defaults to `1024`.
+            backend (Backend | None, optional):
+                The quantum backend. Defaults to None.
+            exp_name (str, optional):
+                The name of the experiment.
+                Naming this experiment to recognize it when the jobs are pending to IBMQ Service.
+                This name is also used for creating a folder to store the exports.
+                Defaults to `'exps'`.
+            run_args (RunArgsType, optional):
+                Arguments for :meth:`Backend.run`. Defaults to None.
+            transpile_args (TranspileArgs | None, optional):
+                Arguments of :func:`~qiskit.compiler.transpile`.
+                Defaults to None.
+            passmanager (PassManagerType, optional):
+                The passmanager. Defaults to None.
+            tags (tuple[str, ...] | None, optional):
+                The tags of the experiment. Defaults to None.
+
+            qasm_version (Literal["qasm2", "qasm3"], optional):
+                The version of OpenQASM. Defaults to "qasm3".
+            export (bool, optional):
+                Whether to export the experiment. Defaults to False.
+            save_location (str | Path | None, optional):
+                The location to save the experiment. Defaults to None.
+            pbar (tqdm.tqdm | None, optional):
+                The progress bar for showing the progress of the experiment.
+                Defaults to None.
+
+        Returns:
+            str: The experiment ID.
+        """
+
+        return self.build(
+            **self.measure_to_output(
+                wave=wave,
+                snapshots=snapshots,
+                measure=measure,
+                unitary_loc=unitary_loc,
+                unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
+                shadow_basis_method=shadow_basis_method,
+                random_basis=random_basis,
+                shots=shots,
+                backend=backend,
+                exp_name=exp_name,
+                run_args=run_args,
+                transpile_args=transpile_args,
+                passmanager=passmanager,
+                tags=tags,
+                # process tool
+                qasm_version=qasm_version,
+                export=export,
+                save_location=save_location,
+                pbar=pbar,
+            )
+        )
+
+    def measure(
+        self,
+        wave: QuantumCircuit | WCKeyable | None = None,
+        snapshots: int = 100,
+        measure: QubitSelectionType = None,
+        unitary_loc: QubitSelectionType = None,
+        unitary_loc_not_cover_measure: bool = False,
+        shadow_basis_method: ShadowBasisType | None = None,
+        random_basis: dict[int, dict[int, int]] | None = None,
+        # basic inputs
+        shots: int = 1024,
+        backend: Backend | None = None,
+        exp_name: str = "experiment",
+        run_args: RunArgsType = None,
+        transpile_args: TranspileArgs | None = None,
+        passmanager: PassManagerType = None,
+        tags: tuple[str, ...] | None = None,
+        # process tool
+        qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
+        export: bool = False,
+        save_location: str | Path | None = None,
+        pbar: tqdm.tqdm | None = None,
+    ) -> str:
+        """Execute the experiment immediately.
+
+        Args:
+            wave (QuantumCircuit | WCKeyable):
+                The key or the circuit to execute.
+            snapshots (int, optional):
+                The number of random unitary operator, previously called `times`
+                It will denote as :math:`N_U` in the experiment name.
+                Defaults to `100`.
+            measure (QubitSelectionType, optional):
+                The measure range. Defaults to None.
+            unitary_loc (QubitSelectionType, optional):
+                The range of the unitary operator. Defaults to None.
+            unitary_loc_not_cover_measure (bool, optional):
+                Whether the range of the unitary operator is not cover the measure range.
+                Defaults to `False`.
+            shadow_basis_method (ShadowBasisType | None, optional):
+                The classical shadow basis for sampling. It can be set to
+                :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowRandomBasis`
+                or
+                :class:`~qurry.process.classical_shadow.rho_process.unitary_set.ShadowBasisMethod`.
+                Defaults to None, which use the default Pauli basis from
+                :meth:`ShadowBasisMethod.`.
+            random_basis (dict[int, dict[int, int]] | None, optional):
+                The random basis for classical shadow.
+
+                This argument only takes input as type of `dict[int, dict[int, int]]`.
+                The first key is the index if snapshots.
+                The second key is the index for the qubit.
+
+                .. code-block:: python
+
+                    {
+                        0: {0: 1, 1: 0},
+                        1: {0: 2, 1: 1},
+                        2: {0: 0, 1: 2},
+                    }
+
+                If you want to generate the seeds for all random unitary operator,
+                you can use the function :func:`generate_random_basis`
+                in :mod:`qurry.process.classical_shadow.utils`.
+
+                .. code-block:: python
+
+                    from qurry import generate_random_basis
+
+                    random_basis = generate_random_basis(100, [0, 1])
 
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
@@ -396,29 +523,29 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
             str: The experiment ID.
         """
 
-        output_args = self.measure_to_output(
-            wave=wave,
-            snapshots=snapshots,
-            measure=measure,
-            unitary_loc=unitary_loc,
-            unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
-            shadow_basis_method=shadow_basis_method,
-            random_basis=random_basis,
-            shots=shots,
-            backend=backend,
-            exp_name=exp_name,
-            run_args=run_args,
-            transpile_args=transpile_args,
-            passmanager=passmanager,
-            tags=tags,
-            # process tool
-            qasm_version=qasm_version,
-            export=export,
-            save_location=save_location,
-            pbar=pbar,
+        return self.output(
+            **self.measure_to_output(
+                wave=wave,
+                snapshots=snapshots,
+                measure=measure,
+                unitary_loc=unitary_loc,
+                unitary_loc_not_cover_measure=unitary_loc_not_cover_measure,
+                shadow_basis_method=shadow_basis_method,
+                random_basis=random_basis,
+                shots=shots,
+                backend=backend,
+                exp_name=exp_name,
+                run_args=run_args,
+                transpile_args=transpile_args,
+                passmanager=passmanager,
+                tags=tags,
+                # process tool
+                qasm_version=qasm_version,
+                export=export,
+                save_location=save_location,
+                pbar=pbar,
+            )
         )
-
-        return self.output(**output_args)
 
     def multiAnalysis(
         self,
@@ -469,7 +596,6 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 If it is None, it will be calculated by the largest shadow norm upper bound.
                 If it is not None, it must be a positive float number.
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-
 
             selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
