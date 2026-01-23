@@ -10,11 +10,11 @@ class DataExportable(ABC):
     """The abstract base class for exporting content."""
 
     @abstractmethod
-    def export(self) -> dict[str, Any]:
+    def export(self) -> dict[Any, Any]:
         """Export the serializable data.
 
         Returns:
-            dict[str, Any]: The serializable data.
+            dict[Any, Any]: The serializable data.
         """
 
 

@@ -1,6 +1,6 @@
 """AnalysisContainer (:mod:`qurry.qurrium.experiment.analyses`)"""
 
-from typing import Any, Optional
+from typing import Any
 from pathlib import Path
 import warnings
 import json
@@ -58,12 +58,12 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         return {WRITING_KEY: self.export()}
 
     @classmethod
-    def ingest(cls, raw_dict: dict[str, Any], analysis_instance: Optional[type[_R]] = None):
+    def ingest(cls, raw_dict: dict[str, Any], analysis_instance: type[_R] | None = None):
         """Ingest from a serialized dictionary.
 
         Args:
             raw_dict (dict[str, Any]): The dictionary to deserialize.
-            analysis_instance (Optional[type[_R]]): The analysis instance type.
+            analysis_instance (type[_R] | None): The analysis instance type.
 
         Returns:
             The deserialized analysis instance, or None if not applicable.
@@ -75,14 +75,12 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         return nc
 
     @classmethod
-    def content_loading(
-        cls, raw_read: dict[str, Any], analysis_instance: Optional[type[_R]] = None
-    ):
+    def content_loading(cls, raw_read: dict[str, Any], analysis_instance: type[_R] | None = None):
         """Process the serialized content from the method :meth:`content_writing`
 
         Args:
             raw_read (dict[str, Any]): The raw read dictionary.
-            analysis_instance (Optional[type[_R]]): The analysis instance type.
+            analysis_instance (type[_R] | None): The analysis instance type.
 
         Returns:
             The deserialized analysis instance, or None if not applicable.
@@ -99,14 +97,14 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
         cls,
         file_index: dict[str, str],
         save_location: Path,
-        analysis_instance: Optional[type[_R]] = None,
+        analysis_instance: type[_R] | None = None,
     ):
         """Read the analysis from file index.
 
         Args:
             file_index (dict[str, str]): The file index.
             save_location (Path): The save location.
-            analysis_instance (Optional[type[_R]]): The analysis instance type.
+            analysis_instance (type[_R] | None): The analysis instance type.
 
         Returns:
             The analysis instances in dictionary.
@@ -146,13 +144,14 @@ class AnalysesContainer(dict[int, _R], FileReadableWritableObj):
 
     @classmethod
     def create(
-        cls, reports: Optional["AnalysesContainer[_R]"], *, analysis_instance: type[_R]
+        cls, reports: "AnalysesContainer[_R] | None", *, analysis_instance: type[_R]
     ) -> "AnalysesContainer[_R]":
         """Create an :class:`AnalysesContainer` from the given reports.
 
         Args:
-            reports (Optional[AnalysesContainer[_R]]): The reports to be parsed.
+            reports (AnalysesContainer[_R] | None): The reports to be parsed.
             analysis_instance (type[_R]): The analysis instance type.
+
         Returns:
             AnalysesContainer[_R]: The created AnalysesContainer.
         """

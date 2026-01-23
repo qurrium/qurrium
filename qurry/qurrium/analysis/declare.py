@@ -1,6 +1,6 @@
 """Declaration of the input fields of Analysis (:mod:`qurry.qurrium.analysis.declare`)"""
 
-from typing import Optional, Union, TypedDict, Any, TypeVar
+from typing import TypedDict, Any, TypeVar
 
 
 class AnalyzeArgs(TypedDict):
@@ -13,7 +13,7 @@ _RA = TypeVar("_RA", bound=AnalyzeArgs)
 and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """
 
-SpecificAnalyzeArgs = Optional[dict[str, Union[_RA, dict[str, Any], bool]]]
+SpecificAnalyzeArgs = dict[str, _RA | dict[str, Any] | bool] | None
 """The type hint for :meth:`~qurry.qurrium.multimanager.multimanager.analyze` 
 and :meth:`~qurry.qurrium.qurrium.QurriumPrototype.multiAnalysis`.
 """

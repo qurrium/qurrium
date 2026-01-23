@@ -1,6 +1,7 @@
 """The Entries and Result definitions for analysis. (:mod:`qurry.qurrium.analysis.ers`)"""
 
-from typing import Any, TypeVar, Callable
+from typing import Any, TypeVar, ParamSpec, Concatenate, overload
+from collections.abc import Callable
 from dataclasses import dataclass, fields
 import warnings
 
@@ -11,17 +12,19 @@ from ...capsule.mori import DataExportableIngestible
 _ERABC = TypeVar("_ERABC", bound="AnalysisERABC")
 """Type variable for :class:`AnalysisERABC`."""
 
+P = ParamSpec("P")
+
 
 def erabc_export(
-    func: Callable[[_ERABC], dict[str, Any]],
-) -> Callable[[_ERABC], dict[str, Any]]:
+    func: Callable[Concatenate[_ERABC, P], dict[str, Any]],
+) -> Callable[Concatenate[_ERABC, P], dict[str, Any]]:
     """The decorator for export method of :class:`AnalysisERABC` to include class name.
 
     Args:
         func (Callable): The original export function.
     """
 
-    def wrapper(self: _ERABC, *args: Any, **kwargs: Any) -> dict[str, Any]:
+    def wrapper(self: _ERABC, *args: P.args, **kwargs: P.kwargs) -> dict[str, Any]:
         """The wrapped export function including class name."""
         result = {"__class__": self.__class__.__name__}
         result.update(func(self, *args, **kwargs))
@@ -42,22 +45,23 @@ def erabc_export(
         return result
 
     # pylint: disable=protected-access
-    wrapper._erabc_exported_decorated = True
+    wrapper._erabc_exported_decorated = True  # type: ignore[attr-defined]
     # pylint: enable=protected-access
 
     return wrapper
 
 
-def erabc_ingest(
-    func: Callable[[type[_ERABC], dict[str, Any]], _ERABC],
-) -> Callable[[type[_ERABC], dict[str, Any]], _ERABC]:
+_ERABC_ingest = TypeVar("_ERABC_ingest", bound=Callable)
+
+
+def erabc_ingest(func: _ERABC_ingest) -> _ERABC_ingest:
     """The decorator for ingest method of :class:`AnalysisERABC` to check class name.
 
     Args:
         func (Callable): The original load function.
     """
 
-    def wrapper(cls: type[_ERABC], raw_dict: dict[str, Any], *args: Any, **kwargs: Any) -> _ERABC:
+    def wrapper(cls: _ERABC, raw_dict: dict[str, Any], *args: P.args, **kwargs: P.kwargs) -> _ERABC:
         """The wrapped load function including class name check."""
 
         raw_dict_copy = raw_dict.copy()
@@ -79,10 +83,10 @@ def erabc_ingest(
         return result
 
     # pylint: disable=protected-access
-    wrapper._erabc_ingested_decorated = True
+    wrapper._erabc_ingested_decorated = True  # type: ignore[attr-defined]
     # pylint: enable=protected-access
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 @dataclass(frozen=True)
