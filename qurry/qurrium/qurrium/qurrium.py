@@ -180,7 +180,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Other custom arguments.
 
         Returns:
-            ExperimentPrototype: The experiment.
+            str: The ID of the experiment.
         """
         passmanager_pair = passmanager_processor(
             passmanager=passmanager, passmanager_container=self.passmanagers
@@ -265,7 +265,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
                 Other custom arguments.
 
         Returns:
-            str: The experiment ID.
+            str: The ID of the experiment.
         """
 
         if exp_id is None and circuits is None:
@@ -301,6 +301,11 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     @abstractmethod
     def measure_to_output(self) -> _OA:
         """Trasnform :meth:`measure` arguments form into :meth:`output` form."""
+        raise NotImplementedError("The method is not defined.")
+
+    @abstractmethod
+    def prepare(self) -> str:
+        """Prepare the experiment."""
         raise NotImplementedError("The method is not defined.")
 
     @abstractmethod
