@@ -16,6 +16,34 @@ It can be a string, an integer, or a tuple of strings and/or integers.
 But number key is only for internal use, not for user.
 """
 
+
+def naming_circuit(target_circuit: QuantumCircuit, target_key: WCKeyable, exp_name: str) -> str:
+    """Generate a name from experiment name, target key, and target circuit name.
+
+    Args:
+        target_circuit (QuantumCircuit): Target circuit.
+        target_key (WCKeyable): Target key.
+        exp_name (str): Experiment name.
+
+    Returns:
+        str: The generated name.
+    """
+    name_components = []
+    if isinstance(exp_name, str) and len(exp_name) > 0:
+        name_components.append(exp_name)
+
+    if isinstance(target_key, tuple):
+        name_components.append("-".join(str(k) for k in target_key))
+    elif isinstance(target_key, str):
+        name_components.append(target_key)
+    elif isinstance(target_key, int):
+        pass
+
+    if isinstance(target_circuit.name, str) and len(target_circuit.name) > 0:
+        name_components.append(target_circuit.name)
+    return ".".join(name_components)
+
+
 GET_WAVE_RETURN = {
     "operator": Operator,
     "gate": lambda w: w.to_gate(),

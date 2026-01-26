@@ -3,6 +3,7 @@
 from .utils import decomposer
 from .container import (
     WCKeyable,
+    naming_circuit,
     BaseRunArgs,
     BasicArgs,
     OutputArgs,
