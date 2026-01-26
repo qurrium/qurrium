@@ -8,6 +8,7 @@ import gc
 import json
 
 from qiskit.result import Result
+from qiskit.primitives import PrimitiveResult
 
 from ..utils.file_structure import FOLDER_NAME_AFTERWARDS as FOLDER_NAME
 from ..exceptions import ResetSecurityActivated, ResetAccomplished
@@ -40,14 +41,18 @@ class After(FileReadableWritableObj):
 
     # Measurement Result
     result: list[Result]
-    """Results of experiment."""
+    """Results of experiment from :class:`qiskit.result.Result`"""
     counts: list[dict[str, int]]
-    """Counts of experiment."""
+    """Counts of experiment from :class:`qiskit.result.Result`"""
+    primitive_result: list[PrimitiveResult]
+    """Primitive results of experiment from :class:`qiskit.primitives.PrimitiveResult`"""
+    primitive_counts: list[dict[str, int]]
+    """Primitive counts of experiment from :class:`qiskit.primitives.PrimitiveResult`"""
 
     @staticmethod
     def default_value():
         """The default value of each field."""
-        return {"result": [], "counts": []}
+        return {"result": [], "primitive_result": [], "counts": [], "primitive_counts": []}
 
     @classmethod
     def folder_and_filename(cls, identifier: str) -> tuple[str, str]:
@@ -67,7 +72,7 @@ class After(FileReadableWritableObj):
         Returns:
             dict[str, list[dict[str, int]]]: The experiment's data after executing.
         """
-        return {"counts": self.counts}
+        return {"counts": self.counts, "primitive_counts": self.primitive_counts}
 
     def content_dumping(self) -> WrittenContentType[dict[str, list[dict[str, int]]]]:
         """Get the content to be written to files.
