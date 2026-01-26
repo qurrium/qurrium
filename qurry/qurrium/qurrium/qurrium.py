@@ -30,7 +30,7 @@ from ..multimanager import (
     ExperimentContainer,
     _E,
 )
-
+from ..utils.build import check_cregs_name_collision
 from ...tools import qurry_progressbar
 from ...tools.backend import GeneralSimulator
 from ...tools.qiskit_version import qiskit_version_v0_check
@@ -47,6 +47,8 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     """The name of Qurrium."""
     short_name = "qurrium"
     """The short name of Qurrium."""
+    reseved_register_names: set[str] = set()
+    """The set of reserved classical register names."""
 
     # Wave
     def add(
@@ -72,6 +74,9 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Returns:
             WCKeyable | None: Key of given wave function in `.waves`.
         """
+        if len(self.reseved_register_names) > 0:
+            for creg in wave.cregs:
+                check_cregs_name_collision(wave, creg.name)
         return self.waves.add(wave=wave, key=key, replace=replace)
 
     def remove(self, key: WCKeyable) -> None:

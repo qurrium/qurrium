@@ -1,11 +1,6 @@
 """Utility Modules for Qurrium (:mod:`qurry.qurrium.utils`)"""
 
-from .build import (
-    decomposer,
-    is_cregs_name_collision,
-    rename_collision_cregs,
-    DEFAULT_COLLISION_PREFIX,
-)
+from .build import decomposer, is_cregs_name_collision, check_cregs_name_collision
 from .counts import (
     get_counts_and_exceptions,
     bitstring_mapping_getter,
