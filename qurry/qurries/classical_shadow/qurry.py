@@ -11,6 +11,7 @@ import numpy.typing as npt
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
+from .utils import DEFAULT_CLASSICAL_REGISTER_NAME
 from .arguments import SHORT_NAME, ACRONYM, SUMeasureArgs, SUOutputArgs
 from .analysis import SUAnalyzeArgs
 from .experiment import SUExperiment
@@ -136,6 +137,8 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
     """The short name of this Qurrium class."""
     acronym = ACRONYM
     """The abbreviation of this Qurrium class."""
+    reserved_register_names = {DEFAULT_CLASSICAL_REGISTER_NAME}
+    """The set of reserved classical register names."""
 
     def __post_init__(self):
         """Initialize the class."""

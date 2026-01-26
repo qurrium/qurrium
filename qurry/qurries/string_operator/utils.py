@@ -5,6 +5,10 @@ import numpy as np
 
 from qiskit import QuantumCircuit, ClassicalRegister
 
+from ...qurrium import WCKeyable, naming_circuit
+
+DEFAULT_CLASSICAL_REGISTER_NAME = "m0"
+"""The default name for classical register used for measurement."""
 
 StringOperatorUnits = tuple[Literal["rx", "ry", "rz"], float] | None
 """Available string operator units.
@@ -122,7 +126,8 @@ r"""Available string operator library.
 
 def circuit_method(
     target_circuit: QuantumCircuit,
-    target_key: str,
+    target_key: WCKeyable,
+    exp_name: str,
     i: int,
     k: int,
     str_op: StringOperatorLibType = "i",
@@ -132,7 +137,8 @@ def circuit_method(
 
     Args:
         target_circuit (QuantumCircuit): Target circuit.
-        target_key (str): Target key.
+        target_key (WCKeyable): Target key.
+        exp_name (str): Experiment name.
         i (int): The index of beginning qubits in the quantum circuit.
         k (int): The index of ending qubits in the quantum circuit.
         str_op (StringOperatorLibType): The string operator.
@@ -153,12 +159,10 @@ def circuit_method(
             f"But got k: {k} - i: {i} = {k - i}."
         )
 
-    old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
-
     qc_exp1 = target_circuit.copy(
-        f"{target_key}_{i}_{k}_{str_op}_{on_dir}" + ("" if old_name else f".{old_name}")
+        naming_circuit(target_circuit, target_key, f"{exp_name}_{i}_{k}_{str_op}_{on_dir}")
     )
-    c_meas1 = ClassicalRegister(k - i + 1, "c_m1")
+    c_meas1 = ClassicalRegister(k - i + 1, DEFAULT_CLASSICAL_REGISTER_NAME)
     qc_exp1.add_register(c_meas1)
 
     qc_exp1.barrier()

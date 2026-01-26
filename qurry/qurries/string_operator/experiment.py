@@ -133,6 +133,7 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
             circuit_method(
                 target_circuit,
                 target_key,
+                arguments.exp_name,
                 arguments.i,
                 arguments.k,
                 arguments.str_op,

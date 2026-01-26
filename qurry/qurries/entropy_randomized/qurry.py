@@ -8,6 +8,7 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
+from .utils import DEFAULT_CLASSICAL_REGISTER_NAME
 from .arguments import SHORT_NAME, ACRONYM, EMRMeasureArgs, EMROutputArgs
 from .analysis import EMRAnalyzeArgs
 from .experiment import EMRExperiment, PostProcessingBackendLabel, DEFAULT_PROCESS_BACKEND
@@ -106,6 +107,8 @@ class EntropyMeasureRandomized(
     """The short name of this Qurrium class."""
     acronym = ACRONYM
     """The abbreviation of this Qurrium class."""
+    reserved_register_names: set[str] = {DEFAULT_CLASSICAL_REGISTER_NAME}
+    """The reserved classical register names used in this Qurrium class."""
 
     @property
     def experiment_instance(self) -> type[EMRExperiment]:

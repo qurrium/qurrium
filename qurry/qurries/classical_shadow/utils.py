@@ -4,8 +4,12 @@ from typing import Literal
 from collections.abc import Iterable
 from qiskit import QuantumCircuit, ClassicalRegister
 
-from ...qurrium import WCKeyable
+from ...qurrium import WCKeyable, naming_circuit
 from ...process.classical_shadow import ShadowRandomBasis, convert_to_basis_spin
+
+
+DEFAULT_CLASSICAL_REGISTER_NAME = "m0"
+"""The default name for classical register used for measurement."""
 
 
 def make_samplied_circuit(
@@ -44,19 +48,8 @@ def make_samplied_circuit(
             + f"but get {type(shadow_basis)}"
         )
 
-    old_name = "" if isinstance(target_circuit.name, str) else target_circuit.name
-
-    qc_exp1 = target_circuit.copy(
-        f"{exp_name}_{idx}" + ""
-        if len(str(target_key)) < 1
-        else f".{target_key}" + ""
-        if len(old_name) < 1
-        else f".{old_name}"
-    )
-    c_meas1 = ClassicalRegister(
-        len(registers_mapping),
-        None if "m1" in [reg.name for reg in (qc_exp1.qregs + qc_exp1.cregs)] else "m1",
-    )
+    qc_exp1 = target_circuit.copy(naming_circuit(target_circuit, target_key, f"{exp_name}_{idx}"))
+    c_meas1 = ClassicalRegister(len(registers_mapping), DEFAULT_CLASSICAL_REGISTER_NAME)
     qc_exp1.add_register(c_meas1)
 
     qc_exp1.barrier()

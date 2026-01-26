@@ -47,7 +47,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
     """The name of Qurrium."""
     short_name = "qurrium"
     """The short name of Qurrium."""
-    reseved_register_names: set[str] = set()
+    reserved_register_names: set[str] = set()
     """The set of reserved classical register names."""
 
     # Wave
@@ -74,7 +74,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         Returns:
             WCKeyable | None: Key of given wave function in `.waves`.
         """
-        if len(self.reseved_register_names) > 0:
+        if len(self.reserved_register_names) > 0:
             for creg in wave.cregs:
                 check_cregs_name_collision(wave, creg.name)
         return self.waves.add(wave=wave, key=key, replace=replace)

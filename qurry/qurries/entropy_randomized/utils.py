@@ -7,13 +7,16 @@ from qiskit.quantum_info import Operator
 
 from .arguments import EMRArguments
 from .tales import RandomizedMeasureTales
-from ...qurrium import WCKeyable
+from ...qurrium import WCKeyable, naming_circuit
 from ...process.randomized_measure import (
     generate_random_unitary,
     local_unitary_op_to_list,
     local_unitary_op_to_bloch_vector,
 )
 from ...tools import ParallelManager, set_pbar_description
+
+DEFAULT_CLASSICAL_REGISTER_NAME = "m0"
+"""The default name for classical register used for measurement."""
 
 
 def make_samplied_circuit(
@@ -44,15 +47,8 @@ def make_samplied_circuit(
         QuantumCircuit: The circuit for the experiment.
     """
 
-    old_name = target_circuit.name if isinstance(target_circuit.name, str) else ""
-
-    qc_exp1 = target_circuit.copy(
-        ".".join(filter(lambda x: len(x) > 0, [f"{exp_name}_{idx}", str(target_key), old_name]))
-    )
-    c_meas1 = ClassicalRegister(
-        len(registers_mapping),
-        None if "m1" in [reg.name for reg in (qc_exp1.qregs + qc_exp1.cregs)] else "m1",
-    )
+    qc_exp1 = target_circuit.copy(naming_circuit(target_circuit, target_key, f"{exp_name}_{idx}"))
+    c_meas1 = ClassicalRegister(len(registers_mapping), DEFAULT_CLASSICAL_REGISTER_NAME)
     qc_exp1.add_register(c_meas1)
 
     qc_exp1.barrier()

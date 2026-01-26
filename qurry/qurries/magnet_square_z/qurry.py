@@ -7,6 +7,7 @@ import tqdm
 from qiskit import QuantumCircuit
 from qiskit.providers import Backend
 
+from .utils import DEFAULT_CLASSICAL_REGISTER_NAME
 from .arguments import SHORT_NAME, ACRONYM, ZMSMeasureArgs, ZMSOutputArgs
 from .analysis import ZMSAnalyzeArgs
 from .experiment import ZMSExperiment
@@ -23,6 +24,8 @@ class ZDirMagnetSquare(
     """The short name of this Qurrium class."""
     acronym = ACRONYM
     """The abbreviation of this Qurrium class."""
+    reserved_register_names = {DEFAULT_CLASSICAL_REGISTER_NAME}
+    """The reserved classical register names used in this Qurrium class."""
 
     @property
     def experiment_instance(self) -> type[ZMSExperiment]:

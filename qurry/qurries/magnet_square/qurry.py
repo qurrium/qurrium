@@ -9,6 +9,7 @@ from qiskit.circuit import Gate
 from qiskit.quantum_info import Operator
 from qiskit.providers import Backend
 
+from .utils import DEFAULT_CLASSICAL_REGISTER_NAME
 from .arguments import SHORT_NAME, ACRONYM, MSMeasureArgs, MSOutputArgs
 from .analysis import MSAnalyzeArgs
 from .experiment import MSExperiment
@@ -23,6 +24,8 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
     """The short name of this Qurrium class."""
     acronym = ACRONYM
     """The abbreviation of this Qurrium class."""
+    reserved_register_names = {DEFAULT_CLASSICAL_REGISTER_NAME}
+    """The reserved classical register names used in this Qurrium class."""
 
     @property
     def experiment_instance(self) -> type[MSExperiment]:

@@ -7,8 +7,11 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 from .analysis import EMHAnalysis
 from .arguments import EMHArguments, SHORT_NAME
-from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
+from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable, naming_circuit
 from ...process.utils import qubit_selector
+
+DEFAULT_CLASSICAL_REGISTER_NAME = "m0"
+"""The default name for classical register used for measurement."""
 
 
 class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
@@ -96,19 +99,18 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         """
 
         target_key, target_circuit = targets[0]
-        naming_component = [arguments.exp_name]
-        if not isinstance(target_key, int):
-            naming_component.append(str(target_key))
-        elif isinstance(target_circuit.name, str):
-            naming_component.append(target_circuit.name)
         num_qubits = target_circuit.num_qubits
 
         q_ancilla = QuantumRegister(1, "ancilla_1")
         q_func1 = QuantumRegister(num_qubits, "q1")
         q_func2 = QuantumRegister(num_qubits, "q2")
-        c_meas1 = ClassicalRegister(1, "c1")
+        c_meas1 = ClassicalRegister(1, DEFAULT_CLASSICAL_REGISTER_NAME)
         qc_exp1 = QuantumCircuit(
-            q_ancilla, q_func1, q_func2, c_meas1, name=".".join(naming_component)
+            q_ancilla,
+            q_func1,
+            q_func2,
+            c_meas1,
+            name=naming_circuit(target_circuit, target_key, arguments.exp_name),
         )
 
         qc_exp1.compose(target_circuit, [q_func1[i] for i in range(num_qubits)], inplace=True)

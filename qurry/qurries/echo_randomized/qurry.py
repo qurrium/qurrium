@@ -19,6 +19,7 @@ from ...qurrium import (
     PassManagerType,
     SpecificAnalyzeArgs,
 )
+from ...qurries.entropy_randomized.utils import DEFAULT_CLASSICAL_REGISTER_NAME
 from ...qurrium.container import passmanager_processor
 from ...process.utils import QubitSelectionType
 
@@ -59,6 +60,8 @@ class EchoListenRandomized(
     """The short name of this Qurrium class."""
     acronym = ACRONYM
     """The abbreviation of this Qurrium class."""
+    reserved_register_names = {DEFAULT_CLASSICAL_REGISTER_NAME}
+    """The set of reserved classical register names."""
 
     @property
     def experiment_instance(self) -> type[ELRExperiment]:
