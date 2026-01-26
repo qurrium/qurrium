@@ -1,19 +1,57 @@
 """Counts Tools (:mod:`qurry.qurrium.utils.counts`)"""
 
-import warnings
+from typing import TypeVar
+import logging
 
 from qiskit.result import Result
+from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit.exceptions import QiskitError
 
 from ..exceptions import CountsLost
+from ...process.utils import counts_list_recount_pyrust
+
+DEFAULT_LOGGER = logging.getLogger(__name__)
+
+_PR = TypeVar("_PR", bound=PubResult)
+
+
+def process_idx_list(num: int | None = None, result_idx_list: list[int] | None = None) -> list[int]:
+    """Process the final index list of counts to be extracted.
+
+    - No matter what, if `result_idx_list` is provided, \
+return the unique indices in `result_idx_list`.
+    - If both `num` and `result_idx_list` are None, return an empty list.
+    - If `num` is given and `result_idx_list` is None, \
+return a list of indices from 0 to `num - 1`.
+
+    Args:
+        num (int | None, optional):
+            The number of counts wanted to be extracted. Defaults to None.
+        result_idx_list (list[int] | None, optional):
+            The index of counts wanted to be extracted. Defaults to None.
+
+    Returns:
+        list[int]: The final index list of counts to be extracted.
+    """
+    if result_idx_list is not None:
+        if not isinstance(result_idx_list, list):
+            raise TypeError("result_idx_list must be a list of integers.")
+        if not all(isinstance(idx, int) for idx in result_idx_list):
+            raise TypeError("All elements in result_idx_list must be integers.")
+        return list(set(result_idx_list))
+
+    if num is None:
+        return []
+    return list(range(num))
 
 
 def get_counts_and_exceptions(
     result: Result | None,
     num: int | None = None,
     result_idx_list: list[int] | None = None,
+    logger: logging.Logger = DEFAULT_LOGGER,
 ) -> tuple[list[dict[str, int]], dict[str, Exception]]:
-    """Get counts and exceptions from result.
+    """Get counts and exceptions from traditional :class:`~qiskit.result.result.Result`.
 
     Args:
         result (Result | None):
@@ -22,65 +60,52 @@ def get_counts_and_exceptions(
             The number of counts wanted to be extracted. Defaults to None.
         result_idx_list (list[int] | None, optional):
             The index of counts wanted to be extracted. Defaults to None.
+        logger (logging.Logger, optional):
+            The logger to use. Defaults to DEFAULT_LOGGER.
 
     Returns:
-        tuple[list[dict[str, int]], dict[str, Exception]]:
-            Counts and exceptions.
+        Counts and exceptions.
     """
+    if not isinstance(result, Result) and result is not None:
+        raise TypeError(f"The result should be a Result or None, but got {type(result)}.")
+
+    idx_list = process_idx_list(num, result_idx_list)
+    if result is None:
+        logger.warning("| No Result is given.")
+        return [{} for _ in idx_list], {"none": CountsLost("No Result is given.")}
+
     counts: list[dict[str, int]] = []
     exceptions: dict[str, Exception] = {}
-    if num is None:
-        idx_list = [] if result_idx_list is None else result_idx_list
-    else:
-        if result_idx_list is None:
-            idx_list = list(range(num))
-        else:
-            warnings.warn(
-                (
-                    "The number of result is not equal to the length of "
-                    + "'result_idx_list', use length of 'result_idx_list'."
-                )
-                if num != len(result_idx_list)
-                else (
-                    "The 'num' is not None, but 'result_idx_list' is not None, "
-                    + "use 'result_idx_list'."
-                )
-            )
-            idx_list = result_idx_list
-
-    if result is None:
-        exceptions["None"] = CountsLost("Result is None")
-        print("| Failed Job result skip.")
-        for _ in idx_list:
-            counts.append({})
-        return counts, exceptions
 
     if len(idx_list) == 0:
         try:
-            get: list[dict[str, int]] | dict[str, int] = result.get_counts()
-            if isinstance(get, list):
-                counts: list[dict[str, int]] = get
+            tmp_single_counts = result.get_counts()
+            if isinstance(tmp_single_counts, list):
+                counts.extend(tmp_single_counts)
             else:
-                counts.append(get)
+                counts.append(tmp_single_counts)
         except QiskitError as err_1:
             exceptions[f"{result.job_id}"] = err_1
-            print("| Failed Job result skip, Job ID:", result.job_id, err_1)
+            logger.warning(
+                f"| Failed Job result, replace with null counts, Job ID: {result.job_id}, {err_1}"
+            )
+            counts.append({})
         return counts, exceptions
 
     for i in idx_list:
         try:
-            all_meas = result.get_counts(i)
-            assert isinstance(all_meas, dict), "The counts is not a dict."
+            tmp_single_counts = result.get_counts(i)
+            if not isinstance(tmp_single_counts, dict):
+                raise CountsLost(
+                    f"The counts at index {i} is not a dict, got {type(tmp_single_counts)}."
+                )
         except QiskitError as err_2:
             exceptions[f"{result.job_id}.{i}"] = err_2
-            print(
-                "| Failed Job result skip, Job ID/which counts:",
-                result.job_id,
-                i,
-                err_2,
+            logger.warning(
+                f"| Failed Job result skip, Job ID/which counts: {result.job_id}/{i}, {err_2}"
             )
-            all_meas = {}
-        counts.append(all_meas)
+            tmp_single_counts = {}
+        counts.append(tmp_single_counts)
 
     return counts, exceptions
 
@@ -189,3 +214,203 @@ def bitstring_mapping_getter(
         return bitstring_mapping, final_mapping
 
     return {v: v for v in registers_mapping.values()}, registers_mapping
+
+
+def extract_measured_counts(
+    counts: list[dict[str, int]], registers_mapping: dict[int, int]
+) -> tuple[list[dict[str, int]], dict[int, int], dict[int, int]]:
+    """Extract the measured counts from the counts mixed with other classical registers,
+    given the classical registers selected mapping, and other information.
+
+    This function focuses on extracting the measured counts from `traditional` counts data structure,
+    coming from Qiskit Result object :class:`~qiskit.result.result.Result`.
+    which a bitstring mixed with multiple classical registers clusters like:
+
+    .. code-block:: python
+
+        {'010000 0100 0001': 1024}
+        # The bitstring is '010000 0100 0001'.
+        # The last four bits are the first classical register.
+        # The middle four bits are the second classical register.
+        # The first six bits are the last classical register for the randomized measurement.
+
+    With the `registers_mapping` as follow:
+
+    .. code-block:: python
+
+        {
+            0: 0, # The quantum register 0 is mapped to the classical register 0.
+            1: 1, # The quantum register 1 is mapped to the classical register 1.
+            5: 2, # The quantum register 5 is mapped to the classical register 2.
+            7: 3, # The quantum register 7 is mapped to the classical register 3.
+        }
+
+    We can extract the measured counts.
+
+    For :class:`~qiskit.primitives.containers.primitive_result.PrimitiveResult`,
+    there is another function :func:`~qurry.qurrium.utils.counts.extract_measured_counts_primitive`
+    handling it.
+
+    Args:
+        counts (list[dict[str, int]]):
+            The counts of the experiment.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+
+    Returns:
+        The measured counts, the bitstring mapping, and the final mapping.
+    """
+
+    bitstring_mapping, final_mapping = bitstring_mapping_getter(counts, registers_mapping)
+    counts_of_last_clreg = counts_list_recount_pyrust(
+        counts, len(next(iter(counts[0]))), list(final_mapping.values())
+    )
+
+    return counts_of_last_clreg, bitstring_mapping, final_mapping
+
+
+def get_selected_qubits(
+    selected_qubits: list[int] | None, registers_mapping: dict[int, int], actual_num_qubits: int
+) -> list[int]:
+    """Get the selected qubits from the registers mapping and actual number of qubits.
+
+    Args:
+        selected_qubits (list[int] | None):
+            The selected qubits.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+        actual_num_qubits (int):
+            The actual number of qubits.
+
+    Returns:
+        list[int]: The selected qubits.
+    """
+    actual_selected_qubits = (
+        [qi % actual_num_qubits for qi in selected_qubits]
+        if selected_qubits
+        else list(registers_mapping.keys())
+    )
+    if len(set(actual_selected_qubits)) != len(actual_selected_qubits):
+        raise ValueError(
+            "selected_qubits should not have duplicated elements,"
+            + f" but got {actual_selected_qubits}."
+        )
+
+    return actual_selected_qubits
+
+
+def get_selected_qubits_and_clregs(
+    selected_qubits: list[int] | None, registers_mapping: dict[int, int], actual_num_qubits: int
+) -> tuple[list[int], list[int]]:
+    """Get the selected qubits from the registers mapping and actual number of qubits.
+
+    Args:
+        selected_qubits (list[int] | None):
+            The selected qubits.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+        actual_num_qubits (int):
+            The actual number of qubits.
+
+    Returns:
+        tuple[list[int], list[int]]: The selected qubits and classical registers.
+    """
+    actual_selected_qubits = get_selected_qubits(
+        selected_qubits, registers_mapping, actual_num_qubits
+    )
+
+    return actual_selected_qubits, [registers_mapping[qi] for qi in actual_selected_qubits]
+
+
+def get_counts_and_exceptions_primitive(
+    primitive_result: PrimitiveResult[_PR] | None,
+    num: int | None = None,
+    result_idx_list: list[int] | None = None,
+    required_clregs: list[str] | None = None,
+    logger: logging.Logger = DEFAULT_LOGGER,
+) -> tuple[list[dict[str, dict[str, int]]], dict[str, Exception]]:
+    """Get counts and exceptions from
+    :class:`~qiskit.primitives.containers.primitive_result.PrimitiveResult`.
+
+    Args:
+        result (PrimitiveResult | None):
+            The result of job.
+        num (int | None, optional):
+            The number of counts wanted to be extracted. Defaults to None.
+        result_idx_list (list[int] | None, optional):
+            The index of counts wanted to be extracted. Defaults to None.
+        required_clregs (list[str] | None, optional):
+            The required classical registers names.
+            Confirm the classical registers exist in the result, otherwise raise Exception.
+            If None, do not check. Defaults to None.
+        logger (logging.Logger, optional):
+            The logger to use. Defaults to DEFAULT_LOGGER.
+
+    Returns:
+        Counts of repecting classical registers and exceptions.
+    """
+    if not isinstance(primitive_result, PrimitiveResult) and primitive_result is not None:
+        raise TypeError(
+            f"The result should be a PrimitiveResult or None, but got {type(primitive_result)}."
+        )
+
+    idx_list = process_idx_list(num, result_idx_list)
+    if primitive_result is None:
+        logger.warning("| No Result is given.")
+        return [{} for _ in idx_list], {"none": CountsLost("No Result is given.")}
+    idx_list = list(range(len(primitive_result))) if len(idx_list) == 0 else idx_list
+
+    primitive_counts: list[dict[str, dict[str, int]]] = []
+    exceptions: dict[str, Exception] = {}
+
+    for i in idx_list:
+        tmp_all_single_counts = {
+            cregs_name: data_bin.get_counts()
+            for cregs_name, data_bin in primitive_result[i].data.items()
+        }
+        if required_clregs is not None:
+            missing_clregs = set(required_clregs) - set(tmp_all_single_counts.keys())
+            if missing_clregs:
+                exceptions[f"{i}"] = CountsLost(
+                    f"The required classical registers {missing_clregs} "
+                    + f"are missing in the result at index {i}."
+                )
+                logger.warning(
+                    "| Missing required classical registers, "
+                    + f"index: {i}, missing: {missing_clregs}",
+                )
+        primitive_counts.append(tmp_all_single_counts)
+
+    return primitive_counts, exceptions
+
+
+def extract_measured_counts_primitive(
+    primitive_counts: list[dict[str, dict[str, int]]],
+    required_clreg: str,
+    registers_mapping: dict[int, int],
+) -> tuple[list[dict[str, int]], dict[int, int], dict[int, int]]:
+    """Extract the measured counts from the primitive counts mixed with other classical registers,
+
+    Args:
+        counts (list[dict[str, int]]):
+            The counts of the experiment.
+        required_clreg (str):
+            The required classical register name.
+        registers_mapping (dict[int, int]):
+            The mapping of the index of selected qubits to the index of the classical register.
+
+    Returns:
+        The measured counts, the bitstring mapping, and the final mapping.
+    """
+    required_clregs_counts = [pc[required_clreg] for pc in primitive_counts]
+
+    bitstring_mapping, final_mapping = bitstring_mapping_getter(
+        required_clregs_counts, registers_mapping
+    )
+    counts_of_last_clreg = counts_list_recount_pyrust(
+        required_clregs_counts,
+        len(next(iter(required_clregs_counts[0]))),
+        list(final_mapping.values()),
+    )
+
+    return counts_of_last_clreg, bitstring_mapping, final_mapping
