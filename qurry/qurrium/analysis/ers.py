@@ -1,6 +1,6 @@
 """The Entries and Result definitions for analysis. (:mod:`qurry.qurrium.analysis.ers`)"""
 
-from typing import Any, TypeVar, ParamSpec, Concatenate, overload
+from typing import Any, TypeVar, ParamSpec, Concatenate
 from collections.abc import Callable
 from dataclasses import dataclass, fields
 import warnings
