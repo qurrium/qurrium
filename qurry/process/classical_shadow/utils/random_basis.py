@@ -82,7 +82,7 @@ MSG_GENERATE_BASIS_EXCEED_MAX_QUBITS = (
 )
 
 
-def generate_all_possible_basis(
+def generate_all_possible_basis_array(
     num_qubits: int,
     *,
     max_qubits: int = MAX_QUBITS_FOR_BASIS_GENERATION,
@@ -114,7 +114,7 @@ def generate_all_possible_basis(
     if num_qubits == 1:
         return [[0], [1], [2]]
 
-    recursive_basis = generate_all_possible_basis(
+    recursive_basis = generate_all_possible_basis_array(
         num_qubits - 1,
         max_qubits=max_qubits,
         _basis=([[0], [1], [2]] if _basis is None else _basis),
@@ -123,7 +123,7 @@ def generate_all_possible_basis(
     return [item + b for item in recursive_basis for b in [[0], [1], [2]]]
 
 
-def make_evenly_basis(num_qubits: int, duplication: int = 1):
+def make_evenly_basis_array(num_qubits: int, duplication: int = 1):
     """Make a list of contains evenly basis.
 
     Args:
@@ -138,12 +138,34 @@ def make_evenly_basis(num_qubits: int, duplication: int = 1):
     """
 
     try:
-        return generate_all_possible_basis(num_qubits) * duplication
+        return generate_all_possible_basis_array(num_qubits) * duplication
     except RandomBasisGenerationError as e:
         raise RandomBasisGenerationError(
             "Failed to generate evenly basis due to exceeding the maximum qubits. "
             + "See the original exception for more details."
         ) from e
+
+
+def make_evenly_basis(
+    num_qubits: int, duplication: int = 1, unitary_located: list[int] | None = None
+) -> dict[int, dict[int, int]]:
+    """Make a dictionary of contains evenly basis.
+
+    Args:
+        num_qubits (int): The number of qubits.
+        duplication (int): The number of duplication for each basis.
+        unitary_located (list[int] | None): The list of selected qubits. If None, use all qubits.
+
+    """
+
+    basis_array = make_evenly_basis_array(num_qubits, duplication)
+    if unitary_located is None:
+        unitary_located = list(range(num_qubits))
+
+    return {
+        n_u_i: {n_u_qi: basis_array[n_u_i][seed_i] for seed_i, n_u_qi in enumerate(unitary_located)}
+        for n_u_i in range(len(basis_array))
+    }
 
 
 def validate_random_basis(

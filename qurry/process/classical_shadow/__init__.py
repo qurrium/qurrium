@@ -93,7 +93,8 @@ Reference:
 
 from .utils import (
     generate_random_basis,
-    generate_all_possible_basis,
+    generate_all_possible_basis_array,
+    make_evenly_basis_array,
     make_evenly_basis,
     check_random_basis,
     check_random_basis_array,
