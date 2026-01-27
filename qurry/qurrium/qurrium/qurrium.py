@@ -104,9 +104,7 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         """The instance of experiment."""
         raise NotImplementedError("The experiment is not defined.")
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         self.waves: WaveContainer = WaveContainer()
         """The wave functions container."""
 

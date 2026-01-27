@@ -76,12 +76,12 @@ from .classical_shadow import ShadowUnveil, SUMeasureArgs
 
 # pylint: disable=invalid-name
 @overload
-def EntropyMeasure(*args, method: Literal["hadamard"], **kwargs) -> EntropyMeasureHadamard: ...
+def EntropyMeasure(method: Literal["hadamard"]) -> EntropyMeasureHadamard: ...
 @overload
-def EntropyMeasure(*args, method: Literal["randomized"], **kwargs) -> EntropyMeasureRandomized: ...
+def EntropyMeasure(method: Literal["randomized"] = "randomized") -> EntropyMeasureRandomized: ...
 
 
-def EntropyMeasure(*args, method="randomized", **kwargs):
+def EntropyMeasure(method="randomized"):
     """Call :func:`EntropyMeasure` methods.
 
     Args:
@@ -90,22 +90,21 @@ def EntropyMeasure(*args, method="randomized", **kwargs):
 
             - randomized: running by haar randomized measure.
             - hadamard: running by hadamard test.
-            - base: the base of :class:`EntropyMeasure`.
 
             Defaults to 'randomized'.
     """
     if method == "hadamard":
-        return EntropyMeasureHadamard(*args, **kwargs)
-    return EntropyMeasureRandomized(*args, **kwargs)
+        return EntropyMeasureHadamard()
+    return EntropyMeasureRandomized()
 
 
 @overload
-def EchoListen(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
+def EchoListen(method: Literal["hadamard"]) -> EchoListenHadamard: ...
 @overload
-def EchoListen(*args, method: Literal["randomized"], **kwargs) -> EchoListenRandomized: ...
+def EchoListen(method: Literal["randomized"] = "randomized") -> EchoListenRandomized: ...
 
 
-def EchoListen(*args, method="randomized", **kwargs):
+def EchoListen(method="randomized"):
     """Call :func:`EchoListen` methods.
 
     Args:
@@ -121,17 +120,17 @@ def EchoListen(*args, method="randomized", **kwargs):
         EchoListenBase: method.
     """
     if method == "hadamard":
-        return EchoListenHadamard(*args, **kwargs)
-    return EchoListenRandomized(*args, **kwargs)
+        return EchoListenHadamard()
+    return EchoListenRandomized()
 
 
 @overload
-def WaveFunctionOverlap(*args, method: Literal["hadamard"], **kwargs) -> EchoListenHadamard: ...
+def WaveFunctionOverlap(method: Literal["hadamard"]) -> EchoListenHadamard: ...
 @overload
-def WaveFunctionOverlap(*args, method: Literal["randomized"], **kwargs) -> EchoListenRandomized: ...
+def WaveFunctionOverlap(method: Literal["randomized"] = "randomized") -> EchoListenRandomized: ...
 
 
-def WaveFunctionOverlap(*args, method="randomized", **kwargs):
+def WaveFunctionOverlap(method="randomized"):
     """Call :func:`WaveFunctionOverlap` methods, another name of :func:`EchoListen`.
 
     Args:
@@ -147,8 +146,8 @@ def WaveFunctionOverlap(*args, method="randomized", **kwargs):
         WaveFunctionOverlapBase: method.
     """
     if method == "hadamard":
-        return EchoListenHadamard(*args, **kwargs)
-    return EchoListenRandomized(*args, **kwargs)
+        return EchoListenHadamard()
+    return EchoListenRandomized()
 
 
 __all__ = [
