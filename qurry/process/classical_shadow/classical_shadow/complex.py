@@ -26,7 +26,7 @@ def classical_shadow_complex(
     random_basis_array: list[list[Literal[0, 1, 2] | int]],
     selected_classical_registers: Iterable[int] | None = None,
     # estimation of given operators
-    given_operators: list[npt.NDArray[np.complex128]] | None = None,
+    given_operators: list[npt.NDArray] | None = None,
     accuracy_prob_comp_delta: FloatType = 0.01,
     max_shadow_norm: FloatType | None = None,
     # other config
@@ -140,7 +140,7 @@ def classical_shadow_complex(
             The list of **the index of the selected_classical_registers**.
             Defaults to None.
 
-        given_operators (list[npt.NDArray[np.complex128]] | None):
+        given_operators (list[npt.NDArray] | None):
             The list of the operators to estimate.
         accuracy_prob_comp_delta (FloatType, optional):
             The accuracy probability component delta. Defaults to 0.01.

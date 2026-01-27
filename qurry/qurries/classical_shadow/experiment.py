@@ -245,7 +245,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         self,
         selected_qubits: Iterable[int] | None = None,
         # estimation of given operators
-        given_operators: list[npt.NDArray[np.complex128]] | None = None,
+        given_operators: list[npt.NDArray] | None = None,
         accuracy_prob_comp_delta: FloatType = 0.01,
         max_shadow_norm: FloatType | None = None,
         # other config
@@ -260,7 +260,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (list[npt.NDArray[np.complex128]] | None, optional):
+            given_operators (list[npt.NDArray]] | None, optional):
                 The list of the operators to estimate. Defaults to None.
             accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.
@@ -370,7 +370,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         self,
         selected_qubits: Iterable[int] | None = None,
         # estimation of given operators
-        given_operators: list[npt.NDArray[np.complex128]] | None = None,
+        given_operators: list[npt.NDArray] | None = None,
         accuracy_prob_comp_delta: FloatType = 0.01,
         max_shadow_norm: FloatType | None = None,
         # other config
@@ -385,7 +385,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             selected_qubits (Iterable[int] | None, optional):
                 The selected qubits. Defaults to None.
 
-            given_operators (list[npt.NDArray[np.complex128]] | None):
+            given_operators (list[npt.NDArray] | None):
                 The list of the operators to estimate. Defaults to None.
             accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.

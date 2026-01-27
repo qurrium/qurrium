@@ -50,7 +50,7 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     selected_qubits: list[int] | None
     """The selected qubits."""
     # estimation of given operators
-    given_operators: list[npt.NDArray[np.complex128]] | None
+    given_operators: list[npt.NDArray] | None
     """The list of the operators to estimate."""
     accuracy_prob_comp_delta: FloatType
     """The accuracy probability for computing delta."""
@@ -834,7 +834,7 @@ class SUAnalysis(
         random_basis_array: list[list[Literal[0, 1, 2] | int]],
         selected_classical_registers: Iterable[int] | None,
         # estimation of given operators
-        given_operators: list[npt.NDArray[np.complex128]] | None,
+        given_operators: list[npt.NDArray] | None,
         accuracy_prob_comp_delta: FloatType,
         max_shadow_norm: FloatType | None,
         # other config
@@ -855,7 +855,7 @@ class SUAnalysis(
             selected_classical_registers (Iterable[int]):
                 The list of **the index of the selected_classical_registers**.
 
-            given_operators (list[np.ndarray[tuple[int, int], np.dtype[np.complex128]]]):
+            given_operators (list[npt.NDArray] | None, optional):
                 The list of the operators to estimate. Defaults to None.
             accuracy_prob_comp_delta (FloatType, optional):
                 The accuracy probability component delta. Defaults to 0.01.
