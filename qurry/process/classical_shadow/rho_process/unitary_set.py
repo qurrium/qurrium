@@ -59,7 +59,7 @@ def combine_gate_matrices(*gates: Gate) -> npt.NDArray[np.complex128]:
         *gates (Gate): Variable number of Gate objects to combine.
 
     Returns:
-        npt.NDArray[np.complex_]: The combined matrix representation.
+        npt.NDArray[np.complex128]: The combined matrix representation.
     """
     return ft.reduce(np.dot, [gate.to_matrix() for gate in reversed(gates)])
 
@@ -344,7 +344,7 @@ class ShadowRandomBasis:
     @property
     def matrices(
         self,
-    ) -> tuple[npt.NDArray[np.complex_], npt.NDArray[np.complex_], npt.NDArray[np.complex_]]:
+    ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
         """Get the combined matrix representations for each basis.
 
         Returns:
@@ -362,7 +362,7 @@ class ShadowRandomBasis:
         return self._name
 
     @property
-    def precomputed_rho_m_k_i(self) -> dict[tuple[int, str], npt.NDArray[np.complex_]]:
+    def precomputed_rho_m_k_i(self) -> dict[tuple[int, str], npt.NDArray[np.complex128]]:
         r"""Get the precomputed rho_m_k_i values.
 
         Precomputed :math:`\rho_{mki}` matrix by
@@ -380,7 +380,7 @@ class ShadowRandomBasis:
         return self._precomputed_rho_m_k_i
 
     @ft.lru_cache
-    def cached_precomputed_rho_m_k_i(self, direction: int, b_k: str) -> npt.NDArray[np.complex_]:
+    def cached_precomputed_rho_m_k_i(self, direction: int, b_k: str) -> npt.NDArray[np.complex128]:
         r"""Get the cached precomputed rho_m_k_i value.
 
         .. math::
@@ -402,7 +402,7 @@ class ShadowRandomBasis:
         return self._precomputed_rho_m_k_i[(direction, b_k)]
 
     @property
-    def precomputed_rho_m_k_i_2(self) -> dict[int, npt.NDArray[np.complex_]]:
+    def precomputed_rho_m_k_i_2(self) -> dict[int, npt.NDArray[np.complex128]]:
         r"""Get the precomputed rho_m_k_i values.
 
         .. math::
@@ -418,7 +418,7 @@ class ShadowRandomBasis:
         return self._precomputed_rho_m_k_i_2
 
     @ft.lru_cache
-    def cached_precomputed_rho_m_k_i_2(self, key: int) -> npt.NDArray[np.complex_]:
+    def cached_precomputed_rho_m_k_i_2(self, key: int) -> npt.NDArray[np.complex128]:
         r"""Get the cached precomputed rho_m_k_i value.
 
         .. math::
