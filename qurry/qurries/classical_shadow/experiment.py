@@ -157,23 +157,24 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 + "to close this warning."
             )
 
-        random_basis = (
-            generate_random_basis(snapshots, unitary_located)
-            if random_basis is None
-            else random_basis
-        )
-        check_random_basis(random_basis, unitary_located)
+        if random_basis is None:
+            actual_random_basis = generate_random_basis(snapshots, unitary_located)
+            actual_snapshot = snapshots
+        else:
+            actual_random_basis = random_basis
+            actual_snapshot = len(random_basis)
+        check_random_basis(actual_random_basis, unitary_located)
 
         return SUArguments.filter(
-            exp_name=f"{exp_name}.N_U_{snapshots}.{SHORT_NAME}",
+            exp_name=f"{exp_name}.N_U_{actual_snapshot}.{SHORT_NAME}",
             target_keys=[target_key],
-            snapshots=snapshots,
+            snapshots=actual_snapshot,
             qubits_measured=qubits_measured,
             registers_mapping=registers_mapping,
             actual_num_qubits=actual_qubits,
             unitary_located=unitary_located,
             shadow_basis=shadow_basis,
-            random_basis=random_basis,
+            random_basis=actual_random_basis,
             **custom_kwargs,
         )
 

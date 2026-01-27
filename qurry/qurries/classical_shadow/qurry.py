@@ -236,7 +236,6 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
                     random_basis = generate_random_basis(100, [0, 1])
 
-
             shots (int, optional):
                 Shots of the job. Defaults to `1024`.
             backend (Backend | None, optional):
