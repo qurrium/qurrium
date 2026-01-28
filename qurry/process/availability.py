@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-PostProcessingBackendLabel = Literal["Cython", "Rust", "Python", "JAX"]
+PostProcessingBackendLabel = Literal["Cython", "Rust", "Python", "JAX"] | str
 """The backend label for post-processing."""
 
 BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "JAX"]
