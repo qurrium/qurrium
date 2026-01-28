@@ -55,6 +55,31 @@ def tuple_str_parse(kstring: str) -> tuple[str, ...] | str:
     return tuple(kt2)
 
 
+def tuple_str_parse_ensured(kstring: str) -> tuple[str, ...]:
+    r"""Convert tuple strings to real tuple, ensured.
+    So it will raise ValueError if the input string is not a tuple string.
+
+    >>> tuple_str_parse_ensured("(1, 2, 3)")
+    (1, 2, 3)
+
+    >>> tuple_str_parse_ensured("('a', 'b', 'c')")
+    ('a', 'b', 'c')
+
+    Args:
+        kstring (str): Tuplizing available string.
+
+    Raises:
+        ValueError: If the input string is not a tuple string.
+
+    Returns:
+        tuple[str, ...]: Result of tuplizing.
+    """
+    kt = tuple_str_parse(kstring)
+    if not isinstance(kt, tuple):
+        raise ValueError("Input string is not a tuple string.")
+    return kt
+
+
 def key_tuple_loads(o: _T) -> _T:
     """If a dictionary with string keys
     which read from json may originally be a python tuple,
@@ -75,6 +100,5 @@ def key_tuple_loads(o: _T) -> _T:
         if isinstance(k, str):
             kt2 = tuple_str_parse(k)
             if kt2 != k:
-                o[kt2] = o[k]
-                del o[k]
+                o[kt2] = o.pop(k)
     return o

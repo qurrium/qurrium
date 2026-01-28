@@ -22,7 +22,7 @@ from .abc import (
     WrittenContentType,
 )
 from .writers import WritableQueueUnit, WrittenQueueUnit, check_writable, UniversalWriterABC
-from .tuple_key import key_tuple_loads, tuple_str_parse
+from .tuple_key import key_tuple_loads, tuple_str_parse, tuple_str_parse_ensured
 
 # pylint: disable=reimported
 from .jsonablize import (
