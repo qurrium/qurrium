@@ -81,21 +81,17 @@ def entangled_entropy_core_py(
     times = len(counts)
     begin = time.time()
 
-    if launch_worker == 1:
-        purity_cell_items = []
-        msg += f", single process, {times} overlaps, it will take a lot of time."
-        print(msg)
-        for i, c in enumerate(counts):
-            purity_cell_items.append(purity_cell_py(i, c, bitstring_range, subsystem_size))
+    msg += (
+        f", single process, {times} overlaps, it will take a lot of time."
+        if launch_worker == 1
+        else f", {launch_worker} workers, {times} overlaps."
+    )
 
-    else:
-        msg += f", {launch_worker} workers, {times} overlaps."
-
-        pool = ParallelManager(launch_worker)
-        purity_cell_items = pool.starmap(
-            purity_cell_py,
-            [(i, c, bitstring_range, subsystem_size) for i, c in enumerate(counts)],
-        )
+    pm = ParallelManager(launch_worker)
+    purity_cell_items = pm.starmap(
+        purity_cell_py,
+        [(i, c, bitstring_range, subsystem_size) for i, c in enumerate(counts)],
+    )
 
     taken = round(time.time() - begin, 3)
     purity_cell_dict: dict[int, float] | dict[int, np.float64] = dict(purity_cell_items)

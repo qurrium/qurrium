@@ -107,26 +107,17 @@ def overlap_echo_core_py(
 
     msg = f"| Partition: {bitstring_range}, Measure: {measure}"
 
-    if launch_worker == 1:
-        echo_cell_items = []
-        msg += f", single process, {times} overlaps, it will take a lot of time."
-        print(msg)
-        for i, (c1, c2) in enumerate(counts_pair):
-            echo_cell_items.append(echo_cell_py(i, c1, c2, bitstring_range, subsystem_size))
-
-        take_time = round(time.time() - begin_time, 3)
-    else:
-        msg += f", {launch_worker} workers, {times} overlaps."
-
-        pool = ParallelManager(launch_worker)
-        echo_cell_items = pool.starmap(
-            echo_cell_py,
-            [
-                (i, c1, c2, bitstring_range, subsystem_size)
-                for i, (c1, c2) in enumerate(counts_pair)
-            ],
-        )
-        take_time = round(time.time() - begin_time, 3)
+    msg += (
+        f", single process, {times} overlaps, it will take a lot of time."
+        if launch_worker == 1
+        else f", {launch_worker} workers, {times} overlaps."
+    )
+    pm = ParallelManager(launch_worker)
+    echo_cell_items = pm.starmap(
+        echo_cell_py,
+        [(i, c1, c2, bitstring_range, subsystem_size) for i, (c1, c2) in enumerate(counts_pair)],
+    )
+    take_time = round(time.time() - begin_time, 3)
 
     echo_cell_dict: dict[int, float] | dict[int, np.float64] = dict(echo_cell_items)
     return echo_cell_dict, bitstring_range, measure, msg, take_time

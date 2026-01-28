@@ -73,8 +73,8 @@ def overlap_echo_core_2_py(
 
     begin = time.time()
 
-    pool = ParallelManager()
-    echo_cell_result_list = pool.starmap(
+    pm = ParallelManager()
+    echo_cell_result_list = pm.starmap(
         echo_cell_2_py,
         [(i, c1, c2, selected_classical_registers) for i, (c1, c2) in enumerate(counts_pair)],
     )

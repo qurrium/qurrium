@@ -2,12 +2,11 @@
 
 import time
 from itertools import permutations
-from multiprocessing import get_context
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
 from ..utils import single_counts_recount_proto, FloatType
-from ...tools import DEFAULT_POOL_SIZE
+from ...tools import ParallelManager
 from ...boorust.magnet_square import (  # type: ignore
     magnet_square_core_rust,
     z_dir_magnet_square_core_rust,
@@ -108,11 +107,10 @@ def magnet_square_core(
     assert all(len(bits) == 2 for bits in counts[0]), f"Bits must be 2 bit, but found: {counts[0]}"
 
     begin = time.time()
-    pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)
-    with pool as p:
-        magnetsq_cell_dict = dict(
-            p.map(magsq_cell_wrapper, [(i, c, shots) for i, c in enumerate(counts)])
-        )
+    pm = ParallelManager()
+    magnetsq_cell_dict = dict(
+        pm.map(magsq_cell_wrapper, [(i, c, shots) for i, c in enumerate(counts)])
+    )
     magnetsq = np.float64(sum(magnetsq_cell_dict.values()) + num_qubits) / (num_qubits**2)
     taken = round(time.time() - begin, 3)
 
@@ -147,17 +145,16 @@ def z_dir_magnet_square_core(
     )
 
     begin = time.time()
-    pool = get_context("spawn").Pool(DEFAULT_POOL_SIZE)
-    with pool as p:
-        magnetsq_cell_dict = dict(
-            p.map(
-                magsq_cell_wrapper,
-                [
-                    (idx, single_counts_recount_proto(single_counts, num_qubits, [i, j]), shots)
-                    for idx, (i, j) in enumerate(permutations(range(num_qubits), 2))
-                ],
-            )
+    pm = ParallelManager()
+    magnetsq_cell_dict = dict(
+        pm.map(
+            magsq_cell_wrapper,
+            [
+                (idx, single_counts_recount_proto(single_counts, num_qubits, [i, j]), shots)
+                for idx, (i, j) in enumerate(permutations(range(num_qubits), 2))
+            ],
         )
+    )
     magnetsq = np.float64(sum(magnetsq_cell_dict.values()) + num_qubits) / (num_qubits**2)
     taken = round(time.time() - begin, 3)
 

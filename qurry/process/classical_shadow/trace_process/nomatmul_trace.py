@@ -6,12 +6,11 @@
 from collections.abc import Sequence, Iterable
 from functools import reduce
 from itertools import combinations
-import multiprocessing as mp
 
-# pylint:disable=no-name-in-module,import-error
 from qurry.boorust.shadow import nomatmul_trace_sum_rust  # type: ignore
 
 from ...utils import BaseMethodEnum
+from ....tools import make_multiprocess_pool, DEFAULT_POOL_SIZE
 
 
 def rho_elt_compare(
@@ -143,12 +142,11 @@ def nomatmul_trace_sum_py(
     """
 
     trace_m1_m2 = 0.0
-    cpu_count = mp.cpu_count()
 
     num_of_samples = len(pauli_basis)
 
-    if multiprocessing and cpu_count > 1:
-        with mp.Pool(cpu_count) as pool:
+    if multiprocessing and DEFAULT_POOL_SIZE > 1:
+        with make_multiprocess_pool() as pool:
             # Using multiprocessing to parallelize the trace calculation
             results = pool.imap_unordered(
                 trace_calculation_unit_wrapper,
@@ -161,7 +159,7 @@ def nomatmul_trace_sum_py(
                     )
                     for i in range(num_of_samples)
                 ),
-                chunksize=max(1, num_of_samples // cpu_count // 2),
+                chunksize=max(1, num_of_samples // DEFAULT_POOL_SIZE // 2),
             )
             trace_m1_m2 += sum(results)
     else:

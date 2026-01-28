@@ -58,8 +58,8 @@ def entangled_entropy_core_2_py(
 
     begin = time.time()
 
-    pool = ParallelManager()
-    purity_cell_result_list = pool.starmap(
+    pm = ParallelManager()
+    purity_cell_result_list = pm.starmap(
         purity_cell_2_py,
         [(i, c, selected_classical_registers) for i, c in enumerate(counts)],
     )

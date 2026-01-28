@@ -73,10 +73,11 @@ class TraceMethod(BaseMethodEnum):
     @classmethod
     def get_default(cls) -> "TraceMethod":
         """Get the default method.
+
         Returns:
             TraceMethod: The default method.
         """
-        return cls.EINSUM_AIJ_BJI_TO_AB_JAX if JAX_AVAILABLE else cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
+        return cls.NOMATMUL_TRACE_RUST
 
     def is_bitwise_method(self) -> bool:
         """Whether it is a bitwise method.
@@ -277,7 +278,7 @@ def all_trace_core(
             - Skip calculation of trace:
                 - "skip_trace": Skip the trace calculation and return NaN.
 
-            The default method is "bitwise_py", which is the fastest option.
+            The default method is "nomatmul_trace_rust", which is the fastest option.
 
     Returns:
         tuple[FloatType, FloatType, float]:
