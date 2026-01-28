@@ -4,7 +4,6 @@ import os
 import warnings
 from abc import abstractmethod, ABC
 from typing import Any, Generic
-from multiprocessing import get_context
 from pathlib import Path
 import tqdm
 
@@ -45,7 +44,7 @@ from ...tools import (
     set_pbar_description,
     backend_name_getter,
     DEFAULT_POOL_SIZE,
-    DEFAULT_START_METHOD,
+    make_multiprocess_pool,
     qurry_progressbar,
     GeneralSimulator,
 )
@@ -971,9 +970,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             num_process=DEFAULT_POOL_SIZE,
             max_chunk_size=min(max(1, num_exps // DEFAULT_POOL_SIZE), 40),
         )
-        with get_context(DEFAULT_START_METHOD).Pool(
-            processes=DEFAULT_POOL_SIZE, maxtasksperchild=chunks_num * 2
-        ) as pool:
+        with make_multiprocess_pool(maxtasksperchild=chunks_num * 2) as pool:
             return list(
                 qurry_progressbar(
                     pool.imap_unordered(

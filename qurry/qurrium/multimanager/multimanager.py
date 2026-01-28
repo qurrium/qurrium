@@ -6,7 +6,6 @@ import warnings
 from pathlib import Path
 from typing import Any, Generic
 from uuid import uuid4
-from multiprocessing import get_context
 
 from qiskit.providers import Backend
 
@@ -24,6 +23,7 @@ from ...tools import (
     GeneralSimulator,
     DatetimeDict,
     DEFAULT_POOL_SIZE,
+    make_multiprocess_pool,
     very_easy_chunk_size,
 )
 from ...capsule import (
@@ -347,8 +347,7 @@ class MultiManager(Generic[_E]):
                 max_chunk_size=min(max(1, len(initial_config_list) // DEFAULT_POOL_SIZE), 20),
             )
 
-            pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
-            with pool as p:
+            with make_multiprocess_pool(maxtasksperchild=4) as p:
                 exps_iterable = qurry_progressbar(
                     p.imap_unordered(
                         experiment_instance.build_for_multiprocess,

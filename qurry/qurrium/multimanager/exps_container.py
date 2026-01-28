@@ -2,12 +2,16 @@
 
 from typing import TypeVar, Any
 from pathlib import Path
-from multiprocessing import get_context
 
 from .arguments import MultiCommonparams
 from .beforewards import Before
 from ..experiment import ExperimentPrototype, Export, QurryInfo
-from ...tools import qurry_progressbar, DEFAULT_POOL_SIZE, very_easy_chunk_distribution
+from ...tools import (
+    qurry_progressbar,
+    DEFAULT_POOL_SIZE,
+    very_easy_chunk_distribution,
+    make_multiprocess_pool,
+)
 from ...capsule import CustomDict, DEFAULT_INDENT
 
 _E = TypeVar("_E", bound=ExperimentPrototype)
@@ -197,8 +201,7 @@ def experiment_writer(
             max_chunk_size=min(max(1, len(respect_memory_array[1:]) // DEFAULT_POOL_SIZE), 40),
         )
 
-        exporting_pool = get_context("spawn").Pool(processes=DEFAULT_POOL_SIZE, maxtasksperchild=4)
-        with exporting_pool as ep:
+        with make_multiprocess_pool(maxtasksperchild=4) as ep:
             export_imap_result = qurry_progressbar(
                 ep.imap_unordered(
                     multiprocess_exporter_wrapper,
