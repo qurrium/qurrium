@@ -172,25 +172,11 @@ def method_process(
     )
 
     set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-    if multiprocess:
-        pool = ParallelManager()
-        result_list = pool.starmap(
-            make_samplied_circuit_unitary_op_pauli_coeff,
-            [
-                (
-                    n_u_i,
-                    target_circuit,
-                    target_key,
-                    arguments.exp_name,
-                    arguments.registers_mapping,
-                    unitary_dicts[n_u_i],
-                )
-                for n_u_i in range(arguments.times)
-            ],
-        )
-    else:
-        result_list = [
-            make_samplied_circuit_unitary_op_pauli_coeff(
+    pm = ParallelManager(workers_num=(None if multiprocess else 1))
+    result_list = pm.starmap(
+        make_samplied_circuit_unitary_op_pauli_coeff,
+        [
+            (
                 n_u_i,
                 target_circuit,
                 target_key,
@@ -199,7 +185,8 @@ def method_process(
                 unitary_dicts[n_u_i],
             )
             for n_u_i in range(arguments.times)
-        ]
+        ],
+    )
 
     assert [x[0] for x in result_list] == list(range(arguments.times)), (
         "The indices of the results are not correct."

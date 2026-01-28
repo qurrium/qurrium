@@ -289,36 +289,11 @@ def method_process(
     unitary_dicts = dict(unitary_items)
 
     set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-    if multiprocess:
-        pool = ParallelManager()
-        circ_list = pool.starmap(
-            make_samplied_circuit,
-            [
-                (
-                    n_u_i,
-                    target_circuit_1,
-                    target_key_1,
-                    arguments.exp_name,
-                    arguments.registers_mapping_1,
-                    unitary_dicts[n_u_i],
-                )
-                for n_u_i in range(arguments.times)
-            ]
-            + [
-                (
-                    n_u_i + arguments.times,
-                    target_circuit_2,
-                    target_key_2,
-                    arguments.exp_name,
-                    arguments.registers_mapping_2,
-                    unitary_dicts[n_u_i + arguments.times],
-                )
-                for n_u_i in range(arguments.times)
-            ],
-        )
-    else:
-        circ_list = [
-            make_samplied_circuit(
+    pm = ParallelManager(workers_num=(None if multiprocess else 1))
+    circ_list = pm.starmap(
+        make_samplied_circuit,
+        [
+            (
                 n_u_i,
                 target_circuit_1,
                 target_key_1,
@@ -327,8 +302,9 @@ def method_process(
                 unitary_dicts[n_u_i],
             )
             for n_u_i in range(arguments.times)
-        ] + [
-            make_samplied_circuit(
+        ]
+        + [
+            (
                 n_u_i + arguments.times,
                 target_circuit_2,
                 target_key_2,
@@ -337,7 +313,8 @@ def method_process(
                 unitary_dicts[n_u_i + arguments.times],
             )
             for n_u_i in range(arguments.times)
-        ]
+        ],
+    )
     other_results = [
         make_unitary_op_pauli_coeff(n_u_i, unitary_dicts[n_u_i]) for n_u_i in range(arguments.times)
     ]

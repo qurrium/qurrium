@@ -209,37 +209,23 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         target_key, target_circuit = targets[0]
         target_key = "" if isinstance(target_key, int) else str(target_key)
 
-        if multiprocess:
-            pool = ParallelManager()
-            circ_list = pool.starmap(
-                make_samplied_circuit,
-                [
-                    (
-                        n_u_i,
-                        target_circuit,
-                        target_key,
-                        arguments.exp_name,
-                        arguments.registers_mapping,
-                        arguments.random_basis[n_u_i],
-                        arguments.shadow_basis,
-                    )
-                    for n_u_i in range(arguments.snapshots)
-                ],
-            )
-            return circ_list, {}
-
-        return [
-            make_samplied_circuit(
-                n_u_i,
-                target_circuit,
-                target_key,
-                arguments.exp_name,
-                arguments.registers_mapping,
-                arguments.random_basis[n_u_i],
-                arguments.shadow_basis,
-            )
-            for n_u_i in range(arguments.snapshots)
-        ], {}
+        pm = ParallelManager(workers_num=(None if multiprocess else 1))
+        circ_list = pm.starmap(
+            make_samplied_circuit,
+            [
+                (
+                    n_u_i,
+                    target_circuit,
+                    target_key,
+                    arguments.exp_name,
+                    arguments.registers_mapping,
+                    arguments.random_basis[n_u_i],
+                    arguments.shadow_basis,
+                )
+                for n_u_i in range(arguments.snapshots)
+            ],
+        )
+        return circ_list, {}
 
     def prepare_entries_analysis(
         self,
