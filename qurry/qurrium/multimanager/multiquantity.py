@@ -16,7 +16,7 @@ from ..exceptions import OldFormatedIncompatibleWarning
 from ...capsule import (
     CustomDict,
     jsonablize,
-    key_tuple_loads,
+    tuple_str_parse_ensured,
     DEFAULT_ENCODING,
     DEFAULT_INDENT,
     DEFAULT_MODE,
@@ -134,7 +134,7 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
         """
 
         return {
-            key: {key_tuple_loads(k): [tuple(vv) for vv in v] for k, v in value.items()}
+            key: {tuple_str_parse_ensured(k): [tuple(vv) for vv in v] for k, v in value.items()}
             for key, value in raw_dict.items()
         }
 
