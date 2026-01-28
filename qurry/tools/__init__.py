@@ -9,10 +9,11 @@ from .backend import (
     backend_name_getter,
 )
 from .parallelmanager import (
-    ParallelManager,
-    workers_distribution,
     DEFAULT_POOL_SIZE,
     DEFAULT_START_METHOD,
+    workers_distribution,
+    make_multiprocess_pool,
+    ParallelManager,
     very_easy_chunk_size,
     very_easy_chunk_distribution,
 )

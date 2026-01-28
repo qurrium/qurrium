@@ -8,9 +8,7 @@ from typing import TypeVar, Any, Literal
 from collections.abc import Iterable, Callable
 import warnings
 from multiprocessing import cpu_count, get_context
-from tqdm.contrib.concurrent import process_map
 
-from .progressbar import default_setup
 from .exceptions import WrongWorkerNumReplaced, ParallelManagerRuntimeError
 
 
@@ -46,7 +44,7 @@ def workers_distribution(workers_num: int | None = None, default: int = DEFAULT_
 
     if default < 1:
         warnings.warn(
-            f"| Available worker number {CPU_COUNT} is equal orsmaller than 2."
+            f"| Available worker number {CPU_COUNT} is equal or smaller than 1."
             + "This computer may not be able to run this program for "
             + "the program will allocate all available threads.",
             category=WrongWorkerNumReplaced,
@@ -74,86 +72,117 @@ def workers_distribution(workers_num: int | None = None, default: int = DEFAULT_
     return launch_worker
 
 
-# pylint: disable=invalid-name
+def make_multiprocess_pool(
+    workers_num: int | None = DEFAULT_POOL_SIZE,
+    start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
+    initializer: Callable[..., object] | None = None,
+    initargs: Iterable[Any] = (),
+    maxtasksperchild: int | None = None,
+):
+    """Create a multiprocessing Pool.
+
+    Args:
+        workers_num (int | None, optional):
+            Desired workers number. Defaults to DEFAULT_POOL_SIZE.
+        start_method (Literal["spawn", "fork", "forkserver"], optional):
+            Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
+        initializer (Callable[..., object] | None, optional):
+            Initializer for the Pool. Defaults to None.
+        initargs (Iterable[Any], optional):
+            Arguments for the initializer. Defaults to ().
+        maxtasksperchild (int | None, optional):
+            The maximum number of tasks per child process. Defaults to None.
+
+    Returns:
+        The created Pool with the given parameters by specified start method.
+    """
+
+    return get_context(start_method).Pool(
+        processes=workers_distribution(workers_num),
+        initializer=initializer,
+        initargs=initargs,
+        maxtasksperchild=maxtasksperchild,
+    )
+
+
 T_map = TypeVar("T_map")
 T_tgt = TypeVar("T_tgt")
-# pylint: enable=invalid-name
 
 
 class ParallelManager:
-    """Process manager for multiprocessing."""
+    """A wrapper class for multiprocessing Pool."""
 
     def __init__(
         self,
         workers_num: int | None = DEFAULT_POOL_SIZE,
-        bar_format: str = "qurry-full",
-        bar_ascii: str = "4squares",
-        **pool_kwargs,
+        start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
+        initializer: Callable[..., object] | None = None,
+        initargs: Iterable[Any] = (),
+        maxtasksperchild: int | None = None,
     ):
-        """Initialize the process manager.
+        """Initialize the ParallelManager.
 
         Args:
             workers_num (int | None, optional):
                 Desired workers number. Defaults to DEFAULT_POOL_SIZE.
-            **pool_kwargs: Other arguments for Pool.
+                If workers_num is 1, then disable multiprocessing.
+                If None, use DEFAULT_POOL_SIZE.
+
+            start_method (Literal["spawn", "fork", "forkserver"], optional):
+                Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
+            initializer (Callable[..., object] | None, optional):
+                Initializer for the Pool. Defaults to None.
+            initargs (Iterable[Any], optional):
+                Arguments for the initializer. Defaults to ().
+            maxtasksperchild (int | None, optional):
+                The maximum number of tasks per child process. Defaults to None.
         """
 
-        if "processes" in pool_kwargs:
-            warnings.warn(
-                "| `processes` is given in `pool_kwargs`."
-                + "It will be overwritten by `workers_num`."
-            )
-            pool_kwargs.pop("processes")
-
-        self.reslt_setup = default_setup(bar_format, bar_ascii)
-        self.pool_kwargs = pool_kwargs
         self.workers_num = workers_distribution(workers_num)
+        self.start_method: Literal["spawn", "fork", "forkserver"] = start_method
+        self.pool_kwargs = {
+            "initializer": initializer,
+            "initargs": initargs,
+            "maxtasksperchild": maxtasksperchild,
+        }
 
-    def starmap(
-        self,
-        func: Callable[..., T_map],
-        args_list: Iterable,
-        start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
-    ) -> list[T_map]:
+    def starmap(self, func: Callable[..., T_map], args_list: Iterable) -> list[T_map]:
         """This function is a wrapper for starmap from multiprocessing.
 
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             args_list (Iterable[Iterable[T_tgt]]): Arguments to be mapped.
-            start_method (Literal["spawn", "fork", "forkserver"], optional):
-                Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:
-            tqdm.tqdm[T_map]: Results.
+            list[T_map]: Results.
         """
 
         if self.workers_num == 1:
             return list(map(func, *zip(*args_list)))
 
         try:
-            pool_instance = get_context(start_method).Pool
-            with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
-                return pool.starmap(func, args_list)
+            pool = make_multiprocess_pool(
+                workers_num=self.workers_num,
+                start_method=self.start_method,
+                initializer=self.pool_kwargs["initializer"],
+                initargs=self.pool_kwargs["initargs"],
+                maxtasksperchild=self.pool_kwargs["maxtasksperchild"],
+            )
+            with pool as p:
+                return p.starmap(func, args_list)
         except RuntimeError as e:
             raise ParallelManagerRuntimeError(
                 "Failed to use multiprocessing with the given start method. "
-                f"Please check the start method: {start_method}. "
+                f"Please check the start method: {self.start_method}. "
                 "And refer to the above error message for more details."
             ) from e
 
-    def map(
-        self,
-        func: Callable[[T_tgt], T_map],
-        arg_list: Iterable[T_tgt],
-        start_method: Literal["spawn", "fork", "forkserver"] = DEFAULT_START_METHOD,
-    ) -> list[T_map]:
+    def map(self, func: Callable[[T_tgt], T_map], arg_list: Iterable[T_tgt]) -> list[T_map]:
         """This function is a wrapper for map from multiprocessing.
 
         Args:
             func (Callable[[Iterable[T_tgt]], T_map]): Function to be mapped.
             arg_list (Iterable[T_tgt]): Arguments to be mapped.
-            start_method (Literal["spawn", "fork", "forkserver"], optional):
-                Start method for multiprocessing. Defaults to DEFAULT_START_METHOD.
 
         Returns:
             list[T_map]: Results.
@@ -163,52 +192,21 @@ class ParallelManager:
             return list(map(func, arg_list))
 
         try:
-            pool_instance = get_context(start_method).Pool
-            with pool_instance(processes=self.workers_num, **self.pool_kwargs) as pool:
-                return pool.map(func, arg_list)
+            pool = make_multiprocess_pool(
+                workers_num=self.workers_num,
+                start_method=self.start_method,
+                initializer=self.pool_kwargs["initializer"],
+                initargs=self.pool_kwargs["initargs"],
+                maxtasksperchild=self.pool_kwargs["maxtasksperchild"],
+            )
+            with pool as p:
+                return p.map(func, arg_list)
         except RuntimeError as e:
             raise ParallelManagerRuntimeError(
                 "Failed to use multiprocessing with the given start method. "
-                f"Please check the start method: {start_method}. "
+                f"Please check the start method: {self.start_method}. "
                 "And refer to the above error message for more details."
             ) from e
-
-    def process_map(
-        self,
-        func: Callable[..., T_map],
-        args_list: Iterable[Iterable[Any]],
-        bar_format: str = "qurry-full",
-        bar_ascii: str = "4squares",
-        **kwargs,
-    ) -> list[T_map]:
-        """Call process_map from tqdm.
-        This function is a wrapper for process_map from tqdm.
-        But, it won't use `pool_kwargs` for they are different implementations
-        with `multiprocessing.Pool` in this class.
-
-        Args:
-            func (Callable[[Any], T_map]): Function to be mapped.
-            args (Iterable[Any]): Arguments to be mapped.
-            bar_format (str, optional): Progress bar format. Defaults to "qurry-full".
-            bar_ascii (str, optional): Progress bar ascii. Defaults to "4squares".
-            **kwargs: Other arguments.
-
-        Returns:
-            list[T_map]: Results.
-        """
-
-        result_setup = default_setup(bar_format, bar_ascii)
-        actual_bar_format = result_setup["bar_format"]
-        actual_ascii = result_setup["ascii"]
-
-        return process_map(
-            func,
-            *zip(*args_list),
-            **kwargs,
-            ascii=actual_ascii,
-            bar_format=actual_bar_format,
-            max_workers=self.workers_num,
-        )
 
 
 def very_easy_chunk_size(
