@@ -190,6 +190,7 @@ def classical_shadow_complex(
             The method to calculate the trace of rho.
 
             - Matrix operation methods:
+                For the matrix operation methods, it will require rho has been calculated first.
                 - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
                     to calculate the each summation item in `rho_m_list`.
                 - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
@@ -202,19 +203,18 @@ def classical_shadow_complex(
                     `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                     This is the fastest implementation to calculate the trace of Rho
                     if JAX is available.
-            For the matrix operation methods, it will require rho has been calculated first.
 
             - Non-matrix operation methods:
                 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
                 - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-                - "bitwise_py": Use pure Python bitwise implementation.
-            For the non-matrix operation methods, it will directly calculate the trace from
-            the counts and random basis.
 
             - Skip calculation of trace:
                 - "skip_trace": Skip the trace calculation and return NaN.
 
-            The default method is "bitwise_py", which is the fastest option.
+            For the non-matrix operation methods, it will directly calculate the trace from
+            the counts and random basis.
+
+            Default to DEFAULT_TRACE_METHOD.
         estimate_trace_method (ListTraceMethodType, optional):
             The method to use for the calculation.
 

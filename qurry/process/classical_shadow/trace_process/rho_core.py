@@ -134,7 +134,6 @@ def trace_rho_square_core(
             It should be a list of 2-dimensional arrays.
         trace_method (RhoTraceMethod , optional):
             The method to calculate the trace of Rho square.
-
             - "trace_of_matmul":
                 Use `np.trace(np.matmul(rho_m1, rho_m2))`
                 to calculate the each summation item in `rho_m_list`.

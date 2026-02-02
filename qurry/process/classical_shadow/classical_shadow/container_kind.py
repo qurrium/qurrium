@@ -110,6 +110,7 @@ def verify_purity_value_kind(
             The method to calculate the trace of rho.
 
             - Matrix operation methods:
+                For the matrix operation methods, it will require rho has been calculated first.
                 - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
                     to calculate the each summation item in `rho_m_list`.
                 - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
@@ -123,17 +124,17 @@ def verify_purity_value_kind(
                     This is the fastest implementation to calculate the trace of Rho
                     if JAX is available.
 
-            For the matrix operation methods, it will require rho has been calculated first.
-
             - Non-matrix operation methods:
                 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
                 - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-                - "bitwise_py": Use pure Python bitwise implementation.
+
+            - Skip calculation of trace:
+                - "skip_trace": Skip the trace calculation and return NaN.
 
             For the non-matrix operation methods, it will directly calculate the trace from
             the counts and random basis.
 
-            The default method is "bitwise_py", which is the fastest option.
+            Default to DEFAULT_TRACE_METHOD.
 
     Returns:
         PurityValueKind: The kind of purity value calculation.
@@ -143,8 +144,6 @@ def verify_purity_value_kind(
     if isinstance(trace_method, str):
         trace_method = TraceMethod.from_string(trace_method)
 
-    if trace_method.is_bitwise_method():
-        return "bitwise"
     if not trace_method.is_nomatop_method() and rho_method.is_multi_method():
         return "multi_shots"
     return "single_shots"
@@ -167,8 +166,6 @@ def default_method_on_value_kind(value_kind: PurityValueKind) -> tuple[RhoMethod
         return RhoMethod.get_default(), TraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY
     if value_kind == "single_shots":
         return RhoMethod.get_default(), TraceMethod.NOMATMUL_TRACE_RUST
-    if value_kind == "bitwise":
-        return RhoMethod.get_default(), TraceMethod.BITWISE_PY
     raise ValueError(f"Unknown purity value kind: {value_kind}")
 
 
