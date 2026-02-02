@@ -34,7 +34,7 @@ Homepage = "https://github.com/qurrium/qurrium"
 Documentation = "https://docs.qurrium.org"
 
 [tool.setuptools.packages.find]
-include = ['qurry']
+include = ['qurry*']
 exclude = ['cmake', 'symengine', 'tests']
 
 [tool.setuptools]
