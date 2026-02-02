@@ -1,5 +1,5 @@
 """Post Processing - Classical Shadow - Trace Process - Non-Matrix Multiplication Trace
-(:mod:`qurry.process.classical_shadow.trace_process.nomatmul_trace`)
+(:mod:`qurry.process.classical_shadow.trace_process.nomatmul`)
 
 """
 
@@ -7,10 +7,9 @@ from collections.abc import Sequence, Iterable
 from functools import reduce
 from itertools import combinations
 
-from qurry.boorust.shadow import nomatmul_trace_sum_rust  # type: ignore
-
 from ...utils import BaseMethodEnum
 from ....tools import make_multiprocess_pool, DEFAULT_POOL_SIZE
+from ....boorust.shadow import nomatmul_trace_sum_rust  # type: ignore
 
 
 def rho_elt_compare(
@@ -123,7 +122,7 @@ def nomatmul_trace_sum_py(
     pauli_basis: Sequence[Sequence[int]],
     spin_outcome: Sequence[Sequence[int]],
     subsystem: Sequence[int],
-    multiprocessing: bool = True,
+    multiprocessing: bool = False,
 ) -> float:
     """Perform the trace calculation for the given data and subsystems using Python.
 
@@ -141,36 +140,31 @@ def nomatmul_trace_sum_py(
         float: The result of the trace calculation.
     """
 
-    trace_m1_m2 = 0.0
-
     num_of_samples = len(pauli_basis)
 
-    if multiprocessing and DEFAULT_POOL_SIZE > 1:
-        with make_multiprocess_pool() as pool:
-            # Using multiprocessing to parallelize the trace calculation
-            results = pool.imap_unordered(
-                trace_calculation_unit_wrapper,
-                (
-                    (
-                        pauli_basis,
-                        spin_outcome,
-                        subsystem,
-                        [(i, j) for j in range(i + 1, num_of_samples)],
-                    )
-                    for i in range(num_of_samples)
-                ),
-                chunksize=max(1, num_of_samples // DEFAULT_POOL_SIZE // 2),
-            )
-            trace_m1_m2 += sum(results)
-    else:
-        # Without multiprocessing, calculate directly
-        trace_m1_m2 += sum(
+    if not multiprocessing or DEFAULT_POOL_SIZE <= 1:
+        return sum(
             get_trace(
                 pauli_basis[m1], spin_outcome[m1], pauli_basis[m2], spin_outcome[m2], subsystem
             )
             for m1, m2 in combinations(range(num_of_samples), 2)
         )
 
+    with make_multiprocess_pool() as pool:
+        results = pool.imap_unordered(
+            trace_calculation_unit_wrapper,
+            (
+                (
+                    pauli_basis,
+                    spin_outcome,
+                    subsystem,
+                    [(i, j) for j in range(i + 1, num_of_samples)],
+                )
+                for i in range(num_of_samples)
+            ),
+            chunksize=max(1, num_of_samples // DEFAULT_POOL_SIZE // 2),
+        )
+        trace_m1_m2 = sum(results)
     return trace_m1_m2
 
 
@@ -178,6 +172,7 @@ class NonMatMulTraceMethod(BaseMethodEnum):
     """The method to use for the trace calculation without matrix multiplication.
 
     - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+    - "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
     - "nomatmul_trace_rust": Use Rust implementation via PyO3.
 
     The default method is "nomatmul_trace_rust", which is the fastest option.
@@ -185,8 +180,10 @@ class NonMatMulTraceMethod(BaseMethodEnum):
 
     NOMATMUL_TRACE_PY = "nomatmul_trace_py"
     """Use pure Python implementation without multiprocessing."""
-    # NOMATMUL_TRACE_PY_MP = "nomatmul_trace_py_mp"
-    # """Use pure Python implementation with multiprocessing."""
+
+    NOMATMUL_TRACE_PY_MP = "nomatmul_trace_py_mp"
+    """Use pure Python implementation with multiprocessing."""
+
     NOMATMUL_TRACE_RUST = "nomatmul_trace_rust"
     """Use Rust implementation via PyO3."""
 
@@ -204,6 +201,7 @@ NonMatMulTraceMethodType = NonMatMulTraceMethod | str
 """The method to use for the trace calculation without matrix multiplication.
 
 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+- "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
 - "nomatmul_trace_rust": Use Rust implementation via PyO3.
 
 The default method is "nomatmul_trace_rust", which is the fastest option.
@@ -230,6 +228,7 @@ def nomatmul_trace_sum(
         trace_method (NonMatMulTraceMethodType):
             The method to use for the trace calculation.
             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+            - "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
             Default is DEFAULT_NONMATMUL_TRACE_METHOD.
 
@@ -241,8 +240,8 @@ def nomatmul_trace_sum(
 
     if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_PY:
         return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=False)
-    # if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_PY_MP:
-    #     return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=True)
+    if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_PY_MP:
+        return nomatmul_trace_sum_py(pauli_basis, spin_outcome, subsystem, multiprocessing=True)
     if trace_method == NonMatMulTraceMethod.NOMATMUL_TRACE_RUST:
         return nomatmul_trace_sum_rust(pauli_basis, spin_outcome, subsystem)
 
@@ -268,12 +267,18 @@ def nomatmul_trace_core(
         trace_method (NonMatMulTraceMethodType):
             The method to use for the trace calculation.
             - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
+            - "nomatmul_trace_py_mp": Use pure Python implementation with multiprocessing.
             - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-            Default is DEFAULT_NONMATMUL_TRACE_METHOD
+            Default is DEFAULT_NONMATMUL_TRACE_METHOD.
 
     Returns:
         float: The calculated purity of the quantum state.
     """
+    if len(pauli_basis) != len(spin_outcome):
+        raise ValueError(
+            "Length mismatch: pauli_basis: "
+            + f"{len(pauli_basis)} != spin_outcome: {len(spin_outcome)}"
+        )
     num_of_samples = len(pauli_basis)
     if num_of_samples < 2:
         raise ValueError("At least two samples are required to calculate purity.")
