@@ -2,10 +2,8 @@
 
 from typing import Literal
 from collections.abc import Iterable
-import warnings
 from pathlib import Path
 import tqdm
-import numpy as np
 import numpy.typing as npt
 
 from qiskit import QuantumCircuit
@@ -25,7 +23,7 @@ from ...qurrium import (
 )
 from ...process.utils import QubitSelectionType, FloatType
 from ...process.classical_shadow import (
-    JAX_AVAILABLE,
+    check_jax_enabled_x64,
     ShadowBasisType,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
@@ -142,23 +140,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
     def __post_init__(self):
         """Initialize the class."""
-        if JAX_AVAILABLE:
-            # pylint: disable=import-outside-toplevel
-            import jax
-
-            if not jax.config.values["jax_enable_x64"]:
-                jax.config.update("jax_enable_x64", True)
-            # pylint: enable=import-outside-toplevel
-
-            if not jax.config.values["jax_enable_x64"]:
-                warnings.warn(
-                    "JAX is not set to use 64-bit precision, but it should be setup by Qurrium"
-                    + "Since we rely on 64-bit precision, please set it to use 64-bit precision. "
-                    + "You can set it by `jax.config.update('jax_enable_x64', True)`. "
-                    + "Or you can set it in your environment by `export JAX_ENABLE_X64=True`. "
-                    + "Otherwise, the results will be inaccurate when use JAX.",
-                    RuntimeWarning,
-                )
+        check_jax_enabled_x64()
 
     @property
     def experiment_instance(self) -> type[SUExperiment]:

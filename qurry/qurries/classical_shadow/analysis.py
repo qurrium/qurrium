@@ -20,8 +20,6 @@ from ...qurrium import (
 from ...qurrium.utils import bitstring_mapping_getter
 from ...process.utils import counts_list_recount_pyrust, FloatType
 from ...process.classical_shadow import (
-    set_cpu_only,
-    JAX_AVAILABLE,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
@@ -948,9 +946,6 @@ class SUAnalysis(
         Returns:
             ClassicalShadowComplex: The result of the classical shadow.
         """
-
-        if JAX_AVAILABLE:
-            set_cpu_only()
 
         return classical_shadow_complex(
             shots=shots,
