@@ -49,27 +49,25 @@ def workers_distribution(workers_num: int | None = None, default: int = DEFAULT_
             + "the program will allocate all available threads.",
             category=WrongWorkerNumReplaced,
         )
-        default = DEFAULT_POOL_SIZE
+        default = DEFAULT_POOL_SIZE if DEFAULT_POOL_SIZE > 0 else 1
 
     if workers_num is None:
-        launch_worker = default
-    else:
-        if workers_num > CPU_COUNT:
-            warnings.warn(
-                f"| Worker number {workers_num} is larger than cpu count {CPU_COUNT}.",
-                category=WrongWorkerNumReplaced,
-            )
-            launch_worker = default
-        elif workers_num < 1:
-            warnings.warn(
-                f"| Worker number {workers_num} is smaller than 1. Use single worker.",
-                category=WrongWorkerNumReplaced,
-            )
-            launch_worker = 1
-        else:
-            launch_worker = workers_num
+        return default
 
-    return launch_worker
+    if workers_num > CPU_COUNT:
+        warnings.warn(
+            f"| Worker number {workers_num} is larger than cpu count {CPU_COUNT}.",
+            category=WrongWorkerNumReplaced,
+        )
+        return default
+    elif workers_num < 1:
+        warnings.warn(
+            f"| Worker number {workers_num} is smaller than 1. Use single worker.",
+            category=WrongWorkerNumReplaced,
+        )
+        return 1
+
+    return workers_num
 
 
 def make_multiprocess_pool(
