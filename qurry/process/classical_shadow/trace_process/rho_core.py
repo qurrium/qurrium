@@ -11,7 +11,7 @@ import numpy.typing as npt
 from ..matrix_calculation import (
     select_single_trace_rho_method,
     SingleTraceMethod,
-    select_all_trace_rho_by_einsum_aij_bji_to_ab,
+    all_trace_rho_by_einsum_aij_bji_to_ab,
     ListTraceMethod,
     JAX_AVAILABLE,
 )
@@ -132,7 +132,7 @@ def trace_rho_square_core(
         rho_m_list (list[npt.NDArray[np.complex128]]):
             The list of rho_m matrices.
             It should be a list of 2-dimensional arrays.
-        trace_method (TraceMethod , optional):
+        trace_method (RhoTraceMethod , optional):
             The method to calculate the trace of Rho square.
 
             - "trace_of_matmul":
@@ -159,9 +159,8 @@ def trace_rho_square_core(
 
     if trace_method.is_list_method():
         list_enum = trace_method.to_list_enum()
-        rho_m_array: np.ndarray = np.array(rho_m_list)
-        trace_rho_by_einsum_aij_bji_to_ab = select_all_trace_rho_by_einsum_aij_bji_to_ab(list_enum)
-        return trace_rho_by_einsum_aij_bji_to_ab(rho_m_array)
+        rho_m_array = np.array(rho_m_list)
+        return all_trace_rho_by_einsum_aij_bji_to_ab(rho_m_array, method=list_enum)
 
     if trace_method.is_single_method():
         single_enum = trace_method.to_single_enum()

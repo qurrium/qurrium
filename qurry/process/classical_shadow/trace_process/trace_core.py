@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - All Trace Process
-(:mod:`qurry.process.classical_shadow.all_trace_process`)
+"""Post Processing - Classical Shadow - Trace Process - Core
+(:mod:`qurry.process.classical_shadow.trace_process.trace_core`)
 
 """
 
@@ -9,15 +9,22 @@ import warnings
 import numpy as np
 import numpy.typing as npt
 
-from .nomatop_core import NonMatOpTraceMethod, trace_nomatop_core
-from .rho_trace_core import RhoTraceMethod, trace_rho_square_core, JAX_AVAILABLE
-from ...utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum, FloatType
+from .nomatop_core import NonMatMulTraceMethod, trace_nomatop_core
+from .rho_core import RhoTraceMethod, trace_rho_square_core
+from ..utils import convert_to_basis_spin
+from ...utils import (
+    NUMERICAL_ERROR_TOLERANCE,
+    BaseMethodEnum,
+    FloatType,
+    shot_counts_selected_clreg_checker_pyrust,
+)
 
 
 class TraceMethod(BaseMethodEnum):
     """The method to calculate the trace of rho.
 
     - Matrix operation methods:
+        For the matrix operation methods, it will require rho has been calculated first.
         - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
             to calculate the each summation item in `rho_m_list`.
         - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
@@ -31,20 +38,15 @@ class TraceMethod(BaseMethodEnum):
             This is the fastest implementation to calculate the trace of Rho
             if JAX is available.
 
-    For the matrix operation methods, it will require rho has been calculated first.
-
     - Non-matrix operation methods:
         - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
         - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-        - "bitwise_py": Use pure Python bitwise implementation.
 
     - Skip Method:
         - "skip_trace": Skip the trace calculation and return NaN.
 
     For the non-matrix operation methods, it will directly calculate the trace from
     the counts and random basis.
-
-    The default method is "bitwise_py", which is the fastest option.
     """
 
     # Matrix operation methods
@@ -60,12 +62,10 @@ class TraceMethod(BaseMethodEnum):
     """Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
 
     # Non-matrix operation methods
-    NOMATMUL_TRACE_PY = NonMatOpTraceMethod.NOMATMUL_TRACE_PY.value
+    NOMATMUL_TRACE_PY = NonMatMulTraceMethod.NOMATMUL_TRACE_PY.value
     """Use pure Python implementation without multiprocessing."""
-    NOMATMUL_TRACE_RUST = NonMatOpTraceMethod.NOMATMUL_TRACE_RUST.value
+    NOMATMUL_TRACE_RUST = NonMatMulTraceMethod.NOMATMUL_TRACE_RUST.value
     """Use Rust implementation via PyO3."""
-    BITWISE_PY = NonMatOpTraceMethod.BITWISE_PY.value
-    """Use pure Python bitwise implementation."""
 
     SKIP_TRACE = "skip_trace"
     """Skip the trace calculation and return NaN."""
@@ -78,23 +78,6 @@ class TraceMethod(BaseMethodEnum):
             TraceMethod: The default method.
         """
         return cls.NOMATMUL_TRACE_RUST
-
-    def is_bitwise_method(self) -> bool:
-        """Whether it is a bitwise method.
-
-        Returns:
-            bool: True if it is a bitwise method, False otherwise.
-        """
-        return self in [self.BITWISE_PY]
-
-    @classmethod
-    def get_all_bitwise_methods(cls) -> list[str]:
-        """Get a list of all avaialble bitwise methods.
-
-        Returns:
-            list[str]: A list of avaialble bitwise methods.
-        """
-        return [cls.BITWISE_PY.value]
 
     def is_singleshots_method(self) -> bool:
         """Whether it is a singleshots method.
@@ -119,7 +102,7 @@ class TraceMethod(BaseMethodEnum):
         Returns:
             bool: True if it is a nomatmul method, False otherwise.
         """
-        return self.is_bitwise_method() or self.is_singleshots_method()
+        return self.is_singleshots_method()
 
     def is_skip_method(self) -> bool:
         """Whether it is a skip method.
@@ -136,20 +119,20 @@ class TraceMethod(BaseMethodEnum):
         Returns:
             list[str]: A list of avaialble nomatmul methods.
         """
-        return cls.get_single_methods() + cls.get_all_bitwise_methods()
+        return cls.get_single_methods()
 
-    def to_nomatop_enum(self) -> NonMatOpTraceMethod:
-        """Convert to NonMatOpTraceMethod enum.
+    def to_nomatop_enum(self) -> NonMatMulTraceMethod:
+        """Convert to NonMatMulTraceMethod enum.
 
         Raises:
             ValueError: If the method is not a nomatmul method.
 
         Returns:
-            NonMatOpTraceMethod: The corresponding NonMatOpTraceMethod enum.
+            NonMatMulTraceMethod: The corresponding NonMatMulTraceMethod enum.
         """
         if not self.is_nomatop_method():
             raise ValueError(f"{self.value} is not a nomatmul method")
-        return NonMatOpTraceMethod.from_string(self.value)
+        return NonMatMulTraceMethod.from_string(self.value)
 
     def is_matrixop_method(self) -> bool:
         """Whether it is a matrix operation method.
@@ -214,12 +197,9 @@ For the matrix operation methods, it will require rho has been calculated first.
 - Non-matrix operation methods:
     - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
     - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-    - "bitwise_py": Use pure Python bitwise implementation.
 
 For the non-matrix operation methods, it will directly calculate the trace from
 the counts and random basis.
-
-The default method is "bitwise_py", which is the fastest option.
 """
 
 
@@ -294,25 +274,31 @@ def all_trace_core(
         return np.nan, np.nan, 0.0
 
     if trace_method.is_nomatop_method():
+        _total_system_size, selected_classical_registers = (
+            shot_counts_selected_clreg_checker_pyrust(
+                shots=shots,
+                counts=counts,
+                selected_classical_registers=selected_classical_registers_sorted,
+            )
+        )
+        selected_clreg_sorted = sorted(selected_classical_registers_sorted)
+        pauli_basis, spin_outcome = convert_to_basis_spin(shots, counts, random_basis_array)
+
         purity = trace_nomatop_core(
-            shots=shots,
-            counts=counts,
-            random_unitary_array=random_basis_array,
-            selected_classical_registers=selected_classical_registers_sorted,
+            pauli_basis=pauli_basis,
+            spin_outcome=spin_outcome,
+            subsystem=selected_clreg_sorted,
             trace_method=trace_method.to_nomatop_enum(),
         )
-    else:
-        trace_rho_sum = trace_rho_square_core(
-            rho_m_list=rho_m_list, trace_method=trace_method.to_matrixop_enum()
+        return purity, -np.log2(purity), time.time() - begin
+
+    trace_rho_sum = trace_rho_square_core(
+        rho_m_list=rho_m_list, trace_method=trace_method.to_matrixop_enum()
+    )
+    if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
+        warnings.warn(
+            "The imaginary part of the trace of Rho square is not zero. "
+            f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}",
+            RuntimeWarning,
         )
-        if np.abs(trace_rho_sum.imag) > NUMERICAL_ERROR_TOLERANCE:
-            warnings.warn(
-                "The imaginary part of the trace of Rho square is not zero. "
-                f"The imaginary part is {trace_rho_sum.imag}. method: {trace_method}",
-                RuntimeWarning,
-            )
-        purity = trace_rho_sum.real
-
-    entropy = -np.log2(purity)
-
-    return purity, entropy, time.time() - begin
+    return trace_rho_sum.real, -np.log2(trace_rho_sum.real), time.time() - begin

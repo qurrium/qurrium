@@ -104,7 +104,7 @@ from .utils import (
     measurements_read,
 )
 from .matrix_calculation import (
-    set_cpu_only,
+    check_jax_enabled_x64,
     JAX_AVAILABLE,
     BACKEND_AVAILABLE as classical_shadow_matrix_availability,
     ListTraceMethod,

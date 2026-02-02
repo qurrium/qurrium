@@ -10,7 +10,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .matrix_calculation import (
-    select_prediction_einsum_aij_bji_to_ab,
+    prediction_einsum_aij_bji_to_ab,
     ListTraceMethodType,
     DEFAULT_LIST_TRACE_METHOD,
 )
@@ -556,8 +556,6 @@ def prediction_algorithm(
             "the number of given operators must be greater than 0."
         )
 
-    prediction_einsum_aij_bji_to_ab = select_prediction_einsum_aij_bji_to_ab(estimate_trace_method)
-
     epsilon_upperbound, shadow_norm_upperbound = worst_accuracy_predict_epsilon_calc(
         num_classical_snapshot, given_operators
     )
@@ -587,7 +585,7 @@ def prediction_algorithm(
 
     begin = time.time()
     estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
-        np.array(given_operators), estimators
+        np.array(given_operators), estimators, method=estimate_trace_method
     )
 
     return EstimationOfObservable(
