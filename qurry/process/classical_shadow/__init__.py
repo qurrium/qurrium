@@ -104,6 +104,7 @@ from .utils import (
     measurements_read,
 )
 from .matrix_calculation import (
+    set_jax_enable_x64,
     check_jax_enabled_x64,
     JAX_AVAILABLE,
     BACKEND_AVAILABLE as classical_shadow_matrix_availability,
@@ -130,7 +131,7 @@ from .prediction_process import (
     EstimationOfObservable,
 )
 from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
-from .classical_shadow import (
+from .all_observable import (
     mean_rho,
     trace_rho_square,
     estimation_of_given_operators,

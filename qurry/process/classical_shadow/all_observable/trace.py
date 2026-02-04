@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Classical Shadow - Trace of Rho Square
-(:mod:`qurry.process.classical_shadow.classical_shadow.trace`)
+"""Post Processing - Classical Shadow - All Observable Calculation - Trace of Rho Square
+(:mod:`qurry.process.classical_shadow.all_observable.trace`)
 
 """
 

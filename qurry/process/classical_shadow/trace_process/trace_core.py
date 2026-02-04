@@ -12,12 +12,7 @@ import numpy.typing as npt
 from .nomatop_core import NonMatMulTraceMethod, trace_nomatop_core
 from .rho_core import RhoTraceMethod, trace_rho_square_core
 from ..utils import convert_to_basis_spin
-from ...utils import (
-    NUMERICAL_ERROR_TOLERANCE,
-    BaseMethodEnum,
-    FloatType,
-    shot_counts_selected_clreg_checker_pyrust,
-)
+from ...utils import NUMERICAL_ERROR_TOLERANCE, BaseMethodEnum, FloatType
 
 
 class TraceMethod(BaseMethodEnum):
@@ -276,13 +271,6 @@ def all_trace_core(
         return np.nan, np.nan, 0.0
 
     if trace_method.is_nomatop_method():
-        _total_system_size, selected_classical_registers = (
-            shot_counts_selected_clreg_checker_pyrust(
-                shots=shots,
-                counts=counts,
-                selected_classical_registers=selected_classical_registers_sorted,
-            )
-        )
         selected_clreg_sorted = sorted(selected_classical_registers_sorted)
         pauli_basis, spin_outcome = convert_to_basis_spin(shots, counts, random_basis_array)
 

@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Classical Shadow - Mean of Rho
-(:mod:`qurry.process.classical_shadow.classical_shadow.mean`)
+"""Post Processing - Classical Shadow - All Observable Calculation - Mean of Rho
+(:mod:`qurry.process.classical_shadow.all_observable.mean`)
 
 """
 

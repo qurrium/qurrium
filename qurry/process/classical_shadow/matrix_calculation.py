@@ -78,11 +78,11 @@ def check_jax_enabled_x64():
 
     if not jax.config.values["jax_enable_x64"]:
         warnings.warn(
-            "JAX is not set to use 64-bit precision, but it should be setup by Qurrium"
-            + "Since we rely on 64-bit precision, please set it to use 64-bit precision. "
+            "JAX is not set to use 64-bit precision, but it should be setup by Qurrium "
+            + "Since we rely on 64-bit precision to confirm "
+            + "that it made same result with Numpy. "
             + "You can set it by `jax.config.update('jax_enable_x64', True)`. "
-            + "Or you can set it in your environment by `export JAX_ENABLE_X64=True`. "
-            + "Otherwise, the results will be inaccurate when use JAX.",
+            + "Or you can set it in your environment by `export JAX_ENABLE_X64=True`. ",
             RuntimeWarning,
         )
 
@@ -364,9 +364,9 @@ def prediction_einsum_aij_bji_to_ab(
     candidate_esitmators_foreach_given_operator = jnp.einsum(
         "aij,bji->ab", given_operators, estimators
     )
-    median_foreach_given_operator = jnp.median(candidate_esitmators_foreach_given_operator, axis=1)
-    median_location_given_operator = jnp.argmin(
-        jnp.abs(
+    median_foreach_given_operator = np.median(candidate_esitmators_foreach_given_operator, axis=1)
+    median_location_given_operator = np.argmin(
+        np.abs(
             candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
         ),
         axis=1,

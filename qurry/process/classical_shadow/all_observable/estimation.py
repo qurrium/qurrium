@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Classical Shadow - Complex of All Variables
-(:mod:`qurry.process.classical_shadow.classical_shadow.complex`)
+"""Post Processing - Classical Shadow - All Observable Calculation - Estimation of Observable
+(:mod:`qurry.process.classical_shadow.all_observable.estimation`)
 
 """
 
@@ -9,18 +9,60 @@ import tqdm
 import numpy as np
 import numpy.typing as npt
 
-from .container_kind import ClassicalShadowBasic, ClassicalShadowPurity
+from .container_kind import ClassicalShadowBasic, isvalid_classical_shadow_basic
 from .mean import mean_rho
-from .trace import inner_trace_rho_square
-from .estimation import inner_estimation_of_given_operators
 from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
-from ..trace_process import TraceMethodType, DEFAULT_TRACE_METHOD
-from ..prediction_process import EstimationOfObservable
+from ..prediction_process import prediction_algorithm, EstimationOfObservable
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ...utils import FloatType
 
 
-def classical_shadow_complex(
+def inner_estimation_of_given_operators(
+    cs_basic: ClassicalShadowBasic,
+    # estimation of given operators
+    given_operators: list[npt.NDArray] | None = None,
+    accuracy_prob_comp_delta: FloatType = 0.01,
+    max_shadow_norm: FloatType | None = None,
+    # other config
+    estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
+) -> EstimationOfObservable:
+    r"""Calculate the expectation value of given operators from ClassicalShadowBasic.
+
+    Args:
+        cs_basic (ClassicalShadowBasic):
+            The ClassicalShadowBasic TypedDict object.
+
+        given_operators (list[npt.NDArray]):
+            The list of the operators to estimate.
+        accuracy_prob_comp_delta (FloatType, optional):
+            The accuracy probability component delta. Defaults to 0.01.
+        max_shadow_norm (FloatType | None, optional):
+            The maximum shadow norm. Defaults to None.
+            If it is None, it will be calculated by the largest shadow norm upper bound.
+            If it is not None, it must be a positive float number.
+            It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
+
+        estimate_trace_method (ListTraceMethodType, optional):
+            The method to use for the calculation. Defaults to DEFAULT_LIST_TRACE_METHOD.
+
+    Returns:
+        EstimationOfObservable: The estimation of the given operators.
+    """
+
+    isvalid_classical_shadow_basic(cs_basic)
+    if given_operators is None or len(given_operators) == 0:
+        raise ValueError("The given_operators must be a non-empty list.")
+
+    return prediction_algorithm(
+        classical_snapshots_rho=dict(enumerate(cs_basic["average_snapshots_rho_list"])),
+        given_operators=given_operators,
+        accuracy_prob_comp_delta=accuracy_prob_comp_delta,
+        max_shadow_norm=max_shadow_norm,
+        estimate_trace_method=estimate_trace_method,
+    )
+
+
+def estimation_of_given_operators(
     shots: int,
     counts: list[dict[str, int]],
     random_basis_array: list[list[Literal[0, 1, 2] | int]],
@@ -32,21 +74,15 @@ def classical_shadow_complex(
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
-    trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: tqdm.tqdm | None = None,
-) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity | None, EstimationOfObservable | None]:
-    r"""Calculate the expectation value of Rho and the purity by classical shadow.
+) -> tuple[ClassicalShadowBasic, EstimationOfObservable]:
+    r"""Calculate the expectation value of given operators.
 
     Reference:
         -   Predicting many properties of a quantum system from very few measurements -
             Huang, Hsin-Yuan and Kueng, Richard and Preskill, John
             `doi:10.1038/s41567-020-0932-7 <https://doi.org/10.1038/s41567-020-0932-7>`_
-
-        -   The randomized measurement toolbox -
-            Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
-            Richard and Preskill, John and Vermersch, Benoît and Zoller, Peter
-            `doi:10.1038/s42254-022-00535-2 <https://doi.org/10.1038/s42254-022-00535-2>`_
 
         .. code-block:: bibtex
 
@@ -85,48 +121,6 @@ def classical_shadow_complex(
                 volume = {16},
                 year = {2020},
                 bdsk-url-1 = {https://doi.org/10.1038/s41567-020-0932-7}
-            }
-
-            @article{cite-key,
-                abstract = {
-                    Programmable quantum simulators and quantum computers are opening unprecedented
-                    opportunities for exploring and exploiting the properties of highly entangled
-                    complex quantum systems. The complexity of large quantum systems is the source
-                    of computational power but also makes them difficult to control precisely or
-                    characterize accurately using measured classical data. We review protocols
-                    for probing the properties of complex many-qubit systems using measurement
-                    schemes that are practical using today's quantum platforms. In these protocols,
-                    a quantum state is repeatedly prepared and measured in a randomly chosen basis;
-                    then a classical computer processes the measurement outcomes to estimate the
-                    desired property. The randomization of the measurement procedure has distinct
-                    advantages. For example, a single data set can be used multiple times to pursue
-                    a variety of applications, and imperfections in the measurements are mapped to
-                    a simplified noise model that can more
-                    easily be mitigated. We discuss a range of
-                    cases that have already been realized in quantum devices, including Hamiltonian
-                    simulation tasks, probes of quantum chaos, measurements of non-local order
-                    parameters, and comparison of quantum states produced in distantly separated
-                    laboratories. By providing a workable method for translating a complex quantum
-                    state into a succinct classical representation that preserves a rich variety of
-                    relevant physical properties, the randomized measurement toolbox strengthens our
-                    ability to grasp and control the quantum world.},
-                author = {
-                    Elben, Andreas and Flammia, Steven T. and Huang, Hsin-Yuan and Kueng,
-                    Richard and Preskill, John and Vermersch, Beno{\^\i}t and Zoller, Peter},
-                date = {2023/01/01},
-                date-added = {2024-12-03 15:06:15 +0800},
-                date-modified = {2024-12-03 15:06:15 +0800},
-                doi = {10.1038/s42254-022-00535-2},
-                id = {Elben2023},
-                isbn = {2522-5820},
-                journal = {Nature Reviews Physics},
-                number = {1},
-                pages = {9--24},
-                title = {The randomized measurement toolbox},
-                url = {https://doi.org/10.1038/s42254-022-00535-2},
-                volume = {5},
-                year = {2023},
-                bdsk-url-1 = {https://doi.org/10.1038/s42254-022-00535-2}
             }
 
     Args:
@@ -186,35 +180,6 @@ def classical_shadow_complex(
             - `H_H-Sdg_I`:
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
-        trace_method (TraceMethodType, optional):
-            The method to calculate the trace of rho.
-
-            - Matrix operation methods:
-                For the matrix operation methods, it will require rho has been calculated first.
-                - "trace_of_matmul": Use `np.trace(np.matmul(rho_m1, rho_m2))`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_ij_ji": Use `np.einsum("ij,ji", rho_m1, rho_m2)`
-                    to calculate the each summation item in `rho_m_list`.
-                - "einsum_aij_bji_to_ab_numpy": Use
-                    `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax": Use
-                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is available.
-
-            - Non-matrix operation methods:
-                - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
-                - "nomatmul_trace_rust": Use Rust implementation via PyO3.
-
-            - Skip calculation of trace:
-                - "skip_trace": Skip the trace calculation and return NaN.
-
-            For the non-matrix operation methods, it will directly calculate the trace from
-            the counts and random basis.
-
-            Default to DEFAULT_TRACE_METHOD.
         estimate_trace_method (ListTraceMethodType, optional):
             The method to use for the calculation.
 
@@ -228,12 +193,11 @@ def classical_shadow_complex(
 
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 
-        pbar (FloatType | None, optional):
+        pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
 
     Returns:
-        A tuple of ClassicalShadowBasic, optional ClassicalShadowPurity, and
-        optional EstimationOfObservable.
+        The ClassicalShadowBasic and the estimation of the given operators.
     """
 
     cs_basic_obj = mean_rho(
@@ -245,30 +209,6 @@ def classical_shadow_complex(
         shadow_basis=shadow_basis,
         pbar=pbar,
     )
-    cs_trace_obj = inner_trace_rho_square(
-        shots=shots,
-        counts=counts,
-        random_basis_array=random_basis_array,
-        cs_basic=cs_basic_obj,
-        trace_method=trace_method,
-    )
-    if all(
-        [
-            cs_trace_obj["trace_method"] == "skip_trace",
-            cs_trace_obj["taking_time"] == 0.0,
-            np.isnan(cs_trace_obj["purity"]),
-            np.isnan(cs_trace_obj["entropy"]),
-        ]
-    ):
-        cs_trace_obj = None
-    if pbar is not None and cs_trace_obj is not None:
-        pbar.set_description(
-            f"| taking time of trace of rho^2: {cs_trace_obj['taking_time']:.4f} sec"
-        )
-
-    if given_operators is None or len(given_operators) == 0:
-        return cs_basic_obj, cs_trace_obj, None
-
     cs_estimation_obj = inner_estimation_of_given_operators(
         cs_basic=cs_basic_obj,
         given_operators=given_operators,
@@ -276,8 +216,10 @@ def classical_shadow_complex(
         max_shadow_norm=max_shadow_norm,
         estimate_trace_method=estimate_trace_method,
     )
+
     if pbar is not None:
         pbar.set_description(
             f"| taking time of estimation: {cs_estimation_obj['taking_time']:.4f} sec"
         )
-    return cs_basic_obj, cs_trace_obj, cs_estimation_obj
+
+    return cs_basic_obj, cs_estimation_obj

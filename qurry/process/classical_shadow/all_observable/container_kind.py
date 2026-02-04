@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow -  Classical Shadow - Container/Purity Value Kind
-(:mod:`qurry.process.classical_shadow.classical_shadow.container_kind`)
+"""Post Processing - Classical Shadow - All Observable Calculation - Container/Purity Value Kind
+(:mod:`qurry.process.classical_shadow.all_observable.container_kind`)
 """
 
 from typing import TypedDict, Literal
@@ -11,7 +11,7 @@ from ..trace_process import TraceMethod, TraceMethodType
 from ...utils import FloatType
 
 
-PurityValueKind = Literal["multi_shots", "single_shots", "bitwise"]
+PurityValueKind = Literal["multi_shots", "single_shots"]
 """The kind of purity value calculation.
 This will depend on the rho_method and trace_method.
 
@@ -38,8 +38,7 @@ This will depend on the rho_method and trace_method.
 
 - "single_shots":
     The *rho_method is one of the single_shots methods* **and** *trace_method is one of the
-    matrix operation methods*, or the *trace_method is one of the non-matrix operation methods
-    except "bitwise_py"*.
+    matrix operation methods*, or the *trace_method is one of the non-matrix operation methods*.
 
     .. code-block:: python
 
@@ -64,13 +63,6 @@ This will depend on the rho_method and trace_method.
                 ]
             )
         )
-
-- "bitwise":
-    The *trace_method is "bitwise_py"* no matter what the rho_method is.
-
-    .. code-block:: python
-
-        (trace_method in ["bitwise_py"])
 """
 
 
