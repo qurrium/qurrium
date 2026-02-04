@@ -23,6 +23,7 @@ from ...qurrium import (
 )
 from ...process.utils import QubitSelectionType, FloatType
 from ...process.classical_shadow import (
+    set_jax_enable_x64,
     check_jax_enabled_x64,
     ShadowBasisType,
     RhoMethodType,
@@ -140,6 +141,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
     def __post_init__(self):
         """Initialize the class."""
+        set_jax_enable_x64()
         check_jax_enabled_x64()
 
     @property
