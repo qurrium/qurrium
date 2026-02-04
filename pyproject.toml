@@ -1,5 +1,5 @@
 [build-system]
-requires = ["pytest", "cython", "setuptools", "setuptools-rust", "wheel"]
+requires = ["pytest", "setuptools", "setuptools-rust", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # If you find some configurations are similar to what qiskit does,
@@ -33,17 +33,24 @@ Issues = "https://github.com/qurrium/qurrium/issues"
 Homepage = "https://github.com/qurrium/qurrium"
 Documentation = "https://docs.qurrium.org"
 
-[tool.setuptools.packages.find]
-include = ['qurry*']
-exclude = ['cmake', 'symengine', 'tests']
+[tool.distutils.bdist_wheel]
+py-limited-api = "cp310"
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ['qurry*']
+exclude = ['cmake', 'symengine', 'tests']
 
 [tool.setuptools.dynamic]
 version = { file = "qurry/VERSION.txt" }
 readme = { file = "README.md", content-type = "text/markdown" }
 dependencies = { file = "requirements.txt" }
+
+[[tool.setuptools-rust.ext-modules]]
+target = 'qurry.boorust'
+path = 'crates/boorust/Cargo.toml'
 
 # cibuildwheel configuration for qurry
 [tool.cibuildwheel]
