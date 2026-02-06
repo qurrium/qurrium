@@ -28,22 +28,32 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
         return [method.value for method in cls]
 
     @classmethod
-    def unknown_method_error_msg(cls: type[T]) -> str:
+    def unknown_method_error_msg(cls: type[T], method_str: str | None = None) -> str:
         """Generate a ValueError for an unknown method.
+
+        Args:
+            method_str (str | None): The unknown method string. Default is None.
 
         Returns:
             str: The error message.
         """
-        return f"Unknown method. Supported methods are: {', '.join(cls.get_all_methods())}"
+        return (
+            "Unknown method"
+            + (f": '{method_str}'" if method_str is not None else "")
+            + f". Supported methods are: {', '.join(cls.get_all_methods())}"
+        )
 
     @classmethod
-    def value_error(cls) -> ValueError:
+    def value_error(cls, method_str: str | None = None) -> ValueError:
         """Generate a ValueError for an unknown method.
+
+        Args:
+            method_str (str | None): The unknown method string. Default is None.
 
         Returns:
             ValueError: The ValueError with the error message.
         """
-        return ValueError(cls.unknown_method_error_msg())
+        return ValueError(cls.unknown_method_error_msg(method_str))
 
     @classmethod
     def from_string(cls: type[T], method_str: str) -> T:
@@ -62,7 +72,7 @@ class BaseMethodEnum(Enum, metaclass=EnumABCMeta):
         for method in cls:
             if method.value == method_str:
                 return method
-        raise cls.value_error()
+        raise cls.value_error(method_str)
 
     @classmethod
     @abstractmethod
