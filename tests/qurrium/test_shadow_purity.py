@@ -15,7 +15,6 @@ from qurry.qurries.classical_shadow import ShadowUnveil, SUMeasureArgs
 from qurry.qurries.classical_shadow.analysis import SUAnalyzeArgs, SUAnalysis
 from qurry.process.classical_shadow import (
     JAX_AVAILABLE,
-    set_cpu_only,
     RhoMethod,
     TraceMethod,
     verify_purity_value_kind,
@@ -207,8 +206,6 @@ def test_measure_and_analyze(
         case_entries (CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]): The test case item.
     """
 
-    set_cpu_only()
-
     exp_method = ShadowUnveil()
     exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
     checker_list: list[AnalysisResultChecker] = []
@@ -266,8 +263,6 @@ def test_measure_and_analyze(
 
 def test_multi_output_all() -> None:
     """Test the multi-output experiment for all cases."""
-
-    set_cpu_only()
 
     exp_method = ShadowUnveil()
 
