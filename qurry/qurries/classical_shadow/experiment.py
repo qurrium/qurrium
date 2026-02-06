@@ -122,8 +122,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
             ValueError: If the range of measure is not in the range of unitary_loc.
 
         Returns:
-            tuple[EntropyMeasureRandomizedArguments, Commonparams, dict[str, Any]]:
-                The arguments of the experiment, the common parameters, and the custom parameters.
+            The arguments of the experiment, the common parameters, and the custom parameters.
         """
         if len(targets) > 1:
             raise ValueError("The number of target circuits should be only one.")
@@ -191,7 +190,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]):
                 The circuits of the experiment.
-            arguments (EntropyMeasureRandomizedArguments):
+            arguments (SUArguments):
                 The arguments of the experiment.
             pbar (tqdm.tqdm | None, optional):
                 The progress bar for showing the progress of the experiment.
