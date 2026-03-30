@@ -539,7 +539,6 @@ class MultiManager(Generic[_E]):
         # beforewards
         beforewards_index = self.beforewards.write(
             save_location=self.multicommons.export_location,
-            summoner_name=self.multicommons.summoner_name,
         )
         self.multicommons.files.update(beforewards_index)
         for file in STANDARD_FILE_INDEX.values():
@@ -548,8 +547,7 @@ class MultiManager(Generic[_E]):
         # quantities
         if not skip_quantities:
             quantities_index = self.quantity_info.write(
-                save_location=self.multicommons.export_location,
-                summoner_name=self.multicommons.summoner_name,
+                save_location=self.multicommons.export_location
             )
             self.multicommons.files.update(quantities_index)
             self.gitignore.sync("multiquantity.json")

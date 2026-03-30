@@ -87,7 +87,7 @@ def get_counts_and_exceptions(
         except QiskitError as err_1:
             exceptions[f"{result.job_id}"] = err_1
             logger.warning(
-                f"| Failed Job result, replace with null counts, Job ID: {result.job_id}, {err_1}"
+                "| Failed Job result, replace with null counts, Job ID: %s %s", result.job_id, err_1
             )
             counts.append({})
         return counts, exceptions
@@ -102,7 +102,7 @@ def get_counts_and_exceptions(
         except QiskitError as err_2:
             exceptions[f"{result.job_id}.{i}"] = err_2
             logger.warning(
-                f"| Failed Job result skip, Job ID/which counts: {result.job_id}/{i}, {err_2}"
+                "| Failed Job result skip, Job ID/which counts: %s/%s, %s", result.job_id, i, err_2
             )
             tmp_single_counts = {}
         counts.append(tmp_single_counts)
@@ -222,7 +222,7 @@ def extract_measured_counts(
     """Extract the measured counts from the counts mixed with other classical registers,
     given the classical registers selected mapping, and other information.
 
-    This function focuses on extracting the measured counts 
+    This function focuses on extracting the measured counts
     from `traditional` counts data structure,
     coming from Qiskit Result object :class:`~qiskit.result.result.Result`.
     which a bitstring mixed with multiple classical registers clusters like:
@@ -377,8 +377,9 @@ def get_counts_and_exceptions_primitive(
                     + f"are missing in the result at index {i}."
                 )
                 logger.warning(
-                    "| Missing required classical registers, "
-                    + f"index: {i}, missing: {missing_clregs}",
+                    "| Missing required classical registers, index: %s, missing: %s",
+                    i,
+                    missing_clregs,
                 )
         primitive_counts.append(tmp_all_single_counts)
 

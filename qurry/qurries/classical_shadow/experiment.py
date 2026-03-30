@@ -4,7 +4,6 @@ from typing import Any
 from pathlib import Path
 from collections.abc import Iterable
 import tqdm
-import numpy as np
 import numpy.typing as npt
 
 from qiskit import QuantumCircuit

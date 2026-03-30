@@ -51,10 +51,10 @@ def erabc_export(
     return wrapper
 
 
-_ERABC_ingest = TypeVar("_ERABC_ingest", bound=Callable)
+_ERABCIngest = TypeVar("_ERABCIngest", bound=Callable)
 
 
-def erabc_ingest(func: _ERABC_ingest) -> _ERABC_ingest:
+def erabc_ingest(func: _ERABCIngest) -> _ERABCIngest:
     """The decorator for ingest method of :class:`AnalysisERABC` to check class name.
 
     Args:

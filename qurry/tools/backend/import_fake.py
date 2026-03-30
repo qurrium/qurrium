@@ -6,7 +6,7 @@ Avoiding the import error occurs on different parts of Qurrium.
 
 """
 
-from typing import Literal, overload
+from typing import Literal
 import warnings
 
 from qiskit.providers import BackendV2, Backend

@@ -60,7 +60,8 @@ def workers_distribution(workers_num: int | None = None, default: int = DEFAULT_
             category=WrongWorkerNumReplaced,
         )
         return default
-    elif workers_num < 1:
+
+    if workers_num < 1:
         warnings.warn(
             f"| Worker number {workers_num} is smaller than 1. Use single worker.",
             category=WrongWorkerNumReplaced,
@@ -103,8 +104,8 @@ def make_multiprocess_pool(
     )
 
 
-T_map = TypeVar("T_map")
-T_tgt = TypeVar("T_tgt")
+Tmap = TypeVar("Tmap")
+Ttgt = TypeVar("Ttgt")
 
 
 class ParallelManager:
@@ -144,7 +145,7 @@ class ParallelManager:
             "maxtasksperchild": maxtasksperchild,
         }
 
-    def starmap(self, func: Callable[..., T_map], args_list: Iterable) -> list[T_map]:
+    def starmap(self, func: Callable[..., Tmap], args_list: Iterable) -> list[Tmap]:
         """This function is a wrapper for starmap from multiprocessing.
 
         Args:
@@ -175,7 +176,7 @@ class ParallelManager:
                 "And refer to the above error message for more details."
             ) from e
 
-    def map(self, func: Callable[[T_tgt], T_map], arg_list: Iterable[T_tgt]) -> list[T_map]:
+    def map(self, func: Callable[[Ttgt], Tmap], arg_list: Iterable[Ttgt]) -> list[Tmap]:
         """This function is a wrapper for map from multiprocessing.
 
         Args:

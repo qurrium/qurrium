@@ -78,12 +78,11 @@ class Before:
             "job_group": jsonablize(self.job_group),
         }
 
-    def write(self, save_location: Path, summoner_name: str) -> dict[str, str]:
+    def write(self, save_location: Path) -> dict[str, str]:
         """Write the beforewards data to files.
 
         Args:
             save_location (Path): The location of MultiManager.
-            summoner_name (str): The name of MultiManager.
 
         Returns:
             dict[str, str]: The index of saved files.

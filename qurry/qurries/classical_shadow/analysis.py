@@ -721,17 +721,17 @@ class SUEstimationResult(AnalysisResultsPrototype):
         )
 
 
-_K_Inst = TypeVar("_K_Inst", bound=str)
+_KInst = TypeVar("_KInst", bound=str)
 """The key type variable for SUResultsType and SUResults."""
-_V_Inst = TypeVar("_V_Inst", bound=AnalysisResultsPrototype)
+_VInst = TypeVar("_VInst", bound=AnalysisResultsPrototype)
 """The value type variable for SUResultsType and SUResults."""
 
 
 class SUResultsType(
-    Generic[_K_Inst, _V_Inst],
+    Generic[_KInst, _VInst],
     dict[
-        Literal["basic", "purity", "estimation"] | _K_Inst | str,
-        type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_V_Inst],
+        Literal["basic", "purity", "estimation"] | _KInst | str,
+        type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_VInst],
     ],
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -743,21 +743,21 @@ class SUResultsType(
     @overload
     def __getitem__(self, key: Literal["estimation"]) -> type[SUEstimationResult]: ...
     @overload
-    def __getitem__(self, key: _K_Inst) -> type[_V_Inst]: ...
+    def __getitem__(self, key: _KInst) -> type[_VInst]: ...
     @overload
     def __getitem__(
         self, key: str
-    ) -> type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_V_Inst]: ...
+    ) -> type[SUBasicResult] | type[SUPurityResult] | type[SUEstimationResult] | type[_VInst]: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
 
 
 class SUResults(
-    Generic[_K_Inst, _V_Inst],
+    Generic[_KInst, _VInst],
     dict[
-        Literal["basic", "purity", "estimation"] | _K_Inst | str,
-        SUBasicResult | SUPurityResult | SUEstimationResult | _V_Inst,
+        Literal["basic", "purity", "estimation"] | _KInst | str,
+        SUBasicResult | SUPurityResult | SUEstimationResult | _VInst,
     ],
 ):
     """The results of :class:`~qurry.qurries.classical_shadow.analysis.SUAnalysis`."""
@@ -769,25 +769,25 @@ class SUResults(
     @overload
     def __getitem__(self, key: Literal["estimation"]) -> SUEstimationResult: ...
     @overload
-    def __getitem__(self, key: _K_Inst) -> _V_Inst: ...
+    def __getitem__(self, key: _KInst) -> _VInst: ...
     @overload
     def __getitem__(
         self, key: str
-    ) -> SUBasicResult | SUPurityResult | SUEstimationResult | _V_Inst: ...
+    ) -> SUBasicResult | SUPurityResult | SUEstimationResult | _VInst: ...
 
     def __getitem__(self, key):
         return super().__getitem__(key)
 
 
 class SUAnalysis(
-    Generic[_K_Inst, _V_Inst],
+    Generic[_KInst, _VInst],
     AnalysisPrototype[
         SUArguments,
         SUAnalyzeArgs,
         SUMiddleware,
         SUProcessEntries,
-        SUResultsType[_K_Inst, _V_Inst],
-        SUResults[_K_Inst, _V_Inst],
+        SUResultsType[_KInst, _VInst],
+        SUResults[_KInst, _VInst],
     ],
 ):
     """The container for the analysis of
@@ -795,7 +795,7 @@ class SUAnalysis(
 
     __name__ = "SUAnalysis"
 
-    results: SUResults[_K_Inst, _V_Inst]
+    results: SUResults[_KInst, _VInst]
     """The results of the analysis."""
 
     @classmethod
@@ -814,7 +814,7 @@ class SUAnalysis(
         return SUProcessEntries
 
     @classmethod
-    def available_results_types(cls) -> SUResultsType[_K_Inst, _V_Inst]:
+    def available_results_types(cls) -> SUResultsType[_KInst, _VInst]:
         """The available result types for this analysis."""
         return SUResultsType(
             {
@@ -1115,7 +1115,7 @@ class SUAnalysis(
             estimate_trace_method=postprocess_entries.estimate_trace_method,
         )
 
-        results = SUResults[_K_Inst, _V_Inst]({"basic": SUBasicResult(**cs_basic_obj)})
+        results = SUResults[_KInst, _VInst]({"basic": SUBasicResult(**cs_basic_obj)})
         if cs_trace_obj is not None:
             results["purity"] = SUPurityResult(**cs_trace_obj)
         if cs_estimation_obj is not None:

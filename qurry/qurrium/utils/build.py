@@ -35,12 +35,11 @@ def is_cregs_name_collision(
     """
     if isinstance(new_creg_or_name, ClassicalRegister):
         return circuit.has_register(new_creg_or_name)
-    elif isinstance(new_creg_or_name, str):
+    if isinstance(new_creg_or_name, str):
         return new_creg_or_name in [reg.name for reg in circuit.cregs]
-    else:
-        raise TypeError(
-            "The argument new_creg_or_name should be either a ClassicalRegister or a string."
-        )
+    raise TypeError(
+        "The argument new_creg_or_name should be either a ClassicalRegister or a string."
+    )
 
 
 def check_cregs_name_collision(

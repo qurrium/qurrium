@@ -93,12 +93,11 @@ class MutltiQuantityInfo(CustomDict[str, dict[tuple[str, ...], list[tuple[str, i
         """
         return jsonablize(self)
 
-    def write(self, save_location: Path, summoner_name: str) -> dict[str, str]:
+    def write(self, save_location: Path) -> dict[str, str]:
         """Write the beforewards data to files.
 
         Args:
             save_location (Path): The location of MultiManager.
-            summoner_name (str): The name of MultiManager.
 
         Returns:
             dict[str, str]: The index of saved files.
