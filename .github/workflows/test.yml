@@ -50,6 +50,11 @@ jobs:
           echo "| Version: ${{ steps.check_version.outputs.VERSION }} in action"
           echo "| Tag exists: ${{ steps.check_version.outputs.exists }}"
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable # or specify '1.80' for minimum version
+
       - name: Install dependencies
         run: |
           python -m pip install -r requirements.txt
