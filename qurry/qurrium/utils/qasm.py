@@ -1,34 +1,30 @@
 """OpenQASM Processor (:mod:`qurry.qurrium.utils.qasm`)"""
 
-from typing import Literal, Optional
+from typing import Literal
 import warnings
 
 from qiskit import QuantumCircuit, __version__ as qiskit_version
 from qiskit.qasm3 import dumps as dumps_qasm3, QASM3Error, loads as loads_qasm3
 from qiskit.qasm2 import dumps as dumps_qasm2, QASM2Error, loads as loads_qasm2
 
-from ...exceptions import OpenQASMProcessingWarning, OpenQASM3Issue13362Warning
-
-MSG_OPENQASM3_ISSUE_13362 = """
-You will need to upgrade your Qiskit 
-version to 1.3.2 for fixing this issue.
-The issues report: https://github.com/Qiskit/qiskit/issues/13362, 
-Pull Requests merged: 
-1. https://github.com/Qiskit/qiskit/pull/13633, 
-2. https://github.com/Qiskit/qiskit/pull/13663
-"""
+from ..exceptions import (
+    OpenQASMProcessingWarning,
+    OpenQASM3Issue13362Warning,
+    MSG_OPENQASM3_ISSUE_13362,
+)
 
 
-def qasm_dumps(
-    qc: QuantumCircuit,
-    qasm_version: Literal["qasm2", "qasm3"] = "qasm3",
-) -> str:
+AvailableQASMVersions = Literal["qasm2", "qasm3"]
+"""The available OpenQASM versions."""
+
+
+def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3") -> str:
     """Draw the circuits in OpenQASM string.
 
     Args:
         qc (QuantumCircuit):
             The circuit wanted to be drawn.
-        qasm_version (Literal["qasm2", "qasm3"], optional):
+        qasm_version (AvailableQASMVersions, optional):
             The export version of OpenQASM. Defaults to 'qasm3'.
 
     Raises:
@@ -95,7 +91,7 @@ def qasm_dumps(
     return txt
 
 
-def qasm_version_detect(qasm_str: str) -> Literal["qasm2", "qasm3"]:
+def qasm_version_detect(qasm_str: str) -> AvailableQASMVersions:
     """Detect the OpenQASM version from the string.
 
     Args:
@@ -120,15 +116,14 @@ def qasm_version_detect(qasm_str: str) -> Literal["qasm2", "qasm3"]:
 
 
 def qasm_loads(
-    qasm_str: str,
-    qasm_version: Optional[Literal["qasm2", "qasm3"]] = None,
-) -> Optional[QuantumCircuit]:
+    qasm_str: str, qasm_version: AvailableQASMVersions | None = None
+) -> QuantumCircuit | None:
     """Load the circuits from OpenQASM string.
 
     Args:
         qasm_str (str):
             The OpenQASM string wanted to be loaded.
-        qasm_version (Literal["qasm2", "qasm3"], optional):
+        qasm_version (AvailableQASMVersions | None, optional):
             The export version of OpenQASM. Defaults to 'qasm3'.
 
     Raises:
@@ -146,11 +141,10 @@ def qasm_loads(
         except QASM2Error as err:
             print(f"| Skip loads from OpenQASM2, due to QASM2Error: {err}")
             return None
-    elif qasm_version == "qasm3":
+    if qasm_version == "qasm3":
         try:
             return loads_qasm3(qasm_str)
         except QASM3Error as err:
             print(f"| Skip loads from OpenQASM3, due to QASM3Error: {err}")
             return None
-    else:
-        raise ValueError(f"Invalid qasm version: {qasm_version}")
+    raise ValueError(f"Invalid qasm version: {qasm_version}")

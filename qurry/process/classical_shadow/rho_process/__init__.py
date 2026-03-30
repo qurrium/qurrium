@@ -5,9 +5,17 @@
 
 from .rho_m_core import (
     BACKEND_AVAILABLE as classical_shadow_rho_process_availability,
-    rho_m_core,
+    rho_core,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
+    mean_rho_core,
 )
-from .rho_m_cell import RhoMCellMethod
+from .unitary_set import (
+    BASIS_ALLOW_GATES,
+    ShadowRandomBasisData,
+    ShadowRandomBasis,
+    ShadowBasisMethod,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
+)

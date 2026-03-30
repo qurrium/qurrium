@@ -1,6 +1,7 @@
 """Backend Wrapper (:mod:`qurry.tools.backend.backend_manager`)"""
 
-from typing import Union, Literal, Callable, Optional
+from typing import Literal
+from collections.abc import Callable
 from random import random
 import warnings
 
@@ -8,22 +9,15 @@ from qiskit.providers import Backend
 
 from .import_simulator import SIM_DEFAULT_SOURCE as sim_default_source, GeneralSimulator
 from .import_fake import FAKE_BACKENDV2_SOURCES as fake_default_source, fack_backend_loader
-
+from ..exceptions import QurryDeprecatedWarning
 from ...capsule.hoshi import Hoshi
-from ...exceptions import QurryDeprecatedWarning
 
 
-BackendDict = dict[
-    Union[Literal["real", "sim", "fake", "extra"], str],
-    dict[str, Backend],
-]
+BackendDict = dict[Literal["real", "sim", "fake", "extra"] | str, dict[str, Backend]]
 """The dictionary of backends."""
 
 
-BackendCallSignDict = dict[
-    Union[Literal["real", "sim", "fake", "extra"], str],
-    dict[str, str],
-]
+BackendCallSignDict = dict[Literal["real", "sim", "fake", "extra"] | str, dict[str, str]]
 """The dictionary of backend callsign."""
 
 
@@ -126,7 +120,6 @@ class BackendWrapper:
     def __init__(
         self,
     ) -> None:
-
         self.is_aer_gpu = False
         backend_fake_callsign, backend_fake = fack_backend_loader()
 
@@ -153,7 +146,8 @@ class BackendWrapper:
 
         if hasattr(self.backend_dict["sim"]["sim"], "available_devices"):
             assert isinstance(
-                self.backend_dict["sim"]["sim"].available_devices, Callable  # type: ignore
+                self.backend_dict["sim"]["sim"].available_devices,  # type: ignore
+                Callable,
             ), "The available_devices should be a callable."
 
             self.is_aer_gpu = (
@@ -273,18 +267,13 @@ class BackendWrapper:
 
         return check_msg
 
-    def add_backend(
-        self,
-        name: str,
-        backend: Backend,
-        callsign: Optional[str] = None,
-    ) -> None:
+    def add_backend(self, name: str, backend: Backend, callsign: str | None = None) -> None:
         """Add a backend to backend wrapper.
 
         Args:
             name (str): The name of backend.
             backend (Backend): The backend.
-            callsign (Optional[str], optional): The callsign of backend. Defaults to None.
+            callsign (str | None, optional): The callsign of backend. Defaults to None.
         """
 
         if not isinstance(backend, Backend):

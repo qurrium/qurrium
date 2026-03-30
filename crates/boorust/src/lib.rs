@@ -3,28 +3,26 @@ mod counts_process;
 mod hadamard;
 mod magnet_square;
 mod randomized;
-mod string_operator;
 mod shadow;
+mod string_operator;
 mod tool;
 
 use pyo3::prelude::*;
 
-use crate::bit_slice::{
-    cycling_slice_rust, degree_handler_rust, qubit_selector_rust, test_bit_slice,
-};
+use crate::bit_slice::{cycling_slice_rust, degree_handler_rust, qubit_selector_rust};
 use crate::counts_process::{
     counts_list_recount_rust, counts_list_vectorize_rust, rho_m_flatten_counts_list_vectorize_rust,
     shot_counts_selected_clreg_checker, single_counts_recount_rust,
 };
 use crate::hadamard::purity_echo_core_rust;
-use crate::magnet_square::{magnetic_square_core_rust, z_dir_magnetic_square_core_rust};
+use crate::magnet_square::{magnet_square_core_rust, z_dir_magnet_square_core_rust};
 use crate::randomized::echo::v1::overlap_echo_core_rust;
 use crate::randomized::echo::v2::overlap_echo_core_2_rust;
 use crate::randomized::entropy::v1::entangled_entropy_core_rust;
 use crate::randomized::entropy::v2::entangled_entropy_core_2_rust;
 use crate::randomized::randomized::{ensemble_cell_rust, hamming_distance_rust};
-use crate::string_operator::string_operator_core_rust;
 use crate::shadow::nomatmul_trace::nomatmul_trace_sum_rust;
+use crate::string_operator::string_operator_core_rust;
 use crate::tool::{make_dummy_case_32, make_two_bit_str_32, make_two_bit_str_unlimit};
 
 #[pymodule]
@@ -75,9 +73,9 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     hadamard.add_function(wrap_pyfunction!(purity_echo_core_rust, &hadamard)?)?;
 
     let magnet_square = PyModule::new(parent_module.py(), "magnet_square")?;
-    magnet_square.add_function(wrap_pyfunction!(magnetic_square_core_rust, &magnet_square)?)?;
+    magnet_square.add_function(wrap_pyfunction!(magnet_square_core_rust, &magnet_square)?)?;
     magnet_square.add_function(wrap_pyfunction!(
-        z_dir_magnetic_square_core_rust,
+        z_dir_magnet_square_core_rust,
         &magnet_square
     )?)?;
 
@@ -96,7 +94,7 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     dummy.add_function(wrap_pyfunction!(make_two_bit_str_unlimit, &dummy)?)?;
 
     let test = PyModule::new(parent_module.py(), "test")?;
-    test.add_function(wrap_pyfunction!(test_bit_slice, &test)?)?;
+    // Null module for now, can add test functions later if needed
 
     parent_module.add_submodule(&randomized)?;
     parent_module.add_submodule(&counts_process)?;

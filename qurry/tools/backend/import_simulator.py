@@ -12,7 +12,7 @@ which are used in different qiskit, qiskit-aer version,
 and ordered by priority.
 """
 
-from typing import Literal, Type, Optional, Any
+from typing import Literal, Any
 from qiskit.providers import BackendV2, Backend
 
 from ..qiskit_version import QISKIT_VERSION
@@ -26,16 +26,16 @@ ImportPointType = Literal[
     "qiskit.providers.basicaer",
     "qiskit.providers.basic_provider",
 ]
-ImportPointOrder = [
+IMPORT_POINT_ORDER = [
     "qiskit_aer",
     "qiskit.providers.basic_provider",
     "qiskit.providers.basicaer",
     "qiskit.providers.aer",
 ]
-SIMULATOR_SOURCES: dict[ImportPointType, Type[Backend]] = {}
-SIM_BACKEND_SOURCES: dict[ImportPointType, Type[Backend]] = {}
-SIM_PROVIDER_SOURCES: dict[ImportPointType, Type[Any]] = {}
-SIM_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
+SIMULATOR_SOURCES: dict[ImportPointType, type[Backend]] = {}
+SIM_BACKEND_SOURCES: dict[ImportPointType, type[Backend]] = {}
+SIM_PROVIDER_SOURCES: dict[ImportPointType, type[Any]] = {}
+SIM_VERSION_INFOS: dict[ImportPointType, str | None] = {}
 SIM_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 
 try:
@@ -102,7 +102,7 @@ def get_default_sim_source() -> ImportPointType:
         ImportError: If no available simulator source is found.
     """
 
-    for source in ImportPointOrder:
+    for source in IMPORT_POINT_ORDER:
         if source in SIMULATOR_SOURCES:
             return source
     raise ImportError("No available simulator source, please check the installation of qiskit.")

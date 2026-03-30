@@ -91,33 +91,54 @@ Reference:
 
 """
 
-from .utils import generate_random_basis, check_random_basis, check_random_basis_array, spreadout
+from .utils import (
+    generate_random_basis,
+    generate_all_possible_basis_array,
+    make_evenly_basis_array,
+    make_evenly_basis,
+    check_random_basis,
+    check_random_basis_array,
+    spreadout,
+    convert_to_basis_spin,
+    measurements_export,
+    measurements_read,
+)
+from .matrix_calculation import (
+    set_jax_enable_x64,
+    check_jax_enabled_x64,
+    JAX_AVAILABLE,
+    BACKEND_AVAILABLE as classical_shadow_matrix_availability,
+    ListTraceMethod,
+    ListTraceMethodType,
+    DEFAULT_LIST_TRACE_METHOD,
+)
 from .rho_process import (
     classical_shadow_rho_process_availability,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
+    BASIS_ALLOW_GATES,
+    ShadowRandomBasisData,
+    ShadowRandomBasis,
+    ShadowBasisMethod,
+    ShadowBasisType,
+    DEFAULT_SHADOW_BASIS,
 )
-from .trace_predict_process import (
-    set_cpu_only,
-    JAX_AVAILABLE,
-    classical_shadow_matrix_availability,
-    ListTraceMethod,
-    ListTraceMethodType,
-    DEFAULT_LIST_TRACE_METHOD,
+from .prediction_process import (
+    worst_accuracy_predict_epsilon_calc,
+    decide_num_of_estimators,
+    prediction_algorithm,
+    EstimationOfObservable,
 )
-from .all_trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
-from .classical_shadow import (
-    mean_of_rho,
+from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD
+from .all_observable import (
+    mean_rho,
     trace_rho_square,
     estimation_of_given_operators,
     classical_shadow_complex,
     ClassicalShadowBasic,
-    ClassicalShadowMeanRho,
-    ClassicalShadowEstimation,
     ClassicalShadowPurity,
-    ClassicalShadowComplex,
     PurityValueKind,
-    purity_value_kind,
+    verify_purity_value_kind,
     default_method_on_value_kind,
 )

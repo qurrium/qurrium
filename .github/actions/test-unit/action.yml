@@ -34,6 +34,22 @@ runs:
         fi
       shell: bash
 
+    - name: Install Rust toolchain
+      shell: bash
+      run: |
+        rustup self update
+        echo "| Installing rustup"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+        source "$HOME/.cargo/env"
+        echo "| Installing Rust toolchain from rust-toolchain.toml"
+        rustup show
+        
+        rustup component add cargo --toolchain 1.85
+        rustup default 1.85  # Just to be sure
+        # --------------------------------------------------------------------------
+        # Playing: BIRDBRAIN (w/ OK Glass) feat. Kasane Teto
+        # So, Fxxk (To fix this.)
+
     - name: Install dependencies
       shell: bash
       run: |
@@ -69,7 +85,7 @@ runs:
           exit 1
         fi
 
-    - name: Prepare setup.py
+    - name: Install Qurrium
       shell: bash
       run: |
         echo "| Preparing setup.py ................................................."

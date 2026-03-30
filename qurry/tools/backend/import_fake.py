@@ -6,29 +6,29 @@ Avoiding the import error occurs on different parts of Qurrium.
 
 """
 
-from typing import Literal, Type, Union, Optional, overload
+from typing import Literal
 import warnings
 
 from qiskit.providers import BackendV2, Backend
 
 from .utils import backend_name_getter, shorten_name
-from ...exceptions import QurryDependenciesNotWorking, QurryDependenciesFailureError
+from ..exceptions import OptionalDependenciesNotWorking, RequiredDependenciesFailureError
 
 # pylint: disable=ungrouped-imports
 ImportPointType = Literal[
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
-ImportPointOrder: list[ImportPointType] = [
+IMPORT_POINT_ORDER: list[ImportPointType] = [
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
-FAKE_BACKENDV2_SOURCES: dict[ImportPointType, Optional[Type[BackendV2]]] = {}
+FAKE_BACKENDV2_SOURCES: dict[ImportPointType, type[BackendV2] | None] = {}
 FAKE_PROVIDERFORV2_SOURCES: dict[
     ImportPointType,
-    Optional[Union[Type["FakeProviderForBackendV2Dep"], Type["FakeProviderForBackendV2Indep"]]],
+    type["FakeProviderForBackendV2Dep"] | type["FakeProviderForBackendV2Indep"] | None,
 ] = {}
-FAKE_VERSION_INFOS: dict[ImportPointType, Optional[str]] = {}
+FAKE_VERSION_INFOS: dict[ImportPointType, str | None] = {}
 FAKE_IMPORT_ERROR_INFOS: dict[ImportPointType, ImportError] = {}
 
 QISKIT_IBM_RUNTIME_ISSUE_1318 = (
@@ -52,7 +52,7 @@ try:
     if major == "18" and minor == "0":
         warnings.warn(
             QISKIT_IBM_RUNTIME_ISSUE_1318,
-            category=QurryDependenciesNotWorking,
+            category=OptionalDependenciesNotWorking,
         )
 
     from qiskit_ibm_runtime.fake_provider import (  # type: ignore
@@ -85,19 +85,19 @@ if len(FAKE_BACKENDV2_SOURCES) == 0:
         FAKE_IMPORT_ERROR_INFOS["qiskit.providers.fake_provider"] = err
 
 
-def get_default_fake_provider() -> Optional[ImportPointType]:
+def get_default_fake_provider() -> ImportPointType | None:
     """Get the default fake provider.
 
     Returns:
         ImportPointType: The default fake provider.
     """
-    for source in ImportPointOrder:
+    for source in IMPORT_POINT_ORDER:
         if source in FAKE_PROVIDERFORV2_SOURCES:
             return source
     return None
 
 
-FAKE_DEFAULT_SOURCE: Optional[ImportPointType] = get_default_fake_provider()
+FAKE_DEFAULT_SOURCE: ImportPointType | None = get_default_fake_provider()
 
 
 LUCKY_MSG = """
@@ -116,21 +116,11 @@ for the migration of fake_provider is not completed around this version.
 Many of the fake backends are not available in qiskit-ibm-runtime. 
 (This made me a lot problem to handle the fake backends in Qurry.) 
 (If you see this error raised, good luck to you to fix environment. :smile:.) 
-""".replace(
-    "\n", " "
-).strip()
+""".replace("\n", " ").strip()
 """A warning message for the fake backend not available. """
 
 
-@overload
-def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
-
-
-@overload
-def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]: ...
-
-
-def fack_backend_loader():
+def fack_backend_loader() -> tuple[dict[str, str], dict[str, Backend]]:
     """Load the fake backend.
 
     Args:
@@ -145,17 +135,17 @@ def fack_backend_loader():
     """
 
     if FAKE_DEFAULT_SOURCE is None:
-        warnings.warn(LUCKY_MSG, category=QurryDependenciesNotWorking)
+        warnings.warn(LUCKY_MSG, category=OptionalDependenciesNotWorking)
         return {}, {}
 
     _fake_provider_v2_becalled = FAKE_PROVIDERFORV2_SOURCES.get(FAKE_DEFAULT_SOURCE, None)
 
     if _fake_provider_v2_becalled is None:
-        raise QurryDependenciesFailureError(LUCKY_MSG)
+        raise RequiredDependenciesFailureError(LUCKY_MSG)
     try:
         _fake_provider = _fake_provider_v2_becalled()
     except FileNotFoundError as err1318:
-        raise QurryDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
+        raise RequiredDependenciesFailureError(QISKIT_IBM_RUNTIME_ISSUE_1318) from err1318
 
     backend_fake: dict[str, Backend] = {
         backend_name_getter(b): b for b in _fake_provider.backends()

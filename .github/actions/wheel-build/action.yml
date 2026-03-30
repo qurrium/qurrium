@@ -80,10 +80,8 @@ runs:
       run: |
         if [[ "${{ inputs.release }}" == "stable" ]]; then
           python ./tools/set_version.py --release stable
-          python ./tools/set_pyproject_qurry.py --release stable
         elif [[ "${{ inputs.release }}" == "nightly" ]]; then
           python ./tools/set_version.py --release nightly
-          python ./tools/set_pyproject_qurry.py --release nightly
         else
           echo "| Invalid release type specified: ${{ inputs.release }}"
           exit 1

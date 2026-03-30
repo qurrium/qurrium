@@ -4,9 +4,8 @@ import os
 import warnings
 import platform
 import subprocess
-from typing import Optional
 
-from ..exceptions import QurryImportWarning
+from .exceptions import OptionalDependenciesNotWorking
 
 
 def cmd_wrapper(cmd: str = "") -> None:
@@ -27,7 +26,7 @@ def cmd_wrapper(cmd: str = "") -> None:
         os.system(cmd)
 
 
-def pytorch_cuda_check() -> Optional[bool]:
+def pytorch_cuda_check() -> bool | None:
     """Via pytorch to check the availability of Nvidia CUDA.
 
     Returns:
@@ -54,7 +53,7 @@ def pytorch_cuda_check() -> Optional[bool]:
         warnings.warn(
             "Torch CUDA checking method requires pytorch"
             + " which has been installed in this enviornment.",
-            category=QurryImportWarning,
+            category=OptionalDependenciesNotWorking,
         )
         return None
 

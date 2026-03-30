@@ -12,30 +12,16 @@ Avoiding the import error occurs on different parts of Qurrium.
 
 """
 
-from typing import Union, Callable, Optional
+from collections.abc import Callable
 
 from qiskit.providers import BackendV2, Backend
 
 
-backendName: Callable[[Union[BackendV2, Backend]], str] = lambda back: (
-    back.name if isinstance(back, BackendV2) else "unknown_backend"
-)
-"""Get the name of backend.
-
-Args:
-    back (Union[BackendV2, Backend]): The backend instance.
-
-Returns:
-    str: The name of backend.
-"""
-
-
-def backend_name_getter(back: Union[BackendV2, Backend, str]) -> str:
+def backend_name_getter(back: BackendV2 | Backend | str) -> str:
     """Get the name of backend.
 
     Args:
-        back (Union[BackendV1, BackendV2, Backend, str]): The backend instance.
-
+        back (BackendV2 | Backend | str): The backend instance.
     Returns:
         str: The name of backend.
     """
@@ -51,17 +37,13 @@ def backend_name_getter(back: Union[BackendV2, Backend, str]) -> str:
     return "unknown_backend"
 
 
-def shorten_name(
-    name: str,
-    drop: Optional[list[str]] = None,
-    exclude: Optional[list[str]] = None,
-) -> str:
+def shorten_name(name: str, drop: list[str] | None = None, exclude: list[str] | None = None) -> str:
     """Shorten the name of backend.
 
     Args:
         name (str): The name of backend.
-        drop (list[str], optional): The strings to drop from the name. Defaults to [].
-        exclude (list[str], optional): The strings to exclude from the name. Defaults to [].
+        drop (list[str] | None, optional): The strings to drop from the name. Defaults to [].
+        exclude (list[str] | None, optional): The strings to exclude from the name. Defaults to [].
 
     Returns:
         str: The shortened name of backend.
