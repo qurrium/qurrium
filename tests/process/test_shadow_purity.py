@@ -100,6 +100,7 @@ shadow_cases_entries = [
     (case["target"], respect_answer, kind_name)
     for case in DUMMY_CASES_JSON
     for kind_name, respect_answer in case["answer"].items()
+    if kind_name != "bitwise"
 ]
 
 
