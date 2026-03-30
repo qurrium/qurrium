@@ -35,9 +35,16 @@ runs:
       shell: bash
 
     - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable # or specify '1.80' for minimum version
+      shell: bash
+      run: |
+        if ! command -v rustup &>/dev/null; then
+          echo "| Installing rustup"
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+          source "$HOME/.cargo/env"
+        fi
+        echo "| Installing Rust toolchain from rust-toolchain.toml"
+        rustup show
+        rustup component add cargo rustc rust-std
 
     - name: Install dependencies
       shell: bash
