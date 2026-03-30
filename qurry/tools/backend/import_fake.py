@@ -19,7 +19,7 @@ ImportPointType = Literal[
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
-ImportPointOrder: list[ImportPointType] = [
+IMPORT_POINT_ORDER: list[ImportPointType] = [
     "qiskit_ibm_runtime.fake_provider",
     "qiskit.providers.fake_provider",
 ]
@@ -91,7 +91,7 @@ def get_default_fake_provider() -> ImportPointType | None:
     Returns:
         ImportPointType: The default fake provider.
     """
-    for source in ImportPointOrder:
+    for source in IMPORT_POINT_ORDER:
         if source in FAKE_PROVIDERFORV2_SOURCES:
             return source
     return None

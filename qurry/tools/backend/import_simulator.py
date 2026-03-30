@@ -26,7 +26,7 @@ ImportPointType = Literal[
     "qiskit.providers.basicaer",
     "qiskit.providers.basic_provider",
 ]
-ImportPointOrder = [
+IMPORT_POINT_ORDER = [
     "qiskit_aer",
     "qiskit.providers.basic_provider",
     "qiskit.providers.basicaer",
@@ -102,7 +102,7 @@ def get_default_sim_source() -> ImportPointType:
         ImportError: If no available simulator source is found.
     """
 
-    for source in ImportPointOrder:
+    for source in IMPORT_POINT_ORDER:
         if source in SIMULATOR_SOURCES:
             return source
     raise ImportError("No available simulator source, please check the installation of qiskit.")

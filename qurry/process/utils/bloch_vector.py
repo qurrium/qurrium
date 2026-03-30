@@ -4,11 +4,11 @@ from collections.abc import Sequence
 import numpy as np
 import numpy.typing as npt
 
-PauliXmatrix: npt.NDArray[np.complex128] = np.array([[0, 1], [1, 0]])
+PAULI_X: npt.NDArray[np.complex128] = np.array([[0, 1], [1, 0]])
 """Pauli-X matrix"""
-PauliYmatrix: npt.NDArray[np.complex128] = np.array([[0, -1j], [1j, 0]])
+PAULI_Y: npt.NDArray[np.complex128] = np.array([[0, -1j], [1j, 0]])
 """Pauli-Y matrix"""
-PauliZmatrix: npt.NDArray[np.complex128] = np.array([[1, 0], [0, -1]])
+PAULI_Z: npt.NDArray[np.complex128] = np.array([[1, 0], [0, -1]])
 """Pauli-Z matrix"""
 
 
@@ -28,7 +28,7 @@ def density_matrix_to_bloch_vector(
     """
 
     return (
-        float(np.trace(np.dot(rho, PauliXmatrix)).real),
-        float(np.trace(np.dot(rho, PauliYmatrix)).real),
-        float(np.trace(np.dot(rho, PauliZmatrix)).real),
+        float(np.trace(np.dot(rho, PAULI_X)).real),
+        float(np.trace(np.dot(rho, PAULI_Y)).real),
+        float(np.trace(np.dot(rho, PAULI_Z)).real),
     )

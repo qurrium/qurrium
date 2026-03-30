@@ -123,7 +123,7 @@ def default_setup(
     }
 
 
-# pylint: disable=invalid-name,inconsistent-mro
+# pylint: disable=invalid-name,inconsistent-mro,abstract-method
 class tqdm(Iterator[_T], real_tqdm_instance):
     """A fake tqdm class for type hint.
 

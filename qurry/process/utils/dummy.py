@@ -5,6 +5,7 @@ import random
 import numpy as np
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.dummy import (  # type:ignore
     make_two_bit_str_32 as make_two_bit_str_32_rust,
@@ -136,7 +137,7 @@ def make_two_bit_str_unlimit(
     return make_two_bit_str_32_py(bitlen)
 
 
-# pylint: disable=unnecessary-direct-lambda-call
+# pylint: disable=unnecessary-direct-lambda-call,invalid-name
 makeTwoBitStrOneLiner: Callable[[int, list[str]], list[str]] = lambda bitlen, bits=[""]: (
     (lambda bits: [*["0" + item for item in bits], *["1" + item for item in bits]])(
         makeTwoBitStrOneLiner(bitlen - 1, bits)
@@ -153,6 +154,7 @@ makeTwoBitStrOneLiner: Callable[[int, list[str]], list[str]] = lambda bitlen, bi
     Returns:
         list[str]: The list of bit strings.
 """
+# pylint: enable=unnecessary-direct-lambda-call,invalid-name
 
 
 def make_two_bit_str(
