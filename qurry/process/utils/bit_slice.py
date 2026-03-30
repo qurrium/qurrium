@@ -4,6 +4,8 @@ from typing import TypeVar, overload
 from collections.abc import Sequence
 
 from ..availability import availablility
+
+# pylint: disable=import-error,no-name-in-module
 from ...boorust.bit_slice import (  # type: ignore
     qubit_selector_rust,
     cycling_slice_rust,

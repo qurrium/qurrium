@@ -9,6 +9,8 @@ from itertools import combinations
 
 from ...utils import BaseMethodEnum
 from ....tools import make_multiprocess_pool, DEFAULT_POOL_SIZE
+
+# pylint: disable=import-error,no-name-in-module
 from ....boorust.shadow import nomatmul_trace_sum_rust  # type: ignore
 
 

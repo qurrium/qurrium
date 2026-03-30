@@ -15,6 +15,7 @@ from ..availability import availablility
 from ..exceptions import PostProcessingThirdPartyUnavailableWarning
 
 
+# pylint: disable=import-outside-toplevel
 def is_jax_available():
     """Check if JAX is available.
 
@@ -23,7 +24,9 @@ def is_jax_available():
         whether JAX is available and the ImportError if it is not.
     """
     try:
+        # pylint: disable=unused-import
         import jax  # noqa: F401
+        # pylint: enable=unused-import
 
         return True, None
     except ImportError as e:

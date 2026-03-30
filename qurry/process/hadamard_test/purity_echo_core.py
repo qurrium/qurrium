@@ -12,6 +12,8 @@ from ..availability import (
     PostProcessingBackendLabel,
 )
 from ..exceptions import PostProcessingBackendDeprecatedWarning
+
+# pylint: disable=import-error,no-name-in-module
 from ...boorust.hadamard import purity_echo_core_rust  # type: ignore
 
 

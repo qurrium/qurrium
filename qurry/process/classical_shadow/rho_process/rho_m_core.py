@@ -351,7 +351,9 @@ def mean_rho_core(
         npt.NDArray[np.complex128]: The expectation value of Rho.
     """
 
-    expect_rho: npt.NDArray[np.complex128] = np.sum(rho_m_list, axis=0, dtype=np.complex128)  # type: ignore
+    expect_rho: npt.NDArray[np.complex128] = np.sum(  # type: ignore
+        rho_m_list, axis=0, dtype=np.complex128
+    )
     assert expect_rho.shape == (2 ** len(selected_classical_registers_sorted),) * 2, (
         f"The shape of expect_rho: {expect_rho.shape} "
         + f"and the shape of rho_m_list: {rho_m_list[0].shape} are different."

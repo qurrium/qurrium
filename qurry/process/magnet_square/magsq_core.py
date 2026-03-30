@@ -7,6 +7,8 @@ import numpy as np
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
 from ..utils import single_counts_recount_proto, FloatType
 from ...tools import ParallelManager
+
+# pylint: disable=import-error,no-name-in-module
 from ...boorust.magnet_square import (  # type: ignore
     magnet_square_core_rust,
     z_dir_magnet_square_core_rust,

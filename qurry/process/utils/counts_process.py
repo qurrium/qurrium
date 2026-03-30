@@ -3,6 +3,8 @@
 from collections.abc import Iterable
 
 from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+
+# pylint: disable=import-error,no-name-in-module
 from ...boorust.counts_process import (  # type: ignore
     single_counts_recount_rust,
     counts_list_recount_rust,

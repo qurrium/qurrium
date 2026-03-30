@@ -6,7 +6,6 @@
 from typing import Literal
 from collections.abc import Iterable
 import tqdm
-import numpy as np
 import numpy.typing as npt
 
 from .container_kind import ClassicalShadowBasic, isvalid_classical_shadow_basic

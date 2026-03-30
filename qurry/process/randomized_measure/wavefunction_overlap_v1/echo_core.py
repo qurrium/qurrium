@@ -16,6 +16,8 @@ from ...availability import (
 )
 from ...exceptions import PostProcessingBackendDeprecatedWarning
 from ....tools import ParallelManager, workers_distribution
+
+# pylint: disable=import-error,no-name-in-module
 from ....boorust.randomized import overlap_echo_core_rust  # type: ignore
 
 

@@ -2,6 +2,8 @@
 
 import numpy as np
 from ..availability import availablility
+
+# pylint: disable=import-error,no-name-in-module
 from ...boorust.randomized import hamming_distance_rust, ensemble_cell_rust  # type: ignore
 
 
