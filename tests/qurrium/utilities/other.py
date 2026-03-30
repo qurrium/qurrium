@@ -1,6 +1,6 @@
 """Miscellaneous utilities for testing. (:mod:`utilities.other`)"""
 
-from typing import NamedTuple, Generic, cast, TypeVar
+from typing import Generic, cast, TypeVar
 import os
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -35,7 +35,8 @@ EXPORT_DIR = get_test_export_dir()
 """The export directory for test outputs."""
 
 
-class CaseEntriesTuple(NamedTuple, Generic[_MA, _RA]):
+@dataclass(frozen=True)
+class CaseEntriesTuple(Generic[_MA, _RA]):
     """The case entries tuple for testing."""
 
     tags: tuple[str, ...]
