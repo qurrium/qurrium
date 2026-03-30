@@ -38,11 +38,9 @@ runs:
       shell: bash
       run: |
         rustup self update
-        if ! command -v rustup &>/dev/null; then
-          echo "| Installing rustup"
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
-          source "$HOME/.cargo/env"
-        fi
+        echo "| Installing rustup"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+        source "$HOME/.cargo/env"
         echo "| Installing Rust toolchain from rust-toolchain.toml"
         rustup show
         rustup component add cargo --toolchain 1.94.1
