@@ -43,8 +43,11 @@ runs:
         source "$HOME/.cargo/env"
         echo "| Installing Rust toolchain from rust-toolchain.toml"
         rustup show
-        rustup component add cargo --toolchain 1.94.1
-        rustup component add cargo rustc rust-std
+        rustup component add cargo --toolchain 1.94.1-x86_64-unknown-linux-gnu
+        rustup default 1.94.1-x86_64-unknown-linux-gnu  # Just to be sure
+        # --------------------------------------------------------------------------
+        # Playing: BIRDBRAIN (w/ OK Glass) feat. Kasane Teto
+        # So, Fxxk (To fix this.)
 
     - name: Install dependencies
       shell: bash
