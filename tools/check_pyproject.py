@@ -1,8 +1,8 @@
 """Set Pyproject Qurrium (:file:`set_pyproject_qurry.py`)
 
 Check the project name in pyproject.toml.
-    Since the version 1.0.0, the project name is unify as "qurrium" for both stable and nightly release.
-    This function is used to check the project name in pyproject.toml.
+Since the version 1.0.0, the project name is unify as "qurrium" for both stable and nightly release.
+This function is used to check the project name in pyproject.toml.
 """
 
 import os
@@ -12,9 +12,10 @@ import toml
 
 def toml_check():
     """Check the project name in pyproject.toml.
-    Since the version 1.0.0, the project name is unify as "qurrium" for both stable and nightly release.
+    Since the version 1.0.0, the project name is unify as "qurrium" 
+    for both stable and nightly release.
+    
     This function is used to check the project name in pyproject.toml.
-
     """
     with open(os.path.join("pyproject.toml"), "r", encoding="utf8") as f:
         data = toml.load(f)

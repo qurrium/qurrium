@@ -39,7 +39,8 @@ def overlap_echo_core_py(
         shots (int): Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
         degree (tuple[int, int] | int | None, optional): Degree of the subsystem.
-        measure (tuple[int, int] | None, optional): Measuring range on quantum circuits. Defaults to None.
+        measure (tuple[int, int] | None, optional):
+            Measuring range on quantum circuits. Defaults to None.
         multiprocess_pool_size(int | None, optional):
             Number of multi-processing workers,
             if sets to 1, then disable to using multi-processing;
@@ -137,7 +138,8 @@ def overlap_echo_core(
         shots (int): Shots of the experiment on quantum machine.
         counts (list[dict[str, int]]): Counts of the experiment on quantum machine.
         degree (tuple[int, int] | int | None, optional): Degree of the subsystem.
-        measure (tuple[int, int] | None, optional): Measuring range on quantum circuits. Defaults to None.
+        measure (tuple[int, int] | None, optional):
+            Measuring range on quantum circuits. Defaults to None.
         multiprocess_pool_size (int | None, optional):
             Number of multi-processing workers,
             if sets to 1, then disable to using multi-processing;

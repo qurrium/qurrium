@@ -71,8 +71,8 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
 
         if len(target_circuit_01.clbits) > 0 or len(target_circuit_02.clbits) > 0:
             raise ValueError(
-                "The target circuits should not contain classical registers, "
-                + f"but got {target_key_01} with {len(target_circuit_01.clbits)} classical bits and "
+                "The target circuits should not contain classical registers, but got "
+                + f"{target_key_01} with {len(target_circuit_01.clbits)} classical bits and "
                 + f"{target_key_02} with {len(target_circuit_02.clbits)} classical bits."
             )
         if num_qubits_01 != num_qubits_02:

@@ -54,7 +54,8 @@ def string_operator_order(
     Args:
         shots (int): Number of shots.
         counts (list[dict[str, int]]): List of counts.
-        backend (PostProcessingBackendLabel, optional): Backend to use. Defaults to DEFAULT_PROCESS_BACKEND.
+        backend (PostProcessingBackendLabel, optional):
+            Backend to use. Defaults to DEFAULT_PROCESS_BACKEND.
         pbar (tqdm.tqdm | None, optional): Progress bar. Defaults to None.
 
     Returns:

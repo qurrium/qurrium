@@ -242,7 +242,10 @@ def test_measure_and_analyze(
 
     for kind, invalid_results in invalid_results_of_each_kind.items():
         if len(invalid_results) > 0:
-            msg = f"FAIL - {case_entries.name} - Invalid results found in all methods comparison of {kind}:"
+            msg = (
+                f"FAIL - {case_entries.name} - "
+                + f"Invalid results found in all methods comparison of {kind}:"
+            )
             logger.error(msg)
             for name_1, result_1, name_2, result_2, difference, threshold in invalid_results:
                 logger.error(

@@ -222,7 +222,8 @@ def extract_measured_counts(
     """Extract the measured counts from the counts mixed with other classical registers,
     given the classical registers selected mapping, and other information.
 
-    This function focuses on extracting the measured counts from `traditional` counts data structure,
+    This function focuses on extracting the measured counts 
+    from `traditional` counts data structure,
     coming from Qiskit Result object :class:`~qiskit.result.result.Result`.
     which a bitstring mixed with multiple classical registers clusters like:
 

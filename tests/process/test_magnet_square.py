@@ -143,7 +143,8 @@ def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, c
 
     predict_counts_num = target["num_qubits"] * (target["num_qubits"] - 1)
     assert len(target["counts"]) == predict_counts_num, (
-        f"The counts should have {predict_counts_num} items, but got {len(target['counts'])} for {case_name}"
+        f"The counts should have {predict_counts_num} items, "
+        + f"but got {len(target['counts'])} for {case_name}"
     )
 
     py_result = magnetization_square(

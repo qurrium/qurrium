@@ -63,8 +63,8 @@ def check_cregs_name_collision(
         )
         raise ValueError(
             "The name of the new classical register collides with existing ones, "
-            + f"the name '{name}' already exists in the circuit, which is reserved for measurement. "
-            + "Due to the limitation of Qiskit, "
+            + f"the name '{name}' already exists in the circuit, "
+            + "which is reserved for measurement. Due to the limitation of Qiskit, "
             + "the classical registers are globally in each circuit operation, "
             + "so we can not rename the existing classical registers for it will corrupt. "
             + "Please create another quantum circuit with different classical register names."

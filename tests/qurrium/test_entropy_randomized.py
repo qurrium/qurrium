@@ -207,7 +207,8 @@ def test_measure_and_analyze(
 
     assert analysis_02["all_system", "entropy"] != analysis_01["all_system", "entropy"], (
         "The all system entropy should be different for counts_used is not same: "
-        + f"counts_num: '{analysis_02['all_system', 'counts_num']}' and '{analysis_01['all_system', 'counts_num']}'."
+        + f"counts_num: '{analysis_02['all_system', 'counts_num']}' "
+        + f"and '{analysis_01['all_system', 'counts_num']}'."
         + f"'{analysis_02['all_system', 'purity']}' != '{analysis_01['all_system', 'purity']}', "
         + f"from '{analysis_02['all_system', 'all_system_source']}' "
         + f"and '{analysis_01['all_system', 'all_system_source']}'."

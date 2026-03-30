@@ -77,7 +77,8 @@ class ClassicalShadowCase(TypedDict):
 
 
 class ClassicalShadowEntries(TypedDict):
-    """The test target type for classical_shadow_complex function parameters with processed counts."""
+    """The test target type for classical_shadow_complex
+    function parameters with processed counts."""
 
     shots: int
     """Number of shots."""
@@ -129,7 +130,8 @@ def generate_entries(target: ClassicalShadowTarget) -> ClassicalShadowEntries:
     )
     if len(set(actual_selected_qubits)) != len(actual_selected_qubits):
         raise ValueError(
-            f"selected_qubits should not have duplicated elements, but got {target['selected_qubits']}."
+            "selected_qubits should not have duplicated elements, "
+            + f"but got {target['selected_qubits']}."
         )
 
     all_clregs = sorted(target["registers_mapping"].values())

@@ -92,7 +92,8 @@ def generate_all_possible_basis_array(
 
     Args:
         num_qubits (int): The number of qubits.
-        max_qubits (int): The maximum number of qubits allowed. Default is MAX_QUBITS_FOR_BASIS_GENERATION.
+        max_qubits (int):
+            The maximum number of qubits allowed. Default is MAX_QUBITS_FOR_BASIS_GENERATION.
         _basis (list[list[int]] | None): The input basis. If None, use [[0], [1], [2]].
 
     Raise:

@@ -454,9 +454,9 @@ def decide_num_of_estimators(
             If it is 0, it will raise an error.
 
     Returns:
-        tuple[int, FloatType]: The number of estimators and the accuracy probability component delta.
-            The first element is the number of estimators,
-            and the second element is the accuracy probability component delta.
+        The number of estimators and the accuracy probability component delta.
+        The first element is the number of estimators,
+        and the second element is the accuracy probability component delta.
     """
     if accuracy_prob_comp_delta <= 0:
         raise ValueError("The accuracy probability component delta must be greater than 0.")

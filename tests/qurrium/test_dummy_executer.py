@@ -95,8 +95,10 @@ def test_measure_and_analyze_2_dummy(
     """Test orphan experiments of two dummy qurries.
 
     Args:
-        se_case (CaseEntriesTuple[SEMeasureArgs, DummyAnalyzeArgs]): The test case item for SamplingExecuter.
-        we_case (CaseEntriesTuple[WEMeasureArgs, DummyAnalyzeArgs]): The test case item for WavesExecuter.
+        se_case (CaseEntriesTuple[SEMeasureArgs, DummyAnalyzeArgs]):
+            The test case item for SamplingExecuter.
+        we_case (CaseEntriesTuple[WEMeasureArgs, DummyAnalyzeArgs]):
+            The test case item for WavesExecuter.
     """
 
     exp_method_01 = SamplingExecuter()
