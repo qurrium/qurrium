@@ -34,6 +34,11 @@ runs:
         fi
       shell: bash
 
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable # or specify '1.80' for minimum version
+
     - name: Install dependencies
       shell: bash
       run: |
@@ -69,7 +74,7 @@ runs:
           exit 1
         fi
 
-    - name: Prepare setup.py
+    - name: Install Qurrium
       shell: bash
       run: |
         echo "| Preparing setup.py ................................................."
