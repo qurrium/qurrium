@@ -1,4 +1,4 @@
 [toolchain]
-channel = "1.94.1"
+channel = "1.85" # keep sync with Cargo.toml
 components = ["cargo", "clippy", "rust-std", "rustc", "rustfmt"]
 profile = "default"

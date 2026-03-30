@@ -4,5 +4,5 @@ members = ["crates/*"]
 [workspace.package]
 version = "1.0.0"
 edition = "2021"
-rust-version = "1.94.1"
+rust-version = "1.85" # keep sync with rust-toolchain.toml
 license = "Apache-2.0"
