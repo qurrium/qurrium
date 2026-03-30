@@ -216,6 +216,9 @@ data_file = "./.coverage/.coverage"
 # Linter and Formatter Configuration
 # Pylint and Ruff are used for linting and formatting.
 # We keep Pylint for it still supports more rules than Ruff.
+[tool.pylint]
+ignore-patterns = [".*\\.pyi"]
+
 [tool.pylint.format]
 max-line-length = 100
 
@@ -239,6 +242,7 @@ disable = [
     "too-many-statements",           # R0915
     "too-many-positional-arguments", # R0917
     "too-many-nested-blocks",        # R1702
+    "fixme",                         # W0511, We will fix them in the future, but not now.
 ]
 # Respecting command line options of pylint
 # This will be useful when you configure pylint in your IDE
@@ -261,6 +265,9 @@ lint.select = [
     "F",  # Pyflakes
 ]
 lint.ignore = ["F401", "E203", "W291", "F841"]
+lint.extend-select = ["E501"]
+# Ruff is intentionally to ignore the check of line length
+# See: https://github.com/astral-sh/ruff/issues/6424#issuecomment-2079623192
 
 [tool.ruff.lint.per-file-ignores]
 # "**/{tests,docs,tools}/*" = ["E402"]
