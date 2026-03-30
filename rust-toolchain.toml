@@ -1,3 +1,4 @@
 [toolchain]
 channel = "1.94.1"
 components = ["cargo", "clippy", "rust-std", "rustc", "rustfmt"]
+profile = "default"

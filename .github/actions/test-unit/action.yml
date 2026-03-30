@@ -37,6 +37,7 @@ runs:
     - name: Install Rust toolchain
       shell: bash
       run: |
+        rustup self update
         if ! command -v rustup &>/dev/null; then
           echo "| Installing rustup"
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
@@ -44,6 +45,7 @@ runs:
         fi
         echo "| Installing Rust toolchain from rust-toolchain.toml"
         rustup show
+        rustup component add cargo --toolchain 1.94.1
         rustup component add cargo rustc rust-std
 
     - name: Install dependencies
