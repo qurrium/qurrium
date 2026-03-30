@@ -98,11 +98,11 @@ jobs:
 
       - name: Get custom tarball name
         id: get_tarball_name
-        run: echo "TARBALL_NAME=qurry-${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        run: echo "TARBALL_NAME=qurrium-${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Get archived folder name for custom tarball
         id: get_archived_folder_name
-        run: echo "ARCHIVED_FOLDER=${{ github.repository_owner }}-qurry-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "ARCHIVED_FOLDER=${{ github.repository_owner }}-qurrium-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Create custom tarball artifact
         run: |
@@ -110,10 +110,11 @@ jobs:
           tar czhvf ${{ steps.get_tarball_name.outputs.TARBALL_NAME }}-${{ steps.create_tag.outputs.VERSION }}.tar.gz \
             --exclude="*metarepo-cpe-tag*" \
             --directory=../ \
-            qurry/crates/ qurry/tests/ qurry/qurry/ \
-            qurry/pyproject.toml qurry/setup.py qurry/requirements.txt \
-            qurry/Cargo.toml qurry/Cargo.lock qurry/MANIFEST.in \
-            qurry/.gitignore qurry/.gitmodules qurry/README.md \
+            qurry/crates/ qurry/qurry/ qurry/tests/ \
+            qurry/rust-toolchain.toml qurry/pyproject.toml \
+            qurry/requirements.txt qurry/requirements-dev.txt \
+            qurry/Cargo.toml qurry/Cargo.lock \
+            qurry/MANIFEST.in qurry/README.md qurry/LICENSE \
             --transform s/qurry/${{ steps.get_archived_folder_name.outputs.ARCHIVED_FOLDER }}/
 
       - name: Set release variables
