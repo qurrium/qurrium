@@ -1,7 +1,5 @@
-"""
-============================================================================
-Set Version (:file:`set_version.py`)
-============================================================================
+"""Set Version (:file:`set_version.py`)
+
 
 Get the version number from the VERSION.txt file and pass it to the environment variable.
 
@@ -11,7 +9,7 @@ Get the version number from the VERSION.txt file and pass it to the environment 
 import os
 import sys
 import argparse
-from typing import Literal, Optional
+from typing import Literal
 import warnings
 import subprocess
 from pep440.core import is_canonical
@@ -314,7 +312,8 @@ def bump_version(
         version_new_split = version_split[:1] + [str(int(version_split[1]) + 1)] + ["0", "dev1"]
 
     elif bump_type == "major":
-        raise NotImplementedError("| The major bump are only allowed by bumping manually.")
+        version_new_split = [str(int(version_split[0]) + 1), "0", "0", "dev1"]
+        # raise NotImplementedError("| The major bump are only allowed by bumping manually.")
 
     else:
         raise ValueError(
@@ -349,7 +348,7 @@ class SetVersionArgs(argparse.Namespace):
 def finished(
     exists: bool,
     version: str,
-    version_txt_path: Optional[str],
+    version_txt_path: str | None,
     exit_code: int = 0,
     test: bool = False,
 ):
@@ -358,7 +357,7 @@ def finished(
     Args:
         exists (bool): Whether the version is existing.
         version (str): The version number.
-        version_txt_path (str): The path to the VERSION.txt file.
+        version_txt_path (str | None): The path to the VERSION.txt file.
         exit_code (int, optional): The exit code. Defaults to 0.
 
     """

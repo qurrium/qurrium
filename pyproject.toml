@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # yes, it does. I 'learned' from them.
 
 [project]
-name = "qurry"
+name = "qurrium"
 dynamic = ["version", "readme", "dependencies"]
 description = "Qurrium 📏 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
 authors = [{ name = "Huai-Chung Chang", email = "harui2019@proton.me" }]
