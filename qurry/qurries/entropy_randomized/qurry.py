@@ -212,7 +212,7 @@ class EntropyMeasureRandomized(
                 Defaults to None.
 
         Returns:
-            EntropyMeasureRandomizedOutputArgs: The output arguments.
+            The arguments for :meth:`output`.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -259,7 +259,7 @@ class EntropyMeasureRandomized(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -335,10 +335,10 @@ class EntropyMeasureRandomized(
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 times=times,
@@ -360,6 +360,7 @@ class EntropyMeasureRandomized(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -382,7 +383,7 @@ class EntropyMeasureRandomized(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -458,10 +459,10 @@ class EntropyMeasureRandomized(
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 times=times,
@@ -483,6 +484,7 @@ class EntropyMeasureRandomized(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def multiAnalysis(
         self,
@@ -525,7 +527,7 @@ class EntropyMeasureRandomized(
                 The counts used for the analysis. Defaults to None.
 
         Returns:
-            The summoner_id of multimanager and the report name.
+            tuple[str, EMRExperiment]: The experiment instance.
         """
 
         return super().multiAnalysis(

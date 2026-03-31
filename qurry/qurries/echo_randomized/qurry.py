@@ -193,7 +193,7 @@ class EchoListenRandomized(
                 Defaults to None.
 
         Returns:
-            EchoListenRandomizedOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave1 is None:
             raise ValueError("The `wave` must be provided.")
@@ -260,7 +260,7 @@ class EchoListenRandomized(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -359,10 +359,10 @@ class EchoListenRandomized(
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment.
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave1=wave1,
                 wave2=wave2,
@@ -390,6 +390,7 @@ class EchoListenRandomized(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -418,7 +419,7 @@ class EchoListenRandomized(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -517,10 +518,10 @@ class EchoListenRandomized(
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave1=wave1,
                 wave2=wave2,
@@ -548,6 +549,7 @@ class EchoListenRandomized(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def multiAnalysis(
         self,

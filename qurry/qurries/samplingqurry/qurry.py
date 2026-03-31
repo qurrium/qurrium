@@ -81,7 +81,7 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
                 Defaults to None.
 
         Returns:
-            QurryOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -119,7 +119,7 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -157,10 +157,10 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 sampling=sampling,
@@ -178,6 +178,7 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -195,7 +196,7 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -233,10 +234,10 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 sampling=sampling,
@@ -254,3 +255,4 @@ class QurryV14(QurriumPrototype[SEExperiment, SEMeasureArgs, SEOutputArgs, Dummy
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]

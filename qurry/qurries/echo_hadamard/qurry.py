@@ -84,7 +84,7 @@ class EchoListenHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            EchoListenHadamardOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave1 is None:
             raise ValueError("The `wave` must be provided.")
@@ -125,7 +125,7 @@ class EchoListenHadamard(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -163,10 +163,10 @@ class EchoListenHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            str: The ID of the experiment.
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave1=wave1,
                 wave2=wave2,
@@ -185,6 +185,7 @@ class EchoListenHadamard(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -203,7 +204,7 @@ class EchoListenHadamard(
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -241,10 +242,10 @@ class EchoListenHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            str: The ID of the experiment.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave1=wave1,
                 wave2=wave2,
@@ -263,3 +264,4 @@ class EchoListenHadamard(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]

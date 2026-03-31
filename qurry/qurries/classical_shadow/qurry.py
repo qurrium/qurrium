@@ -250,7 +250,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 Defaults to None.
 
         Returns:
-            ShadowUnveilOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -299,7 +299,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         export: bool = False,
         save_location: str | Path | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -378,10 +378,10 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 snapshots=snapshots,
@@ -404,6 +404,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -427,7 +428,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
         export: bool = False,
         save_location: str | Path | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -506,10 +507,10 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 snapshots=snapshots,
@@ -532,6 +533,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def multiAnalysis(
         self,
@@ -674,7 +676,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 Other arguments for analysis.
 
         Returns:
-            str: The summoner_id of multimanager.
+            The summoner_id of multimanager.
         """
 
         return super().multiAnalysis(

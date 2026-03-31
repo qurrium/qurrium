@@ -89,7 +89,7 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
                 Defaults to None.
 
         Returns:
-            MagnetSquareOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -130,7 +130,7 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -171,10 +171,10 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 shots=shots,
@@ -192,6 +192,7 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -210,7 +211,7 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -251,10 +252,10 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 shots=shots,
@@ -272,3 +273,4 @@ class MagnetSquare(QurriumPrototype[MSExperiment, MSMeasureArgs, MSOutputArgs, M
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
