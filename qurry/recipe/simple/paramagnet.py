@@ -219,12 +219,15 @@ def topological_paramagnet(
     return qc
 
 
-def cluster(num_qubits: int, name: str = "cluster") -> TopologicalParamagnet:
+def cluster(
+    num_qubits: int, border_cond: Literal["open", "period"] = "period", name: str = "cluster"
+) -> TopologicalParamagnet:
     r"""The entangled circuit with open boundary condition.
+
 
     .. code-block:: text
 
-        # With ACTUAL CZGate, Open boundary at 8 qubits:
+        # With ACTUAL `CZGate`, Open boundary at 8 qubits:
             ┌───┐
         q0: ┤ H ├─■────
             ├───┤ │
@@ -243,26 +246,36 @@ def cluster(num_qubits: int, name: str = "cluster") -> TopologicalParamagnet:
         q7: ┤ H ├─■────
             └───┘
 
+
     .. code-block:: text
 
-        # With ACTUAL CZGate, Open boundary at 5 qubits:
+        # With ACTUAL `CZGate`, Period boundary at 8 qubits:
             ┌───┐
-        q0: ┤ H ├─■────
-            ├───┤ │
-        q1: ┤ H ├─■──■─
-            ├───┤    │
-        q2: ┤ H ├─■──■─
-            ├───┤ │
-        q3: ┤ H ├─■──■─
-            ├───┤    │
-        q4: ┤ H ├────■─
+        q0: ┤ H ├─■─────■─
+            ├───┤ │     │
+        q1: ┤ H ├─■──■──┼─
+            ├───┤    │  │
+        q2: ┤ H ├─■──■──┼─
+            ├───┤ │     │
+        q3: ┤ H ├─■──■──┼─
+            ├───┤    │  │
+        q4: ┤ H ├─■──■──┼─
+            ├───┤ │     │
+        q5: ┤ H ├─■──■──┼─
+            ├───┤    │  │
+        q6: ┤ H ├─■──■──┼─
+            ├───┤ │     │
+        q7: ┤ H ├─■─────■─
             └───┘
 
     Args:
         num_qubits (int): Number of qubits.
+        border_cond (str, optional): Boundary condition is `open` or `period`.
+            Defaults to "period".
         name (str, optional): Name of case. Defaults to "cluster".
 
     Raises:
         ValueError: When given number of qubits is not even.
+
     """
-    return topological_paramagnet(num_qubits=num_qubits, border_cond="open", name=name)
+    return topological_paramagnet(num_qubits=num_qubits, border_cond=border_cond, name=name)
