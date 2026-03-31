@@ -511,14 +511,14 @@ def make_statesheet(
         info.newline(("itemize", str(k), v, "", 2))
 
     info.newline(("itemize", "beforewards"))
-    for k, v in beforewards._asdict().items():
+    for k, v in beforewards.asdict().items():
         if isinstance(v, str):
             info.newline(("itemize", str(k), str(v), "", 2))
         else:
             info.newline(("itemize", str(k), len(v), f"Number of {k}", 2))
 
     info.newline(("itemize", "afterwards"))
-    for k, v in afterwards._asdict().items():
+    for k, v in afterwards.asdict().items():
         if k == "job_id":
             info.newline(
                 (

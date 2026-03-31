@@ -41,18 +41,18 @@ class Before:
     """The data structure stores everything before executing."""
 
     @property
-    def _fields(self) -> tuple[str, ...]:
+    def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(self.__dict__.keys())
 
     @classmethod
-    def _dataclass_fields(cls) -> tuple[str, ...]:
+    def dataclass_fields(cls) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
 
-    def _asdict(self) -> dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
-        return self.__dict__
+        return dict(self.__dict__)
 
     exps_config: dict[str, dict[str, Any]]
     """The dict of config of each experiments."""
@@ -116,7 +116,7 @@ class Before:
         Returns:
             dict[str, Any]: The loaded content.
         """
-        missing_fields = set(cls._dataclass_fields()) - set(raw_dict.keys())
+        missing_fields = set(cls.dataclass_fields()) - set(raw_dict.keys())
         if missing_fields:
             raise KeyError(f"The fields {missing_fields} are missing in the raw dictionary.")
 

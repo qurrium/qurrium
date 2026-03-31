@@ -36,7 +36,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
 
     def asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
-        return self.__dict__
+        return dict(self.__dict__)
 
     @classmethod
     def dataclass_fields(cls) -> tuple[str, ...]:
