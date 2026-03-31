@@ -21,7 +21,7 @@ from qurry.process.classical_shadow import (
     PurityValueKind,
 )
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, ghz, cluster
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
@@ -35,7 +35,7 @@ from .utilities.other import (
     FloatType,
 )
 from .utilities.random_stuff import prepare_random_basis
-from .utilities.circuits import preparing_circuits_lib, CXDynamic, TwoBodyWithMeasurement
+from .utilities.circuits import preparing_circuits_lib, cx_dyn_comparing, dummy_two_body_measurement
 
 
 logger = logging.getLogger(__name__)
@@ -67,18 +67,18 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "4_trivial": TrivialParamagnet(4),
-        "4_ghz": GHZ(4),
-        "4_topological-period": Cluster(4),
-        "6_trivial": TrivialParamagnet(6),
-        "6_ghz": GHZ(6),
-        "6_topological-period": Cluster(6),
+        "4_trivial": trivial_paramagnet(4),
+        "4_ghz": ghz(4),
+        "4_topological-period": cluster(4),
+        "6_trivial": trivial_paramagnet(6),
+        "6_ghz": ghz(6),
+        "6_topological-period": cluster(6),
         # Two-body with measurement cases
-        "4_dummy-2-body-with-clbits": TwoBodyWithMeasurement(4),
-        "6_dummy-2-body-with-clbits": TwoBodyWithMeasurement(6),
+        "4_dummy-2-body-with-clbits": dummy_two_body_measurement(4),
+        "6_dummy-2-body-with-clbits": dummy_two_body_measurement(6),
         # CXDynamic cases
-        "4_cx-dyn": CXDynamic(4, name="4-cx-dyn"),
-        "6_cx-dyn": CXDynamic(6, name="6-cx-dyn"),
+        "4_cx-dyn": cx_dyn_comparing(4, name="4-cx-dyn"),
+        "6_cx-dyn": cx_dyn_comparing(6, name="6-cx-dyn"),
     }
 )
 

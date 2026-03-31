@@ -9,8 +9,7 @@ from typing import Literal
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.classical import expr
 
-from qurry.recipe import Intracell
-from qurry.recipe.n_body import OneBody, TwoBody
+from qurry.recipe import intracell
 
 
 def add_cnot_dyn(
@@ -134,215 +133,67 @@ def add_cnot_dyn(
     return qc
 
 
-class CXDynamic(OneBody):
-    """A circuit with 4 to 8 qubits and a CNOT gate
-    between first qubits and last using Bell pairs.
+def cx_dyn_comparing(
+    num_qubits: int,
+    mode: Literal["dynamic", "comparison"] = "dynamic",
+    reset_between_bell_pairs: bool = True,
+    name: str | None = None,
+) -> QuantumCircuit:
+    """Generate a circuit with a CNOT gate between the first and last qubits
+    using either the dynamic CNOT method or a comparison CNOT method.
 
-    Or provide a comparison with the normal CNOT gate.
+    This circuit used to test the dynamic CNOT gate
+    against a standard CNOT gate in a comparison experiment.
 
-    The circuit is used to provide a test case for multiple classical registers.
+    Args:
+        num_qubits (int): The number of qubits in the circuit.
+        mode (Literal["dynamic", "comparison"], optional):
+            The mode of the circuit. Defaults to "dynamic".
+        reset_between_bell_pairs (bool, optional):
+            Whether to reset qubits between Bell pairs. Defaults to True.
+        name (str | None, optional): The name of the circuit. Defaults to None.
 
-    ### The dynamic CNOT gate is used to entangle the first and last qubits
-
-    .. code-block:: text
-        # At 7 qubits with 2 classical registers:
-
-              ┌───┐ ░                                          »
-         q_0: ┤ H ├─░───■──────────────────────────────────────»
-              └───┘ ░ ┌─┴─┐          ┌───┐        ┌─┐          »
-         q_1: ──────░─┤ X ├───────■──┤ H ├────────┤M├─|0>──────»
-                    ░ ├───┤     ┌─┴─┐└───┘┌─┐     └╥┘          »
-         q_2: ──────░─┤ H ├──■──┤ X ├─────┤M├─|0>──╫───────────»
-                    ░ └───┘┌─┴─┐└───┘┌───┐└╥┘      ║  ┌─┐      »
-         q_3: ──────░──────┤ X ├──■──┤ H ├─╫───────╫──┤M├──|0>─»
-                    ░ ┌───┐└───┘┌─┴─┐└───┘ ║  ┌─┐  ║  └╥┘      »
-         q_4: ──────░─┤ H ├──■──┤ X ├──────╫──┤M├──╫───╫───|0>─»
-                    ░ └───┘┌─┴─┐└───┘┌───┐ ║  └╥┘  ║   ║   ┌─┐ »
-         q_5: ──────░──────┤ X ├──■──┤ H ├─╫───╫───╫───╫───┤M├─»
-                    ░      └───┘┌─┴─┐└───┘ ║   ║   ║   ║   └╥┘ »
-         q_6: ──────░───────────┤ X ├──────╫───╫───╫───╫────╫──»
-                    ░           └───┘      ║   ║   ║   ║    ║  »
-        c1: 2/═════════════════════════════╩═══╩═══╬═══╬════╬══»
-                                           0   1   ║   ║    ║  »
-        c2: 3/═════════════════════════════════════╩═══╩════╩══»
-                                                0   1    2  »
-
-        «                                           »
-        « q_0: ─────────────────────────────────────»
-        «                                           »
-        « q_1: ─────────────────────────────────────»
-        «                                           »
-        « q_2: ─────────────────────────────────────»
-        «                                           »
-        « q_3: ─────────────────────────────────────»
-        «                                           »
-        « q_4: ─────────────────────────────────────»
-        «                                           »
-        « q_5: ─────────────────────────────────────»
-        «      ┌──────────────────── ┌───┐ ───────┐ »
-        « q_6: ┤ If-0 c1[1] ^ c1[0]  ┤ X ├  End-0 ├─»
-        «      └─────────╥────────── └───┘ ───────┘ »
-        «            ┌───╨────┐                     »
-        «c1: 2/══════╡ [expr] ╞═════════════════════»
-        «            └────────┘                     »
-        «c2: 3/═════════════════════════════════════»
-        «                                           »
-
-        «      ┌────────────────────────────── ┌───┐ ───────┐       ░
-        « q_0: ┤ If-0 c2[2] ^ (c2[1] ^ c2[0])  ┤ Z ├  End-0 ├───────░─
-        «      └──────────────╥─────────────── └───┘ ───────┘       ░
-        « q_1: ───────────────╫─────────────────────────────────────░─
-        «                     ║                                     ░
-        « q_2: ───────────────╫─────────────────────────────────────░─
-        «                     ║                                     ░
-        « q_3: ───────────────╫─────────────────────────────────────░─
-        «                     ║                                     ░
-        « q_4: ───────────────╫─────────────────────────────────────░─
-        «                     ║                                     ░
-        « q_5: ───────────────╫────────────────────────────────|0>──░─
-        «                     ║                                     ░
-        « q_6: ───────────────╫─────────────────────────────────────░─
-        «                     ║                                     ░
-        «c1: 2/═══════════════╬═══════════════════════════════════════
-        «                 ┌───╨────┐
-        «c2: 3/═══════════╡ [expr] ╞══════════════════════════════════
-        «                 └────────┘
-
-    ### The comparison CNOT gate is used to entangle the first and last qubits
-
-    .. code-block:: text
-        # At 7 qubits:
-             ┌───┐
-        q_0: ┤ H ├──■──
-             └───┘  │
-        q_1: ───────┼──
-                    │
-        q_2: ───────┼──
-                    │
-        q_3: ───────┼──
-                    │
-        q_4: ───────┼──
-                    │
-        q_5: ───────┼──
-                  ┌─┴─┐
-        q_6: ─────┤ X ├
-                  └───┘
+    Raises:
+        ValueError: If num_qubits is not between 4 and 8.
     """
+    if num_qubits < 4 or num_qubits > 8:
+        raise ValueError("Number of qubits must be between 4 and 8")
 
-    @property
-    def mode(self) -> Literal["dynamic", "comparison"]:
-        """The state of the circuit.
+    qc = QuantumCircuit(num_qubits, name=name)
+    qc.h(0)
 
-        Returns:
-            The state of the circuit.
-        """
-        return self._mode
+    c1 = ClassicalRegister(int((num_qubits - 2) / 2), name="c1")
+    c2 = ClassicalRegister(num_qubits - 2 - int((num_qubits - 2) / 2), name="c2")
+    qc.add_register(c1)
+    qc.add_register(c2)
 
-    @mode.setter
-    def mode(self, mode: Literal["dynamic", "comparison"]) -> None:
-        """Set the state of the circuit.
+    if mode == "dynamic":
+        return add_cnot_dyn(
+            qc,
+            control_qubit=0,
+            target_qubit=num_qubits - 1,
+            c1=c1,
+            c2=c2,
+            reset_between_bell_pairs=reset_between_bell_pairs,
+        )
 
-        Args:
-            mode: The new state of the circuit.
-        """
-        if mode not in ["dynamic", "comparison"]:
-            raise ValueError("Mode must be either 'dynamic' or 'comparison'")
-        if hasattr(self, "_mode"):
-            raise AttributeError("Attribute 'mode' is read-only.")
-        self._mode: Literal["dynamic", "comparison"] = mode
+    if mode == "comparison":
+        qc.cx(0, num_qubits - 1)
+        return qc
 
-    @property
-    def reset_between_bell_pairs(self) -> bool:
-        """Whether to reset qubits between Bell pairs.
-
-        Returns:
-            Whether to reset qubits between Bell pairs.
-        """
-        return self._reset_between_bell_pairs
-
-    @reset_between_bell_pairs.setter
-    def reset_between_bell_pairs(self, reset_between_bell_pairs: bool) -> None:
-        """Set whether to reset qubits between Bell pairs.
-
-        Args:
-            reset_between_bell_pairs (bool): Whether to reset qubits between Bell pairs.
-        """
-        if hasattr(self, "_reset_between_bell_pairs"):
-            raise AttributeError("Attribute 'reset_between_bell_pairs' is read-only.")
-        self._reset_between_bell_pairs = reset_between_bell_pairs
-
-    def __init__(
-        self,
-        num_qubits: int,
-        mode: Literal["dynamic", "comparison"] = "dynamic",
-        reset_between_bell_pairs: bool = True,
-        name: str | None = None,
-    ) -> None:
-        """Create a circuit with a dynamic CNOT gate or comparison CNOT gate.
-
-        Args:
-            num_qubits (int): The number of qubits in the circuit.
-            mode (Literal["dynamic", "comparison"], optional):
-                The mode of the circuit. Defaults to "dynamic".
-            reset_between_bell_pairs (bool, optional):
-                Whether to reset qubits between Bell pairs. Defaults to True.
-            name (str | None, optional): The name of the circuit. Defaults to None.
-
-        Raises:
-            ValueError: If num_qubits is not between 4 and 8.
-        """
-
-        if num_qubits < 4 or num_qubits > 8:
-            raise ValueError("Number of qubits must be between 4 and 8")
-        super().__init__(name=name)
-        self.num_qubits = num_qubits
-        self.reset_between_bell_pairs = reset_between_bell_pairs
-        self.mode = mode
-
-    def _build(self) -> None:
-        if self._is_built:
-            return
-        super()._build()
-
-        self.h(0)
-
-        if self.mode == "dynamic":
-            control_qubit = 0
-            target_qubit = self.num_qubits - 1
-            n = target_qubit - control_qubit - 1
-            # Number of qubits between the target and control qubits
-            k = int(n / 2)
-            # Number of Bell pairs created
-
-            c1 = ClassicalRegister(k, "c1")
-            c2 = ClassicalRegister(n - k, "c2")
-            self.add_register(c1, c2)
-
-            add_cnot_dyn(
-                self,
-                control_qubit,
-                target_qubit,
-                c1,
-                c2,
-                add_barriers=True,
-                reset_between_bell_pairs=self.reset_between_bell_pairs,
-            )
-
-        else:
-            self.cx(0, self.num_qubits - 1)
+    raise ValueError("Invalid mode. Choose 'dynamic' or 'comparison'.")
 
 
-class TwoBodyWithMeasurement(TwoBody):
+def dummy_two_body_measurement(
+    num_qubits: int,
+    clbit_num_cluster: int = 4,
+    name: str | None = None,
+) -> QuantumCircuit:
     """A dummy circuit to simulate a two-body interaction
     with dedicated classical bits and reset gate.
     But the last 2 qubits will be not measured and reset.
 
-    For :cls:`EntropyMeasure` and :cls:`WaveFunctionOverlap` a.k.a. :cls:`EchoListen`.
-    It's a product state for no any entanglement.
-
-    To simulate a circuit with its own classical bits as an unit test case for qurry.
-
-    ### The dummy circuit with dedicated classical bits and reset gate
+    - The dummy circuit with dedicated classical bits and reset gate
 
     .. code-block:: text
         # At 6 qubits with 2 classical registers:
@@ -364,69 +215,42 @@ class TwoBodyWithMeasurement(TwoBody):
         c3: 4/═══════════════╩══╩═════════
                              1  2
 
+    Args:
+        num_qubits (int): The number of qubits in the circuit.
+        clbit_num_cluster (int, optional): The number of classical bits in each cluster. Defaults to 4.
+        name (str | None, optional): The name of the circuit. Defaults to None.
     """
 
-    @property
-    def clbit_num_cluster(self) -> int:
-        """The classical bit number of the cluster for each 2 qubits.
+    if num_qubits % 2 != 0:
+        raise ValueError("Number of qubits must be even number")
+    if num_qubits < 4:
+        raise ValueError(
+            "Number of qubits must be greater than 4, "
+            + "otherwise it will not any classical bits introduced."
+        )
+    if clbit_num_cluster < 1:
+        raise ValueError("Number of classical bits must be greater than 0")
 
-        Returns:
-            The classical bit number of the cluster for each 2 qubits.
-        """
-        return self._clbit_num_cluster
+    qc = QuantumCircuit(num_qubits, name=name)
 
-    @clbit_num_cluster.setter
-    def clbit_num_cluster(self, clbit_num_cluster: int) -> None:
-        """Set the classical bit number of the cluster for each 2 qubits.
+    for i in range(0, num_qubits, 2):
+        qc.x(i)
 
-        Args:
-            clbit_num_cluster (int): The new classical bit number of the cluster for each 2 qubits.
+    qc.barrier()
 
-        """
-        if hasattr(self, "_clbit_num_cluster"):
-            raise AttributeError("Attribute 'clbit_num_cluster' is read-only.")
-        self._clbit_num_cluster = clbit_num_cluster
+    for i in range(0, num_qubits - 2, 2):
+        tmp_c = ClassicalRegister(clbit_num_cluster, f"c{i}")
+        qc.add_register(tmp_c)
 
-    def __init__(
-        self,
-        num_qubits: int,
-        clbit_num_cluster: int = 4,
-        name: str | None = None,
-    ) -> None:
-        if num_qubits % 2 != 0:
-            raise ValueError("Number of qubits must be even number")
-        if num_qubits < 4:
-            raise ValueError(
-                "Number of qubits must be greater than 4, "
-                + "otherwise it will not any classical bits introduced."
-            )
-        if clbit_num_cluster < 1:
-            raise ValueError("Number of classical bits must be greater than 0")
-        super().__init__(name=name)
-        self.num_qubits = num_qubits
-        self.clbit_num_cluster = clbit_num_cluster
+        qc.measure(i, tmp_c[(0 + int(i / 2)) % clbit_num_cluster])
+        qc.measure(i + 1, tmp_c[(1 + int(i / 2)) % clbit_num_cluster])
 
-    def _build(self) -> None:
-        if self._is_built:
-            return
-        super()._build()
+    qc.barrier()
 
-        for i in range(0, self.num_qubits, 2):
-            self.x(i)
+    for i in range(0, num_qubits - 2):
+        qc.reset(i)
 
-        self.barrier()
-
-        for i in range(0, self.num_qubits - 2, 2):
-            tmp_c = ClassicalRegister(self.clbit_num_cluster, f"c{i}")
-            self.add_register(tmp_c)
-
-            self.measure(i, tmp_c[(0 + int(i / 2)) % self.clbit_num_cluster])
-            self.measure(i + 1, tmp_c[(1 + int(i / 2)) % self.clbit_num_cluster])
-
-        self.barrier()
-
-        for i in range(0, self.num_qubits - 2):
-            self.reset(i)
+    return qc
 
 
 def make_ghz_overlap_case(
@@ -454,9 +278,9 @@ def make_ghz_overlap_case(
         raise ValueError("Number of qubits must be greater than 0")
 
     if use_case == "intracell-plus":
-        return Intracell(num_qubits, "plus", name="ghz_intracell_plus")
+        return intracell(num_qubits, "plus", name="ghz_intracell_plus")
     if use_case == "singlet":
-        return Intracell(num_qubits, "singlet", name="ghz_singlet")
+        return intracell(num_qubits, "singlet", name="ghz_singlet")
     if use_case == "x-init-ghz":
         qc = QuantumCircuit(num_qubits, name="ghz_x_init")
         qc.x(0)

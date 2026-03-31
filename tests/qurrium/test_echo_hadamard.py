@@ -11,7 +11,7 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.echo_hadamard import EchoListenHadamard, ELHMeasureArgs
 from qurry.qurries.echo_hadamard.analysis import ELHAnalyzeArgs, ELHAnalysis
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
@@ -42,12 +42,12 @@ class CaseDataDict(TypedDict):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "4_trivial": TrivialParamagnet(4),
-        "4_ghz": GHZ(4),
-        "4_topological-period": Cluster(4),
-        "6_trivial": TrivialParamagnet(6),
-        "6_ghz": GHZ(6),
-        "6_topological-period": Cluster(6),
+        "4_trivial": trivial_paramagnet(4),
+        "4_ghz": ghz(4),
+        "4_topological-period": cluster(4),
+        "6_trivial": trivial_paramagnet(6),
+        "6_ghz": ghz(6),
+        "6_topological-period": cluster(6),
     }
 )
 

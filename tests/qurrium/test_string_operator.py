@@ -11,7 +11,7 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.string_operator import StringOperator, SOMeasureArgs
 from qurry.qurries.string_operator.analysis import SOAnalyzeArgs, SOAnalysis
-from qurry.recipe import TrivialParamagnet, Cluster
+from qurry.recipe import trivial_paramagnet, cluster
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
@@ -63,13 +63,13 @@ class CaseDataDict(TypedDict):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "5_trivial": TrivialParamagnet(5),
-        "6_trivial": TrivialParamagnet(6),
-        "7_trivial": TrivialParamagnet(7),
-        "8_trivial": TrivialParamagnet(8),
-        "9_trivial": TrivialParamagnet(9),
-        "6_topological": Cluster(6),
-        "8_topological": Cluster(8),
+        "5_trivial": trivial_paramagnet(5),
+        "6_trivial": trivial_paramagnet(6),
+        "7_trivial": trivial_paramagnet(7),
+        "8_trivial": trivial_paramagnet(8),
+        "9_trivial": trivial_paramagnet(9),
+        "6_topological": cluster(6),
+        "8_topological": cluster(8),
     }
 )
 

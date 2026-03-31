@@ -9,7 +9,7 @@ import pytest
 from qurry.qurries.samplingqurry import SamplingExecuter, SEMeasureArgs
 from qurry.qurries.wavesqurry import WavesExecuter, WEMeasureArgs
 from qurry.qurries.samplingqurry.analysis import DummyAnalysis, DummyAnalyzeArgs
-from qurry.recipe import TrivialParamagnet, Cluster, GHZ
+from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
@@ -30,9 +30,9 @@ SIMULATOR = get_seeded_simulator()
 
 circuits_lib = preparing_circuits_lib(
     {
-        "4_trivial": TrivialParamagnet(4),
-        "4_topological": Cluster(4),
-        "4_ghz": GHZ(4),
+        "4_trivial": trivial_paramagnet(4),
+        "4_topological": cluster(4),
+        "4_ghz": ghz(4),
     }
 )
 

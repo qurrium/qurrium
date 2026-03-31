@@ -17,7 +17,7 @@ from qiskit.circuit.library import ZGate, IGate
 from qurry.qurries.classical_shadow import ShadowUnveil, SUMeasureArgs
 from qurry.qurries.classical_shadow.analysis import SUAnalyzeArgs, SUAnalysis
 from qurry.qurries.magnet_square.analysis import MSDefaultResult
-from qurry.recipe import Cat, TrivialParamagnet
+from qurry.recipe import trivial_paramagnet, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.random_stuff import prepare_random_basis
@@ -62,14 +62,14 @@ class CaseDataDict(TypedDict):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "2_trivial": TrivialParamagnet(2),
-        "4_trivial": TrivialParamagnet(4),
-        "6_trivial": TrivialParamagnet(6),
-        "8_trivial": TrivialParamagnet(8),
-        "2_cat": Cat(2),
-        "4_cat": Cat(4),
-        "6_cat": Cat(6),
-        "8_cat": Cat(8),
+        "2_trivial": trivial_paramagnet(2),
+        "4_trivial": trivial_paramagnet(4),
+        "6_trivial": trivial_paramagnet(6),
+        "8_trivial": trivial_paramagnet(8),
+        "2_cat": ghz(2),
+        "4_cat": ghz(4),
+        "6_cat": ghz(6),
+        "8_cat": ghz(8),
     }
 )
 

@@ -11,7 +11,7 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.entropy_hadamard import EntropyMeasureHadamard, EMHMeasureArgs
 from qurry.qurries.entropy_hadamard.analysis import EMHAnalyzeArgs, EMHAnalysis
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
@@ -40,12 +40,12 @@ class CaseDataDict(TypedDict):
 
 
 case_datas: list[CaseDataDict] = [
-    {"circuit": TrivialParamagnet(4, name="4-trivial"), "expect_answer": 1.0},
-    {"circuit": GHZ(4, name="4-GHZ"), "expect_answer": 0.5},
-    {"circuit": Cluster(4, name="4-topological-period"), "expect_answer": 0.25},
-    {"circuit": TrivialParamagnet(6, name="6-trivial"), "expect_answer": 1.0},
-    {"circuit": GHZ(6, name="6-GHZ"), "expect_answer": 0.5},
-    {"circuit": Cluster(6, name="6-topological-period"), "expect_answer": 0.25},
+    {"circuit": trivial_paramagnet(4), "expect_answer": 1.0},
+    {"circuit": ghz(4), "expect_answer": 0.5},
+    {"circuit": cluster(4), "expect_answer": 0.25},
+    {"circuit": trivial_paramagnet(6), "expect_answer": 1.0},
+    {"circuit": ghz(6), "expect_answer": 0.5},
+    {"circuit": cluster(6), "expect_answer": 0.25},
 ]
 
 DEFAULT_DEGREE = (0, 2)
