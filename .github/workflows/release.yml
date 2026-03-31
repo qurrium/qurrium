@@ -96,27 +96,6 @@ jobs:
             git push origin ${{ steps.create_tag.outputs.VERSION }}
           fi
 
-      - name: Get custom tarball name
-        id: get_tarball_name
-        run: echo "TARBALL_NAME=qurrium-${{ github.ref_name }}" >> $GITHUB_OUTPUT
-
-      - name: Get archived folder name for custom tarball
-        id: get_archived_folder_name
-        run: echo "ARCHIVED_FOLDER=${{ github.repository_owner }}-qurrium-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Create custom tarball artifact
-        run: |
-          mkdir -p artifacts
-          tar czhvf ${{ steps.get_tarball_name.outputs.TARBALL_NAME }}-${{ steps.create_tag.outputs.VERSION }}.tar.gz \
-            --exclude="*metarepo-cpe-tag*" \
-            --directory=../ \
-            qurry/crates/ qurry/qurry/ qurry/tests/ \
-            qurry/rust-toolchain.toml qurry/pyproject.toml \
-            qurry/requirements.txt qurry/requirements-dev.txt \
-            qurry/Cargo.toml qurry/Cargo.lock \
-            qurry/MANIFEST.in qurry/README.md qurry/LICENSE \
-            --transform s/qurry/${{ steps.get_archived_folder_name.outputs.ARCHIVED_FOLDER }}/
-
       - name: Set release variables
         id: set_release_vars
         run: |
@@ -141,5 +120,3 @@ jobs:
           prerelease: ${{steps.set_release_vars.outputs.prerelease}}
           draft: true
           generate_release_notes: true
-          files: |
-            ${{ steps.get_tarball_name.outputs.TARBALL_NAME }}-${{ steps.create_tag.outputs.VERSION }}.tar.gz
