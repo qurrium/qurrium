@@ -228,8 +228,6 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELRArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
         """The method to construct circuit.
 
@@ -238,17 +236,12 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
                 The circuits of the experiment.
             arguments (EchoListenRandomizedArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             The circuits of the experiment and the side products.
         """
 
-        return method_process(targets, arguments, pbar, multiprocess)
+        return method_process(targets, arguments)
 
     def replace_second_backend(self, backend: Backend | None) -> None:
         """Replace the second backend of the experiment.
@@ -401,9 +394,7 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
         current_exp.beforewards.target.extend(targets)
-        circs, side_products = current_exp.method(
-            targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
-        )
+        circs, side_products = current_exp.method(targets, current_exp.args)
         current_exp.side_products.update(side_products)
 
         # qasm

@@ -329,11 +329,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     @abstractmethod
     def method(
-        cls,
-        targets: list[tuple[WCKeyable, QuantumCircuit]],
-        arguments: _A,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
+        cls, targets: list[tuple[WCKeyable, QuantumCircuit]], arguments: _A
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
         Where should be overwritten by each construction of new measurement.
@@ -341,9 +337,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             arguments (_Arg): The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment. Defaults to None.
-            multiprocess (bool, optional): Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -458,11 +451,9 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         # circuit
-        set_pbar_description(pbar, "Circuit creating...")
+        set_pbar_description(pbar, "Creating circuits...")
         current_exp.beforewards.target.extend(targets)
-        circs, side_prodict = current_exp.method(
-            targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
-        )
+        circs, side_prodict = current_exp.method(targets, current_exp.args)
         current_exp.side_products.update(side_prodict)
 
         # qasm
@@ -475,6 +466,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         # transpile
+        set_pbar_description(pbar, "Transpiling circuits...")
         transpiled_circs = process_transpilation(
             circs,
             current_exp.commons.transpile_args.copy(),
@@ -484,7 +476,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             multiprocess=multiprocess,
             pbar=pbar,
         )
-        set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
 
         # memory usage factor

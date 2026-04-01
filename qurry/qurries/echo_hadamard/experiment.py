@@ -1,7 +1,6 @@
 """EchoListenHadamard - Experiment (:mod:`qurry.qurries.echo_hadamard.experiment`)"""
 
 from typing import Any
-import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
@@ -95,8 +94,6 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ELHArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -105,11 +102,6 @@ class ELHxperiment(ExperimentPrototype[ELHArguments, ELHAnalysis]):
                 The circuits of the experiment.
             arguments (ELHArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:

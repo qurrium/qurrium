@@ -2,7 +2,6 @@
 
 from typing import Any
 import warnings
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -69,8 +68,6 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SEArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -79,19 +76,11 @@ class SEExperiment(ExperimentPrototype[SEArguments, DummyAnalysis[SEArguments]])
                 The circuits of the experiment.
             arguments (SEArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocess. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
-
-        if pbar is not None:
-            pbar.set_description("| Loading circuits")
 
         the_chosen_key, q = targets[0]
         the_chosen_key = "" if isinstance(the_chosen_key, int) else str(the_chosen_key)

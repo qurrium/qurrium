@@ -3,7 +3,6 @@
 from typing import Any
 from pathlib import Path
 from collections.abc import Iterable
-import tqdm
 import numpy.typing as npt
 
 from qiskit import QuantumCircuit
@@ -13,7 +12,6 @@ from .arguments import SUArguments, SHORT_NAME
 from .utils import make_samplied_circuit, get_basis_spin
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
-from ...tools import ParallelManager, set_pbar_description
 from ...process.utils import qubit_mapper, QubitSelectionType, FloatType
 from ...process.classical_shadow import (
     generate_random_basis,
@@ -181,8 +179,6 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SUArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -191,39 +187,27 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 The circuits of the experiment.
             arguments (SUArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
 
-        set_pbar_description(pbar, f"Preparing {arguments.snapshots} random unitary.")
-
         target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
+        target_key = target_key if isinstance(target_key, int) else str(target_key)
 
-        pm = ParallelManager(workers_num=(None if multiprocess else 1))
-        circ_list = pm.starmap(
-            make_samplied_circuit,
-            [
-                (
-                    n_u_i,
-                    target_circuit,
-                    target_key,
-                    arguments.exp_name,
-                    arguments.registers_mapping,
-                    arguments.random_basis[n_u_i],
-                    arguments.shadow_basis,
-                )
-                for n_u_i in range(arguments.snapshots)
-            ],
-        )
-        return circ_list, {}
+        return [
+            make_samplied_circuit(
+                n_u_i,
+                target_circuit,
+                target_key,
+                arguments.exp_name,
+                arguments.registers_mapping,
+                arguments.random_basis[n_u_i],
+                arguments.shadow_basis,
+            )
+            for n_u_i in range(arguments.snapshots)
+        ], {}
 
     def prepare_entries_analysis(
         self,

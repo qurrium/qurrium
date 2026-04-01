@@ -1,7 +1,6 @@
 """EchoListenRandomized - Utility (:mod:`qurry.qurries.echo_randomized.utils`)"""
 
 from typing import Literal
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -13,12 +12,10 @@ from .exceptions import (
     NSG_OVERLAPPING_SIZE,
 )
 from ...qurrium import WCKeyable
-from ..entropy_randomized import RandomizedMeasureTales
-from ..entropy_randomized.utils import make_samplied_circuit, make_unitary_op_pauli_coeff
+from ..entropy_randomized import RandomizedMeasureTales, make_samplied_circuit
 from ..entropy_randomized.exceptions import UnitaryOperatorNotFullCovering, MSG_FULL_COVER
 from ...process.utils import qubit_mapper, QubitSelectionType
 from ...process.randomized_measure import generate_random_unitary
-from ...tools import ParallelManager, set_pbar_description
 
 
 def create_config(
@@ -227,8 +224,6 @@ def unitary_full_cover_check(
 def method_process(
     targets: list[tuple[WCKeyable, QuantumCircuit]],
     arguments: ELRArguments,
-    pbar: tqdm.tqdm | None = None,
-    multiprocess: bool = False,
 ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
     """The process method for building the circuits of the experiment.
 
@@ -237,10 +232,6 @@ def method_process(
             The circuits of the experiment.
         arguments (ELRArguments):
             The arguments of the experiment.
-        pbar (tqdm.tqdm | None, optional):
-            The progress bar for showing the progress of the experiment.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to False.
 
     Returns:
         A tuple containing a list of quantum circuits and a dictionary of additional information.
@@ -253,7 +244,6 @@ def method_process(
     target_key_2, target_circuit_2 = targets[1]
     target_key_2 = "" if isinstance(target_key_2, int) else str(target_key_2)
 
-    set_pbar_description(pbar, f"Preparing {arguments.times} random unitary.")
     assert len(arguments.unitary_located_mapping_1) == len(arguments.unitary_located_mapping_2), (
         "The number of unitary_located_mapping_1 and "
         + "unitary_located_mapping_2 should be the same, "
@@ -288,12 +278,9 @@ def method_process(
     unitary_items.sort(key=lambda x: x[0])
     unitary_dicts = dict(unitary_items)
 
-    set_pbar_description(pbar, f"Building {arguments.times} circuits.")
-    pm = ParallelManager(workers_num=(None if multiprocess else 1))
-    circ_list = pm.starmap(
-        make_samplied_circuit,
+    return (
         [
-            (
+            make_samplied_circuit(
                 n_u_i,
                 target_circuit_1,
                 target_key_1,
@@ -304,7 +291,7 @@ def method_process(
             for n_u_i in range(arguments.times)
         ]
         + [
-            (
+            make_samplied_circuit(
                 n_u_i + arguments.times,
                 target_circuit_2,
                 target_key_2,
@@ -313,24 +300,5 @@ def method_process(
                 unitary_dicts[n_u_i + arguments.times],
             )
             for n_u_i in range(arguments.times)
-        ],
-    )
-    other_results = [
-        make_unitary_op_pauli_coeff(n_u_i, unitary_dicts[n_u_i]) for n_u_i in range(arguments.times)
-    ]
-
-    assert len(circ_list) == 2 * arguments.times, (
-        "The number of circuits generated is not correct."
-        + f" Get {len(circ_list)}, expect {2 * arguments.times}."
-    )
-    assert [x[0] for x in other_results] == list(range(arguments.times)), (
-        "The indices of the results are not correct."
-        + f" Get {[x[0] for x in other_results]}, expect {list(range(arguments.times))}."
-    )
-
-    return circ_list, RandomizedMeasureTales(
-        {
-            "unitary_operator": {i: u_op for i, u_op, _p_c in other_results},
-            "bloch_vector": {i: p_c for i, _u_op, p_c in other_results},
-        }
-    )
+        ]
+    ), RandomizedMeasureTales.make(unitary_dicts)
