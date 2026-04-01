@@ -7,6 +7,7 @@
 
 from .experiment import EMRExperiment
 from .tales import RandomizedMeasureTales
+from .utils import make_samplied_circuit
 from .arguments import EMRMeasureArgs, SHORT_NAME, ACRONYM
 from .analysis import EMRAnalysis
 from .qurry import EntropyMeasureRandomized

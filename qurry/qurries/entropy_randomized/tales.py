@@ -3,8 +3,14 @@
 from typing import Any, overload, Literal
 import numpy as np
 
+from qiskit.quantum_info import Operator
+
 from ...qurrium import Tales
 from ...capsule import jsonablize
+from ...process.randomized_measure import (
+    local_unitary_op_to_list,
+    local_unitary_op_to_bloch_vector,
+)
 
 
 class RandomizedMeasureTales(Tales):
@@ -75,3 +81,21 @@ class RandomizedMeasureTales(Tales):
         others = {k: v for k, v in raw_dict.items() if k not in dedicated}
 
         return cls({**dedicated, **others})
+
+    @classmethod
+    def make(cls, unitary_dicts: dict[int, dict[int, Operator]]) -> "RandomizedMeasureTales":
+        """Create a RandomizedMeasureTales instance from unitary dictionaries.
+
+        Args:
+            unitary_dicts (dict[int, dict[int, Operator]]): The dictionary of unitary operators.
+
+        Returns:
+            RandomizedMeasureTales: The created RandomizedMeasureTales instance.
+        """
+        unitary_operator = {
+            n_u_i: local_unitary_op_to_list(ops) for n_u_i, ops in unitary_dicts.items()
+        }
+        bloch_vector = {
+            n_u_i: local_unitary_op_to_bloch_vector(ops) for n_u_i, ops in unitary_operator.items()
+        }
+        return cls({"unitary_operator": unitary_operator, "bloch_vector": bloch_vector})
