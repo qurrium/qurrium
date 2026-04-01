@@ -16,7 +16,6 @@ from .afterwards import After
 from ..analysis import AnalysesContainer
 from ..container import WCKeyable, TranspileArgs
 from ..arguments import Commonparams, ArgumentsPrototype
-from ..utils import qasm_dumps, AvailableQASMVersions
 from ..utils.iocontrol import RJUST_LEN
 from ..exceptions import (
     InvalidExpIdReplacementWarning,
@@ -29,7 +28,7 @@ from ..exceptions import (
     ABOUT_UNRUNNABLE_THIRD_PARTY,
 )
 from ...capsule.hoshi import Hoshi
-from ...tools import ParallelManager, set_pbar_description
+from ...tools import set_pbar_description
 
 
 def exp_id_process(exp_id: str | None) -> str:
@@ -168,61 +167,6 @@ def summonner_check(serial: int | None, summoner_id: str | None, summoner_name: 
             "Summoner data is not completed, it will export in single experiment mode.",
         )
     return summon_fulfill
-
-
-def _target_dumps_worker(
-    item: tuple[WCKeyable, QuantumCircuit], qasm_version: AvailableQASMVersions
-) -> tuple[str, str]:
-    """Worker function for dumping target circuits to OpenQASM strings.
-
-    Args:
-        item (tuple[WCKeyable, QuantumCircuit]):
-            The target circuit item containing the key and the circuit.
-        qasm_version (AvailableQASMVersions):
-            The export version of OpenQASM.
-
-    Returns:
-        A tuple containing the key as a string and the OpenQASM string of the circuit.
-    """
-    key, circuit = item
-    return str(key), qasm_dumps(circuit, qasm_version)
-
-
-def make_qasm_strings(
-    circuits: list[QuantumCircuit],
-    targets: list[tuple[WCKeyable, QuantumCircuit]],
-    qasm_version: AvailableQASMVersions = "qasm3",
-    multiprocess: bool = False,
-) -> tuple[list[str], list[tuple[str, str]]]:
-    """Make OpenQASM strings from the target circuits.
-
-    Args:
-        circuits (list[QuantumCircuit]):
-            The transpiled circuits of the experiment.
-        targets (list[tuple[WCKeyable, QuantumCircuit]]):
-            The target circuits of the experiment.
-        qasm_version (AvailableQASMVersions, optional):
-            The export version of OpenQASM. Defaults to 'qasm3'.
-        multiprocess (bool, optional):
-            Whether to use multiprocessing. Defaults to False.
-
-    Returns:
-        A tuple containing the OpenQASM strings of the transpiled circuits
-        and a list of tuples of target keys and their OpenQASM strings.
-    """
-
-    if not multiprocess:
-        return [qasm_dumps(q, qasm_version) for q in circuits], [
-            (str(key), qasm_dumps(circuit, qasm_version)) for key, circuit in targets
-        ]
-
-    pm = ParallelManager()
-
-    circuit_qasm_strings = pm.starmap(qasm_dumps, [(q, qasm_version) for q in circuits])
-
-    target_qasm_strings = pm.starmap(_target_dumps_worker, [(tgt, qasm_version) for tgt in targets])
-
-    return circuit_qasm_strings, target_qasm_strings
 
 
 def inner_process_transpile_func(

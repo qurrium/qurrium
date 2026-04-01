@@ -20,7 +20,6 @@ from .utils import (
     memory_usage_factor_expect,
     implementation_check,
     summonner_check,
-    make_qasm_strings,
     process_transpilation,
     make_statesheet,
     create_save_location,
@@ -34,6 +33,7 @@ from ..utils import (
     get_counts_and_exceptions,
     outfields_check,
     outfields_hint,
+    qasm_dumps,
     AvailableQASMVersions,
 )
 from ..utils.file_structure import is_old_v7_file_structure
@@ -460,22 +460,23 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
         current_exp.beforewards.target.extend(targets)
-        cirqs, side_prodict = current_exp.method(
+        circs, side_prodict = current_exp.method(
             targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
         current_exp.side_products.update(side_prodict)
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-        circuit_qasm_strings, target_qasm_strings = make_qasm_strings(
-            cirqs, targets, qasm_version, multiprocess=multiprocess
+        current_exp.beforewards.circuit_qasm.extend(
+            qasm_dumps(circ, qasm_version) for circ in circs
         )
-        current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
-        current_exp.beforewards.target_qasm.extend(target_qasm_strings)
+        current_exp.beforewards.target_qasm.extend(
+            (str(key), qasm_dumps(circ, qasm_version)) for key, circ in targets
+        )
 
         # transpile
         transpiled_circs = process_transpilation(
-            cirqs,
+            circs,
             current_exp.commons.transpile_args.copy(),
             current_exp.commons.backend,
             passmanager_pair,

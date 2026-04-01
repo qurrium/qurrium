@@ -22,10 +22,9 @@ from .utils import (
 from .exceptions import SeperatedExecutingOverlapResult
 from ..entropy_randomized import RandomizedMeasureTales
 from ...qurrium import ExperimentPrototype, Commonparams, RunArgsType, TranspileArgs, WCKeyable
-from ...qurrium.utils import get_counts_and_exceptions
+from ...qurrium.utils import get_counts_and_exceptions, qasm_dumps
 from ...qurrium.experiment import (
     memory_usage_factor_expect,
-    make_qasm_strings,
     ensure_runnable_backend,
     process_duo_transpilation,
 )
@@ -402,21 +401,22 @@ class ELRExperiment(ExperimentPrototype[ELRArguments, ELRAnalysis]):
         # circuit
         set_pbar_description(pbar, "Circuit creating...")
         current_exp.beforewards.target.extend(targets)
-        cirqs, side_products = current_exp.method(
+        circs, side_products = current_exp.method(
             targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
         )
         current_exp.side_products.update(side_products)
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-        circuit_qasm_strings, target_qasm_strings = make_qasm_strings(
-            cirqs, targets, qasm_version, multiprocess=multiprocess
+        current_exp.beforewards.circuit_qasm.extend(
+            qasm_dumps(circ, qasm_version) for circ in circs
         )
-        current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
-        current_exp.beforewards.target_qasm.extend(target_qasm_strings)
+        current_exp.beforewards.target_qasm.extend(
+            (str(key), qasm_dumps(circ, qasm_version)) for key, circ in targets
+        )
 
         transpiled_circs = process_duo_transpilation(
-            circuits=cirqs,
+            circuits=circs,
             backend=current_exp.commons.backend,
             transpile_args=current_exp.commons.transpile_args.copy(),
             passmanager_pair=passmanager_pair,
