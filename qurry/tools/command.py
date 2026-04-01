@@ -80,8 +80,8 @@ def fun_platform_check():
         print("| Is it on Termux on Android Phone or Tablet?")
         print('| "The Quantum Computing Right At Your Fingertips" :smile:')
 
-        if "synology" in uname_all.lower():
-            print(f"| uname -a: '{uname_all}'")
-            print("| Seriously? You're running Quantum Computing on a Synology NAS?")
-            print('| "Your NAS can also perform Quantum Computing!" :smile:')
-            print("| You're a true geek! :smile:")
+    if "synology" in uname_all.lower():
+        print(f"| uname -a: '{uname_all}'")
+        print("| Seriously? You're running Quantum Computing on a Synology NAS?")
+        print('| "Your NAS can also perform Quantum Computing!" :smile:')
+        print("| You're a true geek! :smile:")

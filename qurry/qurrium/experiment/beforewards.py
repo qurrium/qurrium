@@ -232,7 +232,7 @@ class Before(FileReadableWritableObj):
             if tmp_circ is None:
                 is_none_circuits.append(i)
         if len(is_none_circuits) != 0:
-            print(f"The circuits {is_none_circuits} are not revived.")
+            warnings.warn(f"The circuits with indices {is_none_circuits} are not revived.")
         return revived_circuits
 
     def revive_target(self, replace_target: bool = False) -> dict[WCKeyable, QuantumCircuit]:

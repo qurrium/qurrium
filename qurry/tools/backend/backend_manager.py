@@ -2,7 +2,6 @@
 
 from typing import Literal
 from collections.abc import Callable
-from random import random
 import warnings
 
 from qiskit.providers import Backend
@@ -182,11 +181,10 @@ class BackendWrapper:
         """
 
         if sign == "Galm 2" or who == "solo_wing_pixy":
-            if random() <= 0.2:
-                print(
-                    "Those who survive a long time on the battlefield "
-                    + "start to think they're invincible. I bet you do, too, Buddy."
-                )
+            print(
+                "Those who survive a long time on the battlefield "
+                + "start to think they're invincible. I bet you do, too, Buddy."
+            )
         for avaiable_type in ["real", "sim", "fake", "extra"]:
             if sign in self.backend_callsign_dict[avaiable_type]:
                 raise ValueError(f"'{sign}' callsign already exists.")

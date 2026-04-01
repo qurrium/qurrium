@@ -205,7 +205,8 @@ class EchoListenRandomized(
         )
 
         if wave1 == "your_darkness" and wave2 == "my_darkness":
-            print("| Let me take it all away...")
+            print("| Your darkness and mine, a storm I can't disobey.")
+            print("| Let me take you away...")
 
         return {
             "circuits": [wave1, wave2],
