@@ -10,7 +10,6 @@ from .utils import (
     memory_usage_factor_expect,
     implementation_check,
     summonner_check,
-    make_qasm_strings,
     process_transpilation,
     process_duo_transpilation,
     make_statesheet,
