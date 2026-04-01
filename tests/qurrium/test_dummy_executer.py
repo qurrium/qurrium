@@ -13,7 +13,8 @@ from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
+    AnalysisResultChecker,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -41,8 +42,8 @@ DEFAULT_SAMPLING = 5
 
 def make_case_for_2_qurries() -> list[
     tuple[
-        CaseEntriesTuple[SEMeasureArgs, DummyAnalyzeArgs],
-        CaseEntriesTuple[WEMeasureArgs, DummyAnalyzeArgs],
+        CaseEntries[SEMeasureArgs, DummyAnalyzeArgs],
+        CaseEntries[WEMeasureArgs, DummyAnalyzeArgs],
     ]
 ]:
     """Make a case data dictionary for two qurries.
@@ -56,8 +57,8 @@ def make_case_for_2_qurries() -> list[
     """
     se_and_we_cases: list[
         tuple[
-            CaseEntriesTuple[SEMeasureArgs, DummyAnalyzeArgs],
-            CaseEntriesTuple[WEMeasureArgs, DummyAnalyzeArgs],
+            CaseEntries[SEMeasureArgs, DummyAnalyzeArgs],
+            CaseEntries[WEMeasureArgs, DummyAnalyzeArgs],
         ]
     ] = []
 
@@ -66,13 +67,13 @@ def make_case_for_2_qurries() -> list[
         circ.measure_all()
         se_and_we_cases.append(
             (
-                CaseEntriesTuple(
+                CaseEntries(
                     tags=(f"{circuit_name}", f"sampling_{DEFAULT_SAMPLING}"),
                     measure_entries={"wave": circ, "sampling": DEFAULT_SAMPLING},
                     analyze_entries={},
                     expect_answer={"default": ("ultimate_answer", 42)},
                 ),
-                CaseEntriesTuple(
+                CaseEntries(
                     tags=(f"{circuit_name}", f"repeating_{DEFAULT_SAMPLING}"),
                     measure_entries={"waves": [circ for i in range(DEFAULT_SAMPLING)]},
                     analyze_entries={},
@@ -89,8 +90,8 @@ SE_AND_WE_CASES = make_case_for_2_qurries()
 
 @pytest.mark.parametrize(["se_case", "we_case"], SE_AND_WE_CASES)
 def test_measure_and_analyze_2_dummy(
-    se_case: CaseEntriesTuple[SEMeasureArgs, DummyAnalyzeArgs],
-    we_case: CaseEntriesTuple[WEMeasureArgs, DummyAnalyzeArgs],
+    se_case: CaseEntries[SEMeasureArgs, DummyAnalyzeArgs],
+    we_case: CaseEntries[WEMeasureArgs, DummyAnalyzeArgs],
 ) -> None:
     """Test orphan experiments of two dummy qurries.
 
@@ -104,13 +105,13 @@ def test_measure_and_analyze_2_dummy(
     exp_method_01 = SamplingExecuter()
     exp_method_02 = WavesExecuter()
 
-    exp_id_01 = exp_method_01.measure(**se_case.measure_entries_with_tags())
-    analysis_01 = exp_method_01.exps[exp_id_01].analyze(**se_case.analyze_entries)
+    exp_01 = exp_method_01.measure(**se_case.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**se_case.analyze_entries)
 
-    exp_id_02 = exp_method_02.measure(**we_case.measure_entries_with_tags())
-    analysis_02 = exp_method_02.exps[exp_id_02].analyze(**we_case.analyze_entries)
+    exp_02 = exp_method_02.measure(**we_case.measure_entries_with_tags())
+    analysis_02 = exp_02.analyze(**we_case.analyze_entries)
 
-    checker_list = []
+    checker_list: list[AnalysisResultChecker] = []
 
     checker_list += [
         check_analysis_result(

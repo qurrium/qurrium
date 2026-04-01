@@ -25,7 +25,7 @@ from qurry.recipe import trivial_paramagnet, ghz, cluster
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     AnalysisResultChecker,
     EXPORT_DIR,
@@ -172,8 +172,8 @@ def all_methods_comparison(
     return invalid_results
 
 
-CASES: list[CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[SUMeasureArgs, SUAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuit'].name}",),
         measure_entries={
             "wave": case_data["circuit"],
@@ -198,7 +198,7 @@ CASES: list[CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs],
+    case_entries: CaseEntries[SUMeasureArgs, SUAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -207,7 +207,7 @@ def test_measure_and_analyze(
     """
 
     exp_method = ShadowUnveil()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
     checker_list: list[AnalysisResultChecker] = []
     invalid_results_of_each_kind: dict[
         str, list[tuple[str, FloatType, str, FloatType, FloatType, FloatType]]
@@ -221,7 +221,7 @@ def test_measure_and_analyze(
             analyze_entries_with_methods = case_entries.analyze_entries.copy()
             analyze_entries_with_methods["rho_method"] = rho_method
             analyze_entries_with_methods["trace_method"] = trace_method
-            analysis_tmp = exp_method.exps[exp_id].analyze(**analyze_entries_with_methods)
+            analysis_tmp = exp_01.analyze(**analyze_entries_with_methods)
 
             checker_list_tmp += [
                 check_analysis_result(

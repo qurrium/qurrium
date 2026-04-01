@@ -15,7 +15,7 @@ from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -78,8 +78,8 @@ case_datas: list[CaseDataDict] = [
 
 DEFAULT_DEGREE = (0, 2)
 
-CASES: list[CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[ELHMeasureArgs, ELHAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}",),
         measure_entries={
             "wave1": case_data["circuits"][0],
@@ -96,7 +96,7 @@ CASES: list[CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[ELHMeasureArgs, ELHAnalyzeArgs],
+    case_entries: CaseEntries[ELHMeasureArgs, ELHAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -105,8 +105,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = EchoListenHadamard()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(

@@ -15,7 +15,7 @@ from qurry.recipe import trivial_paramagnet, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -69,8 +69,8 @@ case_datas: list[CaseDataDict] = [
     for name, circuit in circuits_lib.items()
 ]
 
-CASES: list[CaseEntriesTuple[ZMSMeasureArgs, ZMSAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[ZMSMeasureArgs, ZMSAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuit'].name}",),
         measure_entries={"wave": case_data["circuit"], "backend": SIMULATOR},
         analyze_entries={},
@@ -82,7 +82,7 @@ CASES: list[CaseEntriesTuple[ZMSMeasureArgs, ZMSAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[ZMSMeasureArgs, ZMSAnalyzeArgs],
+    case_entries: CaseEntries[ZMSMeasureArgs, ZMSAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -91,8 +91,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = ZDirMagnetSquare()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(

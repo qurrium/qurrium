@@ -15,7 +15,7 @@ from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -188,7 +188,7 @@ DEFAULT_SELECTED_CLREGS = list(range(-2, 0))
 
 def make_case_entries(
     case_data: CaseDataDict, times: int = DEFAULT_TIMES
-) -> CaseEntriesTuple[ELRMeasureArgs, ELRAnalyzeArgs]:
+) -> CaseEntries[ELRMeasureArgs, ELRAnalyzeArgs]:
     """Make case entries from case data.
 
     Args:
@@ -220,7 +220,7 @@ def make_case_entries(
 
     random_unitary_seeds = {i: RANDOM_UNITARY_SEEDS[actual_qubits_num][i] for i in range(times)}
 
-    return CaseEntriesTuple(
+    return CaseEntries(
         tags=(f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}",),
         measure_entries={
             "wave1": case_data["circuits"][0],
@@ -245,7 +245,7 @@ CASES = [make_case_entries(case_data) for case_data in case_datas]
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[ELRMeasureArgs, ELRAnalyzeArgs],
+    case_entries: CaseEntries[ELRMeasureArgs, ELRAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -254,8 +254,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = EchoListenRandomized()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(
