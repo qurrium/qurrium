@@ -38,16 +38,6 @@ def pytorch_cuda_check() -> bool | None:
 
         # pylint: disable=import-outside-toplevel
 
-        print(f" - CUDA availability check by Torch --------- {torch.cuda.is_available()}")
-        print(
-            ">>> Using torch "
-            + " ".join(
-                (
-                    torch.__version__,
-                    (torch.cuda.get_device_properties(0) if torch.cuda.is_available() else "CPU"),
-                )
-            )
-        )
         return torch.cuda.is_available()
     except ImportError:
         warnings.warn(
