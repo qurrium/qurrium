@@ -2,29 +2,29 @@
 
 from typing import Literal
 
-from ..randomized_measure import (
+from .randomized_measure import (
     entangled_availability,
     entangled_v1_availability,
     overlap_availability,
     overlap_v1_availability,
 )
-from ..hadamard_test import purity_echo_core_availability
-from ..magnet_square import magnet_square_availability
-from ..classical_shadow import (
+from .hadamard_test import purity_echo_core_availability
+from .magnet_square import magnet_square_availability
+from .classical_shadow import (
     classical_shadow_rho_process_availability,
     classical_shadow_matrix_availability,
 )
-from ..string_operator import string_operator_availability
+from .string_operator import string_operator_availability
 
-from ..utils import (
+from .utils import (
     counts_process_availability,
     bit_slice_availability,
     randomized_availability,
     dummy_availability,
 )
-from ..availability import BACKEND_TYPES
-from ...version import __version__
-from ...capsule.hoshi import Hoshi
+from .availability import BACKEND_TYPES
+from ..version import __version__
+from ..capsule.hoshi import Hoshi
 
 
 def availability_status_print() -> tuple[
