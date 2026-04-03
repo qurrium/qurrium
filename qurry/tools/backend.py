@@ -1,4 +1,4 @@
-"""Import Simulator (:mod:`qurry.tools.backend.import_simulator`)
+"""Backend Utilities and Simulator (:mod:`qurry.tools.backend`)
 
 This module provides the default simulator for Qurrium.
 For the simulator, the following sources are considered:
@@ -13,10 +13,9 @@ and ordered by priority.
 """
 
 from typing import Literal, Any
-from qiskit.providers import BackendV2, Backend
+from collections.abc import Callable
 
-from ..qiskit_version import QISKIT_VERSION
-from .utils import backend_name_getter
+from qiskit.providers import BackendV2, Backend
 
 
 # pylint: disable=ungrouped-imports
@@ -53,8 +52,9 @@ except ImportError as err:
 
 try:
     from qiskit.providers.basic_provider import BasicSimulator, BasicProvider  # type: ignore
+    from qiskit import __version__ as qiskit_version  # type: ignore
 
-    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = QISKIT_VERSION.get("qiskit")
+    SIM_VERSION_INFOS["qiskit.providers.basic_provider"] = qiskit_version
     SIMULATOR_SOURCES["qiskit.providers.basic_provider"] = BasicSimulator
     SIM_BACKEND_SOURCES["qiskit.providers.basic_provider"] = BackendV2
     SIM_PROVIDER_SOURCES["qiskit.providers.basic_provider"] = BasicProvider
@@ -83,13 +83,34 @@ try:
         BasicAerProvider,
         QasmSimulatorPy,
     )
+    from qiskit import __version__ as qiskit_version  # type: ignore
 
-    SIM_VERSION_INFOS["qiskit.providers.basicaer"] = QISKIT_VERSION.get("qiskit")
+    SIM_VERSION_INFOS["qiskit.providers.basicaer"] = qiskit_version
     SIMULATOR_SOURCES["qiskit.providers.basicaer"] = QasmSimulatorPy
     SIM_BACKEND_SOURCES["qiskit.providers.basicaer"] = Backend
     SIM_PROVIDER_SOURCES["qiskit.providers.basicaer"] = BasicAerProvider
 except ImportError as err:
     SIM_IMPORT_ERROR_INFOS["qiskit.providers.basicaer"] = err
+
+
+def backend_name_getter(back: BackendV2 | Backend | str) -> str:
+    """Get the name of backend.
+
+    Args:
+        back (BackendV2 | Backend | str): The backend instance.
+    Returns:
+        str: The name of backend.
+    """
+
+    if isinstance(back, str):
+        return back
+    if isinstance(back, BackendV2):
+        return back.name
+    if isinstance(back, Callable):
+        return back.name()  # type: ignore
+    if isinstance(back, Backend):
+        return str(back)
+    return "unknown_backend"
 
 
 def get_default_sim_source() -> ImportPointType:
