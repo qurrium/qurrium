@@ -2,7 +2,7 @@
 
 from .simple import (
     singlet,
-    intracell_circ as intracell,
+    intracell,
     trivial_paramagnet,
     topological_paramagnet,
     cluster,

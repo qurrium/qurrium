@@ -1,4 +1,4 @@
-"""Intracell (:mod:`qurecipe.simple.intracell`)"""
+"""Intracell (:mod:`qurry.recipe.simple.intracell_cluster`)"""
 
 from typing import Literal
 
@@ -6,7 +6,7 @@ from qiskit import QuantumCircuit
 
 
 class Intracell(QuantumCircuit):
-    r"""The entangled circuit :class:`~qurecipe.simple.intracell.Intracell`."""
+    r"""The entangled circuit :class:`~qurry.recipe.simple.intracell_cluster.Intracell`."""
 
     @property
     def state(self) -> Literal["singlet", "minus", "plus"]:
@@ -55,7 +55,7 @@ class Intracell(QuantumCircuit):
         self.state = state
 
 
-def intracell_circ(
+def intracell(
     num_qubits: int, state: Literal["singlet", "minus", "plus"] = "singlet", name: str = "intracell"
 ) -> Intracell:
     r"""Generate the intracell state circuit.
@@ -137,8 +137,8 @@ def intracell_circ(
 
 
 def singlet(num_qubits: int, name: str = "singlet") -> Intracell:
-    r""":class:`~qurecipe.simple.intracell.Singlet`,
-    the entangled circuit :class:`~qurecipe.simple.intracell.Intracell` with `singlet` state.
+    r""":class:`~qurry.recipe.simple.intracell_cluster.Singlet`, the entangled circuit 
+    :class:`~qurry.recipe.simple.intracell_cluster.Intracell` with `singlet` state.
 
     .. code-block:: text
 
@@ -173,4 +173,4 @@ def singlet(num_qubits: int, name: str = "singlet") -> Intracell:
     Raises:
         ValueError: When given number of qubits is not even.
     """
-    return intracell_circ(num_qubits=num_qubits, state="singlet", name=name)
+    return intracell(num_qubits=num_qubits, state="singlet", name=name)
