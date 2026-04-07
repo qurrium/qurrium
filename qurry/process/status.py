@@ -1,4 +1,4 @@
-"""Check the availability of the post-processing modules. (:mod:`qurry.process.status.backend`)"""
+"""Check the availability of the post-processing modules. (:mod:`qurry.process.status`)"""
 
 from typing import Literal
 

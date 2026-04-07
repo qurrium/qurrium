@@ -1,4 +1,4 @@
-"""Multimanagers Container (:mod:`qurry.qurrium.mm_container`)"""
+"""Multimanagers Container (:mod:`qurry.qurrium.qurrium.mm_container`)"""
 
 from ..multimanager import MultiManager, _E
 from ...capsule import CustomDict, DEFAULT_INDENT

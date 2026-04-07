@@ -1,5 +1,5 @@
-"""Post Processing - Classical Shadow - Trace-Prediction Process - Matrix Calculation
-(:mod:`qurry.process.classical_shadow.trace_predict_process.matrix_calculation`)
+"""Post Processing - Classical Shadow - Matrix Calculation
+(:mod:`qurry.process.classical_shadow.matrix_calculation`)
 
 The matrix calculation for predicting quantum properties.
 

@@ -1,4 +1,4 @@
-"""The Arguments of Experiment (:mod:`qurry.qurrium.experiment.arguments`)"""
+"""The Arguments of Experiment (:mod:`qurry.qurrium.arguments.arguments`)"""
 
 from typing import Any, TypeVar
 from pathlib import Path
