@@ -604,7 +604,7 @@ class ShadowBasisMethod(BaseMethodEnum):
         Returns:
             ShadowBasisMethod: The default basis method.
         """
-        return cls.RX_RY_RZ
+        return cls.H_H_SDG_I
 
     @classmethod
     def get_shadow_basis(
