@@ -5,6 +5,7 @@ import warnings
 from abc import abstractmethod, ABC
 from typing import Any, Generic
 from pathlib import Path
+from dataclasses import replace
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -311,7 +312,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         outfield_maybe, outfields_unknown = outfields_check(
-            outfields, arguments.fields + commonparams._fields
+            outfields, arguments.fields + commonparams.fields
         )
         outfields_hint(outfield_maybe, outfields_unknown, mute_outfields_warning)
 
@@ -651,7 +652,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         old_backend_name = backend_name_getter(old_backend)
         new_backend_name = backend_name_getter(backend)
         self.commons.datetimes.add_serial(f"replace-{old_backend_name}-to-{new_backend_name}")
-        self.commons = self.commons._replace(backend=backend)
+        self.commons = replace(self.commons, backend=backend)
 
     @abstractmethod
     def analyze(self) -> _R:
@@ -761,11 +762,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         Returns:
             Export: A namedtuple containing the data of experiment
-                which can be more easily to export as json file.
+                which can be more easily exported as a json file.
         """
         save_location = create_save_location(save_location, self.commons)
         if self.commons.save_location != save_location:
-            self.commons = self.commons._replace(save_location=save_location)
+            self.commons = replace(self.commons, save_location=save_location)
 
         # multi-experiment mode
         save_loc_folder, exp_identifier = decide_folder_and_filename(self.commons, self.args)

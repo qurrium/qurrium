@@ -118,7 +118,7 @@ def implementation_check(name_exps: str, args: ArgumentsPrototype, commons: Comm
             If the experiment's name is not configured.
     """
 
-    duplicate_fields = set(args.fields) & set(commons._fields)
+    duplicate_fields = set(args.fields) & set(commons.fields)
     if len(duplicate_fields) > 0:
         raise InvalidInherition(
             f"{name_exps}.arguments which and {name_exps}.commonparams "
@@ -431,7 +431,7 @@ def make_statesheet(
         info.newline(("itemize", str(k), str(v), "", 2))
 
     info.newline(("itemize", "commonparams"))
-    for k, v in commons._asdict().items():
+    for k, v in commons.asdict().items():
         info.newline(
             (
                 "itemize",

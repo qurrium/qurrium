@@ -1,6 +1,9 @@
 """The Utils of Qurrium Arguments (:mod:`qurry.qurrium.arguments.utils`)"""
 
 from typing import Any
+from abc import ABC
+from dataclasses import dataclass, fields
+from uuid import UUID
 
 from ...tools.datetime import DatetimeDict, current_time
 
@@ -145,3 +148,44 @@ def create_exp_outfields(outfields: dict[str, Any] | None) -> dict[str, Any]:
         return outfields
 
     raise TypeError(f"outfields should be dict or None, not {type(outfields)}")
+
+
+@dataclass(frozen=True)
+class DataClassEssential(ABC):
+    """The abstract base class for the essential methods of data classes,
+    which is used for both
+    :class:`qurry.qurrium.arguments.arguments.ArgumentsPrototype` and
+    :class:`qurry.qurrium.arguments.commonparams.Commonparams`."""
+
+    @property
+    def fields(self) -> tuple[str, ...]:
+        """The fields of arguments."""
+        return tuple(self.__dict__.keys())
+
+    def asdict(self) -> dict[str, Any]:
+        """The arguments as dictionary."""
+        return dict(self.__dict__)
+
+    @classmethod
+    def dataclass_fields(cls) -> tuple[str, ...]:
+        """The fields of arguments."""
+        return tuple(f.name for f in fields(cls))
+
+
+def isvalid_exp_id(exp_id: str | None) -> bool:
+    """Check whether the exp_id is valid or not.
+
+    Args:
+        exp_id (str | None): The exp_id to be checked.
+    """
+    if exp_id is None:
+        return False
+    if not isinstance(exp_id, str):
+        return False
+
+    try:
+        UUID(exp_id, version=4)
+    except ValueError:
+        return False
+
+    return True

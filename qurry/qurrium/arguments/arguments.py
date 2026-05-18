@@ -2,10 +2,11 @@
 
 from typing import Any, TypeVar
 from pathlib import Path
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 import json
 
 from .utils import (
+    DataClassEssential,
     filter_deprecated_args,
     v7_to_v9_field_transpose,
     create_exp_outfields,
@@ -22,26 +23,21 @@ FILENAME_TEMPLATE = "{}.args.json"
 
 
 @dataclass(frozen=True)
-class ArgumentsPrototype(FileReadableWritableObj):
+class ArgumentsPrototype(FileReadableWritableObj, DataClassEssential):
     """Construct the experiment's parameters for specific options,
     which is overwritable by the inherition class."""
 
     exp_name: str
     """Name of experiment."""
 
-    @property
-    def fields(self) -> tuple[str, ...]:
-        """The fields of arguments."""
-        return tuple(self.__dict__.keys())
+    def __post_init__(self):
+        error_msg = {}
+        if not isinstance(self.exp_name, str):
+            error_msg["exp_name"] = f"exp_name should be a string, got {type(self.exp_name)}"
 
-    def asdict(self) -> dict[str, Any]:
-        """The arguments as dictionary."""
-        return dict(self.__dict__)
-
-    @classmethod
-    def dataclass_fields(cls) -> tuple[str, ...]:
-        """The fields of arguments."""
-        return tuple(f.name for f in fields(cls))
+        if error_msg:
+            error_details = "; ".join(f"'{field}': '{msg}'" for field, msg in error_msg.items())
+            raise ValueError(f"Invalid ArgumentsPrototype: {error_details}")
 
     @classmethod
     def filter(cls, *args, **kwargs):
@@ -61,7 +57,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         for k, v in kwargs.items():
             if k in cls.dataclass_fields():
                 infields[k] = v
-            elif k in Commonparams._fields:
+            elif k in Commonparams.dataclass_fields():
                 commonsinput[k] = v
             else:
                 outfields[k] = v
@@ -192,7 +188,7 @@ class ArgumentsPrototype(FileReadableWritableObj):
         return arguments, commonparams, outfields
 
     @classmethod
-    def create(cls, arguments: "_A | dict[str, Any]"):
+    def create(cls: "type[_A]", arguments: "_A | dict[str, Any]") -> "tuple[_A, dict[str, Any]]":
         """Create experiment arguments from the given arguments.
 
         Args:

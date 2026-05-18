@@ -43,7 +43,7 @@ class FileWritableObj(DataExportable, ABC):
         """Get the content to be written to files.
 
         Returns:
-            WritedContentType: The content to be written to files.
+            WrittenContentType: The content to be written to files.
         """
 
 
