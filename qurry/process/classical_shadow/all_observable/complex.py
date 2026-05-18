@@ -180,8 +180,8 @@ def classical_shadow_complex(
             The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
 
             Here are the built-in basis sets:
-            - `RX_RY_RZ`:
-                Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`,
+            - `RY_RX_RZ`:
+                Uses :math:`R_Y(-\frac{\pi}{2})`, :math:`R_X(\frac{\pi}{2})`,
                 and :math:`R_Z(0)` gates.
             - `H_H-Sdg_I`:
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,

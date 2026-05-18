@@ -513,10 +513,10 @@ BUILTIN_BASIS = {
     basis_obj.name: basis_obj
     for basis_obj in [
         ShadowRandomBasis(
-            basis_0_gates=(RXGate(np.pi / 2),),
-            basis_1_gates=(RYGate(-np.pi / 2),),
+            basis_0_gates=(RYGate(-np.pi / 2),),
+            basis_1_gates=(RXGate(np.pi / 2),),
             basis_2_gates=(RZGate(0),),
-            name="RX_RY_RZ",
+            name="RY_RX_RZ",
         ),
         ShadowRandomBasis(
             basis_0_gates=(HGate(),),
@@ -529,8 +529,8 @@ BUILTIN_BASIS = {
 r"""Predefined :class:`ShadowRandomBasis` instances.
 
 Here are the built-in basis sets:
-- `RX_RY_RZ`: 
-    Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+- `RY_RX_RZ`: 
+    Uses :math:`R_Y(-\frac{\pi}{2})`, :math:`R_X(\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
 - `H_H-Sdg_I`: 
     Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
 """
@@ -539,21 +539,21 @@ Here are the built-in basis sets:
 class ShadowBasisMethod(BaseMethodEnum):
     """Enum for available unitary sets for classical shadow."""
 
-    RX_RY_RZ = BUILTIN_BASIS["RX_RY_RZ"].name
-    r"""Uses :math:`R_X(\frac{\pi}{2})`, :math:`R_Y(-\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
+    RY_RX_RZ = BUILTIN_BASIS["RY_RX_RZ"].name
+    r"""Uses :math:`R_Y(-\frac{\pi}{2})`, :math:`R_X(\frac{\pi}{2})`, and :math:`R_Z(0)` gates.
 
     The basis of unitary operators is defined as:
 
     .. math::
-        U = \{R_X(\frac{\pi}{2}), R_Y(-\frac{\pi}{4}), R_Z(0)\}
+        U = \{R_Y(-\frac{\pi}{2}), R_X(\frac{\pi}{2}), R_Z(0)\}
 
     The matrix representations are:
 
     .. math::
-        R_X(\frac{\pi}{2}) = \begin{pmatrix} \cos(\frac{\pi}{4}) & -i\sin(\frac{\pi}{4}) \\
-        -i\sin(\frac{\pi}{4}) & \cos(\frac{\pi}{4}) \end{pmatrix} \\
         R_Y(-\frac{\pi}{2}) = \begin{pmatrix} \cos(-\frac{\pi}{4}) & -\sin(-\frac{\pi}{4}) \\
         \sin(-\frac{\pi}{4}) & \cos(-\frac{\pi}{4}) \end{pmatrix} \\
+        R_X(\frac{\pi}{2}) = \begin{pmatrix} \cos(\frac{\pi}{4}) & -i\sin(\frac{\pi}{4}) \\
+        -i\sin(\frac{\pi}{4}) & \cos(\frac{\pi}{4}) \end{pmatrix} \\
         R_Z(0) = \begin{pmatrix} e^{0} & 0 \\ 0 & e^{0} \end{pmatrix}
         
     The console output of the matrices are:
