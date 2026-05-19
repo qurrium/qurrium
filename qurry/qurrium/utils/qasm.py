@@ -18,14 +18,14 @@ AvailableQASMVersions = Literal["qasm2", "qasm3"]
 """The available OpenQASM versions."""
 
 
-def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3") -> str:
-    """Draw the circuits in OpenQASM string.
+def qasm2_dumps(
+    qc: QuantumCircuit,
+) -> str:
+    """Draw the circuits in OpenQASM string with OpenQASM 2.0.
 
     Args:
         qc (QuantumCircuit):
             The circuit wanted to be drawn.
-        qasm_version (AvailableQASMVersions, optional):
-            The export version of OpenQASM. Defaults to 'qasm3'.
 
     Raises:
         ValueError: If the OpenQASM version is invalid.
@@ -33,24 +33,35 @@ def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3"
     Returns:
         str: The drawing of circuit in OpenQASM string.
     """
-    if qasm_version not in ("qasm2", "qasm3"):
-        raise ValueError(f"Invalid qasm version: {qasm_version}")
-
-    if qasm_version == "qasm2":
-        try:
-            return dumps_qasm2(qc)
-        except QASM2Error as err:
-            return f"| Skip dumps into OpenQASM2, due to QASM2Error: {err}"
-            # pylint: disable=broad-except
-        except Exception as err:
-            # pylint: enable=broad-except
-            warnings.warn(
-                OpenQASMProcessingWarning(
-                    "Critical errors in qiskit.qasm2.dumps, "
-                    + f"due to Exception: {err}, give up to export."
-                )
+    try:
+        return dumps_qasm2(qc)
+    except QASM2Error as err:
+        return f"| Skip dumps into OpenQASM2, due to QASM2Error: {err}"
+        # pylint: disable=broad-except
+    except Exception as err:
+        # pylint: enable=broad-except
+        warnings.warn(
+            OpenQASMProcessingWarning(
+                "Critical errors in qiskit.qasm2.dumps, "
+                + f"due to Exception: {err}, give up to export."
             )
-            return f"| Skip dumps into OpenQASM2, due to critical errors: {err}"
+        )
+        return f"| Skip dumps into OpenQASM2, due to critical errors: {err}"
+
+
+def qasm3_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions) -> str:
+    """Draw the circuits in OpenQASM string with OpenQASM 3.0.
+
+    Args:
+        qc (QuantumCircuit):
+            The circuit wanted to be drawn.
+
+    Raises:
+        ValueError: If the OpenQASM version is invalid.
+
+    Returns:
+        str: The drawing of circuit in OpenQASM string.
+    """
 
     if tuple(int(v) for v in qiskit_version.split(".")) < (1, 3, 2):
         warnings.warn(
@@ -88,6 +99,31 @@ def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3"
             )
         )
         return f"| Skip dumps into OpenQASM3, due to critical errors: {err}"
+
+
+def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3") -> str:
+    """Draw the circuits in OpenQASM string.
+
+    Args:
+        qc (QuantumCircuit):
+            The circuit wanted to be drawn.
+        qasm_version (AvailableQASMVersions, optional):
+            The export version of OpenQASM. Defaults to 'qasm3'.
+
+    Raises:
+        ValueError: If the OpenQASM version is invalid.
+
+    Returns:
+        str: The drawing of circuit in OpenQASM string.
+    """
+    if qasm_version == "qasm2":
+        return qasm2_dumps(qc)
+    if qasm_version == "qasm3":
+        return qasm3_dumps(qc, qasm_version)
+
+    raise ValueError(
+        f"Invalid qasm version: {qasm_version}, only 'qasm2' and 'qasm3' are supported."
+    )
 
 
 def qasm_version_detect(qasm_str: str) -> AvailableQASMVersions:
