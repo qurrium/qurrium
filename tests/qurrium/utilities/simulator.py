@@ -2,7 +2,7 @@
 
 import warnings
 
-from qurry.tools.backend.import_simulator import (
+from qurry.tools.backend import (
     SIM_DEFAULT_SOURCE,
     SIMULATOR_SOURCES,
     GeneralSimulator,
