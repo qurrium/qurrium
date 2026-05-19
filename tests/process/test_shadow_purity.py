@@ -55,7 +55,7 @@ class ClassicalShadowTarget(TypedDict):
 
     shadow_basis: ShadowBasisType
     """The shadow basis type."""
-    # Only "RX_RY_RZ"
+    # Only "RY_RX_RZ"
 
 
 class ClassicalShadowAnswer(TypedDict):
@@ -91,7 +91,7 @@ class ClassicalShadowEntries(TypedDict):
 
     shadow_basis: ShadowBasisType
     """The shadow basis type."""
-    # Only "RX_RY_RZ"
+    # Only "RY_RX_RZ"
 
 
 DUMMY_CASE_FILE = get_dummy_file_path("shadow_purity.json")
