@@ -18,9 +18,7 @@ AvailableQASMVersions = Literal["qasm2", "qasm3"]
 """The available OpenQASM versions."""
 
 
-def qasm2_dumps(
-    qc: QuantumCircuit,
-) -> str:
+def qasm2_dumps(qc: QuantumCircuit) -> str:
     """Draw the circuits in OpenQASM string with OpenQASM 2.0.
 
     Args:
@@ -49,7 +47,7 @@ def qasm2_dumps(
         return f"| Skip dumps into OpenQASM2, due to critical errors: {err}"
 
 
-def qasm3_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions) -> str:
+def qasm3_dumps(qc: QuantumCircuit) -> str:
     """Draw the circuits in OpenQASM string with OpenQASM 3.0.
 
     Args:
@@ -119,7 +117,7 @@ def qasm_dumps(qc: QuantumCircuit, qasm_version: AvailableQASMVersions = "qasm3"
     if qasm_version == "qasm2":
         return qasm2_dumps(qc)
     if qasm_version == "qasm3":
-        return qasm3_dumps(qc, qasm_version)
+        return qasm3_dumps(qc)
 
     raise ValueError(
         f"Invalid qasm version: {qasm_version}, only 'qasm2' and 'qasm3' are supported."

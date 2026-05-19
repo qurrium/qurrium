@@ -216,9 +216,12 @@ def dummy_two_body_measurement(
                              1  2
 
     Args:
-        num_qubits (int): The number of qubits in the circuit.
-        clbit_num_cluster (int, optional): The number of classical bits in each cluster. Defaults to 4.
-        name (str | None, optional): The name of the circuit. Defaults to None.
+        num_qubits (int):
+            The number of qubits in the circuit.
+        clbit_num_cluster (int, optional):
+            The number of classical bits in each cluster. Defaults to 4.
+        name (str | None, optional):
+            The name of the circuit. Defaults to None.
     """
 
     if num_qubits % 2 != 0:
