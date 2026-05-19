@@ -232,7 +232,9 @@ class MultiCommonparams(FileReadableObj, DataExportable, DataClassEssential):
         outfields_raw = raw_read.pop("outfields", {})
         outfields = outfields_raw if isinstance(outfields_raw, dict) else {}
 
+        tags = check_tags(raw_read.get("tags", ()))
         data_args = raw_read.copy()
+        data_args["tags"] = tags
         for k, dv in cls.default_value().items():
             if k not in data_args:
                 data_args[k] = dv
