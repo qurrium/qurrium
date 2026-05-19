@@ -67,14 +67,14 @@ def filter_deprecated_args(
     return arguments_parsed, arguments_deprecated
 
 
-def check_tags(tags: tuple[str, ...] | list[str] | None = None) -> tuple[str | int, ...]:
+def check_tags(tags: tuple[str, ...] | list[str] | None = None) -> tuple[str, ...]:
     """Check tags and return formatted tags.
 
     Args:
         tags (tuple[str, ...] | list[str] | None): Tags for the experiment.
 
     Returns:
-        tuple[str | int, ...]: Formatted tags for the experiment.
+        tuple[str, ...]: Formatted tags for the experiment.
     """
     if tags is None:
         tags = ()

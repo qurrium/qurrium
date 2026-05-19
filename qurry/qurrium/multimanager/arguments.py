@@ -9,7 +9,7 @@ from qiskit.providers import Backend
 
 from .beforewards import V7_FILE_INDEX
 from ..container import BaseRunArgs
-from ..arguments.utils import DataClassEssential, isvalid_exp_id
+from ..arguments.utils import DataClassEssential, isvalid_exp_id, check_tags
 from ...tools import DatetimeDict, backend_name_getter
 from ...capsule import DEFAULT_ENCODING, jsonablize, quick_json_write, DEFAULT_MODE
 from ...capsule.mori import FileReadableObj, DataExportable, WrittenContentType
@@ -338,7 +338,7 @@ class MultiCommonparams(FileReadableObj, DataExportable, DataClassEssential):
         return cls(
             summoner_id=multicommons["summoner_id"],
             summoner_name=multicommons["summoner_name"],
-            tags=multicommons["tags"],
+            tags=check_tags(multicommons["tags"]),
             shots=multicommons["shots"],
             backend=multicommons["backend"],
             save_location=multicommons["save_location"],
