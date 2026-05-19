@@ -185,12 +185,8 @@ def test_measure_and_analyze(
         for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
     ]
 
-    analysis_02 = exp_01.analyze(
-        **{**case_entries.analyze_entries, "counts_used": range(5)}
-    )
-    analysis_03 = exp_01.analyze(
-        **{**case_entries.analyze_entries, "counts_used": range(5)}
-    )
+    analysis_02 = exp_01.analyze(**{**case_entries.analyze_entries, "counts_used": range(5)})
+    analysis_03 = exp_01.analyze(**{**case_entries.analyze_entries, "counts_used": range(5)})
 
     checker_list.append(
         check_analysis_result(

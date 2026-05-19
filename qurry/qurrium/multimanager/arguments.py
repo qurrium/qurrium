@@ -266,7 +266,7 @@ class MultiCommonparams(FileReadableObj, DataExportable, DataClassEssential):
         Args:
             file_index (dict[str, str]): The index of exported experiment file.
             save_location (Path): The location of exported experiment file.
-            export_location (Path | None): The location of exported experiment file. Defaults to None.
+            export_location (Path | None): The location of exported experiment file.
         """
         if "multi.config" not in file_index:
             raise KeyError("The file index does not contain 'multi.config' key.")

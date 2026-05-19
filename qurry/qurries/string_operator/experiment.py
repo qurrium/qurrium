@@ -8,7 +8,6 @@ from .arguments import SOArguments, SHORT_NAME
 from .analysis import SOAnalysis
 from .utils import circuit_method, StringOperatorLibType, StringOperatorDirection, STRING_OPERATOR
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
-from ...tools import set_pbar_description
 
 
 class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):

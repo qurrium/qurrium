@@ -426,8 +426,6 @@ class MultiManager(Generic[_E]):
         gitignore = GitSyncControl()
         gitignore.load(naming_complex.export_location)
 
-        naming_complex.summoner_name
-
         multicommons, outfields = MultiCommonparams.read(
             file_index={"multi.config": "multi.config.json"},
             save_location=naming_complex.save_location,

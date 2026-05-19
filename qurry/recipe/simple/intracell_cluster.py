@@ -137,7 +137,7 @@ def intracell(
 
 
 def singlet(num_qubits: int, name: str = "singlet") -> Intracell:
-    r""":class:`~qurry.recipe.simple.intracell_cluster.Singlet`, the entangled circuit 
+    r""":class:`~qurry.recipe.simple.intracell_cluster.Singlet`, the entangled circuit
     :class:`~qurry.recipe.simple.intracell_cluster.Intracell` with `singlet` state.
 
     .. code-block:: text
