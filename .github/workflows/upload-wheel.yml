@@ -50,4 +50,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          repository-url: ${{ inputs.pypi_url }}
           skip-existing: true
