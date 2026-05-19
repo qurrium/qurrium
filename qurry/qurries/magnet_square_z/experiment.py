@@ -1,7 +1,6 @@
 """ZDirMagnetSquare - Experiment (:mod:`qurry.qurries.magnet_square_z.experiment`)"""
 
 from typing import Any
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -68,8 +67,6 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: ZMSArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -78,10 +75,6 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
                 The circuits of the experiment.
             arguments (ZMSArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment. Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -89,7 +82,7 @@ class ZMSExperiment(ExperimentPrototype[ZMSArguments, ZMSAnalysis]):
         """
 
         target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
+        target_key = target_key if isinstance(target_key, int) else str(target_key)
         return [circuit_method(target_circuit, target_key, arguments.exp_name)], {}
 
     def analyze(self) -> ZMSAnalysis:

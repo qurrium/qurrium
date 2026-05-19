@@ -26,18 +26,18 @@ class After(FileReadableWritableObj):
     which generated after the experiment."""
 
     @property
-    def _fields(self) -> tuple[str, ...]:
+    def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(self.__dict__.keys())
 
     @classmethod
-    def _dataclass_fields(cls) -> tuple[str, ...]:
+    def dataclass_fields(cls) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
 
-    def _asdict(self) -> dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
-        return self.__dict__
+        return dict(self.__dict__)
 
     # Measurement Result
     result: list[Result]

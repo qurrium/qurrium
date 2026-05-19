@@ -78,7 +78,7 @@ class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, 
                 Defaults to None.
 
         Returns:
-            WavesExecuterOutputArgs: The output arguments.
+            The output arguments.
         """
         if waves is None:
             raise ValueError("The `waves` must be provided.")
@@ -150,10 +150,10 @@ class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, 
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 waves=waves,
                 shots=shots,
@@ -170,6 +170,7 @@ class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, 
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -222,10 +223,10 @@ class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, 
                 Defaults to None.
 
         Returns:
-            str: The experiment ID.
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 waves=waves,
                 shots=shots,
@@ -242,3 +243,4 @@ class WavesExecuter(QurriumPrototype[WEExperiment, WEMeasureArgs, WEOutputArgs, 
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]

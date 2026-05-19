@@ -5,6 +5,7 @@ import warnings
 from abc import abstractmethod, ABC
 from typing import Any, Generic
 from pathlib import Path
+from dataclasses import replace
 import tqdm
 
 from qiskit import QuantumCircuit
@@ -20,7 +21,6 @@ from .utils import (
     memory_usage_factor_expect,
     implementation_check,
     summonner_check,
-    make_qasm_strings,
     process_transpilation,
     make_statesheet,
     create_save_location,
@@ -34,6 +34,7 @@ from ..utils import (
     get_counts_and_exceptions,
     outfields_check,
     outfields_hint,
+    qasm_dumps,
     AvailableQASMVersions,
 )
 from ..utils.file_structure import is_old_v7_file_structure
@@ -311,7 +312,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         outfield_maybe, outfields_unknown = outfields_check(
-            outfields, arguments.fields + commonparams._fields
+            outfields, arguments.fields + commonparams.fields
         )
         outfields_hint(outfield_maybe, outfields_unknown, mute_outfields_warning)
 
@@ -329,11 +330,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
     @classmethod
     @abstractmethod
     def method(
-        cls,
-        targets: list[tuple[WCKeyable, QuantumCircuit]],
-        arguments: _A,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
+        cls, targets: list[tuple[WCKeyable, QuantumCircuit]], arguments: _A
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
         Where should be overwritten by each construction of new measurement.
@@ -341,9 +338,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         Args:
             targets (list[tuple[WCKeyable, QuantumCircuit]]): The circuits of the experiment.
             arguments (_Arg): The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment. Defaults to None.
-            multiprocess (bool, optional): Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -458,24 +452,24 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         )
 
         # circuit
-        set_pbar_description(pbar, "Circuit creating...")
+        set_pbar_description(pbar, "Creating circuits...")
         current_exp.beforewards.target.extend(targets)
-        cirqs, side_prodict = current_exp.method(
-            targets=targets, arguments=current_exp.args, pbar=pbar, multiprocess=multiprocess
-        )
+        circs, side_prodict = current_exp.method(targets, current_exp.args)
         current_exp.side_products.update(side_prodict)
 
         # qasm
         set_pbar_description(pbar, "Exporting OpenQASM string...")
-        circuit_qasm_strings, target_qasm_strings = make_qasm_strings(
-            cirqs, targets, qasm_version, multiprocess=multiprocess
+        current_exp.beforewards.circuit_qasm.extend(
+            qasm_dumps(circ, qasm_version) for circ in circs
         )
-        current_exp.beforewards.circuit_qasm.extend(circuit_qasm_strings)
-        current_exp.beforewards.target_qasm.extend(target_qasm_strings)
+        current_exp.beforewards.target_qasm.extend(
+            (str(key), qasm_dumps(circ, qasm_version)) for key, circ in targets
+        )
 
         # transpile
+        set_pbar_description(pbar, "Transpiling circuits...")
         transpiled_circs = process_transpilation(
-            cirqs,
+            circs,
             current_exp.commons.transpile_args.copy(),
             current_exp.commons.backend,
             passmanager_pair,
@@ -483,7 +477,6 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
             multiprocess=multiprocess,
             pbar=pbar,
         )
-        set_pbar_description(pbar, "Circuit loading...")
         current_exp.beforewards.circuit.extend(transpiled_circs)
 
         # memory usage factor
@@ -659,7 +652,7 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
         old_backend_name = backend_name_getter(old_backend)
         new_backend_name = backend_name_getter(backend)
         self.commons.datetimes.add_serial(f"replace-{old_backend_name}-to-{new_backend_name}")
-        self.commons = self.commons._replace(backend=backend)
+        self.commons = replace(self.commons, backend=backend)
 
     @abstractmethod
     def analyze(self) -> _R:
@@ -769,11 +762,11 @@ class ExperimentPrototype(ABC, Generic[_A, _R]):
 
         Returns:
             Export: A namedtuple containing the data of experiment
-                which can be more easily to export as json file.
+                which can be more easily exported as a json file.
         """
         save_location = create_save_location(save_location, self.commons)
         if self.commons.save_location != save_location:
-            self.commons = self.commons._replace(save_location=save_location)
+            self.commons = replace(self.commons, save_location=save_location)
 
         # multi-experiment mode
         save_loc_folder, exp_identifier = decide_folder_and_filename(self.commons, self.args)

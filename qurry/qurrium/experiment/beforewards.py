@@ -55,18 +55,18 @@ class Before(FileReadableWritableObj):
     """
 
     @property
-    def _fields(self) -> tuple[str, ...]:
+    def fields(self) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(self.__dict__.keys())
 
     @classmethod
-    def _dataclass_fields(cls) -> tuple[str, ...]:
+    def dataclass_fields(cls) -> tuple[str, ...]:
         """The fields of arguments."""
         return tuple(f.name for f in fields(cls))
 
-    def _asdict(self) -> dict[str, Any]:
+    def asdict(self) -> dict[str, Any]:
         """The arguments as dictionary."""
-        return self.__dict__
+        return dict(self.__dict__)
 
     # Experiment Preparation
     target: list[tuple[WCKeyable, QuantumCircuit | str]]
@@ -232,7 +232,7 @@ class Before(FileReadableWritableObj):
             if tmp_circ is None:
                 is_none_circuits.append(i)
         if len(is_none_circuits) != 0:
-            print(f"The circuits {is_none_circuits} are not revived.")
+            warnings.warn(f"The circuits with indices {is_none_circuits} are not revived.")
         return revived_circuits
 
     def revive_target(self, replace_target: bool = False) -> dict[WCKeyable, QuantumCircuit]:

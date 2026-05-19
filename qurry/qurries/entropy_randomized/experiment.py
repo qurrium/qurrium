@@ -2,7 +2,6 @@
 
 from typing import Any
 from collections.abc import Iterable
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -160,8 +159,6 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMRArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], RandomizedMeasureTales]:
         """The method to construct circuit.
 
@@ -170,17 +167,12 @@ class EMRExperiment(ExperimentPrototype[EMRArguments, EMRAnalysis]):
                 The circuits of the experiment.
             arguments (EntropyMeasureRandomizedArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `False`.
 
         Returns:
             The circuits of the experiment and the side products.
         """
 
-        return method_process(targets, arguments, pbar, multiprocess)
+        return method_process(targets, arguments)
 
     def analyze(
         self,

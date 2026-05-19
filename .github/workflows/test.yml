@@ -122,7 +122,13 @@ jobs:
     strategy:
       matrix:
         qiskit-version: [v1, v2]
-        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
+        python-version: [
+            # "3.14", # Qiskit is still not support. 2026/03/30
+            "3.13",
+            "3.12",
+            "3.11",
+            "3.10",
+          ]
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.check_version.outputs.idle || '4') }}
 

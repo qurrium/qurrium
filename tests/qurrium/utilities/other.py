@@ -36,7 +36,7 @@ EXPORT_DIR = get_test_export_dir()
 
 
 @dataclass(frozen=True)
-class CaseEntriesTuple(Generic[_MA, _RA]):
+class CaseEntries(Generic[_MA, _RA]):
     """The case entries tuple for testing."""
 
     tags: tuple[str, ...]
@@ -201,8 +201,8 @@ def tags_to_name(iterable: Iterable[str]) -> str:
 
 
 def make_config_list_and_tagged_case(
-    case_entries_list: list[CaseEntriesTuple[_MA, _RA]],
-) -> tuple[list[_MA], dict[tuple[str, ...], CaseEntriesTuple[_MA, _RA]]]:
+    case_entries_list: list[CaseEntries[_MA, _RA]],
+) -> tuple[list[_MA], dict[tuple[str, ...], CaseEntries[_MA, _RA]]]:
     """Create configuration list and tagged case entries from a list of case entries.
 
     Args:
@@ -213,7 +213,7 @@ def make_config_list_and_tagged_case(
         A tuple containing the configuration list and the tagged case entries.
     """
     config_list = []
-    cases_with_tags: dict[tuple[str, ...], CaseEntriesTuple[_MA, _RA]] = {}
+    cases_with_tags: dict[tuple[str, ...], CaseEntries[_MA, _RA]] = {}
 
     for i, case_entries in enumerate(case_entries_list):
         config = case_entries.measure_entries_with_tags(f"index_{i}")
@@ -225,7 +225,7 @@ def make_config_list_and_tagged_case(
     return config_list, cases_with_tags
 
 
-_CET = TypeVar("_CET", bound=CaseEntriesTuple)
+_CET = TypeVar("_CET", bound=CaseEntries)
 """The type variable for CaseEntriesTuple."""
 
 

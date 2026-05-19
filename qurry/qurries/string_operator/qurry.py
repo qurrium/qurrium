@@ -120,7 +120,7 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
                 Defaults to None.
 
         Returns:
-            StringOperatorOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -164,7 +164,7 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Prepare the experiment without executing it.
 
         Args:
@@ -208,10 +208,10 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 i=i,
@@ -232,6 +232,7 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -252,7 +253,7 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
         export: bool = False,
         save_location: Path | str | None = None,
         pbar: tqdm.tqdm | None = None,
-    ) -> str:
+    ):
         """Execute the experiment immediately.
 
         Args:
@@ -296,10 +297,10 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
                 Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 i=i,
@@ -320,3 +321,4 @@ class StringOperator(QurriumPrototype[SOExperiment, SOMeasureArgs, SOOutputArgs,
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]

@@ -2,7 +2,6 @@
 
 from typing import Any, Literal
 from itertools import permutations
-import tqdm
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Gate
@@ -12,7 +11,6 @@ from .arguments import MSArguments, SHORT_NAME
 from .analysis import MSAnalysis
 from .utils import circuit_method
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
-from ...tools import ParallelManager, set_pbar_description
 
 
 class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
@@ -78,8 +76,6 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: MSArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -88,55 +84,28 @@ class MSExperiment(ExperimentPrototype[MSArguments, MSAnalysis]):
                 The circuits of the experiment.
             arguments (MSArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
 
-        set_pbar_description(pbar, f"Prepare permutation for {arguments.num_qubits} qubits.")
         permut = permutations(range(arguments.num_qubits), 2)
         target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
+        target_key = target_key if isinstance(target_key, int) else str(target_key)
 
-        set_pbar_description(pbar, "Building circuits...")
-        if multiprocess:
-            pool = ParallelManager()
-            circ_list = pool.starmap(
-                circuit_method,
-                [
-                    (
-                        idx,
-                        target_circuit,
-                        target_key,
-                        arguments.exp_name,
-                        arguments.unitary_operator,
-                        i,
-                        j,
-                    )
-                    for idx, (i, j) in enumerate(permut)
-                ],
+        return [
+            circuit_method(
+                idx,
+                target_circuit,
+                target_key,
+                arguments.exp_name,
+                arguments.unitary_operator,
+                i,
+                j,
             )
-        else:
-            circ_list = [
-                circuit_method(
-                    idx,
-                    target_circuit,
-                    target_key,
-                    arguments.exp_name,
-                    arguments.unitary_operator,
-                    i,
-                    j,
-                )
-                for idx, (i, j) in enumerate(permut)
-            ]
-
-        return circ_list, {}
+            for idx, (i, j) in enumerate(permut)
+        ], {}
 
     def analyze(self) -> MSAnalysis:
         """Calculate magnet square with more information combined.

@@ -1,7 +1,6 @@
 """StringOperator - Experiment (:mod:`qurry.qurries.string_operator.experiment`)"""
 
 from typing import Any
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -9,7 +8,6 @@ from .arguments import SOArguments, SHORT_NAME
 from .analysis import SOAnalysis
 from .utils import circuit_method, StringOperatorLibType, StringOperatorDirection, STRING_OPERATOR
 from ...qurrium import ExperimentPrototype, Commonparams, WCKeyable
-from ...tools import set_pbar_description
 
 
 class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
@@ -101,8 +99,6 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: SOArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -111,19 +107,13 @@ class SOExperiment(ExperimentPrototype[SOArguments, SOAnalysis]):
                 The circuits of the experiment.
             arguments (StringOperatorArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment. Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
                 The circuits of the experiment and the side products.
         """
-        set_pbar_description(pbar, f"Prepare permutation for {arguments.num_qubits} qubits.")
         target_key, target_circuit = targets[0]
-        target_key = "" if isinstance(target_key, int) else str(target_key)
-
+        target_key = target_key if isinstance(target_key, int) else str(target_key)
         assert arguments.i is not None and arguments.k is not None, (
             f"i and k should be given, but got {arguments.i} and {arguments.k}. "
             "Please check the arguments."

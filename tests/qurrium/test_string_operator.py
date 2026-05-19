@@ -11,11 +11,11 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.string_operator import StringOperator, SOMeasureArgs
 from qurry.qurries.string_operator.analysis import SOAnalyzeArgs, SOAnalysis
-from qurry.recipe import TrivialParamagnet, Cluster
+from qurry.recipe import trivial_paramagnet, cluster
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -63,13 +63,13 @@ class CaseDataDict(TypedDict):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "5_trivial": TrivialParamagnet(5),
-        "6_trivial": TrivialParamagnet(6),
-        "7_trivial": TrivialParamagnet(7),
-        "8_trivial": TrivialParamagnet(8),
-        "9_trivial": TrivialParamagnet(9),
-        "6_topological": Cluster(6),
-        "8_topological": Cluster(8),
+        "5_trivial": trivial_paramagnet(5),
+        "6_trivial": trivial_paramagnet(6),
+        "7_trivial": trivial_paramagnet(7),
+        "8_trivial": trivial_paramagnet(8),
+        "9_trivial": trivial_paramagnet(9),
+        "6_topological": cluster(6),
+        "8_topological": cluster(8),
     }
 )
 
@@ -80,8 +80,8 @@ case_datas: list[CaseDataDict] = [
     for name, answer in answer_of_string_op.items()
 ]
 
-CASES: list[CaseEntriesTuple[SOMeasureArgs, SOAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[SOMeasureArgs, SOAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuit'].name}",),
         measure_entries={
             "wave": case_data["circuit"],
@@ -97,7 +97,7 @@ CASES: list[CaseEntriesTuple[SOMeasureArgs, SOAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[SOMeasureArgs, SOAnalyzeArgs],
+    case_entries: CaseEntries[SOMeasureArgs, SOAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -106,8 +106,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = StringOperator()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(

@@ -2,7 +2,6 @@
 
 from typing import Any
 import warnings
-import tqdm
 
 from qiskit import QuantumCircuit
 
@@ -63,8 +62,6 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: WEArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -73,11 +70,6 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
                 The circuits of the experiment.
             arguments (WEArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar for showing the progress of the experiment.
-                Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:
@@ -85,8 +77,6 @@ class WEExperiment(ExperimentPrototype[WEArguments, DummyAnalysis[WEArguments]])
         """
         cirqs = []
         no_cregs = []
-        if pbar is not None:
-            pbar.set_description_str("Loading circuits")
         for i, (k, q) in enumerate(targets):
             q_copy = q.copy()
             if len(q_copy.cregs) < 1:

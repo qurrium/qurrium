@@ -1,14 +1,16 @@
 """The Common Parameters (:mod:`qurry.qurrium.arguments.commonparams`)"""
 
-from typing import NamedTuple, TypedDict, Any
+from typing import TypedDict, Any
 from pathlib import Path
+from dataclasses import dataclass
 
 from qiskit.providers import Backend
 
-from .utils import raw_commons_process, filter_deprecated_args
+from .utils import DataClassEssential, raw_commons_process, filter_deprecated_args, isvalid_exp_id
 from ..container import BaseRunArgs, TranspileArgs, WCKeyable
 from ...tools import DatetimeDict, backend_name_getter
 from ...capsule import jsonablize
+from ...capsule.mori import DataExportable
 
 
 class CommonparamsDict(TypedDict):
@@ -46,21 +48,8 @@ class CommonparamsDict(TypedDict):
     """The datetime of experiment."""
 
 
-class ArgumentsReadReturn(TypedDict):
-    """The return type of :meth:`ArgumentsPrototype.read_with_arguments`.
-
-    This includes the experiment's arguments,
-    the experiment's common parameters, and the experiment's side product.
-
-    Attention, those result are unprocessed, so we define them as `dict[str, Any]`.
-    """
-
-    arguments: dict[str, Any]
-    commonparams: dict[str, Any]
-    outfields: dict[str, Any]
-
-
-class Commonparams(NamedTuple):
+@dataclass(frozen=True)
+class Commonparams(DataExportable, DataClassEssential):
     """Construct the experiment's parameters for running."""
 
     exp_id: str
@@ -114,6 +103,65 @@ class Commonparams(NamedTuple):
     If this is None, then the experiment is newly created. Only used for internal processing.
     """
 
+    def __post_init__(self):
+        error_msg = {}
+        if not isvalid_exp_id(self.exp_id):
+            error_msg["exp_id"] = f"exp_id should be a UUID4 string, got {self.exp_id}"
+        if not isinstance(self.target_keys, list):
+            error_msg["target_keys"] = f"target_keys should be a list, got {type(self.target_keys)}"
+
+        invalid_tartget_keys = []
+        for k1 in self.target_keys:
+            if isinstance(k1, (str, int)):
+                continue
+            if isinstance(k1, tuple) and all(isinstance(k2, (str, int)) for k2 in k1):
+                continue
+            invalid_tartget_keys.append(k1)
+        if len(invalid_tartget_keys) > 0:
+            error_msg["target_keys"] = (
+                "target_keys should be a list of str, int, or tuple of str and int, "
+                + f"got '{invalid_tartget_keys}' in target_keys"
+            )
+
+        if not isinstance(self.shots, int):
+            error_msg["shots"] = f"shots should be an int, got {type(self.shots)}"
+        if not isinstance(self.backend, (Backend, str)):
+            error_msg["backend"] = f"backend should be a Backend or str, got {type(self.backend)}"
+        if not isinstance(self.run_args, dict):
+            error_msg["run_args"] = f"run_args should be a dict, got {type(self.run_args)}"
+        if not isinstance(self.transpile_args, dict):
+            error_msg["transpile_args"] = (
+                f"transpile_args should be a dict, got {type(self.transpile_args)}"
+            )
+
+        if not isinstance(self.tags, tuple) or not all(
+            isinstance(tag, (str, int)) for tag in self.tags
+        ):
+            error_msg["tags"] = f"tags should be a tuple of str or int, got {type(self.tags)}"
+
+        if not isinstance(self.save_location, (str, Path)):
+            error_msg["save_location"] = (
+                f"save_location should be a str or Path, got {type(self.save_location)}"
+            )
+        if self.serial is not None and not isinstance(self.serial, int):
+            error_msg["serial"] = f"serial should be an int or None, got {type(self.serial)}"
+        if self.summoner_id is not None and not isinstance(self.summoner_id, str):
+            error_msg["summoner_id"] = (
+                f"summoner_id should be a str or None, got {type(self.summoner_id)}"
+            )
+        if self.summoner_name is not None and not isinstance(self.summoner_name, str):
+            error_msg["summoner_name"] = (
+                f"summoner_name should be a str or None, got {type(self.summoner_name)}"
+            )
+        if not isinstance(self.datetimes, DatetimeDict):
+            error_msg["datetimes"] = (
+                f"datetimes should be a DatetimeDict, got {type(self.datetimes)}"
+            )
+
+        if error_msg:
+            error_details = "; ".join(f"{field}: {msg}" for field, msg in error_msg.items())
+            raise ValueError(f"Invalid Commonparams: {error_details}")
+
     @staticmethod
     def default_value() -> CommonparamsDict:
         """The default value of each field."""
@@ -138,12 +186,11 @@ class Commonparams(NamedTuple):
         Returns:
             dict[str, Any]: The exported common parameters.
         """
-        # pylint: disable=no-member
-        commons: dict[str, Any] = jsonablize(self._asdict())
-        # pylint: enable=no-member
-        commons["backend"] = backend_name_getter(self.backend)
-        commons.pop("folder", None)
-        return commons
+
+        commons_export = jsonablize(self.asdict())
+        commons_export["backend"] = backend_name_getter(self.backend)
+        commons_export.pop("folder", None)
+        return commons_export
 
     @classmethod
     def create(
@@ -164,7 +211,9 @@ class Commonparams(NamedTuple):
         if isinstance(commons, cls):
             return commons, {}
         if isinstance(commons, dict):
-            commons_parsed, commons_deprecated = filter_deprecated_args(commons, cls._fields)
+            commons_parsed, commons_deprecated = filter_deprecated_args(
+                commons, cls.dataclass_fields()
+            )
             return cls(**raw_commons_process(commons_parsed)), commons_deprecated
 
         raise TypeError(f"commons should be {cls} or dict, not {type(commons)}")

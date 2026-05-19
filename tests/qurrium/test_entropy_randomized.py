@@ -11,11 +11,11 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.entropy_randomized import EntropyMeasureRandomized, EMRMeasureArgs
 from qurry.qurries.entropy_randomized.analysis import EMRAnalyzeArgs, EMRAnalysis
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -23,7 +23,7 @@ from .utilities.other import (
     multi_read_tests_exported_files,
 )
 from .utilities.random_stuff import prepare_random_unitary_seeds
-from .utilities.circuits import CXDynamic, TwoBodyWithMeasurement
+from .utilities.circuits import cx_dyn_comparing, dummy_two_body_measurement
 
 
 logger = logging.getLogger(__name__)
@@ -58,38 +58,38 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
 
 case_datas: list[CaseDataDict] = [
-    {"circuit": TrivialParamagnet(4, name="4-trivial"), "target_purity": 1.0},
-    {"circuit": GHZ(4, name="4-GHZ"), "target_purity": 0.5},
-    {"circuit": Cluster(4, name="4-topological-period"), "target_purity": 0.25},
-    {"circuit": TrivialParamagnet(6, name="6-trivial"), "target_purity": 1.0},
-    {"circuit": GHZ(6, name="6-GHZ"), "target_purity": 0.5},
-    {"circuit": Cluster(6, name="6-topological-period"), "target_purity": 0.25},
+    {"circuit": trivial_paramagnet(4, name="4-trivial"), "target_purity": 1.0},
+    {"circuit": ghz(4, name="4-GHZ"), "target_purity": 0.5},
+    {"circuit": cluster(4, name="4-topological-period"), "target_purity": 0.25},
+    {"circuit": trivial_paramagnet(6, name="6-trivial"), "target_purity": 1.0},
+    {"circuit": ghz(6, name="6-GHZ"), "target_purity": 0.5},
+    {"circuit": cluster(6, name="6-topological-period"), "target_purity": 0.25},
     {
-        "circuit": TwoBodyWithMeasurement(4, name="4-dummy-2-body-with-clbits"),
+        "circuit": dummy_two_body_measurement(4, name="4-dummy-2-body-with-clbits"),
         "target_purity": 1.0,
         "measure_range": [2, 3],
     },
     {
-        "circuit": TwoBodyWithMeasurement(6, name="6-dummy-2-body-with-clbits"),
+        "circuit": dummy_two_body_measurement(6, name="6-dummy-2-body-with-clbits"),
         "target_purity": 1.0,
         "measure_range": [4, 5],
     },
 ]
 case_datas_extra: list[CaseDataDict] = [
     {
-        "circuit": CXDynamic(4, name="4-cx-dyn"),
+        "circuit": cx_dyn_comparing(4, name="4-cx-dyn"),
         "target_purity": 1.0,
         "measure_range": [0, 3],
         "selected_qubits": [0, 3],
     },
     {
-        "circuit": CXDynamic(6, name="6-cx-dyn"),
+        "circuit": cx_dyn_comparing(6, name="6-cx-dyn"),
         "target_purity": 1.0,
         "measure_range": [0, 5],
         "selected_qubits": [0, 5],
     },
     {
-        "circuit": CXDynamic(4, name="4-cx-dyn"),
+        "circuit": cx_dyn_comparing(4, name="4-cx-dyn"),
         "target_purity": 0.5,
         "allsys_purity": 0.5,
         "mitigated_purity": 1.0,
@@ -97,7 +97,7 @@ case_datas_extra: list[CaseDataDict] = [
         "selected_qubits": [0],
     },
     {
-        "circuit": CXDynamic(6, name="6-cx-dyn"),
+        "circuit": cx_dyn_comparing(6, name="6-cx-dyn"),
         "target_purity": 0.5,
         "allsys_purity": 0.5,
         "mitigated_purity": 1.0,
@@ -116,7 +116,7 @@ DEFAULT_TIMES = 50
 
 def make_case_entries(
     case_data: CaseDataDict, times: int = DEFAULT_TIMES, shots: int = DEFAULT_SHOTS
-) -> CaseEntriesTuple[EMRMeasureArgs, EMRAnalyzeArgs]:
+) -> CaseEntries[EMRMeasureArgs, EMRAnalyzeArgs]:
     """Make case entries from case data.
 
     Args:
@@ -139,7 +139,7 @@ def make_case_entries(
     if mitigated_purity is not None:
         expect_answer["mitigated"] = ("mitigated_purity", mitigated_purity)
 
-    return CaseEntriesTuple(
+    return CaseEntries(
         tags=(case_data["circuit"].name,),
         measure_entries={
             "wave": case_data["circuit"],
@@ -161,7 +161,7 @@ CASES = [make_case_entries(case_data) for case_data in case_datas]
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[EMRMeasureArgs, EMRAnalyzeArgs],
+    case_entries: CaseEntries[EMRMeasureArgs, EMRAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -170,8 +170,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = EntropyMeasureRandomized()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(
@@ -185,12 +185,8 @@ def test_measure_and_analyze(
         for key, (target_field, expect_answer_value) in case_entries.expect_answer.items()
     ]
 
-    analysis_02 = exp_method.exps[exp_id].analyze(
-        **{**case_entries.analyze_entries, "counts_used": range(5)}
-    )
-    analysis_03 = exp_method.exps[exp_id].analyze(
-        **{**case_entries.analyze_entries, "counts_used": range(5)}
-    )
+    analysis_02 = exp_01.analyze(**{**case_entries.analyze_entries, "counts_used": range(5)})
+    analysis_03 = exp_01.analyze(**{**case_entries.analyze_entries, "counts_used": range(5)})
 
     checker_list.append(
         check_analysis_result(

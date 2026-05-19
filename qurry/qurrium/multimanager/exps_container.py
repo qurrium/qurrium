@@ -178,7 +178,7 @@ def experiment_writer(
         and the values are the dictionaries of the exported information.
     """
 
-    if multiprocess:
+    if multiprocess and len(beforewards.exps_config) > 1:
         respect_memory_array = [
             (id_exec, int(experiment_container[id_exec].memory_usage_factor))
             for id_exec in beforewards.exps_config.keys()

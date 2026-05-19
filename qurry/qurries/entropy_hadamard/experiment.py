@@ -1,7 +1,6 @@
 """EntropyMeasureHadamard - Experiment (:mod:`qurry.qurries.entropy_hadamard.experiment`)"""
 
 from typing import Any
-import tqdm
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
@@ -78,8 +77,6 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
         cls,
         targets: list[tuple[WCKeyable, QuantumCircuit]],
         arguments: EMHArguments,
-        pbar: tqdm.tqdm | None = None,
-        multiprocess: bool = False,
     ) -> tuple[list[QuantumCircuit], dict[str, Any]]:
         """The method to construct circuit.
 
@@ -88,10 +85,6 @@ class EMHExperiment(ExperimentPrototype[EMHArguments, EMHAnalysis]):
                 The circuits of the experiment.
             arguments (EMHArguments):
                 The arguments of the experiment.
-            pbar (tqdm.tqdm | None, optional):
-                The progress bar. Defaults to None.
-            multiprocess (bool, optional):
-                Whether to use multiprocessing. Defaults to `True`.
 
         Returns:
             tuple[list[QuantumCircuit], dict[str, Any]]:

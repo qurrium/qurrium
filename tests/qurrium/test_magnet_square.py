@@ -11,11 +11,11 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.magnet_square import MagnetSquare, MSMeasureArgs
 from qurry.qurries.magnet_square.analysis import MSAnalyzeArgs, MSAnalysis
-from qurry.recipe import Cat, TrivialParamagnet
+from qurry.recipe import trivial_paramagnet, ghz
 
 from .utilities.simulator import get_seeded_simulator
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -53,14 +53,14 @@ class CaseDataDict(TypedDict):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "2_trivial": TrivialParamagnet(2),
-        "4_trivial": TrivialParamagnet(4),
-        "6_trivial": TrivialParamagnet(6),
-        "8_trivial": TrivialParamagnet(8),
-        "2_cat": Cat(2),
-        "4_cat": Cat(4),
-        "6_cat": Cat(6),
-        "8_cat": Cat(8),
+        "2_trivial": trivial_paramagnet(2),
+        "4_trivial": trivial_paramagnet(4),
+        "6_trivial": trivial_paramagnet(6),
+        "8_trivial": trivial_paramagnet(8),
+        "2_cat": ghz(2),
+        "4_cat": ghz(4),
+        "6_cat": ghz(6),
+        "8_cat": ghz(8),
     }
 )
 
@@ -69,8 +69,8 @@ case_datas: list[CaseDataDict] = [
     for name, circuit in circuits_lib.items()
 ]
 
-CASES: list[CaseEntriesTuple[MSMeasureArgs, MSAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[MSMeasureArgs, MSAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuit'].name}",),
         measure_entries={
             "wave": case_data["circuit"],
@@ -86,7 +86,7 @@ CASES: list[CaseEntriesTuple[MSMeasureArgs, MSAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[MSMeasureArgs, MSAnalyzeArgs],
+    case_entries: CaseEntries[MSMeasureArgs, MSAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -95,8 +95,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = MagnetSquare()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(

@@ -21,11 +21,11 @@ from qurry.process.classical_shadow import (
     PurityValueKind,
 )
 from qurry.process.utils import NUMERICAL_ERROR_TOLERANCE
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, ghz, cluster
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     AnalysisResultChecker,
     EXPORT_DIR,
@@ -35,7 +35,7 @@ from .utilities.other import (
     FloatType,
 )
 from .utilities.random_stuff import prepare_random_basis
-from .utilities.circuits import preparing_circuits_lib, CXDynamic, TwoBodyWithMeasurement
+from .utilities.circuits import preparing_circuits_lib, cx_dyn_comparing, dummy_two_body_measurement
 
 
 logger = logging.getLogger(__name__)
@@ -67,18 +67,18 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "4_trivial": TrivialParamagnet(4),
-        "4_ghz": GHZ(4),
-        "4_topological-period": Cluster(4),
-        "6_trivial": TrivialParamagnet(6),
-        "6_ghz": GHZ(6),
-        "6_topological-period": Cluster(6),
+        "4_trivial": trivial_paramagnet(4),
+        "4_ghz": ghz(4),
+        "4_topological-period": cluster(4),
+        "6_trivial": trivial_paramagnet(6),
+        "6_ghz": ghz(6),
+        "6_topological-period": cluster(6),
         # Two-body with measurement cases
-        "4_dummy-2-body-with-clbits": TwoBodyWithMeasurement(4),
-        "6_dummy-2-body-with-clbits": TwoBodyWithMeasurement(6),
+        "4_dummy-2-body-with-clbits": dummy_two_body_measurement(4),
+        "6_dummy-2-body-with-clbits": dummy_two_body_measurement(6),
         # CXDynamic cases
-        "4_cx-dyn": CXDynamic(4, name="4-cx-dyn"),
-        "6_cx-dyn": CXDynamic(6, name="6-cx-dyn"),
+        "4_cx-dyn": cx_dyn_comparing(4, name="4-cx-dyn"),
+        "6_cx-dyn": cx_dyn_comparing(6, name="6-cx-dyn"),
     }
 )
 
@@ -172,8 +172,8 @@ def all_methods_comparison(
     return invalid_results
 
 
-CASES: list[CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]] = [
-    CaseEntriesTuple(
+CASES: list[CaseEntries[SUMeasureArgs, SUAnalyzeArgs]] = [
+    CaseEntries(
         tags=(f"{case_data['circuit'].name}",),
         measure_entries={
             "wave": case_data["circuit"],
@@ -198,7 +198,7 @@ CASES: list[CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs]] = [
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[SUMeasureArgs, SUAnalyzeArgs],
+    case_entries: CaseEntries[SUMeasureArgs, SUAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -207,7 +207,7 @@ def test_measure_and_analyze(
     """
 
     exp_method = ShadowUnveil()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
     checker_list: list[AnalysisResultChecker] = []
     invalid_results_of_each_kind: dict[
         str, list[tuple[str, FloatType, str, FloatType, FloatType, FloatType]]
@@ -221,7 +221,7 @@ def test_measure_and_analyze(
             analyze_entries_with_methods = case_entries.analyze_entries.copy()
             analyze_entries_with_methods["rho_method"] = rho_method
             analyze_entries_with_methods["trace_method"] = trace_method
-            analysis_tmp = exp_method.exps[exp_id].analyze(**analyze_entries_with_methods)
+            analysis_tmp = exp_01.analyze(**analyze_entries_with_methods)
 
             checker_list_tmp += [
                 check_analysis_result(

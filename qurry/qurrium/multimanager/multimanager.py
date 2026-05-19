@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Generic
 from uuid import uuid4
+from dataclasses import replace
 
 from qiskit.providers import Backend
 
@@ -286,7 +287,7 @@ class MultiManager(Generic[_E]):
             save_location=save_location,
         )
 
-        multicommons, outfields = MultiCommonparams.build(
+        multicommons, outfields = MultiCommonparams.create(
             {
                 "summoner_id": str(uuid4()),
                 "summoner_name": naming_complex.summoner_name,
@@ -425,12 +426,11 @@ class MultiManager(Generic[_E]):
         gitignore = GitSyncControl()
         gitignore.load(naming_complex.export_location)
 
-        raw_multiconfig = MultiCommonparams.rawread(
-            mutlticonfig_name=naming_complex.export_location / "multi.config.json",
+        multicommons, outfields = MultiCommonparams.read(
+            file_index={"multi.config": "multi.config.json"},
             save_location=naming_complex.save_location,
             export_location=naming_complex.export_location,
         )
-        multicommons, outfields = MultiCommonparams.build(raw_multiconfig)
         assert naming_complex.save_location == multicommons.save_location, (
             "| save_location is not consistent with namingCpx.save_location."
         )
@@ -473,30 +473,11 @@ class MultiManager(Generic[_E]):
             exp_or_summoner_name=self.multicommons.summoner_name,
             save_location=save_location,
         )
-        self.multicommons = self.multicommons._replace(
+        self.multicommons = replace(
+            self.multicommons,
             save_location=self.naming_complex.save_location,
             export_location=self.naming_complex.export_location,
         )
-
-    def _write_multiconfig(self) -> dict[str, Any]:
-        multiconfig_name = Path(self.multicommons.export_location) / "multi.config.json"
-        self.multicommons.files["multi.config"] = str(multiconfig_name)
-        self.gitignore.sync("multi.config.json")
-        multiconfig = {
-            **self.multicommons._asdict(),
-            "outfields": self.outfields,
-            "files": self.multicommons.files,
-        }
-        quick_json_write(
-            content=multiconfig,
-            filename=multiconfig_name,
-            mode=DEFAULT_MODE,
-            jsonable=True,
-            encoding=DEFAULT_ENCODING,
-            mute=True,
-        )
-
-        return multiconfig
 
     def write(
         self,
@@ -523,7 +504,6 @@ class MultiManager(Generic[_E]):
         Returns:
             dict[str, Any]: The dict of multiConfig.
         """
-        print("| Export multimanager...")
         if save_location is not None:
             self.update_save_location(save_location=save_location)
         save_location = self.multicommons.save_location
@@ -553,8 +533,8 @@ class MultiManager(Generic[_E]):
             self.gitignore.sync("multiquantity.json")
 
         # multiConfig
-        multiconfig = self._write_multiconfig()
-        print(f"| Export multi.config.json for {self.summoner_id}")
+        multiconfig = self.multicommons.write(self.outfields)
+        self.gitignore.sync("multi.config.json")
 
         # gitignore
         self.gitignore.export(self.multicommons.export_location)

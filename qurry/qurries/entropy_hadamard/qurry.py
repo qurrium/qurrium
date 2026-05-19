@@ -87,7 +87,7 @@ class EntropyMeasureHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            EntropyMeasureHadamardOutputArgs: The output arguments.
+            The output arguments.
         """
         if wave is None:
             raise ValueError("The `wave` must be provided.")
@@ -161,10 +161,10 @@ class EntropyMeasureHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.build(
+        exp_id = self.build(
             **self.measure_to_output(
                 wave=wave,
                 degree=degree,
@@ -182,6 +182,7 @@ class EntropyMeasureHadamard(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]
 
     def measure(
         self,
@@ -235,10 +236,10 @@ class EntropyMeasureHadamard(
                 The progress bar for showing the progress of the experiment. Defaults to None.
 
         Returns:
-            str: The ID of the experiment
+            The experiment instance.
         """
 
-        return self.output(
+        exp_id = self.output(
             **self.measure_to_output(
                 wave=wave,
                 degree=degree,
@@ -256,3 +257,4 @@ class EntropyMeasureHadamard(
                 pbar=pbar,
             )
         )
+        return self.orphan_exps[exp_id]

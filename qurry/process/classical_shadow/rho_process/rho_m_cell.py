@@ -76,6 +76,8 @@ def rho_m_cell_precomputed(
     single_matrices = np.empty((len(bitstrings), n_qubits), dtype=object)
     for i, bitstring in enumerate(bitstrings):
         for j, (c_i, s_b) in enumerate(zip(selected_clregs_sorted, bitstring)):
+            # The order of classical registers is [8, 7, 6, 5, 4, 3, 2, 1, 0]
+            # which respects to the bitstring "000000000"
             single_matrices[i, j] = random_basis_obj.cached_precomputed_rho_m_k_i(
                 single_random_basis[c_i], s_b
             )

@@ -307,14 +307,48 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         raise NotImplementedError("The method is not defined.")
 
     @abstractmethod
-    def prepare(self) -> str:
+    def prepare(self) -> _E:
         """Prepare the experiment."""
         raise NotImplementedError("The method is not defined.")
 
     @abstractmethod
-    def measure(self) -> str:
+    def measure(self) -> _E:
         """Execute the experiment."""
         raise NotImplementedError("The method is not defined.")
+
+    def read(
+        self,
+        exp_or_summoner_name: Path | str,
+        save_location: Path | str | None = Path("./"),
+        multiprocess: bool = True,
+    ) -> dict[str, _E]:
+        """Read the experiment from file.
+
+        Args:
+            exp_or_summoner_name (Path | str):
+                The experiment name or multimanager name to be read.
+            save_location (Path | str | None, optional):
+                The location of the experiment to be read. Defaults to Path('./').
+            multiprocess (bool, optional):
+                Whether to use multiprocessing. Defaults to `True`.
+
+        Raises:
+            ValueError: 'save_location' needs to be the type of 'str' or 'Path'.
+            FileNotFoundError: When `save_location` is not available.
+
+        Returns:
+            dict[str, _E]: The dictionary of experiment instances read from file,
+        """
+
+        reading_results = self.experiment_instance.read(
+            exp_or_summoner_name=exp_or_summoner_name,
+            save_location=save_location,
+            multiprocess=multiprocess,
+        )
+        exp_ids = [exp.commons.exp_id for exp in reading_results]
+        self.orphan_exps.update({exp.exp_id: exp for exp in reading_results})
+
+        return {exp_id: self.orphan_exps[exp_id] for exp_id in exp_ids}
 
     # pylint: disable=invalid-name
     def multiBuild(
@@ -418,7 +452,6 @@ class QurriumPrototype(ABC, Generic[_E, _MA, _OA, _RA]):
         )
         assert len(current_multimanager.beforewards.pending_pool) == 0
         assert len(current_multimanager.beforewards.circuits_map) == 0
-        # assert len(current_multimanager.beforewards.job_id) == 0
 
         self.multimanagers[current_multimanager.summoner_id] = current_multimanager
 

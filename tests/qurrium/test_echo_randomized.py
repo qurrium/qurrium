@@ -11,11 +11,11 @@ from qiskit import QuantumCircuit
 
 from qurry.qurries.echo_randomized import EchoListenRandomized, ELRMeasureArgs
 from qurry.qurries.echo_randomized.analysis import ELRAnalyzeArgs, ELRAnalysis
-from qurry.recipe import TrivialParamagnet, GHZ, Cluster
+from qurry.recipe import trivial_paramagnet, cluster, ghz
 
 from .utilities.simulator import get_seeded_simulator, SIM_DEFAULT_SOURCE
 from .utilities.other import (
-    CaseEntriesTuple,
+    CaseEntries,
     check_analysis_result,
     EXPORT_DIR,
     make_config_list_and_tagged_case,
@@ -24,8 +24,8 @@ from .utilities.other import (
 )
 from .utilities.random_stuff import prepare_random_unitary_seeds
 from .utilities.circuits import (
-    CXDynamic,
-    TwoBodyWithMeasurement,
+    cx_dyn_comparing,
+    dummy_two_body_measurement,
     make_ghz_overlap_case,
     preparing_circuits_lib,
 )
@@ -62,15 +62,15 @@ class CaseDataDict(CaseDataDictABC, total=False):
 
 circuits_lib = preparing_circuits_lib(
     {
-        "4_trivial": TrivialParamagnet(4),
-        "4_ghz": GHZ(4),
-        "4_topological-period": Cluster(4),
-        "6_trivial": TrivialParamagnet(6),
-        "6_ghz": GHZ(6),
-        "6_topological-period": Cluster(6),
+        "4_trivial": trivial_paramagnet(4),
+        "4_ghz": ghz(4),
+        "4_topological-period": cluster(4),
+        "6_trivial": trivial_paramagnet(6),
+        "6_ghz": ghz(6),
+        "6_topological-period": cluster(6),
         # Two-body with measurement cases
-        "4_dummy-2-body-with-clbits": TwoBodyWithMeasurement(4),
-        "6_dummy-2-body-with-clbits": TwoBodyWithMeasurement(6),
+        "4_dummy-2-body-with-clbits": dummy_two_body_measurement(4),
+        "6_dummy-2-body-with-clbits": dummy_two_body_measurement(6),
         # GHZ with other GHZ cases
         "4_ghz-00": make_ghz_overlap_case(4, "00"),
         "4_ghz-01": make_ghz_overlap_case(4, "01"),
@@ -80,10 +80,10 @@ circuits_lib = preparing_circuits_lib(
         "4_ghz-singlet": make_ghz_overlap_case(4, "singlet"),
         "4_ghz-intracell-plus": make_ghz_overlap_case(4, "intracell-plus"),
         # CXDynamic cases
-        "4_cx-dyn": CXDynamic(4, name="4-cx-dyn"),
-        "6_cx-dyn": CXDynamic(6, name="6-cx-dyn"),
-        "4_cx-dyn-comparison": CXDynamic(4, name="4-cx-dyn-comparison", mode="comparison"),
-        "6_cx-dyn-comparison": CXDynamic(6, name="6-cx-dyn-comparison", mode="comparison"),
+        "4_cx-dyn": cx_dyn_comparing(4, name="4-cx-dyn"),
+        "6_cx-dyn": cx_dyn_comparing(6, name="6-cx-dyn"),
+        "4_cx-dyn-comparison": cx_dyn_comparing(4, name="4-cx-dyn-comparison", mode="comparison"),
+        "6_cx-dyn-comparison": cx_dyn_comparing(6, name="6-cx-dyn-comparison", mode="comparison"),
     }
 )
 
@@ -188,7 +188,7 @@ DEFAULT_SELECTED_CLREGS = list(range(-2, 0))
 
 def make_case_entries(
     case_data: CaseDataDict, times: int = DEFAULT_TIMES
-) -> CaseEntriesTuple[ELRMeasureArgs, ELRAnalyzeArgs]:
+) -> CaseEntries[ELRMeasureArgs, ELRAnalyzeArgs]:
     """Make case entries from case data.
 
     Args:
@@ -220,7 +220,7 @@ def make_case_entries(
 
     random_unitary_seeds = {i: RANDOM_UNITARY_SEEDS[actual_qubits_num][i] for i in range(times)}
 
-    return CaseEntriesTuple(
+    return CaseEntries(
         tags=(f"{case_data['circuits'][0].name}_{case_data['circuits'][1].name}",),
         measure_entries={
             "wave1": case_data["circuits"][0],
@@ -245,7 +245,7 @@ CASES = [make_case_entries(case_data) for case_data in case_datas]
 
 @pytest.mark.parametrize("case_entries", CASES)
 def test_measure_and_analyze(
-    case_entries: CaseEntriesTuple[ELRMeasureArgs, ELRAnalyzeArgs],
+    case_entries: CaseEntries[ELRMeasureArgs, ELRAnalyzeArgs],
 ) -> None:
     """Test orphan experiments.
 
@@ -254,8 +254,8 @@ def test_measure_and_analyze(
     """
 
     exp_method = EchoListenRandomized()
-    exp_id = exp_method.measure(**case_entries.measure_entries_with_tags())
-    analysis_01 = exp_method.exps[exp_id].analyze(**case_entries.analyze_entries)
+    exp_01 = exp_method.measure(**case_entries.measure_entries_with_tags())
+    analysis_01 = exp_01.analyze(**case_entries.analyze_entries)
 
     checker_list = [
         check_analysis_result(
