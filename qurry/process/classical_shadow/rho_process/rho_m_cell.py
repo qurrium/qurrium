@@ -73,14 +73,14 @@ def rho_m_cell_precomputed(
     bitstrings = list(single_counts.keys())
     counts_nums = list(single_counts.values())
 
+    precomputed_rho_m_k_i = random_basis_obj.basis_precomputed_rho_m_k_i
+
     single_matrices = np.empty((len(bitstrings), n_qubits), dtype=object)
     for i, bitstring in enumerate(bitstrings):
         for j, (c_i, s_b) in enumerate(zip(selected_clregs_sorted, bitstring)):
             # The order of classical registers is [8, 7, 6, 5, 4, 3, 2, 1, 0]
             # which respects to the bitstring "000000000"
-            single_matrices[i, j] = random_basis_obj.cached_precomputed_rho_m_k_i(
-                single_random_basis[c_i], s_b
-            )
+            single_matrices[i, j] = precomputed_rho_m_k_i[(single_random_basis[c_i], s_b)]
 
     all_rho_mk = np.empty((len(bitstrings), matrix_dim, matrix_dim), dtype=np.complex128)
     for i in range(len(bitstrings)):
@@ -129,8 +129,10 @@ def rho_m_cell_vectorized(
     n_samples, n_qubits = bits_array_np.shape
     matrix_dim = 2**n_qubits
 
+    basis_precomputed_rho_m_k_i_2 = random_basis_obj.basis_precomputed_rho_m_k_i_2
+
     single_matrices = np.vectorize(
-        random_basis_obj.cached_precomputed_rho_m_k_i_2, otypes=[object]
+        lambda direction_and_b_k: basis_precomputed_rho_m_k_i_2[direction_and_b_k], otypes=[object]
     )(bits_array_np)
 
     all_rho_mk = np.empty((n_samples, matrix_dim, matrix_dim), dtype=np.complex128)
