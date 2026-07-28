@@ -531,6 +531,11 @@ class SUEstimationResult(AnalysisResultsPrototype):
     """The estimation of the given operators."""
     corresponding_rhos: list[npt.NDArray[np.complex128]]
     """The corresponding Rho for each given operator."""
+    all_candidates_of_estimate: list[list[np.complex128]] | list[list[complex]]
+    r"""The all candidates of esitmation values of measurement primitive :math:`\mathcal{U}`."""
+    trace_with_mean_rho_of_given_operators: list[np.complex128] | list[complex]
+    r"""The trace of the given operators with the mean of rho."""
+
     accuracy_prob_comp_delta: FloatType
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
     and mentioned in Theorem S1 in the supplementary material,
@@ -678,6 +683,13 @@ class SUEstimationResult(AnalysisResultsPrototype):
             "corresponding_rhos": [
                 np.array(rho, dtype=str).tolist() for rho in self.corresponding_rhos
             ],
+            "all_candidates_of_estimate": [
+                [str(complex(est)) for est in candidate]
+                for candidate in self.all_candidates_of_estimate
+            ],
+            "trace_with_mean_rho_of_given_operators": [
+                str(complex(val)) for val in self.trace_with_mean_rho_of_given_operators
+            ],
             "accuracy_prob_comp_delta": float(self.accuracy_prob_comp_delta),
             "num_of_estimators_k": int(self.num_of_estimators_k),
             "accuracy_predict_epsilon": float(self.accuracy_predict_epsilon),
@@ -709,6 +721,13 @@ class SUEstimationResult(AnalysisResultsPrototype):
             ],
             corresponding_rhos=[
                 np.array(rho, dtype=np.complex128) for rho in raw_dict["corresponding_rhos"]
+            ],
+            all_candidates_of_estimate=[
+                [complex(est) for est in candidate]
+                for candidate in raw_dict["all_candidates_of_estimate"]
+            ],
+            trace_with_mean_rho_of_given_operators=[
+                complex(val) for val in raw_dict["trace_with_mean_rho_of_given_operators"]
             ],
             accuracy_prob_comp_delta=float(raw_dict["accuracy_prob_comp_delta"]),
             num_of_estimators_k=int(raw_dict["num_of_estimators_k"]),
