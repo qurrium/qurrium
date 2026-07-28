@@ -302,7 +302,7 @@ def prediction_einsum_aij_bji_to_ab(
     given_operators: npt.NDArray[np.complex128],
     estimators: npt.NDArray[np.complex128],
     method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-) -> tuple[list[np.complex128], list[npt.NDArray[np.complex128]]]:
+) -> tuple[list[np.complex128], list[list[np.complex128]], list[npt.NDArray[np.complex128]]]:
     """Calculate the prediction of given operators by einsum_aij_bji_to_ab_numpy.
 
     Args:
@@ -339,10 +339,12 @@ def prediction_einsum_aij_bji_to_ab(
     method = method.handle_jax_unavailability()
 
     if method == ListTraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY:
+        # the matrix with shape (len(given_operators), len(estimators))
         candidate_esitmators_foreach_given_operator = np.einsum(
             "aij,bji->ab", given_operators, estimators
         )
 
+        # a 1-dim list with length = len(given_operators)
         median_foreach_given_operator = np.median(
             candidate_esitmators_foreach_given_operator, axis=1
         )
@@ -353,10 +355,11 @@ def prediction_einsum_aij_bji_to_ab(
             axis=1,
         )
 
-        return list(median_foreach_given_operator), [
-            candidate_esitmators_foreach_given_operator[i, j]
-            for i, j in enumerate(median_location_given_operator)
-        ]
+        return (
+            list(median_foreach_given_operator),
+            candidate_esitmators_foreach_given_operator.tolist(),
+            [given_operators[j] for j in median_location_given_operator],
+        )
 
     import jax
     import jax.numpy as jnp
@@ -375,7 +378,8 @@ def prediction_einsum_aij_bji_to_ab(
         axis=1,
     )
 
-    return list(median_foreach_given_operator), [
-        np.array(candidate_esitmators_foreach_given_operator[i, j], dtype=np.complex128)
-        for i, j in enumerate(median_location_given_operator)
-    ]
+    return (
+        list(median_foreach_given_operator),
+        np.array(candidate_esitmators_foreach_given_operator, dtype=np.complex128).tolist(),
+        [given_operators[j] for j in median_location_given_operator],
+    )

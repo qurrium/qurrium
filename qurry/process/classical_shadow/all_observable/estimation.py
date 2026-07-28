@@ -11,7 +11,11 @@ import numpy.typing as npt
 from .container_kind import ClassicalShadowBasic, isvalid_classical_shadow_basic
 from .mean import mean_rho
 from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
-from ..prediction_process import prediction_algorithm, EstimationOfObservable
+from ..prediction_process import (
+    prediction_algorithm,
+    EstimationOfObservable,
+    comparison_of_prediction,
+)
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ...utils import FloatType
 
@@ -45,20 +49,26 @@ def inner_estimation_of_given_operators(
             The method to use for the calculation. Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
-        EstimationOfObservable: The estimation of the given operators.
+        EstimationOfObservableExtend: The estimation of the given operators.
     """
 
     isvalid_classical_shadow_basic(cs_basic)
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 
-    return prediction_algorithm(
+    cs_estimation_basic = prediction_algorithm(
         classical_snapshots_rho=dict(enumerate(cs_basic["average_snapshots_rho_list"])),
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
         estimate_trace_method=estimate_trace_method,
     )
+    cs_comparison = comparison_of_prediction(
+        mean_of_rho=cs_basic["mean_of_rho"],
+        given_operators=given_operators,
+    )
+
+    return EstimationOfObservable(**cs_estimation_basic, **cs_comparison)
 
 
 def estimation_of_given_operators(
