@@ -326,6 +326,7 @@ def prediction_einsum_aij_bji_to_ab(
     Returns:
         A tuple containing:
             - A list of median values for each given operator.
+            - A list of a lists containing the candidate estimators for each given operator.
             - A list of the corresponding median estimators for each given operator.
     """
     if given_operators.ndim != 3 or estimators.ndim != 3:
@@ -348,6 +349,7 @@ def prediction_einsum_aij_bji_to_ab(
         median_foreach_given_operator = np.median(
             candidate_esitmators_foreach_given_operator, axis=1
         )
+        # Index j of the estimator
         median_location_given_operator = np.argmin(
             np.abs(
                 candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
@@ -358,7 +360,7 @@ def prediction_einsum_aij_bji_to_ab(
         return (
             list(median_foreach_given_operator),
             candidate_esitmators_foreach_given_operator.tolist(),
-            [given_operators[j] for j in median_location_given_operator],
+            [estimators[j] for j in median_location_given_operator],
         )
 
     import jax
@@ -371,6 +373,7 @@ def prediction_einsum_aij_bji_to_ab(
         "aij,bji->ab", given_operators, estimators
     )
     median_foreach_given_operator = np.median(candidate_esitmators_foreach_given_operator, axis=1)
+    # Index j of the estimator
     median_location_given_operator = np.argmin(
         np.abs(
             candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
@@ -381,5 +384,5 @@ def prediction_einsum_aij_bji_to_ab(
     return (
         list(median_foreach_given_operator),
         np.array(candidate_esitmators_foreach_given_operator, dtype=np.complex128).tolist(),
-        [given_operators[j] for j in median_location_given_operator],
+        [estimators[j] for j in median_location_given_operator],
     )
