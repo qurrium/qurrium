@@ -26,6 +26,7 @@ def mean_rho(
     selected_classical_registers: Iterable[int] | None = None,
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
+    use_projecter: bool = False,
     pbar: tqdm.tqdm | None = None,
 ) -> ClassicalShadowBasic:
     r"""Calculate the mean of Rho.
@@ -121,6 +122,13 @@ def mean_rho(
             - `H_H-Sdg_I`:
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
+        use_projecter (bool):
+            Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+            Refer to 
+            :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+            or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+            for more details.
+            Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
 
         pbar (tqdm.tqdm | None, optional):
             The progress bar. Defaults to None.
@@ -138,6 +146,7 @@ def mean_rho(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         shadow_basis=shadow_basis,
+        use_projecter=use_projecter,
     )
     if pbar is not None:
         pbar.set_description(f"| taking time of all rho_m: {taken:.4f} sec")
@@ -155,4 +164,5 @@ def mean_rho(
         random_basis_data=shadow_basis_obj.export(),
         # The mean of Rho
         mean_of_rho=expect_rho,
+        use_projecter=use_projecter,
     )

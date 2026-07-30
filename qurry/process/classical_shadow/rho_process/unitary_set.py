@@ -5,7 +5,7 @@ The followings are unitary operators for our classical shadow implementation.
 """
 
 from typing import TypedDict
-from types import MappingProxyType
+from types import MappingProxyType as MPT
 from collections.abc import Sequence
 from dataclasses import dataclass
 import functools as ft
@@ -225,6 +225,22 @@ class ShadowRandomBasisData(TypedDict):
     """The gate names and parameters for each basis."""
 
 
+def _remapper(
+    content: dict[tuple[int, str], npt.NDArray[np.complex128]],
+) -> dict[int, npt.NDArray[np.complex128]]:
+    """Remap the keys of a dictionary from (direction, b_k) to direction * 10 + ord(b_k) - 48.
+
+    Args:
+        content (dict[tuple[int, str], npt.NDArray[np.complex128]]):
+            The original dictionary with keys as (direction, b_k).
+
+    Returns:
+        dict[int, npt.NDArray[np.complex128]]:
+            The remapped dictionary with keys as direction * 10 + ord(b_k) - 48.
+    """
+    return {direction * 10 + ord(b_k) - 48: matrix for (direction, b_k), matrix in content.items()}
+
+
 @dataclass(frozen=True, init=False)
 class ShadowRandomBasis:
     """Class for handling random basis selection for classical shadows."""
@@ -247,56 +263,78 @@ class ShadowRandomBasis:
     ]
     """The gate names and parameters for each basis. """
 
-    basis_projecters: MappingProxyType[tuple[int, str], npt.NDArray[np.complex128]]
+    basis_projecters: MPT[tuple[int, str], npt.NDArray[np.complex128]]
     r"""The basis projectors for each basis and bitstring. 
     
     The basis projectors are defined as:
 
     .. math::
-        P_{mki} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi}
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi}
     """
-    basis_precomputed_rho_m_k_i: MappingProxyType[tuple[int, str], npt.NDArray[np.complex128]]
-    r"""The precomputed :math:`\rho_{mki}` matrices for each basis and bitstring.
+    basis_precomputed_rho_m_k_i: MPT[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each basis and bitstring.
 
-    The precomputed :math:`\rho_{mki}` matrices are defined as:
+    The precomputed :math:`\rho_{mk}^{i}` matrices are defined as:
 
     .. math::
-        P_{mki} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
-        \rho_{mki} = 3 P_{mki} - \mathbb{I}
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
+        \rho_{mk}^{i} = 3 P_{mk}^{i} - \mathbb{I}  
     """
-    pauli_projecters: MappingProxyType[tuple[int, str], npt.NDArray[np.complex128]]
+    pauli_projecters: MPT[tuple[int, str], npt.NDArray[np.complex128]]
     r"""The Pauli projectors for each basis and bitstring.
     
     The Pauli projectors are defined as:
 
     .. math::
-        P_{mki}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
 
     where :math:`\sigma_{i}` is the Pauli operator for the i-th qubit.
     """
-    pauli_precomputed_rho_m_k_i: MappingProxyType[tuple[int, str], npt.NDArray[np.complex128]]
-    r"""The precomputed :math:`\rho_{mki}` matrices for each Pauli basis and bitstring (tuple key).
+    pauli_precomputed_rho_m_k_i: MPT[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (tuple key).
 
-    The precomputed :math:`\rho_{mki}` matrices are defined as:
+    The precomputed :math:`\rho_{mk}^{i}` matrices are defined as:
 
     .. math::
-        P_{mki}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
-        \rho_{mki} = 3 P_{mki}' - \mathbb{I}
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
+        \rho_{mk}^{i} = 3 P_{mk}^{i}' - \mathbb{I}
         
-    Why :math:`P_{mki}'` can be equivalent to :math:`P_{mki}` like the following
+    Why :math:`P_{mk}^{i}'` can be equivalent to :math:`P_{mk}^{i}` like the following
     
     .. math::
-        P_{mki} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
-        P_{mki}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
         U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} = 
         \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
 
     You can refer 
     `Unraveling the Mystery <https://pennylane.ai/demos/tutorial_diffable_shadows#unraveling-the-mystery>`_
     """
-    basis_precomputed_rho_m_k_i_2: MappingProxyType[int, npt.NDArray[np.complex128]]
-    r"""The precomputed :math:`\rho_{mki}` matrices for each Pauli basis and bitstring (int key).
 
+    basis_projecters_2: MPT[int, npt.NDArray[np.complex128]]
+    r"""The basis projectors for each basis and bitstring (int key).
+    
+    This is the same as :attr:`basis_projecters` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    basis_precomputed_rho_m_k_i_2: MPT[int, npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (int key).
+
+    This is the same as :attr:`pauli_precomputed_rho_m_k_i` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    pauli_projecters_2: MPT[int, npt.NDArray[np.complex128]]
+    r"""The Pauli basis projectors for each Pauli basis and bitstring (int key).
+
+    This is the same as :attr:`pauli_projecters` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    pauli_precomputed_rho_m_k_i_2: MPT[int, npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (int key).
+    
     This is the same as :attr:`pauli_precomputed_rho_m_k_i` but with a single integer key
     ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
     """
@@ -395,63 +433,32 @@ class ShadowRandomBasis:
         )
 
         # tuple key of (direction, b_k) -> matrix
-        quick_setter(
-            "basis_projecters",
-            MappingProxyType(
-                {
-                    (direction, b_k): (
-                        self.matrices[direction].conj().T
-                        @ OUTER_PRODUCT[b_k]
-                        @ self.matrices[direction]
-                    )
-                    for direction in [0, 1, 2]
-                    for b_k in ["0", "1"]
-                }
-            ),
-        )
 
-        _basis_precomputed_rho_m_k_i = {
-            (direction, b_k): (3 * self.basis_projecters[(direction, b_k)]) - IDENTITY
+        _basis_proj = {
+            (direction, b_k): (
+                self.matrices[direction].conj().T @ OUTER_PRODUCT[b_k] @ self.matrices[direction]
+            )
             for direction in [0, 1, 2]
             for b_k in ["0", "1"]
         }
-        quick_setter(
-            "basis_precomputed_rho_m_k_i",
-            MappingProxyType(_basis_precomputed_rho_m_k_i),
-        )
+        quick_setter("basis_projecters", MPT(_basis_proj))
+        quick_setter("basis_projecters_2", MPT(_remapper(_basis_proj)))
 
-        quick_setter(
-            "pauli_projecters",
-            MappingProxyType(
-                {
-                    (direction, b_k): ((1 / 2) * ((1 - 2 * int(b_k)) * PAULI[direction] + IDENTITY))
-                    for direction in [0, 1, 2]
-                    for b_k in ["0", "1"]
-                }
-            ),
-        )
+        _basis_rho_m_k_i = {k: (3 * v) - IDENTITY for k, v in _basis_proj.items()}
+        quick_setter("basis_precomputed_rho_m_k_i", MPT(_basis_rho_m_k_i))
+        quick_setter("basis_precomputed_rho_m_k_i_2", MPT(_remapper(_basis_rho_m_k_i)))
 
-        quick_setter(
-            "pauli_precomputed_rho_m_k_i",
-            MappingProxyType(
-                {
-                    (direction, b_k): (3 * self.pauli_projecters[(direction, b_k)]) - IDENTITY
-                    for direction in [0, 1, 2]
-                    for b_k in ["0", "1"]
-                }
-            ),
-        )
+        _pauli_proj = {
+            (direction, b_k): ((1 / 2) * ((1 - 2 * int(b_k)) * PAULI[direction] + IDENTITY))
+            for direction in [0, 1, 2]
+            for b_k in ["0", "1"]
+        }
+        quick_setter("pauli_projecters", MPT(_pauli_proj))
+        quick_setter("pauli_projecters_2", MPT(_remapper(_pauli_proj)))
 
-        quick_setter(
-            "basis_precomputed_rho_m_k_i_2",
-            MappingProxyType(
-                {
-                    (direction * 10 + ord(b_k) - 48): _basis_precomputed_rho_m_k_i[(direction, b_k)]
-                    for direction in [0, 1, 2]
-                    for b_k in ["0", "1"]
-                }
-            ),
-        )
+        _pauli_rho_m_k_i = {k: (3 * v) - IDENTITY for k, v in _pauli_proj.items()}
+        quick_setter("pauli_precomputed_rho_m_k_i", MPT(_pauli_rho_m_k_i))
+        quick_setter("pauli_precomputed_rho_m_k_i_2", MPT(_remapper(_pauli_rho_m_k_i)))
 
     # I/O methods for exporting and ingesting ShadowRandomBasis data.
     def export(self) -> ShadowRandomBasisData:
