@@ -57,8 +57,16 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     # other config
     rho_method: RhoMethodType
     """The method to reconstruct the density matrix."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
     trace_method: TraceMethodType
     """The method to compute the trace."""
+
     estimate_trace_method: ListTraceMethodType
     """The method to estimate the trace."""
     counts_used: Iterable[int] | None
@@ -276,6 +284,13 @@ class SUProcessEntries(ProcessEntriesPrototype):
     """The method to reconstruct the density matrix."""
     shadow_basis: ShadowRandomBasis
     """The shadow basis used for classical shadow."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
     trace_method: TraceMethodType
     """The method to calculate the trace of Rho."""
     estimate_trace_method: ListTraceMethodType
@@ -325,6 +340,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
             ),
             "rho_method": rho_method.value,
             "shadow_basis": self.shadow_basis.export(),
+            "use_projecter": self.use_projecter,
             "trace_method": trace_method.value,
             "estimate_trace_method": estimate_trace_method.value,
         }
@@ -358,6 +374,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
             ),
             rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
             shadow_basis=ShadowRandomBasis.ingest(raw_dict["shadow_basis"]),
+            use_projecter=raw_dict.get("use_projecter", False),
             trace_method=TraceMethod.from_string(raw_dict["trace_method"]),
             estimate_trace_method=ListTraceMethod.from_string(raw_dict["estimate_trace_method"]),
         )
@@ -413,6 +430,13 @@ class SUBasicResult(AnalysisResultsPrototype):
     """The random basis data used for classical shadow."""
     mean_of_rho: npt.NDArray[np.complex128]
     """The mean of single classical snapshots."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
 
     def side_product_fields(self) -> tuple[str, ...]:
         """The side product fields for the analysis result.
@@ -441,6 +465,7 @@ class SUBasicResult(AnalysisResultsPrototype):
             ),
             "random_basis_data": self.random_basis_data,
             "mean_of_rho": np.array(self.mean_of_rho, dtype=str).tolist(),
+            "use_projecter": self.use_projecter,
         }
 
     @classmethod
@@ -463,6 +488,7 @@ class SUBasicResult(AnalysisResultsPrototype):
             rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
             random_basis_data=raw_dict["random_basis_data"],
             mean_of_rho=np.array(raw_dict["mean_of_rho"], dtype=np.complex128),
+            use_projecter=raw_dict.get("use_projecter", False),
         )
 
 
@@ -857,6 +883,7 @@ class SUAnalysis(
         # other config
         rho_method: RhoMethodType,
         shadow_basis: ShadowBasisType,
+        use_projecter: bool,
         trace_method: TraceMethodType,
         estimate_trace_method: ListTraceMethodType,
     ) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity | None, EstimationOfObservable | None]:
@@ -920,6 +947,15 @@ class SUAnalysis(
                     and :math:`R_Z(0)` gates.
                 - `H_H-Sdg_I`:
                     Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
+            use_projecter (bool):
+                Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`.
+                Refer to
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
+                or
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                for more details.
+                When :attr:`use_projecter` is False,
+                which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -978,6 +1014,7 @@ class SUAnalysis(
             # other config
             rho_method=rho_method,
             shadow_basis=shadow_basis,
+            use_projecter=use_projecter,
             trace_method=trace_method,
             estimate_trace_method=estimate_trace_method,
         )
@@ -1077,6 +1114,7 @@ class SUAnalysis(
                 # other config
                 rho_method=analyze_arguments.get("rho_method", DEFAULT_RHO_METHOD),
                 shadow_basis=arguments.shadow_basis,
+                use_projecter=analyze_arguments.get("use_projecter", False),
                 trace_method=analyze_arguments.get("trace_method", DEFAULT_TRACE_METHOD),
                 estimate_trace_method=analyze_arguments.get(
                     "estimate_trace_method", DEFAULT_LIST_TRACE_METHOD
@@ -1130,6 +1168,7 @@ class SUAnalysis(
             # other config
             rho_method=postprocess_entries.rho_method,
             shadow_basis=arguments.shadow_basis,
+            use_projecter=postprocess_entries.use_projecter,
             trace_method=postprocess_entries.trace_method,
             estimate_trace_method=postprocess_entries.estimate_trace_method,
         )
