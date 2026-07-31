@@ -27,9 +27,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.DEPLOY_KEY }}
-          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -79,6 +76,8 @@ jobs:
         id: detect
         env:
           GH_TOKEN: ${{ secrets.ACTIONS_MANAGER_TOKEN }}
+          # Require the tokens owned Organization access to review the self-hosted runners. 
+          # If the token is owned by a user, it will not be able to access the self-hosted runners.
         run: |
           ORGS=${{ github.repository_owner }}
           REPO=${{ github.event.repository.name }}
