@@ -57,8 +57,16 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     # other config
     rho_method: RhoMethodType
     """The method to reconstruct the density matrix."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
     trace_method: TraceMethodType
     """The method to compute the trace."""
+
     estimate_trace_method: ListTraceMethodType
     """The method to estimate the trace."""
     counts_used: Iterable[int] | None
@@ -276,6 +284,13 @@ class SUProcessEntries(ProcessEntriesPrototype):
     """The method to reconstruct the density matrix."""
     shadow_basis: ShadowRandomBasis
     """The shadow basis used for classical shadow."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
     trace_method: TraceMethodType
     """The method to calculate the trace of Rho."""
     estimate_trace_method: ListTraceMethodType
@@ -325,6 +340,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
             ),
             "rho_method": rho_method.value,
             "shadow_basis": self.shadow_basis.export(),
+            "use_projecter": self.use_projecter,
             "trace_method": trace_method.value,
             "estimate_trace_method": estimate_trace_method.value,
         }
@@ -358,6 +374,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
             ),
             rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
             shadow_basis=ShadowRandomBasis.ingest(raw_dict["shadow_basis"]),
+            use_projecter=raw_dict.get("use_projecter", False),
             trace_method=TraceMethod.from_string(raw_dict["trace_method"]),
             estimate_trace_method=ListTraceMethod.from_string(raw_dict["estimate_trace_method"]),
         )
@@ -413,6 +430,13 @@ class SUBasicResult(AnalysisResultsPrototype):
     """The random basis data used for classical shadow."""
     mean_of_rho: npt.NDArray[np.complex128]
     """The mean of single classical snapshots."""
+    use_projecter: bool
+    r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    for more details.
+    """
 
     def side_product_fields(self) -> tuple[str, ...]:
         """The side product fields for the analysis result.
@@ -441,6 +465,7 @@ class SUBasicResult(AnalysisResultsPrototype):
             ),
             "random_basis_data": self.random_basis_data,
             "mean_of_rho": np.array(self.mean_of_rho, dtype=str).tolist(),
+            "use_projecter": self.use_projecter,
         }
 
     @classmethod
@@ -463,6 +488,7 @@ class SUBasicResult(AnalysisResultsPrototype):
             rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
             random_basis_data=raw_dict["random_basis_data"],
             mean_of_rho=np.array(raw_dict["mean_of_rho"], dtype=np.complex128),
+            use_projecter=raw_dict.get("use_projecter", False),
         )
 
 
@@ -531,6 +557,11 @@ class SUEstimationResult(AnalysisResultsPrototype):
     """The estimation of the given operators."""
     corresponding_rhos: list[npt.NDArray[np.complex128]]
     """The corresponding Rho for each given operator."""
+    all_candidates_of_estimate: list[list[np.complex128]] | list[list[complex]]
+    r"""The all candidates of esitmation values of measurement primitive :math:`\mathcal{U}`."""
+    trace_with_mean_rho_of_given_operators: list[np.complex128] | list[complex]
+    r"""The trace of the given operators with the mean of rho."""
+
     accuracy_prob_comp_delta: FloatType
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
     and mentioned in Theorem S1 in the supplementary material,
@@ -678,6 +709,13 @@ class SUEstimationResult(AnalysisResultsPrototype):
             "corresponding_rhos": [
                 np.array(rho, dtype=str).tolist() for rho in self.corresponding_rhos
             ],
+            "all_candidates_of_estimate": [
+                [str(complex(est)) for est in candidate]
+                for candidate in self.all_candidates_of_estimate
+            ],
+            "trace_with_mean_rho_of_given_operators": [
+                str(complex(val)) for val in self.trace_with_mean_rho_of_given_operators
+            ],
             "accuracy_prob_comp_delta": float(self.accuracy_prob_comp_delta),
             "num_of_estimators_k": int(self.num_of_estimators_k),
             "accuracy_predict_epsilon": float(self.accuracy_predict_epsilon),
@@ -709,6 +747,13 @@ class SUEstimationResult(AnalysisResultsPrototype):
             ],
             corresponding_rhos=[
                 np.array(rho, dtype=np.complex128) for rho in raw_dict["corresponding_rhos"]
+            ],
+            all_candidates_of_estimate=[
+                [complex(est) for est in candidate]
+                for candidate in raw_dict["all_candidates_of_estimate"]
+            ],
+            trace_with_mean_rho_of_given_operators=[
+                complex(val) for val in raw_dict["trace_with_mean_rho_of_given_operators"]
             ],
             accuracy_prob_comp_delta=float(raw_dict["accuracy_prob_comp_delta"]),
             num_of_estimators_k=int(raw_dict["num_of_estimators_k"]),
@@ -838,6 +883,7 @@ class SUAnalysis(
         # other config
         rho_method: RhoMethodType,
         shadow_basis: ShadowBasisType,
+        use_projecter: bool,
         trace_method: TraceMethodType,
         estimate_trace_method: ListTraceMethodType,
     ) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity | None, EstimationOfObservable | None]:
@@ -901,6 +947,15 @@ class SUAnalysis(
                     and :math:`R_Z(0)` gates.
                 - `H_H-Sdg_I`:
                     Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
+            use_projecter (bool):
+                Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`.
+                Refer to
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
+                or
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                for more details.
+                When :attr:`use_projecter` is False,
+                which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -959,6 +1014,7 @@ class SUAnalysis(
             # other config
             rho_method=rho_method,
             shadow_basis=shadow_basis,
+            use_projecter=use_projecter,
             trace_method=trace_method,
             estimate_trace_method=estimate_trace_method,
         )
@@ -1058,6 +1114,7 @@ class SUAnalysis(
                 # other config
                 rho_method=analyze_arguments.get("rho_method", DEFAULT_RHO_METHOD),
                 shadow_basis=arguments.shadow_basis,
+                use_projecter=analyze_arguments.get("use_projecter", False),
                 trace_method=analyze_arguments.get("trace_method", DEFAULT_TRACE_METHOD),
                 estimate_trace_method=analyze_arguments.get(
                     "estimate_trace_method", DEFAULT_LIST_TRACE_METHOD
@@ -1111,6 +1168,7 @@ class SUAnalysis(
             # other config
             rho_method=postprocess_entries.rho_method,
             shadow_basis=arguments.shadow_basis,
+            use_projecter=postprocess_entries.use_projecter,
             trace_method=postprocess_entries.trace_method,
             estimate_trace_method=postprocess_entries.estimate_trace_method,
         )

@@ -128,6 +128,9 @@ from .prediction_process import (
     worst_accuracy_predict_epsilon_calc,
     decide_num_of_estimators,
     prediction_algorithm,
+    comparison_of_prediction,
+    EstimationOfObservableBasic,
+    ComparisonOfEstimation,
     EstimationOfObservable,
 )
 from .trace_process import TraceMethod, TraceMethodType, DEFAULT_TRACE_METHOD

@@ -218,6 +218,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         max_shadow_norm: FloatType | None = None,
         # other config
         rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        use_projecter: bool = False,
         trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
         estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Iterable[int] | None = None,
@@ -267,6 +268,14 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
                 Currently, "multi_shots" is the best option for performance.
                 Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            use_projecter (bool):
+                Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+                Refer to 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+                or 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                for more details.
+                Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -326,6 +335,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 "accuracy_prob_comp_delta": accuracy_prob_comp_delta,
                 "max_shadow_norm": max_shadow_norm,
                 "rho_method": rho_method,
+                "use_projecter": use_projecter,
                 "trace_method": trace_method,
                 "estimate_trace_method": estimate_trace_method,
                 "counts_used": counts_used,
@@ -343,6 +353,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
         max_shadow_norm: FloatType | None = None,
         # other config
         rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
+        use_projecter: bool = False,
         trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
         estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
         counts_used: Iterable[int] | None = None,
@@ -392,6 +403,14 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
 
                 Currently, "multi_shots" is the best option for performance.
                 Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            use_projecter (bool):
+                Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+                Refer to 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+                or 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                for more details.
+                Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -449,6 +468,7 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 max_shadow_norm=max_shadow_norm,
                 rho_method=rho_method,
                 trace_method=trace_method,
+                use_projecter=use_projecter,
                 estimate_trace_method=estimate_trace_method,
                 counts_used=counts_used,
             )

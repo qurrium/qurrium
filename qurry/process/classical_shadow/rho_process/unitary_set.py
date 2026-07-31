@@ -6,6 +6,7 @@ The followings are unitary operators for our classical shadow implementation.
 
 from typing import TypedDict
 from collections.abc import Sequence
+from dataclasses import dataclass
 import functools as ft
 import numpy as np
 import numpy.typing as npt
@@ -33,6 +34,10 @@ from qiskit.circuit.library import (
 )
 
 from ...utils import BaseMethodEnum
+from ...utils.bloch_vector import PAULI_X, PAULI_Y, PAULI_Z
+
+PAULI = [PAULI_X, PAULI_Y, PAULI_Z]
+"""The list of Pauli matrices in the order of X, Y, Z. """
 
 
 def combine_gates(*gates: Gate) -> Gate:
@@ -219,8 +224,121 @@ class ShadowRandomBasisData(TypedDict):
     """The gate names and parameters for each basis."""
 
 
+def _remapper(
+    content: dict[tuple[int, str], npt.NDArray[np.complex128]],
+) -> dict[int, npt.NDArray[np.complex128]]:
+    """Remap the keys of a dictionary from (direction, b_k) to direction * 10 + ord(b_k) - 48.
+
+    Args:
+        content (dict[tuple[int, str], npt.NDArray[np.complex128]]):
+            The original dictionary with keys as (direction, b_k).
+
+    Returns:
+        dict[int, npt.NDArray[np.complex128]]:
+            The remapped dictionary with keys as direction * 10 + ord(b_k) - 48.
+    """
+    return {direction * 10 + ord(b_k) - 48: matrix for (direction, b_k), matrix in content.items()}
+
+
+@dataclass(frozen=True, init=False)
 class ShadowRandomBasis:
     """Class for handling random basis selection for classical shadows."""
+
+    gates_tuple: tuple[tuple[Gate, ...], tuple[Gate, ...], tuple[Gate, ...]]
+    """The original tuples of Gate objects for each basis. """
+    gates: tuple[Gate, Gate, Gate]
+    """The combined Gate objects for each basis. """
+    matrices: tuple[
+        npt.NDArray[np.complex128], npt.NDArray[np.complex128], npt.NDArray[np.complex128]
+    ]
+    """The combined matrix representations for each basis. """
+
+    name: str
+    """The name of the ShadowRandomBasis. """
+    gate_name_and_params: tuple[
+        list[tuple[str, list[float]]],
+        list[tuple[str, list[float]]],
+        list[tuple[str, list[float]]],
+    ]
+    """The gate names and parameters for each basis. """
+
+    basis_projecters: dict[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The basis projectors for each basis and bitstring. 
+    
+    The basis projectors are defined as:
+
+    .. math::
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi}
+    """
+    basis_precomputed_rho_m_k_i: dict[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each basis and bitstring.
+
+    The precomputed :math:`\rho_{mk}^{i}` matrices are defined as:
+
+    .. math::
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
+        \rho_{mk}^{i} = 3 P_{mk}^{i} - \mathbb{I}  
+    """
+    pauli_projecters: dict[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The Pauli projectors for each basis and bitstring.
+    
+    The Pauli projectors are defined as:
+
+    .. math::
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
+
+    where :math:`\sigma_{i}` is the Pauli operator for the i-th qubit.
+    """
+    pauli_precomputed_rho_m_k_i: dict[tuple[int, str], npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices
+    for each Pauli basis and bitstring (tuple key).
+
+    The precomputed :math:`\rho_{mk}^{i}` matrices are defined as:
+
+    .. math::
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
+        \rho_{mk}^{i} = 3 P_{mk}^{i}' - \mathbb{I}
+        
+    Why :math:`P_{mk}^{i}'` can be equivalent to :math:`P_{mk}^{i}` like the following
+    
+    .. math::
+        P_{mk}^{i} = U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} \\
+        P_{mk}^{i}' = \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I}) \\
+        U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} = 
+        \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
+
+    You can refer 
+    `Unraveling the Mystery 
+<https://pennylane.ai/demos/tutorial_diffable_shadows#unraveling-the-mystery>`_
+    """
+
+    basis_projecters_2: dict[int, npt.NDArray[np.complex128]]
+    r"""The basis projectors for each basis and bitstring (int key).
+    
+    This is the same as :attr:`basis_projecters` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    basis_precomputed_rho_m_k_i_2: dict[int, npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (int key).
+
+    This is the same as :attr:`pauli_precomputed_rho_m_k_i` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    pauli_projecters_2: dict[int, npt.NDArray[np.complex128]]
+    r"""The Pauli basis projectors for each Pauli basis and bitstring (int key).
+
+    This is the same as :attr:`pauli_projecters` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
+
+    pauli_precomputed_rho_m_k_i_2: dict[int, npt.NDArray[np.complex128]]
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (int key).
+    
+    This is the same as :attr:`pauli_precomputed_rho_m_k_i` but with a single integer key
+    ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
+    """
 
     @staticmethod
     def validate_basis_gates(basis_gates: tuple[Gate, ...]) -> None:
@@ -278,165 +396,72 @@ class ShadowRandomBasis:
                 The name of the ShadowRandomBasis. If None, a name will be generated
                 based on the gates used. Defaults to None.
         """
-        tmp_gates = (basis_0_gates, basis_1_gates, basis_2_gates)
+        self.validate_basis_gates(basis_0_gates)
+        self.validate_basis_gates(basis_1_gates)
+        self.validate_basis_gates(basis_2_gates)
 
-        for basis_gates_tuple in tmp_gates:
-            self.validate_basis_gates(basis_gates_tuple)
+        def quick_setter(oattr, value):
+            object.__setattr__(self, oattr, value)
 
-        self._gates_tuple = tmp_gates
-
-        self._gates = (
-            combine_gates(*self._gates_tuple[0]),
-            combine_gates(*self._gates_tuple[1]),
-            combine_gates(*self._gates_tuple[2]),
+        quick_setter("gates_tuple", (basis_0_gates, basis_1_gates, basis_2_gates))
+        quick_setter(
+            "gates",
+            (
+                combine_gates(*self.gates_tuple[0]),
+                combine_gates(*self.gates_tuple[1]),
+                combine_gates(*self.gates_tuple[2]),
+            ),
         )
-        self._matrices = (
-            combine_gate_matrices(*self._gates_tuple[0]),
-            combine_gate_matrices(*self._gates_tuple[1]),
-            combine_gate_matrices(*self._gates_tuple[2]),
+        quick_setter(
+            "matrices",
+            (
+                combine_gate_matrices(*self.gates_tuple[0]),
+                combine_gate_matrices(*self.gates_tuple[1]),
+                combine_gate_matrices(*self.gates_tuple[2]),
+            ),
         )
-        self._gate_name_and_params: tuple[
-            list[tuple[str, list[float]]],
-            list[tuple[str, list[float]]],
-            list[tuple[str, list[float]]],
-        ] = (
-            [(gate.name, gate.params) for gate in self._gates_tuple[0]],
-            [(gate.name, gate.params) for gate in self._gates_tuple[1]],
-            [(gate.name, gate.params) for gate in self._gates_tuple[2]],
+        quick_setter(
+            "name", "_".join(self.gates[i].name for i in range(3)) if name is None else name
         )
-        self._name = "_".join(self._gates[i].name for i in range(3)) if name is None else name
 
-        self._precomputed_rho_m_k_i = {
+        quick_setter(
+            "gate_name_and_params",
+            (
+                [(gate.name, gate.params) for gate in self.gates_tuple[0]],
+                [(gate.name, gate.params) for gate in self.gates_tuple[1]],
+                [(gate.name, gate.params) for gate in self.gates_tuple[2]],
+            ),
+        )
+
+        # tuple key of (direction, b_k) -> matrix
+
+        _basis_proj = {
             (direction, b_k): (
-                3
-                * self._matrices[direction].conj().T
-                @ OUTER_PRODUCT[b_k]
-                @ self._matrices[direction]
+                self.matrices[direction].conj().T @ OUTER_PRODUCT[b_k] @ self.matrices[direction]
             )
-            - IDENTITY
             for direction in [0, 1, 2]
             for b_k in ["0", "1"]
         }
-        self._precomputed_rho_m_k_i_2 = {
-            (direction * 10 + ord(b_k) - 48): self._precomputed_rho_m_k_i[(direction, b_k)]
+        quick_setter("basis_projecters", _basis_proj)
+        quick_setter("basis_projecters_2", _remapper(_basis_proj))
+
+        _basis_rho_m_k_i = {k: (3 * v) - IDENTITY for k, v in _basis_proj.items()}
+        quick_setter("basis_precomputed_rho_m_k_i", _basis_rho_m_k_i)
+        quick_setter("basis_precomputed_rho_m_k_i_2", _remapper(_basis_rho_m_k_i))
+
+        _pauli_proj = {
+            (direction, b_k): ((1 / 2) * ((1 - 2 * int(b_k)) * PAULI[direction] + IDENTITY))
             for direction in [0, 1, 2]
             for b_k in ["0", "1"]
         }
+        quick_setter("pauli_projecters", _pauli_proj)
+        quick_setter("pauli_projecters_2", _remapper(_pauli_proj))
 
-    @property
-    def gates_tuple(self) -> tuple[tuple[Gate, ...], tuple[Gate, ...], tuple[Gate, ...]]:
-        """Get the original tuples of Gate objects for each basis.
+        _pauli_rho_m_k_i = {k: (3 * v) - IDENTITY for k, v in _pauli_proj.items()}
+        quick_setter("pauli_precomputed_rho_m_k_i", _pauli_rho_m_k_i)
+        quick_setter("pauli_precomputed_rho_m_k_i_2", _remapper(_pauli_rho_m_k_i))
 
-        Returns:
-            The original tuples of Gate objects for each basis.
-        """
-        return self._gates_tuple
-
-    @property
-    def gates(self) -> tuple[Gate, Gate, Gate]:
-        """Get the combined Gate objects for each basis.
-
-        Returns:
-            The combined Gate objects for each basis.
-        """
-        return self._gates
-
-    @property
-    def matrices(
-        self,
-    ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
-        """Get the combined matrix representations for each basis.
-
-        Returns:
-            The combined matrices for each basis.
-        """
-        return self._matrices
-
-    @property
-    def name(self) -> str:
-        """Get the name of the ShadowRandomBasis.
-
-        Returns:
-            str: The name of the ShadowRandomBasis.
-        """
-        return self._name
-
-    @property
-    def precomputed_rho_m_k_i(self) -> dict[tuple[int, str], npt.NDArray[np.complex128]]:
-        r"""Get the precomputed rho_m_k_i values.
-
-        Precomputed :math:`\rho_{mki}` matrix by
-
-        .. math::
-            \rho_{mki} = 3 U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} - \mathbb{I}
-
-        .. note::
-            This is suggested by GitHub Copilot with Claude 3.7 Sonnet Thinking,
-            which I never thought of :3.
-
-        Returns:
-            The precomputed rho_m_k_i values.
-        """
-        return self._precomputed_rho_m_k_i
-
-    @ft.lru_cache
-    def cached_precomputed_rho_m_k_i(self, direction: int, b_k: str) -> npt.NDArray[np.complex128]:
-        r"""Get the cached precomputed rho_m_k_i value.
-
-        .. math::
-            \rho_{mki} = 3 U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} - \mathbb{I}
-
-        where :math:`U_m` is the unitary operator,
-        :math:`|b_k\rangle` is the k-th bitstring from counts on i-th qubit,
-        which is one of :math:`|0\rangle` and :math:`|1\rangle`.
-
-        Args:
-            direction (int):
-                The direction index (0, 1, or 2).
-            b_k (str):
-                The bitstring ('0' or '1').
-
-        Returns:
-            The cached precomputed rho_m_k_i value.
-        """
-        return self._precomputed_rho_m_k_i[(direction, b_k)]
-
-    @property
-    def precomputed_rho_m_k_i_2(self) -> dict[int, npt.NDArray[np.complex128]]:
-        r"""Get the precomputed rho_m_k_i values.
-
-        .. math::
-            \rho_{mki} = 3 U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} - \mathbb{I}
-
-        where :math:`U_m` is the unitary operator,
-        :math:`|b_k\rangle` is the k-th bitstring from counts on i-th qubit,
-        which is one of :math:`|0\rangle` and :math:`|1\rangle`.
-
-        Returns:
-            The precomputed rho_m_k_i values.
-        """
-        return self._precomputed_rho_m_k_i_2
-
-    @ft.lru_cache
-    def cached_precomputed_rho_m_k_i_2(self, key: int) -> npt.NDArray[np.complex128]:
-        r"""Get the cached precomputed rho_m_k_i value.
-
-        .. math::
-            \rho_{mki} = 3 U_{mi}^{\dagger} |b_k \rangle\langle b_k| U_{mi} - \mathbb{I}
-
-        where :math:`U_m` is the unitary operator,
-        :math:`|b_k\rangle` is the k-th bitstring from counts on i-th qubit,
-        which is one of :math:`|0\rangle` and :math:`|1\rangle`.
-
-        Args:
-            key (int):
-                The combined key (direction * 10 + b_k as int).
-
-        Returns:
-            The cached precomputed rho_m_k_i value.
-        """
-        return self._precomputed_rho_m_k_i_2[key]
-
+    # I/O methods for exporting and ingesting ShadowRandomBasis data.
     def export(self) -> ShadowRandomBasisData:
         """Export the ShadowRandomBasis data as a dictionary.
 
@@ -447,20 +472,20 @@ class ShadowRandomBasis:
         gate_name_and_params_export = (
             [
                 (gate_name, [float(v) for v in gate_params])
-                for gate_name, gate_params in self._gate_name_and_params[0]
+                for gate_name, gate_params in self.gate_name_and_params[0]
             ],
             [
                 (gate_name, [float(v) for v in gate_params])
-                for gate_name, gate_params in self._gate_name_and_params[1]
+                for gate_name, gate_params in self.gate_name_and_params[1]
             ],
             [
                 (gate_name, [float(v) for v in gate_params])
-                for gate_name, gate_params in self._gate_name_and_params[2]
+                for gate_name, gate_params in self.gate_name_and_params[2]
             ],
         )
 
         return {
-            "name": self._name,
+            "name": self.name,
             "gate_name_and_params": gate_name_and_params_export,
         }
 
@@ -506,7 +531,7 @@ class ShadowRandomBasis:
         )
 
     def __repr__(self) -> str:
-        return f"ShadowRandomBasis(name='{self._name}')"
+        return f"ShadowRandomBasis(name='{self.name}')"
 
 
 BUILTIN_BASIS = {
@@ -555,15 +580,15 @@ class ShadowBasisMethod(BaseMethodEnum):
         R_X(\frac{\pi}{2}) = \begin{pmatrix} \cos(\frac{\pi}{4}) & -i\sin(\frac{\pi}{4}) \\
         -i\sin(\frac{\pi}{4}) & \cos(\frac{\pi}{4}) \end{pmatrix} \\
         R_Z(0) = \begin{pmatrix} e^{0} & 0 \\ 0 & e^{0} \end{pmatrix}
-        
+
     The console output of the matrices are:
 
     .. code-block:: console
 
-        (array([[0.70710678+0.j        , 0.        -0.70710678j],
-                [0.        -0.70710678j, 0.70710678+0.j        ]]),
-         array([[ 0.70710678+0.j,  0.70710678+0.j],
+        (array([[ 0.70710678+0.j,  0.70710678+0.j],
                 [-0.70710678+0.j,  0.70710678+0.j]]),
+         array([[0.70710678+0.j        , 0.        -0.70710678j],
+                [0.        -0.70710678j, 0.70710678+0.j        ]]),
          array([[1.-0.j, 0.+0.j],
                 [0.+0.j, 1.+0.j]]))
 
@@ -571,12 +596,12 @@ class ShadowBasisMethod(BaseMethodEnum):
 
     H_H_SDG_I = BUILTIN_BASIS["H_H-Sdg_I"].name
     r"""Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`, and Identity gates.
-    
+
     The basis of unitary operators is defined as:
 
     .. math::
         U = \{H, HS^\dagger, I\}
-    
+
     The matrix representations are:
 
     .. math::

@@ -77,6 +77,7 @@ def trace_rho_square(
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
     trace_method: TraceMethodType = DEFAULT_TRACE_METHOD,
+    use_projecter: bool = False,
     pbar: tqdm.tqdm | None = None,
 ) -> tuple[ClassicalShadowBasic, ClassicalShadowPurity]:
     r"""Trace of Rho square.
@@ -128,6 +129,13 @@ def trace_rho_square(
             - `H_H-Sdg_I`:
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
+        use_projecter (bool):
+            Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
+            Refer to 
+            :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
+            or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+            for more details.
+            Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
         trace_method (TraceMethodType, optional):
             The method to calculate the trace of rho.
 
@@ -172,6 +180,7 @@ def trace_rho_square(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         shadow_basis=shadow_basis,
+        use_projecter=use_projecter,
         pbar=pbar,
     )
     cs_trace_obj = inner_trace_rho_square(

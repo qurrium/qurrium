@@ -18,7 +18,7 @@ from ..exceptions import AccuracyProbabilityCalculationError, AccuracyProbabilit
 from ..utils import FloatType
 
 
-class EstimationOfObservable(TypedDict):
+class EstimationOfObservableBasic(TypedDict):
     """The esitimations of the classical shadow from classical snapshots.
 
     Here, we use the notations that use in the supplementary material of
@@ -32,6 +32,9 @@ class EstimationOfObservable(TypedDict):
     corresponding_rhos: list[npt.NDArray[np.complex128]]
     r"""The corresponding rho of measurement primitive :math:`\mathcal{U}`.
     It should be a 3-dimensional array for a list of operators. """
+    all_candidates_of_estimate: list[list[np.complex128]]
+    r"""The all candidates of esitmation values of measurement primitive :math:`\mathcal{U}`."""
+
     # The accuracy of estimation
     accuracy_prob_comp_delta: FloatType
     r"""The probabiltiy complement of accuracy, which used the notation :math:`\delta`
@@ -158,6 +161,21 @@ class EstimationOfObservable(TypedDict):
     """The time taken for the calculation."""
     estimate_trace_method: ListTraceMethodType
     """The method to calculate the trace for searching estimators."""
+
+
+class ComparisonOfEstimation(TypedDict):
+    """The comparison of the :class:`~EstimationOfObservableBasic`."""
+
+    trace_with_mean_rho_of_given_operators: list[np.complex128]
+    r"""The trace of the given operators with the mean of rho."""
+
+
+class EstimationOfObservable(EstimationOfObservableBasic, ComparisonOfEstimation):
+    """The augmented version of :class:`~EstimationOfObservableBasic`
+    with the trace of the given operators with the mean of rho
+    as the comparison for
+    :attr:`~EstimationOfObservableBasic.estimate_of_given_operators`.
+    """
 
 
 def dim_check(op: npt.NDArray[np.complex128]) -> tuple[int, int]:
@@ -506,7 +524,7 @@ def prediction_algorithm(
     accuracy_prob_comp_delta: FloatType = 0.01,
     max_shadow_norm: FloatType | None = None,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
-) -> EstimationOfObservable:
+) -> EstimationOfObservableBasic:
     r"""Calculate the prediction of accuracy and the number of estimators.
 
     Args:
@@ -584,12 +602,15 @@ def prediction_algorithm(
     )
 
     begin = time.time()
-    estimate_of_given_operators, corresponding_rhos = prediction_einsum_aij_bji_to_ab(
-        np.array(given_operators), estimators, method=estimate_trace_method
+    estimate_of_given_operators, all_candidates_of_estimate, corresponding_rhos = (
+        prediction_einsum_aij_bji_to_ab(
+            np.array(given_operators), estimators, method=estimate_trace_method
+        )
     )
 
-    return EstimationOfObservable(
+    return EstimationOfObservableBasic(
         estimate_of_given_operators=estimate_of_given_operators,
+        all_candidates_of_estimate=all_candidates_of_estimate,
         corresponding_rhos=corresponding_rhos,
         accuracy_prob_comp_delta=actual_accuracy_prob_comp_delta,
         num_of_estimators_k=num_of_estimators,
@@ -599,4 +620,27 @@ def prediction_algorithm(
         shadow_norm_upperbound=shadow_norm_upperbound,
         taking_time=time.time() - begin,
         estimate_trace_method=estimate_trace_method,
+    )
+
+
+def comparison_of_prediction(
+    mean_of_rho: npt.NDArray[np.complex128], given_operators: list[npt.NDArray[np.complex128]]
+) -> ComparisonOfEstimation:
+    r"""Calculate the comparison of the :class:`~EstimationOfObservable`.
+
+    Args:
+        mean_of_rho (npt.NDArray[np.complex128]):
+            The mean of the classical snapshots.
+        given_operators (list[npt.NDArray[np.complex128]]):
+            The list of the operators to estimate.
+
+    Returns:
+        ComparisonOfEstimation:
+            The comparison of the :class:`~EstimationOfObservable`.
+    """
+
+    return ComparisonOfEstimation(
+        trace_with_mean_rho_of_given_operators=[
+            np.trace(mean_of_rho @ op) for op in given_operators
+        ]
     )

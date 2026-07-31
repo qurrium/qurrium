@@ -11,7 +11,11 @@ import numpy.typing as npt
 from .container_kind import ClassicalShadowBasic, isvalid_classical_shadow_basic
 from .mean import mean_rho
 from ..rho_process import RhoMethodType, DEFAULT_RHO_METHOD, ShadowBasisType, DEFAULT_SHADOW_BASIS
-from ..prediction_process import prediction_algorithm, EstimationOfObservable
+from ..prediction_process import (
+    prediction_algorithm,
+    EstimationOfObservable,
+    comparison_of_prediction,
+)
 from ..matrix_calculation import ListTraceMethodType, DEFAULT_LIST_TRACE_METHOD
 from ...utils import FloatType
 
@@ -45,20 +49,26 @@ def inner_estimation_of_given_operators(
             The method to use for the calculation. Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
-        EstimationOfObservable: The estimation of the given operators.
+        EstimationOfObservableExtend: The estimation of the given operators.
     """
 
     isvalid_classical_shadow_basic(cs_basic)
     if given_operators is None or len(given_operators) == 0:
         raise ValueError("The given_operators must be a non-empty list.")
 
-    return prediction_algorithm(
+    cs_estimation_basic = prediction_algorithm(
         classical_snapshots_rho=dict(enumerate(cs_basic["average_snapshots_rho_list"])),
         given_operators=given_operators,
         accuracy_prob_comp_delta=accuracy_prob_comp_delta,
         max_shadow_norm=max_shadow_norm,
         estimate_trace_method=estimate_trace_method,
     )
+    cs_comparison = comparison_of_prediction(
+        mean_of_rho=cs_basic["mean_of_rho"],
+        given_operators=given_operators,
+    )
+
+    return EstimationOfObservable(**cs_estimation_basic, **cs_comparison)
 
 
 def estimation_of_given_operators(
@@ -73,6 +83,7 @@ def estimation_of_given_operators(
     # other config
     rho_method: RhoMethodType = DEFAULT_RHO_METHOD,
     shadow_basis: ShadowBasisType = DEFAULT_SHADOW_BASIS,
+    use_projecter: bool = False,
     estimate_trace_method: ListTraceMethodType = DEFAULT_LIST_TRACE_METHOD,
     pbar: tqdm.tqdm | None = None,
 ) -> tuple[ClassicalShadowBasic, EstimationOfObservable]:
@@ -179,6 +190,13 @@ def estimation_of_given_operators(
             - `H_H-Sdg_I`:
                 Uses :math:`H`, :math:`H` followed by :math:`S^\dagger`,
                 and Identity gates.
+        use_projecter (bool):
+            Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`.
+            Refer to
+            :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
+            or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+            for more details.
+            Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
         estimate_trace_method (ListTraceMethodType, optional):
             The method to use for the calculation.
 
@@ -206,6 +224,7 @@ def estimation_of_given_operators(
         selected_classical_registers=selected_classical_registers,
         rho_method=rho_method,
         shadow_basis=shadow_basis,
+        use_projecter=use_projecter,
         pbar=pbar,
     )
     cs_estimation_obj = inner_estimation_of_given_operators(
