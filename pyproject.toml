@@ -27,6 +27,31 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 requires-python = ">=3.10"
+dependencies = [
+    "qiskit>=0.45.0",
+    # other dependencies
+    "requests",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+qiskit-aer = ["qiskit-aer>=0.12.0"]
+jax = ["jax"]
+dev = [
+    "setuptools",
+    "setuptools-rust",
+    # Lint tools
+    "ruff",   # Also formatter, but we still keep pylint for it still supports more rules than ruff.
+    "pep440",
+    "pylint",
+    # Test tools
+    "pytest",
+    "pytest-xdist",
+    "pytest-order",
+    "pytest-cov",
+    "coverage",
+]
+
 
 [project.urls]
 Issues = "https://github.com/qurrium/qurrium/issues"
@@ -46,7 +71,6 @@ exclude = ['cmake', 'symengine', 'tests']
 [tool.setuptools.dynamic]
 version = { file = "qurry/VERSION.txt" }
 readme = { file = "README.md", content-type = "text/markdown" }
-dependencies = { file = "requirements.txt" }
 
 [[tool.setuptools-rust.ext-modules]]
 target = 'qurry.boorust'
