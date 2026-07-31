@@ -2,12 +2,9 @@
 requires = ["pytest", "setuptools", "setuptools-rust", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# If you find some configurations are similar to what qiskit does,
-# yes, it does. I 'learned' from them.
-
 [project]
 name = "qurrium"
-dynamic = ["version", "readme", "dependencies"]
+dynamic = ["version", "readme"]
 description = "Qurrium 📏 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
 authors = [{ name = "Huai-Chung Chang", email = "harui2019@proton.me" }]
 license = "Apache-2.0"
