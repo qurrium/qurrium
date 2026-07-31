@@ -272,7 +272,8 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
                 Refer to 
                 :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
-                or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                or 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
                 for more details.
                 Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):
@@ -406,7 +407,8 @@ class SUExperiment(ExperimentPrototype[SUArguments, SUAnalysis]):
                 Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
                 Refer to 
                 :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
-                or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+                or 
+                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
                 for more details.
                 Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
             trace_method (TraceMethodType, optional):

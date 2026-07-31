@@ -3,7 +3,6 @@
 
 """
 
-from typing import Literal
 from collections.abc import Iterable
 import time
 import numpy as np

@@ -290,7 +290,8 @@ class ShadowRandomBasis:
     where :math:`\sigma_{i}` is the Pauli operator for the i-th qubit.
     """
     pauli_precomputed_rho_m_k_i: dict[tuple[int, str], npt.NDArray[np.complex128]]
-    r"""The precomputed :math:`\rho_{mk}^{i}` matrices for each Pauli basis and bitstring (tuple key).
+    r"""The precomputed :math:`\rho_{mk}^{i}` matrices
+    for each Pauli basis and bitstring (tuple key).
 
     The precomputed :math:`\rho_{mk}^{i}` matrices are defined as:
 
@@ -307,7 +308,8 @@ class ShadowRandomBasis:
         \frac{1}{2}((1 - 2 b_k)\sigma_{i} + \mathbb{I})
 
     You can refer 
-    `Unraveling the Mystery <https://pennylane.ai/demos/tutorial_diffable_shadows#unraveling-the-mystery>`_
+    `Unraveling the Mystery 
+<https://pennylane.ai/demos/tutorial_diffable_shadows#unraveling-the-mystery>`_
     """
 
     basis_projecters_2: dict[int, npt.NDArray[np.complex128]]
