@@ -3,7 +3,7 @@
 from typing import TypeVar, overload
 from collections.abc import Sequence
 
-from ..availability import availablility
+from ..availability import availability
 
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.bit_slice import (  # type: ignore
@@ -13,7 +13,7 @@ from ...boorust.bit_slice import (  # type: ignore
 )
 
 
-BACKEND_AVAILABLE = availablility("utils.bit_slice", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("utils.bit_slice", [("Rust", True, None)])
 
 
 def qubit_selector(num_qubits: int, degree: tuple[int, int] | int | None = None) -> tuple[int, int]:

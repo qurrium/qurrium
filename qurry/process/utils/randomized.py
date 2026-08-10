@@ -1,13 +1,13 @@
 """Post Processing - Utils - Randomized (:mod:`qurry.process.utils.randomized`)"""
 
 import numpy as np
-from ..availability import availablility
+from ..availability import availability
 
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.randomized import hamming_distance_rust, ensemble_cell_rust  # type: ignore
 
 
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "utils.randomized", [("Rust", True, None), ("Cython", "Depr.", None)]
 )
 

@@ -10,7 +10,7 @@ import numpy as np
 from .echo_cell import echo_cell_py
 from ...utils import cycling_slice as cycling_slice_py, qubit_selector
 from ...availability import (
-    availablility,
+    availability,
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
@@ -21,7 +21,7 @@ from ....tools import ParallelManager, workers_distribution
 from ....boorust.randomized import overlap_echo_core_rust  # type: ignore
 
 
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "randomized_measure.wavefunction_overlap_v1.echo_core",
     [("Rust", True, None), ("Cython", "Depr.", None)],
 )

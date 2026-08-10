@@ -43,8 +43,8 @@ from .tools import (
 )
 from .process.randomized_measure import generate_random_unitary_seeds, check_random_unitary_seeds
 from .process.classical_shadow import generate_random_basis, check_random_basis
-from .process.availability import availablility
+from .process.availability import availability
 from .version import __version__
 
 
-BACKEND_AVAILABLE = availablility("boorust", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("boorust", [("Rust", True, None)])

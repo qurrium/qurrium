@@ -10,7 +10,7 @@ import numpy as np
 from .purity_cell import purity_cell_py
 from ...utils import is_cycling_slice_active, degree_handler
 from ...availability import (
-    availablility,
+    availability,
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
@@ -21,7 +21,7 @@ from ....tools import ParallelManager, workers_distribution
 from ....boorust.randomized import entangled_entropy_core_rust  # type: ignore
 
 
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "randomized_measure.entangled_entropy_v1.entropy_core",
     [("Rust", True, None), ("Cython", "Depr.", None)],
 )

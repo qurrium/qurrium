@@ -13,7 +13,7 @@ import numpy as np
 from .purity_cell_2 import purity_cell_2_py
 from ...utils import shot_counts_selected_clreg_checker, selected_clregs_to_optlist
 from ...availability import (
-    availablility,
+    availability,
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
@@ -24,7 +24,7 @@ from ....tools import ParallelManager
 from ....boorust.randomized import entangled_entropy_core_2_rust  # type: ignore
 
 
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "randomized_measure.entangled_entropy.entropy_core_2", [("Rust", True, None)]
 )
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)

@@ -4,7 +4,7 @@ import time
 from itertools import permutations
 import numpy as np
 
-from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+from ..availability import availability, default_postprocessing_backend, PostProcessingBackendLabel
 from ..utils import single_counts_recount_proto, FloatType
 from ...tools import ParallelManager
 
@@ -14,7 +14,7 @@ from ...boorust.magnet_square import (  # type: ignore
     z_dir_magnet_square_core_rust,
 )
 
-BACKEND_AVAILABLE = availablility("magnet_square.magnsq_core", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("magnet_square.magnsq_core", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 

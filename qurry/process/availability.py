@@ -15,7 +15,7 @@ BACKEND_TYPES: list[PostProcessingBackendLabel] = ["Python", "Cython", "Rust", "
 """
 
 
-def availablility(
+def availability(
     module_location: str,
     import_statement: list[
         tuple[PostProcessingBackendLabel, bool | Literal["Depr."], ImportError | None]
