@@ -13,7 +13,6 @@ from ..matrix_calculation import (
     SingleTraceMethod,
     all_trace_rho_by_einsum_aij_bji_to_ab,
     ListTraceMethod,
-    JAX_AVAILABLE,
 )
 from ...utils import BaseMethodEnum
 
@@ -28,11 +27,6 @@ class RhoTraceMethod(BaseMethodEnum):
     - "einsum_aij_bji_to_ab_numpy": Use
         `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
         This is the fastest implementation to calculate the trace of Rho
-        if JAX is not available.
-    - "einsum_aij_bji_to_ab_jax": Use
-        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-        This is the fastest implementation to calculate the trace of Rho
-        if JAX is available.
     """
 
     TRACE_OF_MATMUL = SingleTraceMethod.TRACE_OF_MATMUL.value
@@ -46,8 +40,6 @@ class RhoTraceMethod(BaseMethodEnum):
     EINSUM_AIJ_BJI_TO_AB_NUMPY = ListTraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY.value
     """Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
 
-    EINSUM_AIJ_BJI_TO_AB_JAX = ListTraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value
-    """Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
 
     @classmethod
     def get_default(cls) -> "RhoTraceMethod":
@@ -55,7 +47,7 @@ class RhoTraceMethod(BaseMethodEnum):
         Returns:
             RhoTraceMethod: The default method.
         """
-        return cls.EINSUM_AIJ_BJI_TO_AB_JAX if JAX_AVAILABLE else cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
+        return cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
 
     def is_list_method(self) -> bool:
         """Whether it is a list method.
@@ -63,7 +55,7 @@ class RhoTraceMethod(BaseMethodEnum):
         Returns:
             bool: True if it is a list method, False otherwise.
         """
-        return self in [self.EINSUM_AIJ_BJI_TO_AB_NUMPY, self.EINSUM_AIJ_BJI_TO_AB_JAX]
+        return self in [self.EINSUM_AIJ_BJI_TO_AB_NUMPY]
 
     def is_single_method(self) -> bool:
         """Whether it is a single method.
@@ -111,10 +103,6 @@ RhoTraceMethodType = RhoTraceMethod | str
     to calculate the each summation item in `rho_m_list`.
 - "einsum_aij_bji_to_ab_numpy":
     Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    This is the fastest implementation to calculate the trace of Rho
-    if JAX is not available.
-- "einsum_aij_bji_to_ab_jax":
-    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
     This is the fastest implementation to calculate the trace of Rho.
 """
 
@@ -144,11 +132,6 @@ def trace_rho_square_core(
                 Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)`
                 to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
-                if JAX is not available.
-            - "einsum_aij_bji_to_ab_jax":
-                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)`
-                to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho.
 
     Returns:
         np.complex128: The trace of Rho square.
