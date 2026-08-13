@@ -8,10 +8,20 @@ import sys
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 
+# =============================================================================
+# About the possible conflict between the stub and the compiled extension
+# =============================================================================
+# `from . import boorust` resolves relative to this source directory first.
+# In CI (e.g. GitHub Actions), after `cibuildwheel` + `pip install dist/*.whl`,
+# the compiled .so lands in site-packages, but tests are run from the source tree.
+# Python then finds the Python fallback stub under qurry/boorust/ instead of the
+# real .so, silently missing all Rust-accelerated implementations.
+# Fix: import whatever `from .` gives us, check if it is actually a compiled
+# extension, and if not, search sys.path for the .so installed elsewhere.
 from . import boorust as _boorust
 
 
-# pylint: disable=c-extension-no-member,wrong-import-position,broad-exception-caught
+# pylint: disable=wrong-import-position
 def _load_boorust_extension():
     """Load boorust extension module from installed site-packages when available."""
     current_package_dir = Path(__file__).resolve().parent
@@ -37,7 +47,7 @@ def _load_boorust_extension():
             sys.modules["qurry.boorust"] = module
             try:
                 spec.loader.exec_module(module)
-            except Exception:
+            except (ImportError, OSError):  # ABI mismatch, missing deps, or file-level race
                 if previous_module is None:
                     sys.modules.pop("qurry.boorust", None)
                 else:
@@ -49,16 +59,24 @@ def _load_boorust_extension():
 
 
 def _is_boorust_extension(module):
+    # True only when __file__ ends with a platform extension suffix
+    # e.g. .cpython-312-x86_64-linux-gnu.so
     module_file = getattr(module, "__file__", "") or ""
     return any(module_file.endswith(suffix) for suffix in EXTENSION_SUFFIXES)
 
 
+# Use the stub-imported _boorust only if it is the real compiled extension.
 boorust = _boorust if _is_boorust_extension(_boorust) else _load_boorust_extension()
 
+# =============================================================================
+# Manual assignment of boorust submodules to sys.modules
+# =============================================================================
 # Due to PyO3 submodule is not fully compatible as a Python module.
 # So we will need to assign them manually like the following does.
 # Qiskit also does something similar which I 'learned' from them at beginning.
-# They do not create pyi files for their Rust binding, but I made it here.
+# They do not create stub for their Rust binding, but I made it here.
+# But stub got other issues, refer to the comments above:
+# "About the possible conflict between the stub and the compiled extension"
 for boorust_submodule in (
     "counts_process",
     "bit_slice",
