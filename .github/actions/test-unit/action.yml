@@ -65,7 +65,6 @@ runs:
           python -m pip install --upgrade --user setuptools setuptools_rust
         fi
         echo "| Installing Optional Third Party Dependencies"
-        python -m pip install jax
 
     - name: Install Qiskit
       shell: bash
@@ -95,4 +94,4 @@ runs:
     - name: Test with pytest
       shell: bash
       run: |
-        JAX_ENABLE_X64=True python -m pytest -v -s --durations=0
+        python -m pytest -v -s --durations=0

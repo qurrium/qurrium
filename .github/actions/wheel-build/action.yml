@@ -61,7 +61,7 @@ runs:
           python -m pip install pep440 flake8
           python -m pip install pytest pytest-xdist pytest-order pytest-cov
           echo "| Installing Optional Third Party Dependencies"
-          python -m pip install jax qiskit-aer
+          python -m pip install qiskit-aer
         fi
         echo "| Installing toml and pep440 for version management"
         python -m pip install toml pep440
