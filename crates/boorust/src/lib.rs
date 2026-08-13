@@ -96,26 +96,33 @@ fn register_child_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let test = PyModule::new(parent_module.py(), "test")?;
     // Null module for now, can add test functions later if needed
 
+    parent_module.add("randomized", &randomized)?;
     parent_module.add_submodule(&randomized)?;
+    parent_module.add("counts_process", &counts_process)?;
     parent_module.add_submodule(&counts_process)?;
+    parent_module.add("bit_slice", &bit_slice)?;
     parent_module.add_submodule(&bit_slice)?;
+    parent_module.add("hadamard", &hadamard)?;
     parent_module.add_submodule(&hadamard)?;
+    parent_module.add("magnet_square", &magnet_square)?;
     parent_module.add_submodule(&magnet_square)?;
+    parent_module.add("string_operator", &string_operator)?;
     parent_module.add_submodule(&string_operator)?;
+    parent_module.add("shadow", &shadow)?;
     parent_module.add_submodule(&shadow)?;
+    parent_module.add("dummy", &dummy)?;
     parent_module.add_submodule(&dummy)?;
+    parent_module.add("test", &test)?;
     parent_module.add_submodule(&test)?;
     Ok(())
 }
 
 // """
-// Note that this does not define a package,
-// so this won’t allow Python code to directly import submodules
-// by using from parent_module import child_module.
-// For more information,
-// see [#759](https://github.com/PyO3/pyo3/issues/759)
-// and [#1517](https://github.com/PyO3/pyo3/issues/1517).
-// from https://pyo3.rs/v0.23.0/module.html#python-submodules
-// (Since PyO3 0.20.0, until PyO3 0.23.0)
-// :smile:
+// In PyO3 >= 0.23, add_submodule no longer adds the submodule as an attribute
+// of the parent module (it only registers it in sys.modules).
+// We therefore call parent_module.add("name", &submodule) explicitly so that
+// attribute access (e.g. boorust.counts_process) continues to work.
+// The Python __init__.py relies on this attribute access to populate sys.modules
+// with the fully-qualified names (e.g. "qurry.boorust.counts_process").
+// See https://github.com/PyO3/pyo3/issues/1517 for background.
 // """
