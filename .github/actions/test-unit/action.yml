@@ -53,30 +53,25 @@ runs:
     - name: Install Tools
       shell: bash
       run: |
-        python -m pip install --upgrade pipenv wheel pip urllib3 toml pep440
+        python -m pip install --upgrade pipenv wheel pip auditwheel auditwheel-symbols delocate setuptools_rust setuptools pkginfo toml pep440
 
-    - name: Install Qiskit
+    - name: Install Qiskit and Qurrium
       shell: bash
       run: |
         if [[ "${{ inputs.qiskit-version }}" == "v0" ]]; then
           echo "| Installing Qiskit v0 (Oldest supported version 0.45)"
-          python -m pip install "qiskit>=0.45.0,<1.0.0"
+          python -m pip install ".[dev,qiskit-aer]" "qiskit>=0.45.0,<1.0.0" --no-cache-dir
         elif [[ "${{ inputs.qiskit-version }}" == "v1" ]]; then
           echo "| Installing Qiskit v1"
-          python -m pip install "qiskit>=1.0.0,<2.0.0"
+          python -m pip install ".[dev,qiskit-aer]" "qiskit>=1.0.0,<2.0.0" --no-cache-dir
         elif [[ "${{ inputs.qiskit-version }}" == "v2" ]]; then
           echo "| Installing Qiskit v2"
-          python -m pip install "qiskit>=2.0.0"
+          python -m pip install ".[dev,qiskit-aer]" "qiskit>=2.0.0" --no-cache-dir
         else
           echo "| Invalid Qiskit version specified: ${{ inputs.qiskit-version }}"
           echo "| Please specify 'v0', 'v1', or 'v2' for the Qiskit version input."
           exit 1
         fi
-
-    - name: Install Qurrium
-      shell: bash
-      run: |
-        python -m pip install ".[dev,qiskit-aer]"
 
     - name: Test with pytest
       shell: bash
