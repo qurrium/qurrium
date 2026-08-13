@@ -50,14 +50,10 @@ runs:
         # Playing: BIRDBRAIN (w/ OK Glass) feat. Kasane Teto
         # So, Fxxk (To fix this.)
 
-    - name: Install dependencies
+    - name: Install Tools
       shell: bash
       run: |
-        python -m pip install --upgrade pipenv wheel pip urllib3
-        echo "| Installing package and sdependencies"
-        python -m pip install ".[dev,qiskit-aer]" --upgrade
-        echo "| Installing toml and pep440 for version management"
-        python -m pip install toml pep440
+        python -m pip install --upgrade pipenv wheel pip urllib3 toml pep440
 
     - name: Install Qiskit
       shell: bash
@@ -80,9 +76,7 @@ runs:
     - name: Install Qurrium
       shell: bash
       run: |
-        echo "| Preparing setup.py ................................................."
-        python -m pip install -e . --upgrade
-        echo "| Dependencies are ready to go"
+        python -m pip install ".[dev,qiskit-aer]"
 
     - name: Test with pytest
       shell: bash

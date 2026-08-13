@@ -47,6 +47,10 @@ jobs:
           echo "| Version: ${{ steps.check_version.outputs.VERSION }} in action"
           echo "| Tag exists: ${{ steps.check_version.outputs.exists }}"
 
+      - name: Install Qurrium
+        run: |
+          python -m pip install ".[dev,qiskit-aer]"
+
       - name: Lint with Pylint
         run: |
           python -m pip install pylint
@@ -71,7 +75,7 @@ jobs:
         id: detect
         env:
           GH_TOKEN: ${{ secrets.ACTIONS_MANAGER_TOKEN }}
-          # Require the tokens owned Organization access to review the self-hosted runners. 
+          # Require the tokens owned Organization access to review the self-hosted runners.
           # If the token is owned by a user, it will not be able to access the self-hosted runners.
         run: |
           ORGS=${{ github.repository_owner }}
@@ -116,13 +120,7 @@ jobs:
     strategy:
       matrix:
         qiskit-version: [v1, v2]
-        python-version: [
-            "3.14",
-            "3.13",
-            "3.12",
-            "3.11",
-            "3.10",
-          ]
+        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
       fail-fast: false
       max-parallel: ${{ fromJSON(needs.check_version.outputs.idle || '4') }}
 
