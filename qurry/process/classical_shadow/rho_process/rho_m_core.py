@@ -9,7 +9,6 @@ import numpy as np
 import numpy.typing as npt
 
 from .unitary_set import ShadowRandomBasis, ShadowBasisMethod, ShadowBasisType, DEFAULT_SHADOW_BASIS
-from .rho_m_cell import kron_rho_mk_batch_py
 from ..utils import spreadout
 from ...utils import (
     BaseMethodEnum,
