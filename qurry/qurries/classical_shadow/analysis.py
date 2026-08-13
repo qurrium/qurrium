@@ -300,16 +300,6 @@ class SUProcessEntries(ProcessEntriesPrototype):
         Returns:
             dict[str, Any]: The data to be exported.
         """
-        trace_method = (
-            self.trace_method
-            if isinstance(self.trace_method, TraceMethod)
-            else TraceMethod.from_string(self.trace_method)
-        )
-        estimate_trace_method = (
-            self.estimate_trace_method
-            if isinstance(self.estimate_trace_method, ListTraceMethod)
-            else ListTraceMethod.from_string(self.estimate_trace_method)
-        )
 
         return {
             "shots": self.shots,
@@ -331,11 +321,23 @@ class SUProcessEntries(ProcessEntriesPrototype):
             "maximum_shadow_norm": (
                 None if self.maximum_shadow_norm is None else float(self.maximum_shadow_norm)
             ),
-            "rho_method": self.rho_method,
+            "rho_method": (
+                self.rho_method
+                if isinstance(self.rho_method, RhoMethod)
+                else RhoMethod.from_string(self.rho_method)
+            ).value,
             "shadow_basis": self.shadow_basis.export(),
             "use_projecter": self.use_projecter,
-            "trace_method": trace_method.value,
-            "estimate_trace_method": estimate_trace_method.value,
+            "trace_method": (
+                self.trace_method
+                if isinstance(self.trace_method, TraceMethod)
+                else TraceMethod.from_string(self.trace_method)
+            ).value,
+            "estimate_trace_method": (
+                self.estimate_trace_method
+                if isinstance(self.estimate_trace_method, ListTraceMethod)
+                else ListTraceMethod.from_string(self.estimate_trace_method)
+            ).value,
         }
 
     @classmethod
@@ -450,7 +452,11 @@ class SUBasicResult(AnalysisResultsPrototype):
             ],
             "classical_registers_actually": self.classical_registers_actually,
             "taking_time": float(self.taking_time),
-            "rho_method": self.rho_method,
+            "rho_method": (
+                self.rho_method
+                if isinstance(self.rho_method, RhoMethod)
+                else RhoMethod.from_string(self.rho_method)
+            ).value,
             "random_basis_data": self.random_basis_data,
             "mean_of_rho": np.array(self.mean_of_rho, dtype=str).tolist(),
             "use_projecter": self.use_projecter,
@@ -509,10 +515,10 @@ class SUPurityResult(AnalysisResultsPrototype):
             "purity_value_kind": self.purity_value_kind,
             "taking_time": float(self.taking_time),
             "trace_method": (
-                TraceMethod.from_string(self.trace_method).value
+                TraceMethod.from_string(self.trace_method)
                 if isinstance(self.trace_method, str)
-                else self.trace_method.value
-            ),
+                else self.trace_method
+            ).value,
         }
 
     @classmethod
@@ -712,10 +718,10 @@ class SUEstimationResult(AnalysisResultsPrototype):
             "shadow_norm_upperbound": float(self.shadow_norm_upperbound),
             "taking_time": float(self.taking_time),
             "estimate_trace_method": (
-                ListTraceMethod.from_string(self.estimate_trace_method).value
+                ListTraceMethod.from_string(self.estimate_trace_method)
                 if isinstance(self.estimate_trace_method, str)
-                else self.estimate_trace_method.value
-            ),
+                else self.estimate_trace_method
+            ).value,
         }
 
     @classmethod

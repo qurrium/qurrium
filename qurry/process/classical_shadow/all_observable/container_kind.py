@@ -107,13 +107,12 @@ def verify_purity_value_kind(
     Returns:
         PurityValueKind: The kind of purity value calculation.
     """
-    if rho_method not in {"multi_shots", "single_shots"}:
-        raise ValueError(f"Unknown rho method: {rho_method}")
-
+    if isinstance(rho_method, str):
+        rho_method = RhoMethod.from_string(rho_method)
     if isinstance(trace_method, str):
         trace_method = TraceMethod.from_string(trace_method)
 
-    if not trace_method.is_nomatop_method() and rho_method == "multi_shots":
+    if not trace_method.is_nomatop_method() and rho_method.is_multi_method():
         return "multi_shots"
     return "single_shots"
 
