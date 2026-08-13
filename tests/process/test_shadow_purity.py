@@ -5,7 +5,6 @@ from itertools import combinations
 import logging
 import pytest
 
-import jax
 
 from qurry.qurrium.utils import bitstring_mapping_getter
 from qurry.process.utils import counts_list_recount_pyrust
@@ -30,9 +29,6 @@ from .utilities import (
 )
 
 logger = logging.getLogger(__name__)
-
-jax.config.update("jax_platforms", "cpu")
-jax.config.update("jax_enable_x64", True)
 
 
 class ClassicalShadowTarget(TypedDict):

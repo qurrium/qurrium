@@ -14,7 +14,6 @@ from qiskit import QuantumCircuit
 from qurry.qurries.classical_shadow import ShadowUnveil, SUMeasureArgs
 from qurry.qurries.classical_shadow.analysis import SUAnalyzeArgs, SUAnalysis
 from qurry.process.classical_shadow import (
-    JAX_AVAILABLE,
     RhoMethod,
     TraceMethod,
     verify_purity_value_kind,
@@ -138,8 +137,6 @@ methods_by_kind: dict[PurityValueKind, list[tuple[str, str]]] = {}
 
 for rho_method_tmp in RhoMethod.get_all_methods():
     for trace_method_tmp in TraceMethod.get_all_methods():
-        if not JAX_AVAILABLE and trace_method_tmp == TraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value:
-            continue
         if trace_method_tmp == TraceMethod.SKIP_TRACE.value:
             continue
         methods_by_kind.setdefault(
