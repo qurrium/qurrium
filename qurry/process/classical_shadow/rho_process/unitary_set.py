@@ -340,6 +340,22 @@ class ShadowRandomBasis:
     ``direction * 10 + ord(b_k) - 48`` instead of a tuple, for vectorized computation.
     """
 
+    basis_precomputed_rho_m_k_i_array: npt.NDArray[np.complex128]
+    r"""Shape ``(3, 2, 2, 2)`` array for NumPy fancy-index lookup.
+
+    ``basis_precomputed_rho_m_k_i_array[direction, bit_int]`` returns the
+    :math:`\rho_{mk}^{i}` ``(2, 2)`` matrix, enabling vectorized
+    construction of ``single_matrices`` without a Python loop.
+    """
+
+    basis_projecters_array: npt.NDArray[np.complex128]
+    r"""Shape ``(3, 2, 2, 2)`` array for NumPy fancy-index lookup.
+
+    ``basis_projecters_array[direction, bit_int]`` returns the projector
+    :math:`P_{mk}^{i}` ``(2, 2)`` matrix, mirroring
+    :attr:`basis_precomputed_rho_m_k_i_array` for the projecter variant.
+    """
+
     @staticmethod
     def validate_basis_gates(basis_gates: tuple[Gate, ...]) -> None:
         """Validate that all gates in the basis_gates tuple are allowed.
@@ -448,6 +464,20 @@ class ShadowRandomBasis:
         _basis_rho_m_k_i = {k: (3 * v) - IDENTITY for k, v in _basis_proj.items()}
         quick_setter("basis_precomputed_rho_m_k_i", _basis_rho_m_k_i)
         quick_setter("basis_precomputed_rho_m_k_i_2", _remapper(_basis_rho_m_k_i))
+        quick_setter(
+            "basis_precomputed_rho_m_k_i_array",
+            np.array(
+                [[_basis_rho_m_k_i[(d, "0")], _basis_rho_m_k_i[(d, "1")]] for d in range(3)],
+                dtype=np.complex128,
+            ),
+        )
+        quick_setter(
+            "basis_projecters_array",
+            np.array(
+                [[_basis_proj[(d, "0")], _basis_proj[(d, "1")]] for d in range(3)],
+                dtype=np.complex128,
+            ),
+        )
 
         _pauli_proj = {
             (direction, b_k): ((1 / 2) * ((1 - 2 * int(b_k)) * PAULI[direction] + IDENTITY))

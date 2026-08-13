@@ -149,24 +149,48 @@ def rho_m_cell_precomputed(
     bitstrings = list(single_counts.keys())
     counts_nums = list(single_counts.values())
 
-    unit_m_k_i = (
-        random_basis_obj.basis_projecters
+    # unit_m_k_i = (
+    #     random_basis_obj.basis_projecters
+    #     if use_projecter
+    #     else random_basis_obj.basis_precomputed_rho_m_k_i
+    # )
+
+    # single_matrices: np.ndarray[tuple[int, int, int, int], np.dtype[np.complex128]] = np.empty(
+    #     (len(bitstrings), n_qubits, 2, 2), dtype=np.complex128
+    # )
+    # for i, bitstring in enumerate(bitstrings):
+    #     for j, (c_i, s_b) in enumerate(zip(selected_clregs_sorted, bitstring)):
+    #         # The order of classical registers is [8, 7, 6, 5, 4, 3, 2, 1, 0]
+    #         # which respects to the bitstring "000000000"
+    #         single_matrices[i, j] = unit_m_k_i[(single_random_basis[c_i], s_b)]
+
+    # assert single_matrices.shape == (len(bitstrings), n_qubits, 2, 2), (
+    #     f"single_matrices.shape: {single_matrices.shape}, "
+    #     + f"expected: {(len(bitstrings), n_qubits, 2, 2)}"
+    # )
+
+    unit_array = (
+        random_basis_obj.basis_projecters_array
         if use_projecter
-        else random_basis_obj.basis_precomputed_rho_m_k_i
+        else random_basis_obj.basis_precomputed_rho_m_k_i_array
     )
+    # unit_array: (3, 2, 2, 2) — [direction, bit_int, row, col]
 
-    single_matrices: np.ndarray[tuple[int, int, int, int], np.dtype[np.complex128]] = np.empty(
-        (len(bitstrings), n_qubits, 2, 2), dtype=np.complex128
+    # basis index for each selected register; O(n_qubits) Python, typically ≤ 20 elements
+    basis_for_selected = np.array(
+        [single_random_basis[c_i] for c_i in selected_clregs_sorted], dtype=np.intp
     )
-    for i, bitstring in enumerate(bitstrings):
-        for j, (c_i, s_b) in enumerate(zip(selected_clregs_sorted, bitstring)):
-            # The order of classical registers is [8, 7, 6, 5, 4, 3, 2, 1, 0]
-            # which respects to the bitstring "000000000"
-            single_matrices[i, j] = unit_m_k_i[(single_random_basis[c_i], s_b)]
+    # bits_array: ASCII bytes '0'/'1' → int 0/1, entirely in C (releases GIL)
+    bits_array = (
+        np.frombuffer("".join(bitstrings).encode("ascii"), dtype=np.uint8).reshape(
+            len(bitstrings), n_qubits
+        )
+        - ord("0")
+    ).astype(np.intp)
 
-    assert single_matrices.shape == (len(bitstrings), n_qubits, 2, 2), (
-        f"single_matrices.shape: {single_matrices.shape}, "
-        + f"expected: {(len(bitstrings), n_qubits, 2, 2)}"
-    )
+    # single_matrices[i, j] = unit_array[basis_for_selected[j], bits_array[i, j]]
+    single_matrices: np.ndarray[tuple[int, int, int, int], np.dtype[np.complex128]] = unit_array[
+        basis_for_selected[np.newaxis, :], bits_array
+    ]
 
     return kron_rho_mk_batch_py(single_matrices, counts_nums)

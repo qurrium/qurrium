@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .unitary_set import ShadowRandomBasis, ShadowBasisMethod, ShadowBasisType, DEFAULT_SHADOW_BASIS
-from .rho_m_cell import rho_m_cell_precomputed
+from .rho_m_cell import kron_rho_mk_batch_py
 from ..utils import spreadout
 from ...utils import (
     BaseMethodEnum,
@@ -84,6 +84,9 @@ For the "multi_shots" methods, the counts and random basis are used as is.
 For the "single_shots" methods, the counts and random basis are
 converted to single shot per snapshot for classical shadow post-processing.
 """
+
+# Peak memory cap for intermediate kron-product arrays.
+_MAX_BATCH_MEMORY_BYTES: int = 512 * 1024 * 1024  # 512 MB
 
 
 def rho_core(
@@ -163,21 +166,122 @@ def rho_core(
         selected_classical_registers=selected_clregs_sorted,
     )
 
-    return (
-        [
-            rho_m_cell_precomputed(
-                single_counts,
-                random_unitary_array[idx],
-                selected_clregs_sorted,
-                shadow_basis_obj,
-                use_projecter=use_projecter,
-            )
-            for idx, single_counts in enumerate(counts_under_degree_list)
-        ],
-        selected_clregs_sorted,
-        shadow_basis_obj,
-        time.time() - begin,
+    # =========================================================================
+    # Legacy implementation
+    # =========================================================================
+    # import os
+    # from .rho_m_cell import rho_m_cell_precomputed
+    #
+    # return (
+    #     [
+    #         rho_m_cell_precomputed(
+    #             single_counts,
+    #             random_unitary_array[idx],
+    #             selected_clregs_sorted,
+    #             shadow_basis_obj,
+    #             use_projecter=use_projecter,
+    #         )
+    #         for idx, single_counts in enumerate(counts_under_degree_list)
+    #     ],
+    #     selected_clregs_sorted,
+    #     shadow_basis_obj,
+    #     time.time() - begin,
+    # )
+    # =========================================================================
+    # The following implementation is made by GitHub Copilot Claude Sonnet 4.6
+    # Don't ask me how it works :P
+
+    n_cells = len(counts_under_degree_list)
+    n_qubits = len(selected_clregs_sorted)
+    matrix_dim = 2**n_qubits
+    _bytes_per_sample = matrix_dim * matrix_dim * np.dtype(np.complex128).itemsize
+
+    unit_array = (
+        shadow_basis_obj.basis_projecters_array
+        if use_projecter
+        else shadow_basis_obj.basis_precomputed_rho_m_k_i_array
     )
+
+    # Pre-compute basis indices for every cell in one numpy op (no Python loop over qubits per cell)
+    selected_arr = np.array(selected_clregs_sorted, dtype=np.intp)
+    all_basis_indices = np.asarray(random_unitary_array[:n_cells], dtype=np.intp)[:, selected_arr]
+    # shape: (n_cells, n_qubits)
+
+    rho_m_list: list[npt.NDArray[np.complex128]] = []
+
+    if rho_method.is_single_method():
+        # SINGLE_SHOTS: each cell has exactly 1 bitstring with count 1.
+        # Process all cells in one batched numpy path, chunked to bound peak memory.
+        chunk_size = max(1, _MAX_BATCH_MEMORY_BYTES // _bytes_per_sample)
+        all_bits = (
+            np.frombuffer(
+                "".join(next(iter(c.keys())) for c in counts_under_degree_list).encode("ascii"),
+                dtype=np.uint8,
+            ).reshape(n_cells, n_qubits)
+            - ord("0")
+        ).astype(np.intp)
+
+        for start in range(0, n_cells, chunk_size):
+            end = min(start + chunk_size, n_cells)
+            sm = unit_array[all_basis_indices[start:end], all_bits[start:end]]
+            # shape: (chunk, n_qubits, 2, 2)
+            r: npt.NDArray[np.complex128] = sm[:, 0]
+            for j in range(1, n_qubits):
+                d = r.shape[1]
+                r = np.einsum("sij,skl->sikjl", r, sm[:, j]).reshape(end - start, d * 2, d * 2)
+            rho_m_list.extend(r)
+
+        return (rho_m_list, selected_clregs_sorted, shadow_basis_obj, time.time() - begin)
+
+    # MULTI_SHOTS: batch all bitstrings from all cells into one fancy-index + kron pass,
+    # then segment-reduce per cell.  Chunked by cells to bound peak memory.
+    bs_lists = [list(sc.keys()) for sc in counts_under_degree_list]
+    c_lists = [list(sc.values()) for sc in counts_under_degree_list]
+    sizes = np.fromiter((len(x) for x in bs_lists), dtype=np.intp, count=n_cells)
+
+    # Chunk by cells so that peak kron array ≤ _MAX_BATCH_MEMORY_BYTES
+    avg_bs = max(1, int(sizes.mean())) if n_cells else 1
+    chunk_cells = max(1, _MAX_BATCH_MEMORY_BYTES // (_bytes_per_sample * avg_bs))
+
+    for c_start in range(0, n_cells, chunk_cells):
+        c_end = min(c_start + chunk_cells, n_cells)
+        chunk_bs = bs_lists[c_start:c_end]
+        chunk_cl = c_lists[c_start:c_end]
+        chunk_sizes = sizes[c_start:c_end]
+        chunk_offsets = np.empty(c_end - c_start, dtype=np.intp)
+        chunk_offsets[0] = 0
+        np.cumsum(chunk_sizes[:-1], out=chunk_offsets[1:])
+        total_bs = int(chunk_sizes.sum())
+
+        flat_bits = (
+            np.frombuffer(
+                "".join(bs for bl in chunk_bs for bs in bl).encode("ascii"),
+                dtype=np.uint8,
+            ).reshape(total_bs, n_qubits)
+            - ord("0")
+        ).astype(np.intp)
+        # Expand pre-computed basis to match each bitstring's parent cell
+        flat_basis = all_basis_indices[
+            np.repeat(np.arange(c_start, c_end, dtype=np.intp), chunk_sizes)
+        ]
+        flat_counts = np.fromiter(
+            (v for cl in chunk_cl for v in cl), dtype=np.float64, count=total_bs
+        )
+
+        sm = unit_array[flat_basis, flat_bits]  # (total_bs, n_qubits, 2, 2)
+        r = sm[:, 0]
+        for j in range(1, n_qubits):
+            d = r.shape[1]
+            r = np.einsum("sij,skl->sikjl", r, sm[:, j]).reshape(total_bs, d * 2, d * 2)
+
+        # Weighted segment-sum then normalise per cell
+        weighted = r * flat_counts[:, np.newaxis, np.newaxis]
+        seg_sum = np.add.reduceat(weighted, chunk_offsets, axis=0)
+        seg_w = np.add.reduceat(flat_counts, chunk_offsets)
+        for i in range(c_end - c_start):
+            rho_m_list.append(seg_sum[i] / seg_w[i])
+
+    return (rho_m_list, selected_clregs_sorted, shadow_basis_obj, time.time() - begin)
 
 
 def mean_rho_core(
