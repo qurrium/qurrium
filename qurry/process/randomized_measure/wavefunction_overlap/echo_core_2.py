@@ -11,7 +11,7 @@ import numpy as np
 from .echo_cell_2 import echo_cell_2_py
 from ...utils import shot_counts_selected_clreg_checker, selected_clregs_to_optlist
 from ...availability import (
-    availablility,
+    availability,
     default_postprocessing_backend,
     PostProcessingBackendLabel,
 )
@@ -21,7 +21,7 @@ from ....tools import ParallelManager
 # pylint: disable=import-error,no-name-in-module
 from ....boorust.randomized import overlap_echo_core_2_rust  # type: ignore
 
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "randomized_measure.wavefunction_overlap.echo_core_2", [("Rust", True, None)]
 )
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)

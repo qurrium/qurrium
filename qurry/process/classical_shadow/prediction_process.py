@@ -546,8 +546,6 @@ def prediction_algorithm(
 
             - "einsum_aij_bji_to_ab_numpy":
                 Use np.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
-            - "einsum_aij_bji_to_ab_jax":
-                Use jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list) to calculate the trace.
 
     Returns:
         EstimationOfObservable:

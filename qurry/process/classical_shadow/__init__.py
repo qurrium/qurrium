@@ -104,16 +104,12 @@ from .utils import (
     measurements_read,
 )
 from .matrix_calculation import (
-    set_jax_enable_x64,
-    check_jax_enabled_x64,
-    JAX_AVAILABLE,
     BACKEND_AVAILABLE as classical_shadow_matrix_availability,
     ListTraceMethod,
     ListTraceMethodType,
     DEFAULT_LIST_TRACE_METHOD,
 )
 from .rho_process import (
-    classical_shadow_rho_process_availability,
     RhoMethod,
     RhoMethodType,
     DEFAULT_RHO_METHOD,

@@ -2,12 +2,9 @@
 requires = ["pytest", "setuptools", "setuptools-rust", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# If you find some configurations are similar to what qiskit does,
-# yes, it does. I 'learned' from them.
-
 [project]
 name = "qurrium"
-dynamic = ["version", "readme", "dependencies"]
+dynamic = ["version", "readme"]
 description = "Qurrium 📏 - The Measuring Tool for Renyi Entropy, Loschmidt Echo, and Magnetization Squared, The Library of Some Common Cases"
 authors = [{ name = "Huai-Chung Chang", email = "harui2019@proton.me" }]
 license = "Apache-2.0"
@@ -27,6 +24,31 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 requires-python = ">=3.10"
+dependencies = [
+    "qiskit>=0.45.0",
+    # We won't guarantee the compatibility of Qurrium with Qiskit versions lower than 1.0.0.
+    # You should consider to upgrade them if you are still there.
+    "requests",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+qiskit-aer = ["qiskit-aer>=0.12.0"]
+dev = [
+    "setuptools",
+    "setuptools-rust",
+    # Lint tools
+    "ruff",   # Also formatter, but we still keep pylint for it still supports more rules than ruff.
+    "pep440",
+    "pylint",
+    # Test tools
+    "pytest",
+    "pytest-xdist",
+    "pytest-order",
+    "pytest-cov",
+    "coverage",
+]
+
 
 [project.urls]
 Issues = "https://github.com/qurrium/qurrium/issues"
@@ -46,24 +68,23 @@ exclude = ['cmake', 'symengine', 'tests']
 [tool.setuptools.dynamic]
 version = { file = "qurry/VERSION.txt" }
 readme = { file = "README.md", content-type = "text/markdown" }
-dependencies = { file = "requirements.txt" }
 
 [[tool.setuptools-rust.ext-modules]]
 target = 'qurry.boorust'
 path = 'crates/boorust/Cargo.toml'
 
-# cibuildwheel configuration for qurry
 [tool.cibuildwheel]
-manylinux-x86_64-image = "manylinux2014"
-manylinux-i686-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+build = ["cp3??-*"]
 skip = [
-    "*-musllinux_i686", # rust tier 2 support, qiskit did not support musllinux
-    "pp*",              # Qiskit and Qurrium are not pure python packages, See https://github.com/qurrium/qurry/issues/93#issuecomment-1801837481
-    "cp38-*",           # Not support and won't support for we write type hint in 3.9 syntax.
-    "*-musllinux_*",    # qiskit did not support musllinux
-    # "*-manylinux_i686", # scipy dependency issue, Check issue https://github.com/qurrium/qurry/issues/93 for details
+    "pp*",           # Qiskit and Qurrium are not pure python packages, See https://github.com/qurrium/qurry/issues/93#issuecomment-1801837481
+    "*-musllinux_*", # Qiskit did not support musllinux for it lacks some dependencies for mathematical operations.
 ]
-test-skip = "*win32 *linux_i686"
+test-skip = [
+    "*win32",
+    "*_i686",
+] # If you still use 32-bit system. Consider to upgrade your hardware.
 environment = { PATH = "$HOME/.cargo/bin:$PATH", RUSTUP_TOOLCHAIN = "stable" }
 before-build = [
     'echo "======================================================================"',
@@ -76,34 +97,34 @@ before-build = [
     'python --version',
     'echo "| Platform: "',
     'python -c "import platform; print(platform.platform())"',
-    'echo "| Install dependencies..."',
+    'echo "| Prepare build environment..."',
     "pip install --upgrade pipenv wheel pip",
     "pip install --upgrade auditwheel auditwheel-symbols delocate",
     "pip install --upgrade setuptools_rust setuptools wheel pkginfo",
+    'echo "| Build environment prepared"',
 ]
 before-test = [
-    "echo ''",
     'echo "======================================================================"',
     'echo "### Testing Environment Preparing ...................................."',
     'echo "======================================================================"',
+    'echo "| Install dependencies and {project}..."',
     "pip install --prefer-binary --only-binary=numpy,scipy numpy scipy",
-    "pip install pytest pytest-xdist pytest-order",
-    "pip install qiskit-aer",                                                        # For testing, qiskit-aer is required
-    "pip install -r requirements-dev.txt --upgrade",
-    "cd {project} && pip install . --upgrade && cd ..",
+    # Numpy and Scipy need to install separately.
+    'cd {project} && pip install ".[dev,qiskit-aer]" --upgrade && cd ..',
+    'echo "| Dependencies and {project} installed"',
+]
+test-command = [
     'echo "======================================================================"',
     'echo "### Test Start ......................................................."',
     'echo "======================================================================"',
-    "echo ''",
-]
-test-command = [
-    "export JAX_ENABLE_X64=True",
     "pytest -n auto {project}/tests || pytest {project}/tests",
 ]
 
 [tool.cibuildwheel.linux]
 before-all = [
-    "echo ''",
+    'echo "======================================================================"',
+    'echo "### Linux Setup ......................................................"',
+    'echo "======================================================================"',
     'echo "| Clear .so files"',
     "find . -name '*.so' -delete",
     "find . -wholename '*/build' | xargs rm -rf",
@@ -112,9 +133,6 @@ before-all = [
     "find . -wholename '*/__pycache__' | xargs rm -rf",
     "find . -name 'target' && rm -rf target",
     "echo ''",
-    'echo "======================================================================"',
-    'echo "### Linux Setup ......................................................"',
-    'echo "======================================================================"',
     'echo "| Installing Rust..."',
     "yum -y install libatomic",
     "command -v rustc >/dev/null 2>&1 || curl https://sh.rustup.rs -sSf | sh -s -- --profile=minimal -y",
@@ -126,7 +144,9 @@ before-all = [
 [tool.cibuildwheel.macos]
 environment = "MACOSX_DEPLOYMENT_TARGET=10.12"
 before-all = [
-    "echo ''",
+    'echo "======================================================================"',
+    'echo "### MacOS Setup ......................................................"',
+    'echo "======================================================================"',
     'echo "| Clear .so files"',
     "find . -name '*.so' -delete",
     "find . -wholename '*/build' | xargs rm -rf",
@@ -135,9 +155,6 @@ before-all = [
     "find . -wholename '*/__pycache__' | xargs rm -rf",
     "find . -name 'target' && rm -rf target",
     "echo ''",
-    'echo "======================================================================"',
-    'echo "### MacOS Setup ......................................................"',
-    'echo "======================================================================"',
     'echo "| Installing Rust..."',
     "command -v rustc >/dev/null 2>&1 || curl https://sh.rustup.rs -sSf | bash -s -- --profile=minimal -y",
     'command -v rustc >/dev/null 2>&1 || source "$HOME/.cargo/env"',
@@ -145,7 +162,9 @@ before-all = [
     'echo "| Rust ready"',
     # "rustup target add x86_64-apple-darwin",
     # "rustup target add aarch64-apple-darwin",
+    'echo "| Preparing other macOS dedicated tools..."',
     "pip install delocate pipx",
+    'echo "| Other macOS dedicated tools prepared"',
 ]
 repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} && pipx run abi3audit --strict --report {wheel}"
 # Attention: If you are building universal2 binaries, 
@@ -167,7 +186,9 @@ repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest
 
 # CMD script
 before-all = [
-    "echo.",
+    'echo "======================================================================"',
+    'echo "### Windows Setup ...................................................."',
+    'echo "======================================================================"',
     'echo "| Clear .so files"',
     'for /r %i in (*.so) do del %i',
     'rmdir /s /q build',
@@ -177,9 +198,6 @@ before-all = [
     'rmdir /s /q qurry\capsule\__pycache__',
     'rmdir /s /q target',
     "echo ''",
-    'echo "======================================================================"',
-    'echo "### Windows Setup ...................................................."',
-    'echo "======================================================================"',
     'echo "| Downloading Rust..."',
     "curl -o rustup-init.exe https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe",
     'echo "| Installing Rust..."',
@@ -193,12 +211,18 @@ before-build = [
     'echo "======================================================================"',
     'echo "### Building ........................................................."',
     'echo "======================================================================"',
-    'echo "| Install dependencies..."',
+    'echo "| Prepare build environment..."',
     "python -m pip install --upgrade pipenv wheel pip",
     "python -m pip install --upgrade auditwheel auditwheel-symbols delocate",
     "python -m pip install --upgrade setuptools_rust setuptools wheel pkginfo",
+    'echo "| Build environment prepared..."',
 ]
-test-command = ["pytest {project}/tests"]
+test-command = [
+    'echo "======================================================================"',
+    'echo "### Test Start ......................................................."',
+    'echo "======================================================================"',
+    "pytest {project}/tests",
+]
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]

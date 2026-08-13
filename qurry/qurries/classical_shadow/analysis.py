@@ -60,8 +60,7 @@ class SUAnalyzeArgs(AnalyzeArgs, total=False):
     use_projecter: bool
     r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
 
-    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
-    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
     for more details.
     """
     trace_method: TraceMethodType
@@ -287,8 +286,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
     use_projecter: bool
     r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
 
-    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
-    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
     for more details.
     """
     trace_method: TraceMethodType
@@ -302,21 +300,6 @@ class SUProcessEntries(ProcessEntriesPrototype):
         Returns:
             dict[str, Any]: The data to be exported.
         """
-        rho_method = (
-            self.rho_method
-            if isinstance(self.rho_method, RhoMethod)
-            else RhoMethod.from_string(self.rho_method)
-        )
-        trace_method = (
-            self.trace_method
-            if isinstance(self.trace_method, TraceMethod)
-            else TraceMethod.from_string(self.trace_method)
-        )
-        estimate_trace_method = (
-            self.estimate_trace_method
-            if isinstance(self.estimate_trace_method, ListTraceMethod)
-            else ListTraceMethod.from_string(self.estimate_trace_method)
-        )
 
         return {
             "shots": self.shots,
@@ -338,11 +321,23 @@ class SUProcessEntries(ProcessEntriesPrototype):
             "maximum_shadow_norm": (
                 None if self.maximum_shadow_norm is None else float(self.maximum_shadow_norm)
             ),
-            "rho_method": rho_method.value,
+            "rho_method": (
+                self.rho_method
+                if isinstance(self.rho_method, RhoMethod)
+                else RhoMethod.from_string(self.rho_method)
+            ).value,
             "shadow_basis": self.shadow_basis.export(),
             "use_projecter": self.use_projecter,
-            "trace_method": trace_method.value,
-            "estimate_trace_method": estimate_trace_method.value,
+            "trace_method": (
+                self.trace_method
+                if isinstance(self.trace_method, TraceMethod)
+                else TraceMethod.from_string(self.trace_method)
+            ).value,
+            "estimate_trace_method": (
+                self.estimate_trace_method
+                if isinstance(self.estimate_trace_method, ListTraceMethod)
+                else ListTraceMethod.from_string(self.estimate_trace_method)
+            ).value,
         }
 
     @classmethod
@@ -372,7 +367,7 @@ class SUProcessEntries(ProcessEntriesPrototype):
                 if raw_dict["maximum_shadow_norm"] is None
                 else float(raw_dict["maximum_shadow_norm"])
             ),
-            rho_method=RhoMethod.from_string(raw_dict["rho_method"]),
+            rho_method=raw_dict["rho_method"],
             shadow_basis=ShadowRandomBasis.ingest(raw_dict["shadow_basis"]),
             use_projecter=raw_dict.get("use_projecter", False),
             trace_method=TraceMethod.from_string(raw_dict["trace_method"]),
@@ -433,8 +428,7 @@ class SUBasicResult(AnalysisResultsPrototype):
     use_projecter: bool
     r"""Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`. 
 
-    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed` 
-    or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
+    Refer to :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
     for more details.
     """
 
@@ -459,10 +453,10 @@ class SUBasicResult(AnalysisResultsPrototype):
             "classical_registers_actually": self.classical_registers_actually,
             "taking_time": float(self.taking_time),
             "rho_method": (
-                RhoMethod.from_string(self.rho_method).value
-                if isinstance(self.rho_method, str)
-                else self.rho_method.value
-            ),
+                self.rho_method
+                if isinstance(self.rho_method, RhoMethod)
+                else RhoMethod.from_string(self.rho_method)
+            ).value,
             "random_basis_data": self.random_basis_data,
             "mean_of_rho": np.array(self.mean_of_rho, dtype=str).tolist(),
             "use_projecter": self.use_projecter,
@@ -521,10 +515,10 @@ class SUPurityResult(AnalysisResultsPrototype):
             "purity_value_kind": self.purity_value_kind,
             "taking_time": float(self.taking_time),
             "trace_method": (
-                TraceMethod.from_string(self.trace_method).value
+                TraceMethod.from_string(self.trace_method)
                 if isinstance(self.trace_method, str)
-                else self.trace_method.value
-            ),
+                else self.trace_method
+            ).value,
         }
 
     @classmethod
@@ -724,10 +718,10 @@ class SUEstimationResult(AnalysisResultsPrototype):
             "shadow_norm_upperbound": float(self.shadow_norm_upperbound),
             "taking_time": float(self.taking_time),
             "estimate_trace_method": (
-                ListTraceMethod.from_string(self.estimate_trace_method).value
+                ListTraceMethod.from_string(self.estimate_trace_method)
                 if isinstance(self.estimate_trace_method, str)
-                else self.estimate_trace_method.value
-            ),
+                else self.estimate_trace_method
+            ).value,
         }
 
     @classmethod
@@ -910,34 +904,16 @@ class SUAnalysis(
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
             rho_method (RhoMethodType, optional):
-                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-                "single_shots_proto", "single_shots", or "single_shots_vectorized".
-
-                For the "multi_shots_*" methods, the counts and random basis are used as is.
-                For the "single_shots_*" methods, the counts and random basis are
+                For the "multi_shots" methods, the counts and random basis are used as is.
+                For the "single_shots" methods, the counts and random basis are
                 converted to single shot per snapshot for classical shadow post-processing.
 
-                **Warning: Althought larger snapshots number means more accurate values.**
-                **But if your shots number is large,**
-                **this may significantly increase memory usage**
-                **and require a lot of computing resource.**
-                **In worst scenrio, this will break your computer.**
-                **Please reconsider for performance.**
+                **Warning: Although larger snapshots number means more accurate values.**
+                **But if your shots number is large, this may significantly increase memory usage,**
+                **require a lot of computing resource, and may run out of memory.**
+                **Please consider carefully for performance.**
 
-                - "multi_shots_proto": Use Numpy to calculate the rho_m.
-                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow.
-
-                - "single_shots_proto": Use Numpy to calculate the rho_m
-                    with converted single shot counts.
-                - "single_shots": Use Numpy to calculate the rho_m
-                    with precomputed values with converted single shot counts.
-                - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow with converted single shot counts.
-
-                Currently, "multi_shots" is the best option for performance.
-                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+                Default to :data:`DEFAULT_RHO_METHOD`.
             shadow_basis (ShadowBasisType, optional):
                 The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
 
@@ -951,8 +927,6 @@ class SUAnalysis(
                 Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`.
                 Refer to
                 :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
-                or
-                :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
                 for more details.
                 When :attr:`use_projecter` is False,
                 which means using the precomputed :math:`\rho_{mk}^{i}`.
@@ -967,12 +941,7 @@ class SUAnalysis(
                         to calculate the each summation item in `rho_m_list`.
                     - "einsum_aij_bji_to_ab_numpy": Use
                         `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                        This is the fastest implementation to calculate the trace of Rho
-                        if JAX is not available.
-                    - "einsum_aij_bji_to_ab_jax": Use
-                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                        This is the fastest implementation to calculate the trace of Rho
-                        if JAX is available.
+                        This is the fastest implementation to calculate the trace of Rho.
 
                 - Non-matrix operation methods:
                     - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
@@ -990,10 +959,6 @@ class SUAnalysis(
 
                 - "einsum_aij_bji_to_ab_numpy":
                     Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                     This is the fastest implementation to calculate the trace of Rho.
 
                 Defaults to DEFAULT_LIST_TRACE_METHOD.

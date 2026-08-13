@@ -154,7 +154,7 @@ pub fn degree_handler_rust(
     );
     let invalid_ranges: Vec<String> = bitstring_check
         .iter()
-        .filter(|(_, &v)| !v)
+        .filter(|&(_, &v)| !v)
         .map(|(k, _): (&&str, _)| format!(" {}", k))
         .collect();
     error_message.push_str(&invalid_ranges.join(";"));

@@ -69,17 +69,38 @@ def test_qubit_selector(dummy_string: str, degree: int | tuple[int, int] | None)
     selected_by_py = qubit_selector_py(len(dummy_string), degree)
     selected_by_rust = qubit_selector_rust(len(dummy_string), degree)
 
-    assert selected_by_rust == selected_by_py, (
-        "Rust and Python results are not equal in"
-        + f"qubit_selector with string '{dummy_string}' and degree {degree} "
-        + f"by selection input of {case_desc}."
-    )
+    if selected_by_rust == selected_by_py:
+        msg_1 = (
+            "PASS - qubit_selector - Rust and Python results are equal "
+            + f"with string '{dummy_string}' and degree {degree} "
+            + f"by selection input of {case_desc}."
+        )
+        logger.info(msg_1)
+    else:
+        msg_1 = (
+            "FAIL - qubit_selector - Rust and Python results are not equal "
+            + f"with string '{dummy_string}' and degree {degree} "
+            + f"by selection input of {case_desc}."
+        )
+        logger.error(msg_1)
+    assert selected_by_rust == selected_by_py, msg_1
 
     cycling_slice_py_result = cycling_slice_py(dummy_string, *selected_by_py, 1)
-    cycling_slice_rust_result = cycling_slice_rust(dummy_string, *selected_by_py, 1)
+    cycling_slice_rust_result = cycling_slice_rust(dummy_string, *selected_by_rust, 1)
 
-    assert cycling_slice_rust_result == cycling_slice_py_result, (
-        "Rust and Python results are not equal in"
-        + f"cycling_slice with string '{dummy_string}' and degree {degree} "
-        + f"by selection input of {case_desc}."
-    )
+    if cycling_slice_rust_result == cycling_slice_py_result:
+        msg_2 = (
+            "PASS - cycling_slice - Rust and Python results are equal in "
+            + f"with string '{dummy_string}' and degree {degree} "
+            + f"by selection input of {case_desc}."
+        )
+        logger.info(msg_2)
+    else:
+        msg_2 = (
+            "FAIL - cycling_slice - Rust and Python results are not equal in "
+            + f"with string '{dummy_string}' and degree {degree} "
+            + f"by selection input of {case_desc}."
+        )
+        logger.error(msg_2)
+
+    assert cycling_slice_rust_result == cycling_slice_py_result, msg_2

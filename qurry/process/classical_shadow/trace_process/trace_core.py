@@ -26,12 +26,7 @@ class TraceMethod(BaseMethodEnum):
             to calculate the each summation item in `rho_m_list`.
         - "einsum_aij_bji_to_ab_numpy": Use
             `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-            This is the fastest implementation to calculate the trace of Rho
-            if JAX is not available.
-        - "einsum_aij_bji_to_ab_jax": Use
-            `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-            This is the fastest implementation to calculate the trace of Rho
-            if JAX is available.
+            This is the fastest implementation to calculate the trace of Rho.
 
     - Non-matrix operation methods:
         - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
@@ -53,8 +48,6 @@ class TraceMethod(BaseMethodEnum):
     the each summation item in `rho_m_list`."""
     EINSUM_AIJ_BJI_TO_AB_NUMPY = RhoTraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY.value
     """Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
-    EINSUM_AIJ_BJI_TO_AB_JAX = RhoTraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value
-    """Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
 
     # Non-matrix operation methods
     NOMATMUL_TRACE_PY = NonMatMulTraceMethod.NOMATMUL_TRACE_PY.value
@@ -139,7 +132,6 @@ class TraceMethod(BaseMethodEnum):
             self.TRACE_OF_MATMUL,
             self.EINSUM_IJ_JI,
             self.EINSUM_AIJ_BJI_TO_AB_NUMPY,
-            self.EINSUM_AIJ_BJI_TO_AB_JAX,
         ]
 
     @classmethod
@@ -153,7 +145,6 @@ class TraceMethod(BaseMethodEnum):
             cls.TRACE_OF_MATMUL.value,
             cls.EINSUM_IJ_JI.value,
             cls.EINSUM_AIJ_BJI_TO_AB_NUMPY.value,
-            cls.EINSUM_AIJ_BJI_TO_AB_JAX.value,
         ]
 
     def to_matrixop_enum(self) -> RhoTraceMethod:
@@ -181,12 +172,7 @@ TraceMethodType = TraceMethod | str
         to calculate the each summation item in `rho_m_list`.
     - "einsum_aij_bji_to_ab_numpy": Use
         `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-        This is the fastest implementation to calculate the trace of Rho
-        if JAX is not available.
-    - "einsum_aij_bji_to_ab_jax": Use
-        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-        This is the fastest implementation to calculate the trace of Rho
-        if JAX is available.
+        This is the fastest implementation to calculate the trace of Rho.
 
 - Non-matrix operation methods:
     - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
@@ -238,12 +224,7 @@ def all_trace_core(
                     to calculate the each summation item in `rho_m_list`.
                 - "einsum_aij_bji_to_ab_numpy": Use
                     `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax": Use
-                    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is available.
+                    This is the fastest implementation to calculate the trace of Rho.
 
             - Non-matrix operation methods:
                 - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.

@@ -5,13 +5,13 @@
 
 from typing import Literal
 
-from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+from ..availability import availability, default_postprocessing_backend, PostProcessingBackendLabel
 from ..utils import FloatType
 
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.string_operator import string_operator_core_rust  # type: ignore
 
-BACKEND_AVAILABLE = availablility("string_operator.strop_core", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("string_operator.strop_core", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 

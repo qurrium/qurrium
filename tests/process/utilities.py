@@ -41,25 +41,40 @@ def quick_json_read(file_path: str) -> Any:
     return data
 
 
-def numerical_tolerance_check(
-    value1: FloatType, value2: FloatType, tolerance: FloatType = NUMERICAL_ERROR_TOLERANCE
-) -> bool:
+def assert_numerical_tolerance_check(
+    name: str,
+    value1: FloatType,
+    label1: str,
+    value2: FloatType,
+    label2: str,
+    logger: logging.Logger,
+    tolerance: FloatType = NUMERICAL_ERROR_TOLERANCE,
+) -> None:
     """Check if two numerical values are within a specified tolerance.
 
     Args:
-        value1 (FloatType):
-            The first numerical value.
-        value2 (FloatType):
-            The second numerical value.
+        name (str): The name of the test case.
+        value1 (FloatType): The first numerical value.
+        label1 (str): The label for the first value.
+        value2 (FloatType): The second numerical value.
+        label2 (str): The label for the second value.
+        logger (logging.Logger): The logger to use.
         tolerance (FloatType):
             The acceptable tolerance level. Defaults to NUMERICAL_ERROR_TOLERANCE.
-
-
-    Returns:
-        bool: True if the values are within the tolerance, False otherwise.
     """
+    is_tolerable = np.abs(value1 - value2) <= tolerance
+    status = "PASS" if is_tolerable else "FAIL"
+    msg = (
+        f"{status} - {name} - {label1} vs {label2} | "
+        + f"value1: {value1}, value2: {value2}, "
+        + f"Diff: {np.abs(value1 - value2)} < Threshold: {tolerance}"
+    )
+    if is_tolerable:
+        logger.info(msg)
+    else:
+        logger.error(msg)
 
-    return np.abs(value1 - value2) <= tolerance
+    assert is_tolerable, msg
 
 
 AvailStatusType = tuple[

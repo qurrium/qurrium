@@ -29,7 +29,7 @@ from qurry.process.randomized_measure import (
 from .utilities import (
     quick_json_read,
     get_dummy_file_path,
-    numerical_tolerance_check,
+    assert_numerical_tolerance_check,
     assert_and_logging_rust_available,
 )
 
@@ -244,16 +244,30 @@ def test_entangled_entropy_core(target: RandomizedMeasureTarget, counts: list[di
     for (title_01, result_01, info_01), (title_02, result_02, info_02) in combinations(
         comparison_target, 2
     ):
-        assert numerical_tolerance_check(result_01, result_02), (
-            f"{title_01} and {title_02} results are not equal in entangled_entropy_core: "
-            + f"{title_01}: {result_01}, {title_02}: {result_02} - "
-            + f"{title_01}: {info_01}, {title_02}: {info_02}"
+        assert_numerical_tolerance_check(
+            "entangled_entropy_core",
+            result_01,
+            title_01,
+            result_02,
+            title_02,
+            logger,
         )
 
-    assert selected_classical_registers == cycling_selected, (
-        f"selected_classical_registers: {selected_classical_registers} != "
-        + f"selected_classical_registers_by_cycling: {cycling_selected}"
-    )
+    if selected_classical_registers != cycling_selected:
+        msg = (
+            "FAIL - entangled_entropy_core - "
+            + f"selected_classical_registers: {selected_classical_registers} != "
+            + f"selected_classical_registers_by_cycling: {cycling_selected}"
+        )
+        logger.error(msg)
+    else:
+        msg = (
+            "PASS - entangled_entropy_core - "
+            + f"selected_classical_registers: {selected_classical_registers} == "
+            + f"selected_classical_registers_by_cycling: {cycling_selected}"
+        )
+        logger.info(msg)
+    assert selected_classical_registers == cycling_selected, msg
 
 
 @pytest.mark.parametrize(["target", "counts"], randomized_cases_entries)
@@ -303,13 +317,27 @@ def test_overlap_echo_core(target: RandomizedMeasureTarget, counts: list[dict[st
     for (title_01, result_01, info_01), (title_02, result_02, info_02) in combinations(
         comparison_target, 2
     ):
-        assert numerical_tolerance_check(result_01, result_02), (
-            f"{title_01} and {title_02} results are not equal in entangled_entropy_core: "
-            + f"{title_01}: {result_01}, {title_02}: {result_02} - "
-            + f"{title_01}: {info_01}, {title_02}: {info_02}"
+        assert_numerical_tolerance_check(
+            "overlap_echo_core",
+            result_01,
+            title_01,
+            result_02,
+            title_02,
+            logger,
         )
 
-    assert selected_classical_registers == cycling_selected, (
-        f"selected_classical_registers: {selected_classical_registers} != "
-        + f"selected_classical_registers_by_cycling: {cycling_selected}"
-    )
+    if selected_classical_registers != cycling_selected:
+        msg = (
+            "FAIL - overlap_echo_core - "
+            + f"selected_classical_registers: {selected_classical_registers} != "
+            + f"selected_classical_registers_by_cycling: {cycling_selected}"
+        )
+        logger.error(msg)
+    else:
+        msg = (
+            "PASS - overlap_echo_core - "
+            + f"selected_classical_registers: {selected_classical_registers} == "
+            + f"selected_classical_registers_by_cycling: {cycling_selected}"
+        )
+        logger.info(msg)
+    assert selected_classical_registers == cycling_selected, msg

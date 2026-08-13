@@ -14,7 +14,7 @@ from qurry.process.string_operator import (
 from .utilities import (
     quick_json_read,
     get_dummy_file_path,
-    numerical_tolerance_check,
+    assert_numerical_tolerance_check,
     FloatType,
     assert_and_logging_rust_available,
 )
@@ -118,17 +118,24 @@ def test_string_operator(
     comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result["order"]),
         ("Rust", rust_result["order"]),
-        ("Answer", answer["order"]),
+        ("Numerical Answer", answer["order"]),
     ]
     for (name_1, result_1), (name_2, result_2) in combinations(comparison_target, 2):
-        assert numerical_tolerance_check(result_1, result_2), (
-            f"{name_1} and {name_2} results are not equal in string_operator_core: "
-            f"{name_1}: {result_1}, {name_2}: {result_2}."
+        assert_numerical_tolerance_check(
+            "string_operator_core",
+            result_1,
+            name_1,
+            result_2,
+            name_2,
+            logger,
         )
     for name_1, result_1 in comparison_target:
-        assert numerical_tolerance_check(
-            result_1, ANSWERS[case_tags[0]][case_tags[1]], ANSWERS_ERROR
-        ), (
-            f"Result by {name_1} {result_1} is not close to expected "
-            f"{ANSWERS[case_tags[0]][case_tags[1]]}."
+        assert_numerical_tolerance_check(
+            "string_operator_core",
+            result_1,
+            name_1,
+            ANSWERS[case_tags[0]][case_tags[1]],
+            "Answer",
+            logger,
+            ANSWERS_ERROR
         )

@@ -6,93 +6,16 @@ The matrix calculation for predicting quantum properties.
 """
 
 from collections.abc import Callable
-import warnings
 import numpy as np
 import numpy.typing as npt
 
 from ..utils import BaseMethodEnum
-from ..availability import availablility
-from ..exceptions import PostProcessingThirdPartyUnavailableWarning
+from ..availability import availability
 
 
-# pylint: disable=import-outside-toplevel
-def is_jax_available():
-    """Check if JAX is available.
-
-    Returns:
-        tuple[bool, ImportError | None]: A tuple containing a boolean indicating
-        whether JAX is available and the ImportError if it is not.
-    """
-    try:
-        # pylint: disable=unused-import
-        import jax  # noqa: F401
-        # pylint: enable=unused-import
-
-        return True, None
-    except ImportError as e:
-        return False, e
-
-
-JAX_AVAILABLE, FAILED_JAX_IMPORT = is_jax_available()
-
-
-def set_jax_platform_cpu_only():
-    """Set JAX to use CPU only. We just want to use JAX for speed up on CPU.
-    And we don't want to handle GPU/TPU issues in Qurrium."""
-    if not JAX_AVAILABLE:
-        warnings.warn(
-            "JAX is not available, nothing to set. error: " + str(FAILED_JAX_IMPORT),
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        return
-
-    import jax
-
-    jax.config.update("jax_platforms", "cpu")
-
-
-def set_jax_enable_x64(enable: bool = True):
-    """Set JAX to enable or disable 64-bit precision.
-
-    This is required to handle the complex128 dtype in JAX.
-    Or the result of JAX will be not same as Numpy.
-
-    Args:
-        enable (bool, optional): Whether to enable 64-bit precision. Defaults to True.
-    """
-    if not JAX_AVAILABLE:
-        warnings.warn(
-            "JAX is not available, nothing to set. error: " + str(FAILED_JAX_IMPORT),
-            PostProcessingThirdPartyUnavailableWarning,
-        )
-        return
-
-    import jax
-
-    jax.config.update("jax_enable_x64", enable)
-
-
-def check_jax_enabled_x64():
-    """Check if JAX is enabled for 64-bit precision."""
-    if not JAX_AVAILABLE:
-        return
-
-    import jax
-
-    if not jax.config.values["jax_enable_x64"]:
-        warnings.warn(
-            "JAX is not set to use 64-bit precision, but it should be setup by Qurrium "
-            + "Since we rely on 64-bit precision to confirm "
-            + "that it made same result with Numpy. "
-            + "You can set it by `jax.config.update('jax_enable_x64', True)`. "
-            + "Or you can set it in your environment by `export JAX_ENABLE_X64=True`. ",
-            RuntimeWarning,
-        )
-
-
-BACKEND_AVAILABLE = availablility(
+BACKEND_AVAILABLE = availability(
     "classical_shadow.matrix_calculation",
-    [("Numpy", True, None), ("JAX", JAX_AVAILABLE, FAILED_JAX_IMPORT)],
+    [("Numpy", True, None), ("JAX", "Depr.", None)],
 )
 """The availability of backends for classical shadow matrix calculation."""
 
@@ -194,17 +117,10 @@ class ListTraceMethod(BaseMethodEnum):
 
     - "einsum_aij_bji_to_ab_numpy": Use\
     `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    This is the fastest implementation to calculate the trace of Rho if JAX is not available.
-    - "einsum_aij_bji_to_ab_jax": Use\
-    `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    This is the fastest implementation to calculate the trace of Rho.
     """
 
     EINSUM_AIJ_BJI_TO_AB_NUMPY = "einsum_aij_bji_to_ab_numpy"
     """Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
-
-    EINSUM_AIJ_BJI_TO_AB_JAX = "einsum_aij_bji_to_ab_jax"
-    """Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace."""
 
     @classmethod
     def get_default(cls) -> "ListTraceMethod":
@@ -213,22 +129,7 @@ class ListTraceMethod(BaseMethodEnum):
         Returns:
             The default method.
         """
-        return cls.EINSUM_AIJ_BJI_TO_AB_JAX if JAX_AVAILABLE else cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
-
-    def handle_jax_unavailability(self) -> "ListTraceMethod":
-        """Handle JAX unavailability by falling back to numpy method if necessary.
-
-        Returns:
-            ListTraceMethod: The original method if JAX is available or not needed,
-            otherwise the numpy method.
-        """
-        if self == self.EINSUM_AIJ_BJI_TO_AB_JAX and not JAX_AVAILABLE:
-            warnings.warn(
-                "JAX is not available, using numpy to calculate all trace.",
-                PostProcessingThirdPartyUnavailableWarning,
-            )
-            return self.EINSUM_AIJ_BJI_TO_AB_NUMPY
-        return self
+        return cls.EINSUM_AIJ_BJI_TO_AB_NUMPY
 
 
 ListTraceMethodType = ListTraceMethod | str
@@ -237,10 +138,7 @@ ListTraceMethodType = ListTraceMethod | str
 - "einsum_aij_bji_to_ab_numpy":
     Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
     This is the fastest implementation to calculate the trace of Rho
-    if JAX is not available.
-- "einsum_aij_bji_to_ab_jax":
-    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-    This is the fastest implementation to calculate the trace of Rho.
+
 """
 
 DEFAULT_LIST_TRACE_METHOD: ListTraceMethod = ListTraceMethod.get_default()
@@ -272,30 +170,15 @@ def all_trace_rho_by_einsum_aij_bji_to_ab(
         )
     if isinstance(method, str):
         method = ListTraceMethod.from_string(method)
-    method = method.handle_jax_unavailability()
 
     len_rho_m_array = len(rho_m_array)
 
-    if method == ListTraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY:
-        trace_matrix = np.einsum("aij,bji -> ab", rho_m_array, rho_m_array)
-        mask = np.ones(trace_matrix.shape, dtype=bool)
-        np.fill_diagonal(mask, False)
-
-        sum_off_diagonal = trace_matrix[mask].sum()
-        return sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1))
-
-    import jax
-    import jax.numpy as jnp
-
-    jax.config.update("jax_platforms", "cpu")
-    jax.config.update("jax_enable_x64", True)
-
-    trace_matrix = jnp.einsum("aij,bji -> ab", rho_m_array, rho_m_array)
+    trace_matrix = np.einsum("aij,bji -> ab", rho_m_array, rho_m_array)
     mask = np.ones(trace_matrix.shape, dtype=bool)
     np.fill_diagonal(mask, False)
 
     sum_off_diagonal = trace_matrix[mask].sum()
-    return np.complex128(sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1)))
+    return sum_off_diagonal / (len_rho_m_array * (len_rho_m_array - 1))
 
 
 def prediction_einsum_aij_bji_to_ab(
@@ -317,10 +200,6 @@ def prediction_einsum_aij_bji_to_ab(
             - "einsum_aij_bji_to_ab_numpy":
                 Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
-                if JAX is not available.
-            - "einsum_aij_bji_to_ab_jax":
-                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho.
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
@@ -334,44 +213,21 @@ def prediction_einsum_aij_bji_to_ab(
             "given_operators and estimators must be 3-dimensional arrays."
             f"Got {given_operators.ndim} and {estimators.ndim} dimensions respectively."
         )
-
     if isinstance(method, str):
         method = ListTraceMethod.from_string(method)
-    method = method.handle_jax_unavailability()
 
-    if method == ListTraceMethod.EINSUM_AIJ_BJI_TO_AB_NUMPY:
-        # the matrix with shape (len(given_operators), len(estimators))
-        candidate_esitmators_foreach_given_operator = np.einsum(
-            "aij,bji->ab", given_operators, estimators
+    if given_operators.ndim != 3 or estimators.ndim != 3:
+        raise ValueError(
+            "given_operators and estimators must be 3-dimensional arrays."
+            f"Got {given_operators.ndim} and {estimators.ndim} dimensions respectively."
         )
 
-        # a 1-dim list with length = len(given_operators)
-        median_foreach_given_operator = np.median(
-            candidate_esitmators_foreach_given_operator, axis=1
-        )
-        # Index j of the estimator
-        median_location_given_operator = np.argmin(
-            np.abs(
-                candidate_esitmators_foreach_given_operator - median_foreach_given_operator[:, None]
-            ),
-            axis=1,
-        )
-
-        return (
-            list(median_foreach_given_operator),
-            candidate_esitmators_foreach_given_operator.tolist(),
-            [estimators[j] for j in median_location_given_operator],
-        )
-
-    import jax
-    import jax.numpy as jnp
-
-    jax.config.update("jax_platforms", "cpu")
-    jax.config.update("jax_enable_x64", True)
-
-    candidate_esitmators_foreach_given_operator = jnp.einsum(
+    # the matrix with shape (len(given_operators), len(estimators))
+    candidate_esitmators_foreach_given_operator = np.einsum(
         "aij,bji->ab", given_operators, estimators
     )
+
+    # a 1-dim list with length = len(given_operators)
     median_foreach_given_operator = np.median(candidate_esitmators_foreach_given_operator, axis=1)
     # Index j of the estimator
     median_location_given_operator = np.argmin(
@@ -383,6 +239,6 @@ def prediction_einsum_aij_bji_to_ab(
 
     return (
         list(median_foreach_given_operator),
-        np.array(candidate_esitmators_foreach_given_operator, dtype=np.complex128).tolist(),
+        candidate_esitmators_foreach_given_operator.tolist(),
         [estimators[j] for j in median_location_given_operator],
     )

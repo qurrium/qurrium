@@ -49,7 +49,7 @@ def inner_estimation_of_given_operators(
             The method to use for the calculation. Defaults to DEFAULT_LIST_TRACE_METHOD.
 
     Returns:
-        EstimationOfObservableExtend: The estimation of the given operators.
+        EstimationOfObservable: The estimation of the given operators.
     """
 
     isvalid_classical_shadow_basic(cs_basic)
@@ -153,33 +153,17 @@ def estimation_of_given_operators(
             If it is None, it will be calculated by the largest shadow norm upper bound.
             If it is not None, it must be a positive float number.
             It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
-
         rho_method (RhoMethodType, optional):
-            It can be either "multi_shots", "multi_shots_vectorized",
-            "single_shots", or "single_shots_vectorized".
-
-            For the "multi_shots_*" methods, the counts and random basis are used as is.
-            For the "single_shots_*" methods, the counts and random basis are
+            For the "multi_shots" methods, the counts and random basis are used as is.
+            For the "single_shots" methods, the counts and random basis are
             converted to single shot per snapshot for classical shadow post-processing.
 
-            **Warning: Althought larger snapshots number means more accurate values.**
-            **But if your shots number is large,**
-            **this may significantly increase memory usage**
-            **and require a lot of computing resource.**
-            **In worst scenrio, this will break your computer.**
-            **Please reconsider for performance.**
+            **Warning: Although larger snapshots number means more accurate values.**
+            **But if your shots number is large, this may significantly increase memory usage,**
+            **require a lot of computing resource, and may run out of memory.**
+            **Please consider carefully for performance.**
 
-            - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-            - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow.
-
-            - "single_shots": Use Numpy to calculate the rho_m
-                with precomputed values with converted single shot counts.
-            - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                with a vectorized workflow with converted single shot counts.
-
-            Currently, "multi_shots" is the best option for performance.
-            Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+            Default to :data:`DEFAULT_RHO_METHOD`.
         shadow_basis (ShadowBasisType, optional):
             The shadow basis to use. Defaults to :data:`DEFAULT_SHADOW_BASIS`.
 
@@ -194,7 +178,6 @@ def estimation_of_given_operators(
             Use the projecter :math:`P_m` instead of the precomputed :math:`\rho_m`.
             Refer to
             :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_precomputed`
-            or :func:`qurry.process.classical_shadow.rho_process.rho_m_cell.rho_m_cell_vectorized`
             for more details.
             Default is False, which means using the precomputed :math:`\rho_{mk}^{i}`.
         estimate_trace_method (ListTraceMethodType, optional):
@@ -203,10 +186,6 @@ def estimation_of_given_operators(
             - "einsum_aij_bji_to_ab_numpy":
                 Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                 This is the fastest implementation to calculate the trace of Rho
-                if JAX is not available.
-            - "einsum_aij_bji_to_ab_jax":
-                Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                This is the fastest implementation to calculate the trace of Rho.
 
             Defaults to DEFAULT_LIST_TRACE_METHOD.
 

@@ -4,7 +4,7 @@ from collections.abc import Callable
 import random
 import numpy as np
 
-from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+from ..availability import availability, default_postprocessing_backend, PostProcessingBackendLabel
 
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.dummy import (  # type:ignore
@@ -14,7 +14,7 @@ from ...boorust.dummy import (  # type:ignore
 )
 
 
-BACKEND_AVAILABLE = availablility("utils.dummy", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("utils.dummy", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 

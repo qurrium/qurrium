@@ -46,14 +46,24 @@ def test_counts_substring(test_items: list[int]):
         easy_dummy[0], 8, test_items, backend="Rust"
     )
 
-    assert all(
+    is_count_recount_equal = all(
         counts_recounted_rust_result[s] == v for s, v in counts_recounted_py_result.items()
-    ), (
-        "Rust and Python results are not equal in counts_recount. "
-        + f"test_items: {test_items}, "
-        + f"counts_recount_rust_result: {counts_recounted_rust_result}, "
-        + f"counts_recount_py_result: {counts_recounted_py_result}."
     )
+    if is_count_recount_equal:
+        msg_1 = (
+            "PASS - counts_recount - Rust and Python results are equal in "
+            + f"counts_recount with test_items: {test_items}."
+        )
+        logger.info(msg_1)
+    else:
+        msg_1 = (
+            "FAIL - counts_recount - Rust and Python results are not equal in "
+            + f"counts_recount with test_items: {test_items}, "
+            + f"counts_recount_rust_result: {counts_recounted_rust_result}, "
+            + f"counts_recount_py_result: {counts_recounted_py_result}."
+        )
+        logger.error(msg_1)
+    assert is_count_recount_equal, msg_1
 
     counts_list_recounted_py_result = counts_list_recount_pyrust(
         [easy_dummy[0]], 8, test_items, backend="Python"
@@ -62,15 +72,25 @@ def test_counts_substring(test_items: list[int]):
         [easy_dummy[0]], 8, test_items, backend="Rust"
     )
 
-    assert all(
+    is_count_list_recount_equal = all(
         counts_list_recounted_rust_result[0][s] == v
         for s, v in counts_list_recounted_py_result[0].items()
-    ), (
-        "Rust and Python results are not equal in counts_list_recount. "
-        + f"test_items: {test_items}, "
-        + f"counts_list_recount_rust_result: {counts_list_recounted_rust_result}."
-        + f"counts_list_recount_py_result: {counts_list_recounted_py_result}, "
     )
+    if is_count_list_recount_equal:
+        msg_2 = (
+            "PASS - counts_list_recount - Rust and Python results are equal in "
+            + f"counts_list_recount with test_items: {test_items}."
+        )
+        logger.info(msg_2)
+    else:
+        msg_2 = (
+            "FAIL - counts_list_recount - Rust and Python results are not equal in "
+            + f"counts_list_recount with test_items: {test_items}, "
+            + f"counts_list_recount_rust_result: {counts_list_recounted_rust_result}, "
+            + f"counts_list_recount_py_result: {counts_list_recounted_py_result}."
+        )
+        logger.error(msg_2)
+    assert is_count_list_recount_equal, msg_2
 
 
 def test_counts_list_vectorize():
@@ -90,8 +110,14 @@ def test_counts_list_vectorize():
             bitstring_recover = "".join([str(b) for b in bit])
             if v != single_counts[bitstring_recover]:
                 tmp.append((bitstring_recover, v, single_counts[bitstring_recover]))
+
         if tmp:
-            logger.error(f"Python - counts_list_vectorize is not equal at index {idx}: {tmp}")
+            msg = f"FAIL - counts_list_vectorize - Python is not equal at index {idx}: {tmp}"
+            logger.error(msg)
+        else:
+            msg = f"PASS - counts_list_vectorize - Python results are equal at index {idx}."
+            logger.info(msg)
+        assert not tmp, msg
 
     for idx, ((bit_array, value_array), single_counts) in enumerate(
         zip(counts_list_vectorize_rust_result, origin_counts_list)
@@ -101,8 +127,14 @@ def test_counts_list_vectorize():
             bitstring_recover = "".join([str(b) for b in bit])
             if v != single_counts[bitstring_recover]:
                 tmp.append((bitstring_recover, v, single_counts[bitstring_recover]))
+
         if tmp:
-            logger.error(f"Rust - counts_list_vectorize is not equal at index {idx}: {tmp}")
+            msg = f"FAIL - counts_list_vectorize - Rust is not equal at index {idx}: {tmp}"
+            logger.error(msg)
+        else:
+            msg = f"PASS - counts_list_vectorize - Rust results are equal at index {idx}."
+            logger.info(msg)
+        assert not tmp, msg
 
 
 def test_rho_m_flatten_counts_list_vectorize():
@@ -124,10 +156,20 @@ def test_rho_m_flatten_counts_list_vectorize():
             bitstring_recover = "".join([str(b) for b in bit])
             if v != single_counts[bitstring_recover]:
                 tmp.append((bitstring_recover, v, single_counts[bitstring_recover]))
+
         if tmp:
-            logger.error(
-                f"Python - rho_m_flatten_counts_list_vectorize is not equal at index {idx}: {tmp}"
+            msg = (
+                "FAIL - rho_m_flatten_counts_list_vectorize "
+                + f"- Python is not equal at index {idx}: {tmp}"
             )
+            logger.error(msg)
+        else:
+            msg = (
+                "PASS - rho_m_flatten_counts_list_vectorize "
+                + f"- Python results are equal at index {idx}."
+            )
+            logger.info(msg)
+        assert not tmp, msg
 
     for idx, ((bit_array, value_array), single_counts) in enumerate(
         zip(rho_m_flatten_counts_list_vectorize_rust_result, origin_counts_list)
@@ -137,7 +179,17 @@ def test_rho_m_flatten_counts_list_vectorize():
             bitstring_recover = "".join([str(b) for b in bit])
             if v != single_counts[bitstring_recover]:
                 tmp.append((bitstring_recover, v, single_counts[bitstring_recover]))
+
         if tmp:
-            logger.error(
-                f"Rust - rho_m_flatten_counts_list_vectorize is not equal at index {idx}: {tmp}"
+            msg = (
+                "FAIL - rho_m_flatten_counts_list_vectorize "
+                + f"- Rust is not equal at index {idx}: {tmp}"
             )
+            logger.error(msg)
+        else:
+            msg = (
+                "PASS - rho_m_flatten_counts_list_vectorize "
+                + f"- Rust results are equal at index {idx}."
+            )
+            logger.info(msg)
+        assert not tmp, msg

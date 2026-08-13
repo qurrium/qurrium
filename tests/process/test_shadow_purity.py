@@ -5,15 +5,14 @@ from itertools import combinations
 import logging
 import pytest
 
+
 from qurry.qurrium.utils import bitstring_mapping_getter
 from qurry.process.utils import counts_list_recount_pyrust
 from qurry.process.classical_shadow import (
     classical_shadow_complex,
-    classical_shadow_rho_process_availability,
     classical_shadow_matrix_availability,
     PurityValueKind,
     ShadowBasisType,
-    JAX_AVAILABLE,
     RhoMethod,
     RhoMethodType,
     TraceMethod,
@@ -24,7 +23,7 @@ from qurry.process.classical_shadow import (
 from .utilities import (
     quick_json_read,
     get_dummy_file_path,
-    numerical_tolerance_check,
+    assert_numerical_tolerance_check,
     FloatType,
     no_error_and_msg_of_availability,
 )
@@ -173,8 +172,6 @@ def generate_trying_methods() -> dict[PurityValueKind, list[tuple[RhoMethodType,
 
     for rho_method_tmp in RhoMethod.get_all_methods():
         for trace_method_tmp in TraceMethod.get_all_methods():
-            if not JAX_AVAILABLE and trace_method_tmp == TraceMethod.EINSUM_AIJ_BJI_TO_AB_JAX.value:
-                continue
             if trace_method_tmp == TraceMethod.SKIP_TRACE.value:
                 continue
             methods_by_kind.setdefault(
@@ -191,7 +188,6 @@ def test_availability():
     """Test the availability of the Rust backend for the entangled_entropy_core function."""
 
     for module_location, avails_backends, errors in [
-        classical_shadow_rho_process_availability,
         classical_shadow_matrix_availability,
     ]:
         for backend_label in avails_backends.keys():
@@ -230,11 +226,19 @@ def test_shadow(
         results[f"{rho_method}.{trace_method}"] = purity_result_tmp
 
     for (name_1, result_1), (name_2, result_2) in combinations(results.items(), 2):
-        assert numerical_tolerance_check(result_1["purity"], result_2["purity"]), (
-            f"{name_1} and {name_2} purity results are not equal in classical_shadow_complex: "
-            f"{name_1}: {result_1['purity']}, {name_2}: {result_2['purity']}."
+        assert_numerical_tolerance_check(
+            "classical_shadow_complex.purity",
+            result_1["purity"],
+            name_1,
+            result_2["purity"],
+            name_2,
+            logger,
         )
-        assert numerical_tolerance_check(result_1["entropy"], result_2["entropy"]), (
-            f"{name_1} and {name_2} entropy results are not equal in classical_shadow_complex: "
-            f"{name_1}: {result_1['entropy']}, {name_2}: {result_2['entropy']}."
+        assert_numerical_tolerance_check(
+            "classical_shadow_complex.entropy",
+            result_1["entropy"],
+            name_1,
+            result_2["entropy"],
+            name_2,
+            logger,
         )

@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable
 
-from ..availability import availablility, default_postprocessing_backend, PostProcessingBackendLabel
+from ..availability import availability, default_postprocessing_backend, PostProcessingBackendLabel
 
 # pylint: disable=import-error,no-name-in-module
 from ...boorust.counts_process import (  # type: ignore
@@ -14,7 +14,7 @@ from ...boorust.counts_process import (  # type: ignore
 )
 
 
-BACKEND_AVAILABLE = availablility("utils.counts_process", [("Rust", True, None)])
+BACKEND_AVAILABLE = availability("utils.counts_process", [("Rust", True, None)])
 DEFAULT_PROCESS_BACKEND = default_postprocessing_backend(True, False)
 
 

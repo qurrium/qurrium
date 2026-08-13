@@ -23,9 +23,6 @@ from ...qurrium import (
 )
 from ...process.utils import QubitSelectionType, FloatType
 from ...process.classical_shadow import (
-    set_jax_enable_x64,
-    check_jax_enabled_x64,
-    JAX_AVAILABLE,
     ShadowBasisType,
     RhoMethodType,
     DEFAULT_RHO_METHOD,
@@ -139,12 +136,6 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
     """The abbreviation of this Qurrium class."""
     reserved_register_names = {DEFAULT_CLASSICAL_REGISTER_NAME}
     """The set of reserved classical register names."""
-
-    def __post_init__(self):
-        """Initialize the class."""
-        if JAX_AVAILABLE:
-            set_jax_enable_x64()
-            check_jax_enabled_x64()
 
     @property
     def experiment_instance(self) -> type[SUExperiment]:
@@ -601,34 +592,16 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                 It is :math:`|| O_i - \frac{\text{tr}(O_i)}{2^n} ||_{\text{shadow}}^2` in equation.
 
             rho_method (RhoMethodType, optional):
-                It can be either "multi_shots_proto", "multi_shots", "multi_shots_vectorized",
-                "single_shots_proto", "single_shots", or "single_shots_vectorized".
-
-                For the "multi_shots_*" methods, the counts and random basis are used as is.
-                For the "single_shots_*" methods, the counts and random basis are
+                For the "multi_shots" methods, the counts and random basis are used as is.
+                For the "single_shots" methods, the counts and random basis are
                 converted to single shot per snapshot for classical shadow post-processing.
 
-                **Warning: Althought larger snapshots number means more accurate values.**
-                **But if your shots number is large,**
-                **this may significantly increase memory usage**
-                **and require a lot of computing resource.**
-                **In worst scenrio, this will break your computer.**
-                **Please reconsider for performance.**
+                **Warning: Although larger snapshots number means more accurate values.**
+                **But if your shots number is large, this may significantly increase memory usage,**
+                **require a lot of computing resource, and may run out of memory.**
+                **Please consider carefully for performance.**
 
-                - "multi_shots_proto": Use Numpy to calculate the rho_m.
-                - "multi_shots": Use Numpy to calculate the rho_m with precomputed values.
-                - "multi_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow.
-
-                - "single_shots_proto": Use Numpy to calculate the rho_m
-                    with converted single shot counts.
-                - "single_shots": Use Numpy to calculate the rho_m
-                    with precomputed values with converted single shot counts.
-                - "single_shots_vectorized": Use Numpy to calculate the rho_m
-                    with a vectorized workflow with converted single shot counts.
-
-                Currently, "multi_shots" is the best option for performance.
-                Default to DEFAULT_RHO_METHOD, which is "multi_shots".
+                Default to :data:`DEFAULT_RHO_METHOD`.
             trace_method (TraceMethodType, optional):
                 The method to calculate the trace of rho.
 
@@ -640,12 +613,7 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
                         to calculate the each summation item in `rho_m_list`.
                     - "einsum_aij_bji_to_ab_numpy": Use
                         `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                        This is the fastest implementation to calculate the trace of Rho
-                        if JAX is not available.
-                    - "einsum_aij_bji_to_ab_jax": Use
-                        `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                        This is the fastest implementation to calculate the trace of Rho
-                        if JAX is available.
+                        This is the fastest implementation to calculate the trace of Rho.
 
                 - Non-matrix operation methods:
                     - "nomatmul_trace_py": Use pure Python implementation without multiprocessing.
@@ -663,10 +631,6 @@ class ShadowUnveil(QurriumPrototype[SUExperiment, SUMeasureArgs, SUOutputArgs, S
 
                 - "einsum_aij_bji_to_ab_numpy":
                     Use `np.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
-                    This is the fastest implementation to calculate the trace of Rho
-                    if JAX is not available.
-                - "einsum_aij_bji_to_ab_jax":
-                    Use `jnp.einsum("aij,bji->ab", rho_m_list, rho_m_list)` to calculate the trace.
                     This is the fastest implementation to calculate the trace of Rho.
 
                 Defaults to DEFAULT_LIST_TRACE_METHOD.

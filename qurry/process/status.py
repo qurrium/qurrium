@@ -11,7 +11,6 @@ from .randomized_measure import (
 from .hadamard_test import purity_echo_core_availability
 from .magnet_square import magnet_square_availability
 from .classical_shadow import (
-    classical_shadow_rho_process_availability,
     classical_shadow_matrix_availability,
 )
 from .string_operator import string_operator_availability
@@ -52,7 +51,6 @@ def availability_status_print() -> tuple[
         # string_operator
         string_operator_availability,
         # classical_shadow
-        classical_shadow_rho_process_availability,
         classical_shadow_matrix_availability,
         # utils
         randomized_availability,
