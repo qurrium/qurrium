@@ -11,6 +11,7 @@ from pathlib import Path
 from . import boorust as _boorust
 
 
+# pylint: disable=c-extension-no-member,wrong-import-position,broad-exception-caught
 def _load_boorust_extension():
     """Load boorust extension module from installed site-packages when available."""
     current_package_dir = Path(__file__).resolve().parent
