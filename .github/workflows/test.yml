@@ -26,9 +26,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -128,7 +128,7 @@ jobs:
       max-parallel: ${{ fromJSON(needs.check_version.outputs.idle || '4') }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run Test Unit with Python ${{ matrix.python-version }} and Qiskit ${{ matrix.qiskit-version }}
 
         uses: ./.github/actions/test-unit

@@ -18,7 +18,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up Python ${{ inputs.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ inputs.python-version }}
 
@@ -37,15 +37,22 @@ runs:
     - name: Install Rust toolchain
       shell: bash
       run: |
-        rustup self update
         echo "| Installing rustup"
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
         source "$HOME/.cargo/env"
         echo "| Installing Rust toolchain from rust-toolchain.toml"
         rustup show
 
-        rustup component add cargo --toolchain 1.85
-        rustup default 1.85  # Just to be sure
+        RUST_TOOLCHAIN=$(grep '^channel *= *"' rust-toolchain.toml | sed -E 's/^channel *= *"([^"]+)".*/\1/')
+        if [[ -z "$RUST_TOOLCHAIN" ]]; then
+          echo "| Failed to determine Rust toolchain from rust-toolchain.toml"
+          exit 1
+        fi
+        echo "| Installing Rust toolchain from rust-toolchain.toml"
+        rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component cargo
+        rustup default "$RUST_TOOLCHAIN"  # Just to be sure
+        rustup show
+        cargo --version
         # --------------------------------------------------------------------------
         # Playing: BIRDBRAIN (w/ OK Glass) feat. Kasane Teto
         # So, Fxxk (To fix this.)
