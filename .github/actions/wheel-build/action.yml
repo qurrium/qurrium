@@ -51,18 +51,8 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pipenv wheel pip urllib3
-        if [[ -f requirements-dev.txt ]]; then
-          echo "| Installing dependencies"
-          python -m pip install -r requirements-dev.txt
-        else
-          echo "| No requirements-dev.txt found, installing default dependencies"
-          echo "| This may lose some dependencies"
-          python -m pip install --upgrade --user setuptools setuptools_rust
-          python -m pip install pep440 flake8
-          python -m pip install pytest pytest-xdist pytest-order pytest-cov
-          echo "| Installing Optional Third Party Dependencies"
-          python -m pip install qiskit-aer
-        fi
+        echo "| Installing package and sdependencies"
+        python -m pip install ".[dev,qiskit-aer]" --upgrade
         echo "| Installing toml and pep440 for version management"
         python -m pip install toml pep440
 
