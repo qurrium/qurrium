@@ -15,7 +15,7 @@ from qurry.process.magnet_square import (
 from .utilities import (
     quick_json_read,
     get_dummy_file_path,
-    numerical_tolerance_check,
+    assert_numerical_tolerance_check,
     FloatType,
     assert_and_logging_rust_available,
 )
@@ -123,17 +123,26 @@ def test_magnet_square_zdir(
     comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result["magnet_square"]),
         ("Rust", rust_result["magnet_square"]),
-        ("Answer", answer["magnet_square"]),
+        ("Numerical Answer", answer["magnet_square"]),
     ]
-    for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
-        assert numerical_tolerance_check(result_1, result_02), (
-            f"{name_1} and {name_02} results are not equal in z_dir_magnetic_square_core: "
-            f"{name_1}: {result_1}, {name_02}: {result_02}."
+    for (name_1, result_1), (name_2, result_2) in combinations(comparison_target, 2):
+        assert_numerical_tolerance_check(
+            "z_dir_magnetization_square",
+            result_1,
+            name_1,
+            result_2,
+            name_2,
+            logger,
         )
     for name_1, result_1 in comparison_target:
-        assert numerical_tolerance_check(result_1, ANSWERS[case_name], ANSWERS_ERROR), (
-            f"Result by {name_1} {result_1} is not close to expected "
-            f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
+        assert_numerical_tolerance_check(
+            "z_dir_magnetization_square",
+            result_1,
+            name_1,
+            ANSWERS[case_name],
+            "Answer",
+            logger,
+            ANSWERS_ERROR,
         )
 
 
@@ -163,15 +172,24 @@ def test_magnet_square(target: MagnetSquareTarget, answer: MagnetSquareResult, c
     comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result["magnet_square"]),
         ("Rust", rust_result["magnet_square"]),
-        ("Answer", answer["magnet_square"]),
+        ("Known numerical answer", answer["magnet_square"]),
     ]
-    for (name_1, result_1), (name_02, result_02) in combinations(comparison_target, 2):
-        assert numerical_tolerance_check(result_1, result_02), (
-            f"{name_1} and {name_02} results are not equal in magnet_square_core: "
-            f"{name_1}: {result_1}, {name_02}: {result_02}."
+    for (name_1, result_1), (name_2, result_2) in combinations(comparison_target, 2):
+        assert_numerical_tolerance_check(
+            "magnet_square",
+            result_1,
+            name_1,
+            result_2,
+            name_2,
+            logger,
         )
     for name_1, result_1 in comparison_target:
-        assert numerical_tolerance_check(result_1, ANSWERS[case_name], ANSWERS_ERROR), (
-            f"Result by {name_1} {result_1} is not close to expected "
-            f"{ANSWERS[case_name]} in error {ANSWERS_ERROR}."
+        assert_numerical_tolerance_check(
+            "magnet_square",
+            result_1,
+            name_1,
+            ANSWERS[case_name],
+            "Answer",
+            logger,
+            ANSWERS_ERROR,
         )

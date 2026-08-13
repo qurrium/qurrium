@@ -11,7 +11,7 @@ from qurry.process.utils.randomized import ensemble_cell as ensemble_cell_py, en
 from .utilities import (
     quick_json_read,
     get_dummy_file_path,
-    numerical_tolerance_check,
+    assert_numerical_tolerance_check,
     FloatType,
     assert_and_logging_rust_available,
 )
@@ -70,10 +70,14 @@ def test_ensemble_cell_rust(target: EnsembleTarget, answer: float):
     comparison_target: list[tuple[str, FloatType]] = [
         ("Python", py_result),
         ("Rust", rust_result),
-        ("Answer", answer),
+        ("Numerical Answer", answer),
     ]
     for (name_1, result_1), (name_2, result_2) in combinations(comparison_target, 2):
-        assert numerical_tolerance_check(result_1, result_2), (
-            f"{name_1} and {name_2} results are not equal in purity_echo_core: "
-            f"{name_1}: {result_1}, {name_2}: {result_2}."
+        assert_numerical_tolerance_check(
+            "ensemble_cell",
+            result_1,
+            name_1,
+            result_2,
+            name_2,
+            logger,
         )
